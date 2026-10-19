@@ -243,8 +243,9 @@ impl Component for GradientBorder {
         fill.set_if_modified(themed_fill(self.border.fill));
         let border = self.border.clone();
         let corners = self.corners;
-        let horizontal = self.padding.horizontal();
-        let vertical = self.padding.vertical();
+        let scale = *Platform::get().scale_factor.read() as f32;
+        let horizontal = self.padding.horizontal() * scale;
+        let vertical = self.padding.vertical() * scale;
         canvas(RenderCallback::new(move |context| {
             let bounds = SkRect::from_wh(context.size.width, context.size.height);
             let mut paint = Paint::default();
@@ -630,6 +631,11 @@ mod tests {
 
     #[test]
     fn selected_surfaces_and_borders_keep_geometry_and_animate() {
+        check_selected_surfaces(1.);
+        check_selected_surfaces(2.);
+    }
+
+    fn check_selected_surfaces(scale: f64) {
         use crate::components::{Icon, IconType};
         use freya_testing::TestingRunner;
         use std::{cell::Cell, collections::HashMap, rc::Rc};
@@ -675,14 +681,14 @@ mod tests {
         };
         let (mut test, mut shared) = TestingRunner::new(
             app,
-            Size2D::new(360., 220.),
+            Size2D::new(360. * scale as f32, 220. * scale as f32),
             |runner| {
                 runner.provide_root_context(|| AccentContext {
                     theme: State::create(Arc::new(SharedAccent::default())),
                     phase: State::create(0.),
                 })
             },
-            1.,
+            scale,
         );
         test.set_fonts(HashMap::from([(
             "Inter",
@@ -696,7 +702,9 @@ mod tests {
         let first = image::open(directory.join("details-gradient-a.png"))
             .unwrap()
             .to_rgba8();
-        let edge = first.get_pixel(100, 21).0;
+        let edge = first
+            .get_pixel((100. * scale) as u32, (21. * scale) as u32)
+            .0;
         assert!(
             edge[1] > 100 && edge[2] > 100,
             "The gradient border moved inside the card padding"
@@ -714,6 +722,12 @@ mod tests {
             "Accent animation rebuilt the containing page"
         );
         let changed = |x0: u32, y0: u32, x1: u32, y1: u32| {
+            let (x0, y0, x1, y1) = (
+                (x0 as f64 * scale) as u32,
+                (y0 as f64 * scale) as u32,
+                (x1 as f64 * scale) as u32,
+                (y1 as f64 * scale) as u32,
+            );
             (y0..y1)
                 .flat_map(|y| (x0..x1).map(move |x| (x, y)))
                 .filter(|&(x, y)| first.get_pixel(x, y) != second.get_pixel(x, y))
