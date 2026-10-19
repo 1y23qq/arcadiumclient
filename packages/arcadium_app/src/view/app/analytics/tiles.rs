@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use freya::prelude::*;
 
 use arcadium_core::game::{Analytics, Persona};
@@ -122,8 +123,10 @@ fn hero_tile(caption: &str, value: String, note: String) -> Element {
         .width(Size::fill())
         .height(Size::fill())
         .main_align(Alignment::SpaceBetween)
-        .background(colors::brand().with_a(18))
-        .border(border_all_color(1., colors::brand().with_a(90)))
+        .background(crate::theme::accent::themed_fill(
+            colors::brand().with_a(18),
+        ))
+        .themed_border(border_all_color(1., colors::brand().with_a(90)))
         .child(
             label()
                 .text(caption.to_string())
@@ -201,7 +204,7 @@ fn persona_badge(persona: Persona) -> Element {
         .padding(Gaps::new_symmetric(6., 11.))
         .corner_radius(CornerRadius::new_all(8.))
         .background(colors::component_bg())
-        .border(border_all_color(1., colors::component_border()))
+        .themed_border(border_all_color(1., colors::component_border()))
         .child(
             Icon::new(persona_icon(persona))
                 .size(13.)

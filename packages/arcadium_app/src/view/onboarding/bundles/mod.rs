@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use std::collections::{HashMap, HashSet};
 
 use arcadium_content::packages::ProviderId;
@@ -62,8 +63,8 @@ fn fps_warning_banner() -> impl IntoElement {
     rect()
         .width(Size::fill())
         .corner_radius(CornerRadius::new_all(8.))
-        .border(border_all_color(1., colors::code_warn()))
         .padding(Gaps::new_all(8.))
+        .themed_border(border_all_color(1., colors::code_warn()))
         .child(text)
 }
 
@@ -297,8 +298,8 @@ impl Component for OnboardingBundles {
                             .content(Content::Flex)
                             .corner_radius(CornerRadius::new_all(12.))
                             .background(colors::page_elevated())
-                            .border(border_all_color(1., colors::component_border()))
                             .padding(Gaps::new_all(12.))
+                            .themed_border(border_all_color(1., colors::component_border()))
                             .child(
                                 ScrollArea::new()
                                     .width(Size::fill())

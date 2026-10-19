@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use freya::prelude::*;
 
 use crate::components::{Icon, IconType, OVERLAY_BASE_LEVEL, OverlayPopup};
@@ -26,7 +27,7 @@ fn separator(item_width: Option<f32>) -> Rect {
     let mut sep = rect()
         .height(Size::px(1.))
         .margin(Gaps::new_symmetric(4., 0.))
-        .background(MENU_BORDER);
+        .background(crate::theme::accent::themed_fill(MENU_BORDER));
     if let Some(w) = item_width {
         sep = sep.width(Size::px(w));
     }
@@ -195,8 +196,8 @@ impl Component for ContextMenu {
             .vertical()
             .padding(Gaps::new_all(6.))
             .corner_radius(CornerRadius::new_all(12.))
-            .background(MENU_BG)
-            .border(Border::new().fill(MENU_BORDER).width(BorderWidth {
+            .background(crate::theme::accent::themed_fill(MENU_BG))
+            .themed_border(Border::new().fill(MENU_BORDER).width(BorderWidth {
                 top: 1.,
                 right: 1.,
                 bottom: 1.,
@@ -247,11 +248,11 @@ impl Component for ContextMenuRow {
             .spacing(8.)
             .padding(Gaps::new_symmetric(5., 8.))
             .corner_radius(CornerRadius::new_all(6.))
-            .background(if *hovered.read() {
+            .background(crate::theme::accent::themed_fill(if *hovered.read() {
                 colors::component_bg_hover()
             } else {
                 Color::TRANSPARENT
-            })
+            }))
             .cursor(CursorIcon::Pointer)
             .on_pointer_enter(move |_| hovered.set(true))
             .on_pointer_leave(move |_| hovered.set(false))

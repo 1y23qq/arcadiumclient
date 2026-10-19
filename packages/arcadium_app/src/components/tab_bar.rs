@@ -229,11 +229,11 @@ impl Component for TabButton {
                                 .width(Size::fill_minimum())
                                 .margin(Gaps::new_symmetric(0., 4.0))
                                 .corner_radius(CornerRadius::new_all(2.))
-                                .background(if underline_on {
+                                .background(crate::theme::accent::themed_fill(if underline_on {
                                     colors::fg_primary()
                                 } else {
                                     Color::TRANSPARENT
-                                }),
+                                })),
                         ),
                 )
                 .maybe_child(

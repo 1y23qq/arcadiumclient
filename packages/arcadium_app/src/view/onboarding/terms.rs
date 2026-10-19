@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use freya::prelude::*;
 use freya::query::UseQuery;
 use freya::router::RouterContext;
@@ -150,7 +151,7 @@ fn panel(child: impl IntoElement) -> impl IntoElement {
         .content(Content::Flex)
         .corner_radius(CornerRadius::new_all(12.))
         .background(colors::page_elevated())
-        .border(border_all_color(1., colors::component_border()))
+        .themed_border(border_all_color(1., colors::component_border()))
         .child(child)
 }
 
@@ -339,8 +340,8 @@ fn decline_modal(confirming: State<bool>, on_confirm: impl FnMut() + 'static) ->
                         .spacing(14.)
                         .padding(Gaps::new_all(20.))
                         .corner_radius(CornerRadius::new_all(14.))
-                        .background(CARD_BG)
-                        .border(border_all_color(1., colors::danger()))
+                        .background(crate::theme::accent::themed_fill(CARD_BG))
+                        .themed_border(border_all_color(1., colors::danger()))
                         .child(
                             rect()
                                 .horizontal()

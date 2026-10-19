@@ -269,7 +269,9 @@ fn chevron_btn(
 
     if !enabled {
         return base
-            .background(Color::from_argb(70, 0, 0, 0))
+            .background(crate::theme::accent::themed_fill(Color::from_argb(
+                70, 0, 0, 0,
+            )))
             .on_press(|_| {})
             .child(
                 Icon::new(icon)
@@ -279,11 +281,13 @@ fn chevron_btn(
             .into_element();
     }
 
-    base.background(Color::from_argb(140, 0, 0, 0))
-        .cursor(CursorIcon::Pointer)
-        .on_press(on_press)
-        .child(Icon::new(icon).size(26.).color(colors::fg_primary()))
-        .into_element()
+    base.background(crate::theme::accent::themed_fill(Color::from_argb(
+        140, 0, 0, 0,
+    )))
+    .cursor(CursorIcon::Pointer)
+    .on_press(on_press)
+    .child(Icon::new(icon).size(26.).color(colors::fg_primary()))
+    .into_element()
 }
 
 fn header_row(

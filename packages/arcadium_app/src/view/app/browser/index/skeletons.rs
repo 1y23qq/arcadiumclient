@@ -1,4 +1,5 @@
 use super::*;
+use crate::theme::accent::AccentBorderExt;
 
 use freya::animation::{AnimNum, Ease, Function, OnCreation, OnFinish, use_animation};
 
@@ -38,7 +39,7 @@ impl Component for SkeletonCard {
             .height(Size::px(CARD_H))
             .corner_radius(CornerRadius::new_all(8.))
             .background(colors::component_bg())
-            .border(border_all_color(1., colors::component_border()))
+            .themed_border(border_all_color(1., colors::component_border()))
             .overflow(Overflow::Clip)
             .opacity(pulse)
             .child(skeleton_block(Size::fill(), BANNER_H))
@@ -84,7 +85,7 @@ impl Component for SkeletonListRow {
             .padding(Gaps::new_all(10.))
             .corner_radius(CornerRadius::new_all(8.))
             .background(colors::component_bg())
-            .border(border_all_color(1., colors::component_border()))
+            .themed_border(border_all_color(1., colors::component_border()))
             .opacity(pulse)
             .child(skeleton_block(Size::px(48.), 48.))
             .child(

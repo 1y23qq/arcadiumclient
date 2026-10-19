@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use std::borrow::Cow;
 
 use freya::prelude::*;
@@ -10,7 +11,7 @@ use crate::ui::border_all_color;
 pub struct CodeBlock {
     code: String,
     color: Color,
-    background: Color,
+    background: Fill,
     font_family: Cow<'static, str>,
     font_size: f32,
     max_lines: Option<usize>,
@@ -29,7 +30,7 @@ impl CodeBlock {
         Self {
             code: code.into(),
             color: colors::fg_primary(),
-            background: colors::component_bg(),
+            background: colors::component_bg().into(),
             font_family: Cow::Borrowed(theme::MONO_FONT),
             font_size: 12.,
             max_lines: None,
@@ -43,8 +44,8 @@ impl CodeBlock {
         self
     }
 
-    pub fn background(mut self, background: Color) -> Self {
-        self.background = background;
+    pub fn background(mut self, background: impl Into<Fill>) -> Self {
+        self.background = background.into();
         self
     }
 
@@ -84,8 +85,8 @@ impl Component for CodeBlock {
             .width(Size::fill())
             .padding(Gaps::new_all(12.))
             .corner_radius(CornerRadius::new_all(8.))
-            .background(self.background)
-            .border(border_all_color(1., colors::component_border()));
+            .background(crate::theme::accent::themed_fill(self.background.clone()))
+            .themed_border(border_all_color(1., colors::component_border()));
 
         match self.height {
             Some(height) => block

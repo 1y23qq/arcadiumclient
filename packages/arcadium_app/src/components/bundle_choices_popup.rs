@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use std::collections::HashSet;
 
 use freya::prelude::*;
@@ -89,8 +90,8 @@ impl Component for BundleChoicesPopup {
                             .padding(Gaps::new_all(22.))
                             .spacing(14.)
                             .corner_radius(CornerRadius::new_all(16.))
-                            .background(CARD_BG)
-                            .border(border_all_color(1., colors::component_border()))
+                            .background(crate::theme::accent::themed_fill(CARD_BG))
+                            .themed_border(border_all_color(1., colors::component_border()))
                             .child(
                                 label()
                                     .text("Choose your bundles")

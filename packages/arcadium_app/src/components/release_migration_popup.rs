@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use std::collections::{HashMap, HashSet};
 
 use arcadium_common::domain::{ContentType, GameLoader};
@@ -223,8 +224,8 @@ fn dialog(
         .max_height(Size::window_percent(92.))
         .overflow(Overflow::Clip)
         .corner_radius(CornerRadius::new_all(18.))
-        .background(PANEL_BG)
-        .border(border_all_color(1., colors::component_border()))
+        .background(crate::theme::accent::themed_fill(PANEL_BG))
+        .themed_border(border_all_color(1., colors::component_border()))
         .shadow(Shadow::from((
             0.,
             24.,
@@ -290,13 +291,13 @@ fn art_panel(
                 .padding(Gaps::new(24., 24., 24., 24.))
                 .main_align(Alignment::End)
                 .layer(Layer::Relative(3))
-                .background(
+                .background(crate::theme::accent::themed_fill(
                     LinearGradient::new()
                         .angle(0.)
                         .stop((Color::from_af32rgb(0.0, 13, 17, 21), 28.))
                         .stop((Color::from_af32rgb(0.85, 13, 17, 21), 58.))
                         .stop((Color::from_af32rgb(0.98, 13, 17, 21), 100.)),
-                )
+                ))
                 .child(
                     rect()
                         .vertical()
@@ -607,12 +608,12 @@ fn tab_pill(text: String, active: bool, mut on_press: impl FnMut() + 'static) ->
         .padding(Gaps::new_symmetric(0., 13.))
         .center()
         .corner_radius(CornerRadius::new_all(8.))
-        .background(if active {
+        .background(crate::theme::accent::themed_fill(if active {
             colors::brand()
         } else {
             Color::TRANSPARENT
-        })
-        .border(border_all_color(
+        }))
+        .themed_border(border_all_color(
             1.,
             if active {
                 colors::brand()
@@ -910,7 +911,9 @@ fn section_header(
         .padding(Gaps::new_symmetric(0., 12.))
         .corner_radius(CornerRadius::new_all(8.))
         .background(colors::ghost_overlay())
-        .border(border_all_color(1., colors::component_border()).alignment(BorderAlignment::Inner))
+        .themed_border(
+            border_all_color(1., colors::component_border()).alignment(BorderAlignment::Inner),
+        )
         .cursor(CursorIcon::Pointer)
         .on_press(move |_| state.toggle())
         .child(Icon::new(icon).size(16.).color(colors::fg_secondary()))
@@ -1179,7 +1182,7 @@ fn footer(
         .cross_align(Alignment::Center)
         .spacing(12.)
         .padding(Gaps::new(16., 24., 16., 24.))
-        .background(FOOTER_BG)
+        .background(crate::theme::accent::themed_fill(FOOTER_BG))
         .child(
             label()
                 .text(summary)
@@ -1266,11 +1269,11 @@ impl Component for MigrationRow {
             .spacing(14.)
             .padding(Gaps::new_symmetric(0., 12.))
             .corner_radius(CornerRadius::new_all(10.))
-            .background(if *hovered.read() {
+            .background(crate::theme::accent::themed_fill(if *hovered.read() {
                 colors::ghost_overlay()
             } else {
                 Color::TRANSPARENT
-            })
+            }))
             .cursor(CursorIcon::Pointer)
             .on_pointer_enter(move |_| hovered.set(true))
             .on_pointer_leave(move |_| hovered.set(false))
@@ -1326,7 +1329,9 @@ fn placeholder_icon() -> impl IntoElement {
         .height(Size::px(ROW_ICON))
         .center()
         .corner_radius(CornerRadius::new_all(8.))
-        .border(border_all_color(1., colors::component_border()).alignment(BorderAlignment::Inner))
+        .themed_border(
+            border_all_color(1., colors::component_border()).alignment(BorderAlignment::Inner),
+        )
         .child(
             Icon::new(IconType::DotsGrid)
                 .size(14.)
@@ -1340,12 +1345,12 @@ fn check_box(checked: bool) -> impl IntoElement {
         .height(Size::px(CHECK_SIZE))
         .center()
         .corner_radius(CornerRadius::new_all(6.))
-        .background(if checked {
+        .background(crate::theme::accent::themed_fill(if checked {
             colors::brand()
         } else {
             Color::TRANSPARENT
-        })
-        .border(
+        }))
+        .themed_border(
             border_all_color(
                 1.,
                 if checked {

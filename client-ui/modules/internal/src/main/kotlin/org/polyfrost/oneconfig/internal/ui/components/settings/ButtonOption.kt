@@ -1,7 +1,7 @@
 package org.polyfrost.oneconfig.internal.ui.components.settings
 
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.foundation.background
+import org.polyfrost.oneconfig.internal.ui.themes.accentAwareBackground as background
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding

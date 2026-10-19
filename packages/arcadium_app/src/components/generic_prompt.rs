@@ -1,6 +1,7 @@
 //! Fallback renderer for prompts no dedicated overlay claims
 //! Without it an unrendered prompt leaves the core blocked on `ask()` blocking all later prompts
 
+use crate::theme::accent::AccentBorderExt;
 use arcadium_events::{Answer, ChoiceInput, ChoiceStyle};
 use arcadium_java::JAVA_CHOICE_DOWNLOAD;
 use freya::prelude::*;
@@ -111,8 +112,8 @@ impl Component for GenericPromptOverlay {
                             .spacing(14.)
                             .padding(Gaps::new_all(20.))
                             .corner_radius(CornerRadius::new_all(14.))
-                            .background(CARD_BG)
-                            .border(border_all_color(1., colors::component_border()))
+                            .background(crate::theme::accent::themed_fill(CARD_BG))
+                            .themed_border(border_all_color(1., colors::component_border()))
                             .child(
                                 label()
                                     .text(prompt.title.clone())

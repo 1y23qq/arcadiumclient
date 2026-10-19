@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use std::time::Duration;
 
 use arcadium_core::clusters::Cluster;
@@ -248,7 +249,7 @@ impl Component for ClusterCard {
                     .position(Position::new_absolute())
                     .corner_radius(CornerRadius::new_all(12.))
                     .overflow(Overflow::Clip)
-                    .border(
+                    .themed_border(
                         if active || focused {
                             border_all_color(2., colors::brand())
                         } else if *hovering.read() {
@@ -331,12 +332,12 @@ impl Component for ClusterCard {
                                     .main_align(Alignment::End)
                                     .cross_align(Alignment::Start)
                                     .layer(Layer::Relative(4))
-                                    .background(
+                                    .background(crate::theme::accent::themed_fill(
                                         LinearGradient::new()
                                             .angle(0.0)
                                             .stop((Color::from_argb(0, 25, 25, 25), 24.519))
                                             .stop((Color::from_af32rgb(0.75, 17, 17, 21), 65.)),
-                                    )
+                                    ))
                                     .child(if modpack {
                                         MarqueeTitle {
                                             text: title,
@@ -353,11 +354,13 @@ impl Component for ClusterCard {
                                     .height(Size::fill())
                                     .position(Position::new_absolute())
                                     .layer(Layer::Relative(7))
-                                    .background(if *hovering.read() {
-                                        Color::from_af32rgb(0.2, 0, 0, 0)
-                                    } else {
-                                        Color::TRANSPARENT
-                                    }),
+                                    .background(crate::theme::accent::themed_fill(
+                                        if *hovering.read() {
+                                            Color::from_af32rgb(0.2, 0, 0, 0)
+                                        } else {
+                                            Color::TRANSPARENT
+                                        },
+                                    )),
                             ),
                     ),
             )
@@ -491,7 +494,7 @@ impl Component for BlurredArt {
             .height(Size::fill())
             .position(Position::new_absolute())
             .overflow(Overflow::Clip)
-            .background(MODPACK_BACKDROP);
+            .background(crate::theme::accent::themed_fill(MODPACK_BACKDROP));
 
         let Some(holder) = holder else {
             return backdrop.into_element();
@@ -521,7 +524,7 @@ impl Component for BlurredArt {
                     .overflow(Overflow::Clip)
                     .layer(Layer::Relative(3))
                     .backdrop_blur(MODPACK_BLUR)
-                    .background(MODPACK_TINT),
+                    .background(crate::theme::accent::themed_fill(MODPACK_TINT)),
             )
             .into_element()
     }
@@ -562,7 +565,7 @@ impl Component for OtherVersionsTile {
             .offset_y(rise)
             .opacity(eased)
             .corner_radius(CornerRadius::new_all(12.))
-            .border(
+            .themed_border(
                 if focused {
                     border_all_color(2., colors::brand())
                 } else {
@@ -570,11 +573,11 @@ impl Component for OtherVersionsTile {
                 }
                 .alignment(BorderAlignment::Outer),
             )
-            .background(if *hovering.read() {
+            .background(crate::theme::accent::themed_fill(if *hovering.read() {
                 colors::ghost_overlay_pressed()
             } else {
                 colors::ghost_overlay_hover()
-            })
+            }))
             .backdrop_blur(32.)
             .a11y_id(a11y_id)
             .a11y_focusable(true)

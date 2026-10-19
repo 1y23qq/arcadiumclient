@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use freya::{
     animation::{AnimColor, AnimNum, Ease, Function, use_animation_transition},
     prelude::*,
@@ -127,26 +128,26 @@ impl Component for Switch {
                     .padding(Gaps::new_all(3.))
                     .main_align(knob_align)
                     .cross_align(Alignment::Center)
-                    .background(if disabled {
+                    .background(crate::theme::accent::themed_fill(if disabled {
                         Fill::Color(colors::component_bg_disabled())
                     } else if on {
                         accent::fill(1.)
                     } else {
                         Fill::Color(background.read().value())
-                    })
-                    .border(ui::border_all_color(1., track_border))
+                    }))
+                    .themed_border(ui::border_all_color(1., track_border))
                     .child(
                         rect()
                             .width(Size::px(HANDLE_SIZE))
                             .height(Size::px(HANDLE_SIZE))
                             .corner_radius(CornerRadius::new_all(8.))
-                            .background(if disabled {
+                            .background(crate::theme::accent::themed_fill(if disabled {
                                 colors::fg_secondary()
                             } else if on {
                                 accent::current().foreground()
                             } else {
                                 Color::WHITE
-                            })
+                            }))
                             .position(Position::new_absolute().right(right_offset.read().value())),
                     ),
             )

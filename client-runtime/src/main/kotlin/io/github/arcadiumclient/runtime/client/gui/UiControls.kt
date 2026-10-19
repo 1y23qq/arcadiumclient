@@ -3,9 +3,10 @@
 
 package io.github.arcadiumclient.runtime.client.gui
 
+import org.polyfrost.oneconfig.internal.ui.themes.accentBrush
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import org.polyfrost.oneconfig.internal.ui.themes.accentAwareBackground as background
+import org.polyfrost.oneconfig.internal.ui.themes.accentAwareBorder as border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -41,6 +42,7 @@ import org.polyfrost.oneconfig.internal.ui.components.Icon
 import org.polyfrost.oneconfig.internal.ui.themes.Accent
 import org.polyfrost.oneconfig.internal.ui.themes.LocalTheme
 import org.polyfrost.oneconfig.internal.ui.themes.accentBackground
+import org.polyfrost.oneconfig.internal.ui.themes.accentTint
 import org.polyfrost.oneconfig.internal.ui.sound.UiSoundEvent
 import org.polyfrost.oneconfig.internal.ui.sound.UiSounds
 
@@ -83,7 +85,7 @@ internal fun UiText(
     overflow: TextOverflow = TextOverflow.Clip,
     textAlign: TextAlign = TextAlign.Start,
 ) {
-    BasicText(text, modifier, TextStyle(color = color, fontSize = size,
+    BasicText(text, modifier.accentTint(color), TextStyle(color = color, fontSize = size,
         fontFamily = LocalTheme.current.typography.family, fontWeight = fontWeight,
         textAlign = textAlign), overflow = overflow, maxLines = maxLines)
 }
@@ -142,7 +144,7 @@ internal fun UiTextField(
     BasicTextField(value, { if (it.length <= maxLength) onValueChange(it) },
         modifier.heightIn(min = 34.dp).trackTextInputFocus(), singleLine = true,
         textStyle = TextStyle(color = theme.textColor, fontFamily = theme.typography.family, fontSize = 13.sp),
-        cursorBrush = SolidColor(Accent),
+        cursorBrush = accentBrush(),
         visualTransformation = if (password) PasswordVisualTransformation() else VisualTransformation.None,
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
         keyboardActions = KeyboardActions(onDone = { onSubmit?.invoke() }),

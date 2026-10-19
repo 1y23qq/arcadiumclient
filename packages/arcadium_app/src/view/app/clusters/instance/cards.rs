@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use freya::prelude::*;
 
 use super::model::{LoaderChoice, VersionRow};
@@ -55,12 +56,12 @@ impl Component for SelectCard {
             .padding(self.padding)
             .corner_radius(CornerRadius::new_all(CARD_RADIUS))
             .overflow(Overflow::Clip)
-            .background(if hovered || focused {
+            .background(crate::theme::accent::themed_fill(if hovered || focused {
                 colors::component_bg_hover()
             } else {
                 colors::component_bg()
-            })
-            .border(border_all_color(1., ring))
+            }))
+            .themed_border(border_all_color(1., ring))
             .a11y_id(a11y_id)
             .a11y_focusable(true)
             .a11y_role(AccessibilityRole::Button)
@@ -103,7 +104,7 @@ pub fn loader_mark(choice: LoaderChoice, selected: bool, size: f32) -> Option<El
             .height(Size::px(size))
             .center()
             .corner_radius(CornerRadius::new_all(5.))
-            .border(border_all_color(1., colors::component_border()))
+            .themed_border(border_all_color(1., colors::component_border()))
             .child(
                 label()
                     .text(choice.short())
@@ -124,12 +125,12 @@ pub fn marker(selected: bool, checkbox: bool) -> Element {
         .height(Size::px(MARKER_SIZE))
         .center()
         .corner_radius(CornerRadius::new_all(radius))
-        .background(if selected {
+        .background(crate::theme::accent::themed_fill(if selected {
             colors::brand()
         } else {
             colors::page_elevated()
-        })
-        .border(border_all_color(
+        }))
+        .themed_border(border_all_color(
             1.,
             if selected {
                 colors::brand()

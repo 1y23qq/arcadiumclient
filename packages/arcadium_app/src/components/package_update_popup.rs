@@ -1,5 +1,6 @@
 //! Only lists packages installed from the browser bundle content has its own flow
 
+use crate::theme::accent::AccentBorderExt;
 use std::collections::HashMap;
 
 use arcadium_common::{PackageUpdateMode, Patch};
@@ -128,8 +129,8 @@ fn dialog(
         .max_width(Size::window_percent(95.))
         .overflow(Overflow::Clip)
         .corner_radius(CornerRadius::new_all(16.))
-        .background(CARD_BG)
-        .border(border_all_color(1., colors::component_border()))
+        .background(crate::theme::accent::themed_fill(CARD_BG))
+        .themed_border(border_all_color(1., colors::component_border()))
         .shadow(Shadow::from((
             0.,
             18.,

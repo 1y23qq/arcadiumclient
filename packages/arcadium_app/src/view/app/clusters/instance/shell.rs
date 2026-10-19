@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use freya::prelude::*;
 
 use crate::components::{Button, Icon, IconType, OverlayPopup, ScrollArea};
@@ -62,7 +63,7 @@ pub fn shell(parts: Shell) -> Element {
                         .corner_radius(CornerRadius::new_all(16.))
                         .overflow(Overflow::Clip)
                         .background(colors::page_elevated())
-                        .border(border_all_color(1., colors::component_border()))
+                        .themed_border(border_all_color(1., colors::component_border()))
                         .child(rail)
                         .child(
                             rect()
@@ -168,7 +169,7 @@ fn footer(
         .cross_align(Alignment::Center)
         .spacing(20.)
         .padding(Gaps::new(16., PANE_PADDING, 16., PANE_PADDING))
-        .border(
+        .themed_border(
             Border::new()
                 .fill(colors::component_border())
                 .width(BorderWidth {

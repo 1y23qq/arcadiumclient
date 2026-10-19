@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use freya::prelude::*;
 use freya::router::RouterContext;
 
@@ -189,7 +190,7 @@ fn failure_notice(reason: &str) -> Element {
         .padding(Gaps::new_all(14.))
         .corner_radius(CornerRadius::new_all(12.))
         .background(colors::danger().with_a(26))
-        .border(border_all_color(1., colors::danger().with_a(128)))
+        .themed_border(border_all_color(1., colors::danger().with_a(128)))
         .child(
             label()
                 .text("Your package choices could not be saved.")
@@ -253,8 +254,8 @@ fn summary_section(title: &str, note: Option<&str>, rows: Vec<Element>) -> impl 
                 .spacing(2.)
                 .corner_radius(CornerRadius::new_all(12.))
                 .background(colors::page_elevated())
-                .border(border_all_color(1., colors::component_border()))
                 .padding(Gaps::new_symmetric(6., 4.))
+                .themed_border(border_all_color(1., colors::component_border()))
                 .children(rows),
         )
         .into_element()

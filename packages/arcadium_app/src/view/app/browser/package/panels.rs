@@ -1,4 +1,5 @@
 use super::*;
+use crate::theme::accent::AccentBorderExt;
 
 use arcadium_content::packages::markdown::normalize_markdown;
 use arcadium_content::packages::types::{
@@ -80,8 +81,8 @@ impl Component for MarkdownPanel {
             .width(Size::fill())
             .padding(Gaps::new_all(20.))
             .corner_radius(CornerRadius::new_all(12.))
-            .background(PANEL_BG)
-            .border(border_all_color(1., colors::component_border()))
+            .background(crate::theme::accent::themed_fill(PANEL_BG))
+            .themed_border(border_all_color(1., colors::component_border()))
             .child(
                 Markdown::new(self.body.clone())
                     .width(Size::fill())
@@ -183,7 +184,7 @@ fn version_pager(current: usize, total_pages: usize, page: State<usize>) -> impl
             .height(Size::px(32.))
             .corner_radius(CornerRadius::new_all(8.))
             .background(colors::component_bg())
-            .border(border_all_color(1., colors::component_border()))
+            .themed_border(border_all_color(1., colors::component_border()))
             .maybe(enabled, |el| {
                 el.cursor(CursorIcon::Pointer)
                     .on_press(move |_| page.set(target))
@@ -262,8 +263,8 @@ fn version_row(
         .content(Content::Flex)
         .padding(Gaps::new_all(12.))
         .corner_radius(CornerRadius::new_all(10.))
-        .background(PANEL_BG)
-        .border(border_all_color(1., colors::component_border()))
+        .background(crate::theme::accent::themed_fill(PANEL_BG))
+        .themed_border(border_all_color(1., colors::component_border()))
         .child(release_badge(v.release_type))
         .child(
             rect()
@@ -366,7 +367,7 @@ fn release_badge(release_type: ReleaseType) -> impl IntoElement {
         .width(Size::px(28.))
         .height(Size::px(28.))
         .corner_radius(CornerRadius::new_all(7.))
-        .background(color.with_a(40))
+        .background(crate::theme::accent::themed_fill(color.with_a(40)))
         .child(
             label()
                 .text(text)

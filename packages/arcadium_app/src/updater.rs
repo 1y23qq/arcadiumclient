@@ -455,7 +455,9 @@ mod tests {
                 rect()
                     .width(Size::fill())
                     .height(Size::fill())
-                    .background(Color::from_rgb(12, 16, 23))
+                    .background(crate::theme::accent::themed_fill(Color::from_rgb(
+                        12, 16, 23,
+                    )))
                     .child(crate::components::UpdatePromptOverlay)
             };
             let (mut test, _) = TestingRunner::new(app, Size2D::new(600., 430.), |_| (), 1.);

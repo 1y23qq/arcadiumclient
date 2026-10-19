@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use std::borrow::Cow;
 use std::cell::RefCell;
 
@@ -841,7 +842,7 @@ impl Component for SidebarItem {
             .spacing(10.)
             .padding(Gaps::new_symmetric(0., 12.))
             .corner_radius(CornerRadius::new_all(7.))
-            .background(background)
+            .background(crate::theme::accent::themed_fill(background))
             .a11y_id(a11y_id)
             .a11y_focusable(true)
             .a11y_role(AccessibilityRole::Button)
@@ -855,7 +856,7 @@ impl Component for SidebarItem {
             });
 
         if focus().is_focused() {
-            el = el.border(
+            el = el.themed_border(
                 Border::new()
                     .fill(colors::brand())
                     .width(1.)
@@ -886,5 +887,5 @@ fn notification_dot() -> impl IntoElement {
         .width(Size::px(4.))
         .height(Size::px(4.))
         .corner_radius(CornerRadius::new_all(2.))
-        .background(colors::brand())
+        .background(crate::theme::accent::themed_fill(colors::brand()))
 }

@@ -121,10 +121,18 @@ public final class ThemeAccentQa {
                 set("gradientAccent", true); set("customGradient", true); set("animations", true);
                 set("gradientStart", 0xFFFF4000); set("gradientEnd", 0xFF00BFFF);
                 set("gradientSpeed", 0f); set("gradientSmoothness", 100f);
+                mc.openScreen(parent);
                 stat("org.polyfrost.oneconfig.api.ui.v1.OneConfigUI", "open", object("org.polyfrost.oneconfig.internal.ui.navigation.graph.ModsRoute"));
             }
             case 6 -> {
-                Object bounds = call(textNode(mc.screen, "NoRender", true), "getBoundsInRoot");
+                Object card = null;
+                for (String name : List.of("NoRender", "Arcadium Players", "GUI Scale", "Nick Hider", "AutoText", "Toggle Sprint", "FPS")) {
+                    try { card = textNode(mc.screen, name, true); break; }
+                    catch (IllegalStateException absent) { }
+                }
+                if (card == null) capture(mc, "mods-gradient-diagnostic.png");
+                require(card != null, "No production module card is visible");
+                Object bounds = call(card, "getBoundsInRoot");
                 float left = ((Number) call(bounds, "getLeft")).floatValue();
                 float right = ((Number) call(bounds, "getRight")).floatValue();
                 sampleLeft = Math.round(left + (right - left) * 0.2f);
@@ -178,10 +186,43 @@ public final class ThemeAccentQa {
             }
             case 16 -> {
                 require(spread(footer(mc, "mods-accent-solid.png")) < 20, "Solid accent mode still drew a module gradient");
+                set("gradientAccent", true); set("gradientSmoothness", 100f); set("gradientSpeed", 1f);
+                mc.openScreen(new net.minecraft.client.gui.screen.VideoOptionsScreen(parent, mc.options));
+            }
+            case 17 -> {
+                PlayMenusQa.useScreen(mc.screen);
+                Object slider = null;
+                for (Object node : PlayMenusQa.allNodes()) {
+                    var values = PlayMenusQa.properties(node);
+                    if (values.get("ContentDescription") instanceof java.util.Collection<?> names && names.contains("Max Framerate") && values.containsKey("SetProgress")) slider = node;
+                }
+                require(slider != null, "The production video slider was not found");
+                var values = PlayMenusQa.properties(slider);
+                Object range = call(values.get("ProgressBarRangeInfo"), "getRange");
+                Object action = call(values.get("SetProgress"), "getAction");
+                call(action, "invoke", ((Number) call(range, "getEndInclusive")).floatValue());
+                Object bounds = call(slider, "getBoundsInRoot");
+                float left = ((Number) call(bounds, "getLeft")).floatValue(), right = ((Number) call(bounds, "getRight")).floatValue();
+                float bottom = ((Number) call(bounds, "getBottom")).floatValue(), top = ((Number) call(bounds, "getTop")).floatValue();
+                sampleLeft = Math.round(left + (right-left)*.2f); sampleRight = Math.round(left + (right-left)*.8f);
+                sampleY = Math.round(bottom - (bottom-top)*11f/48f);
+                RESULT.put("videoSliderSample", List.of(sampleLeft, sampleY, sampleRight));
+            }
+            case 18 -> capture(mc, "video-gradient-flow-a.png");
+            case 19 -> capture(mc, "video-gradient-flow-b.png");
+            case 20 -> {
+                int[] first = footer(mc, "video-gradient-flow-a.png"), second = footer(mc, "video-gradient-flow-b.png");
+                require(spread(first) > 30 && difference(first, second) > 10, "The video slider accent did not draw a flowing spatial gradient");
+                RESULT.put("videoSliderGradientAndMotion", true);
+                set("gradientAccent", false);
+            }
+            case 21 -> capture(mc, "video-gradient-solid.png");
+            case 22 -> {
+                require(spread(footer(mc, "video-gradient-solid.png")) < 20, "The video slider did not return to a solid color");
                 for (var entry : SAVED.entrySet()) set(entry.getKey(), entry.getValue());
                 mc.openScreen(parent); Display.setDisplayMode(new DisplayMode(width, height));
             }
-            case 17 -> {
+            case 23 -> {
                 if (mc.width != width || mc.height != height) return false;
                 RESULT.put("completed", true); done = true; return true;
             }

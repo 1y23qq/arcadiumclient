@@ -46,6 +46,9 @@ private var _chroma by mutableStateOf(ThemeConfig.accentColor.chroma)
 
 val Accent: Color get() = _accent
 
+internal fun accentSettings() = _settings
+internal fun accentPhase() = _phase
+
 fun updateAccent() {
     ThemeAccent.refresh()
     _settings = ThemeAccent.snapshot()
@@ -55,22 +58,9 @@ fun updateAccent() {
 }
 
 fun Modifier.accentBackground(shape: Shape, alpha: Float = 1f, enabled: Boolean = true): Modifier = drawWithCache {
-    val settings = _settings
-    val solid = _accent.copy(alpha = alpha)
     val outline = shape.createOutline(size, layoutDirection, this)
-    val width = (settings.smoothness() / 100f).coerceAtLeast(0.02f)
-    val first = Color(settings.start()).copy(alpha = alpha)
-    val second = Color(settings.end()).copy(alpha = alpha)
-    val stops = arrayOf(0f to first, (0.5f - width / 2) to first, (0.5f + width / 2) to second, 1f to second)
     onDrawBehind {
-        if (enabled) {
-            if (settings.gradient()) {
-                val start = -_phase * size.width * 2
-                drawOutline(outline, Brush.linearGradient(
-                    *stops, start = Offset(start, 0f), end = Offset(start + size.width.coerceAtLeast(1f), 0f), tileMode = TileMode.Mirror,
-                ))
-            } else drawOutline(outline, solid)
-        }
+        if (enabled && alpha > 0f) drawOutline(outline, accentBrush(alpha))
     }
 }
 

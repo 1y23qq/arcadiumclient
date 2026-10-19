@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use freya::prelude::*;
 
 use crate::components::IconType;
@@ -96,9 +97,9 @@ fn language_row(
         .cross_align(Alignment::Center)
         .padding(Gaps::new_symmetric(14., 20.))
         .corner_radius(CornerRadius::new_all(10.))
-        .background(background)
+        .background(crate::theme::accent::themed_fill(background))
         .maybe(active, |el| {
-            el.border(border_all_color(1., colors::brand()))
+            el.themed_border(border_all_color(1., colors::brand()))
         })
         .a11y_role(AccessibilityRole::Button)
         .cursor(CursorIcon::Pointer)

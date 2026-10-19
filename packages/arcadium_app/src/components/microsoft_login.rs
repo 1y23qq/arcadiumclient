@@ -1,4 +1,5 @@
 use crate::state::LoginProgress;
+use crate::theme::accent::AccentBorderExt;
 use arcadium_auth::{AuthErrorGuidance, MicrosoftLoginSession};
 use arcadium_core::LauncherError;
 use freya::prelude::*;
@@ -204,7 +205,7 @@ pub(crate) fn login_dialog(
                         .padding(Gaps::new_all(28.))
                         .corner_radius(CornerRadius::new_all(16.))
                         .background(colors::page_elevated())
-                        .border(border_all_color(1., colors::component_border()))
+                        .themed_border(border_all_color(1., colors::component_border()))
                         .child(
                             label()
                                 .text("Sign in to Microsoft")
@@ -353,7 +354,7 @@ fn guidance_block(guidance: AuthErrorGuidance) -> impl IntoElement {
         .padding(Gaps::new_all(14.))
         .corner_radius(CornerRadius::new_all(12.))
         .background(colors::component_bg())
-        .border(border_all_color(1., colors::component_border()))
+        .themed_border(border_all_color(1., colors::component_border()))
         .child(
             label()
                 .text(guidance.what_happened)
@@ -406,7 +407,7 @@ fn device_code_dialog_body(code: String, verification_uri: String) -> impl IntoE
                 .padding(Gaps::new_symmetric(20., 16.))
                 .corner_radius(CornerRadius::new_all(14.))
                 .background(colors::component_bg())
-                .border(border_all_color(1., colors::brand()))
+                .themed_border(border_all_color(1., colors::brand()))
                 .child(
                     label()
                         .text(code)

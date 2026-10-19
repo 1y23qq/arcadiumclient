@@ -20,6 +20,7 @@ pub use preferences::OnboardingPreferences;
 pub use summary::OnboardingSummary;
 pub use welcome::OnboardingWelcome;
 
+use crate::theme::accent::AccentBorderExt;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 use freya::animation::*;
@@ -228,7 +229,7 @@ pub(crate) fn choice_row_sized(
         .spacing(10.)
         .padding(Gaps::new_symmetric(8., 12.))
         .corner_radius(CornerRadius::new_all(8.))
-        .border(border_all_color(1., border_color))
+        .themed_border(border_all_color(1., border_color))
         .a11y_role(AccessibilityRole::Button)
         .cursor(CursorIcon::Pointer)
         .on_press(move |_| on_press(()))
@@ -282,8 +283,8 @@ pub(crate) fn version_chip(
         .center()
         .padding(Gaps::new_symmetric(0., 14.))
         .corner_radius(CornerRadius::new_all(999.))
-        .background(bg)
-        .border(border_all_color(1.5, border))
+        .background(crate::theme::accent::themed_fill(bg))
+        .themed_border(border_all_color(1.5, border))
         .a11y_role(AccessibilityRole::Button)
         .cursor(CursorIcon::Pointer)
         .on_press(move |_| on_press(()))

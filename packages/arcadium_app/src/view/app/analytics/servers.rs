@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use freya::prelude::*;
 
 use arcadium_core::game::ServerStat;
@@ -169,17 +170,19 @@ fn legend(values: &[i64], labels: &[String], active: Option<usize>, unit: ValueU
                 .spacing(8.)
                 .padding(Gaps::new_symmetric(3., 6.))
                 .corner_radius(CornerRadius::new_all(6.))
-                .background(if is_active {
+                .background(crate::theme::accent::themed_fill(if is_active {
                     colors::component_bg()
                 } else {
                     Color::TRANSPARENT
-                })
+                }))
                 .child(
                     rect()
                         .width(Size::px(8.))
                         .height(Size::px(8.))
                         .corner_radius(CornerRadius::new_all(2.))
-                        .background(slice_color(i).with_a(if dim { 120 } else { 255 })),
+                        .background(crate::theme::accent::themed_fill(
+                            slice_color(i).with_a(if dim { 120 } else { 255 }),
+                        )),
                 )
                 .child(
                     label()
@@ -242,7 +245,7 @@ impl Component for ServerDetailsPopup {
             .spacing(14.)
             .corner_radius(CornerRadius::new_all(14.))
             .background(colors::page_elevated())
-            .border(border_all_color(1., colors::component_border()))
+            .themed_border(border_all_color(1., colors::component_border()))
             .child(
                 rect()
                     .horizontal()
@@ -329,7 +332,9 @@ impl Component for ServerRow {
                     .width(Size::percent(frac * 100.))
                     .height(Size::fill())
                     .corner_radius(CornerRadius::new_all(2.))
-                    .background(colors::brand().with_a(if reveal { 255 } else { 150 })),
+                    .background(crate::theme::accent::themed_fill(
+                        colors::brand().with_a(if reveal { 255 } else { 150 }),
+                    )),
             );
 
         rect()
@@ -338,11 +343,11 @@ impl Component for ServerRow {
             .spacing(6.)
             .padding(Gaps::new_symmetric(8., 10.))
             .corner_radius(CornerRadius::new_all(8.))
-            .background(if is_hovered {
+            .background(crate::theme::accent::themed_fill(if is_hovered {
                 colors::component_bg_hover()
             } else {
                 Color::TRANSPARENT
-            })
+            }))
             .cursor(CursorIcon::Pointer)
             .on_pointer_enter(move |_| *hovered.write() = true)
             .on_pointer_leave(move |_| *hovered.write() = false)

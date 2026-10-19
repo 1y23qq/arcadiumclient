@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use arcadium_core::clusters::Cluster;
 use freya::prelude::*;
 
@@ -105,8 +106,8 @@ impl Component for InstanceRow {
             .cross_align(Alignment::Center)
             .content(Content::Flex)
             .corner_radius(CornerRadius::new_all(12.))
-            .background(background)
-            .border(border_all_color(1., border_color).alignment(BorderAlignment::Inner))
+            .background(crate::theme::accent::themed_fill(background))
+            .themed_border(border_all_color(1., border_color).alignment(BorderAlignment::Inner))
             .a11y_id(a11y_id)
             .a11y_focusable(true)
             .a11y_role(AccessibilityRole::Button)

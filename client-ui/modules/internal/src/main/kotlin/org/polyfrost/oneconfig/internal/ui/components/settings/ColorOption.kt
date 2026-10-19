@@ -4,7 +4,7 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.withInfiniteAnimationFrameNanos
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import org.polyfrost.oneconfig.internal.ui.themes.accentAwareBorder as border
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
@@ -63,6 +63,7 @@ import org.polyfrost.oneconfig.internal.ui.components.Text
 import org.polyfrost.oneconfig.internal.ui.components.onClick
 import org.polyfrost.oneconfig.internal.ui.components.rememberInteractionSource
 import org.polyfrost.oneconfig.internal.ui.themes.Accent
+import org.polyfrost.oneconfig.internal.ui.themes.accentBackground
 import org.polyfrost.oneconfig.internal.ui.themes.LocalTheme
 import org.polyfrost.oneconfig.internal.ui.themes.updateAccent
 
@@ -586,12 +587,7 @@ internal fun ColorPickerPopup(
                         .fillMaxWidth()
                         .height(16.dp)
                         .clip(LocalTheme.current.sideBarNavigationEntryShape)
-                        .drawWithCache {
-                            val gradient = Brush.horizontalGradient(
-                                listOf(theme.componentBackground, Accent)
-                            )
-                            onDrawBehind { drawRect(gradient) }
-                        }
+                        .accentBackground(LocalTheme.current.sideBarNavigationEntryShape)
                         .pointerInput(Unit) {
                             awaitEachGesture {
                                 val down = awaitFirstDown()

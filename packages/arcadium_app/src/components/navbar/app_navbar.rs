@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use freya::{
     animation::*,
     prelude::*,
@@ -212,9 +213,9 @@ impl Component for NavLink {
             .height(Size::px(36.))
             .width(Size::px(nav_label.len() as f32 * 10. + 34.))
             .corner_radius(CornerRadius::new_all(10.))
-            .background(background)
+            .background(crate::theme::accent::themed_fill(background))
             .maybe(active, |el| {
-                el.border(
+                el.themed_border(
                     Border::new()
                         .fill(theme::colors::component_border())
                         .width(1.)
@@ -296,8 +297,10 @@ fn avatar_with_gear(uuid: String) -> impl IntoElement {
                 .width(Size::px(16.))
                 .height(Size::px(16.))
                 .corner_radius(CornerRadius::from(7.))
-                .background(theme::colors::page_elevated())
-                .border(
+                .background(crate::theme::accent::themed_fill(
+                    theme::colors::page_elevated(),
+                ))
+                .themed_border(
                     Border::new()
                         .fill(theme::colors::component_border())
                         .width(1.)

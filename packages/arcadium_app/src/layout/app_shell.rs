@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use bytes::Bytes;
 use freya::animation::*;
 use freya::engine::prelude::{Paint, SamplingOptions, SkData, SkImage, SkRect};
@@ -135,11 +136,14 @@ impl Component for LaunchErrorDialog {
                         rect()
                             .vertical()
                             .width(Size::px(560.))
-                            .background(DIALOG_BG)
+                            .background(crate::theme::accent::themed_fill(DIALOG_BG))
                             .corner_radius(CornerRadius::new_all(16.))
                             .padding(Gaps::new_all(24.))
                             .spacing(16.)
-                            .border(crate::ui::border_all_color(1., colors::component_border()))
+                            .themed_border(crate::ui::border_all_color(
+                                1.,
+                                colors::component_border(),
+                            ))
                             .on_press(|e: Event<PressEventData>| e.stop_propagation())
                             .child(
                                 rect()
@@ -167,7 +171,7 @@ impl Component for LaunchErrorDialog {
                             )
                             .child(
                                 CodeBlock::new(self.message.clone())
-                                    .background(CODE_BG)
+                                    .background(crate::theme::accent::themed_fill(CODE_BG))
                                     .height(260.),
                             )
                             .child(
@@ -207,18 +211,15 @@ pub(crate) fn appshell_overlay(alpha: f32) -> Rect {
             rect()
                 .height(Size::px(200.))
                 .width(Size::fill())
-                .background(
+                .background(crate::theme::accent::themed_fill(
                     LinearGradient::new()
                         .stop((Color::BLACK.with_a(scale(100)), 0.))
                         .stop((colors::page().with_a(scale(255)), 95.0)),
-                ),
+                )),
         )
-        .child(
-            rect()
-                .height(Size::fill())
-                .width(Size::fill())
-                .background(colors::page().with_a(scale(255))),
-        )
+        .child(rect().height(Size::fill()).width(Size::fill()).background(
+            crate::theme::accent::themed_fill(colors::page().with_a(scale(255))),
+        ))
 }
 
 pub const HOME_BACKGROUND_ASSET: &str = "backgrounds/CavesAndCliffs.jpg";
@@ -538,7 +539,7 @@ fn gradient_overlay_radial() -> impl IntoElement {
         .width(Size::fill())
         .height(Size::fill())
         .position(Position::new_absolute())
-        .background(ShaderFill::new(
+        .background(crate::theme::accent::themed_fill(ShaderFill::new(
             VIGNETTE_SPOTLIGHT_SHADER,
             effect,
             move |effect, bounds| {
@@ -559,7 +560,7 @@ fn gradient_overlay_radial() -> impl IntoElement {
 
                 effect.make_shader(freya::engine::prelude::Data::new_copy(bytes), &[], None)
             },
-        ))
+        )))
 }
 
 pub(crate) fn navigate_back(at_home: bool) {

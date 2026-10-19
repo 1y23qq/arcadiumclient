@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use arcadium_content::modpacks::ModpackSummary;
 use freya::prelude::*;
 
@@ -156,8 +157,8 @@ fn dialog(confirm: &ModpackConfirm, dispatch: crate::Actions) -> impl IntoElemen
         .max_height(Size::window_percent(85.))
         .overflow(Overflow::Clip)
         .corner_radius(CornerRadius::new_all(16.))
-        .background(CARD_BG)
-        .border(border_all_color(1., colors::component_border()))
+        .background(crate::theme::accent::themed_fill(CARD_BG))
+        .themed_border(border_all_color(1., colors::component_border()))
         .shadow(Shadow::from((
             0.,
             18.,
@@ -204,7 +205,7 @@ fn dialog(confirm: &ModpackConfirm, dispatch: crate::Actions) -> impl IntoElemen
                         .padding(Gaps::new_all(12.))
                         .corner_radius(CornerRadius::new_all(10.))
                         .background(colors::component_bg())
-                        .border(border_all_color(1., colors::component_border()))
+                        .themed_border(border_all_color(1., colors::component_border()))
                         .children(facts),
                 )
                 .children(notes(summary).into_iter().map(|(text, color)| {

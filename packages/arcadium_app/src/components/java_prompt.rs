@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use arcadium_events::Answer;
 use arcadium_java::{JAVA_CHOICE_DOWNLOAD, JAVA_CHOICE_FOLDER, JavaVendor};
 use freya::prelude::*;
@@ -86,8 +87,8 @@ impl Component for JavaPromptOverlay {
                             .spacing(14.)
                             .padding(Gaps::new_all(20.))
                             .corner_radius(CornerRadius::new_all(14.))
-                            .background(CARD_BG)
-                            .border(border_all_color(1., colors::component_border()))
+                            .background(crate::theme::accent::themed_fill(CARD_BG))
+                            .themed_border(border_all_color(1., colors::component_border()))
                             .child(
                                 rect()
                                     .horizontal()

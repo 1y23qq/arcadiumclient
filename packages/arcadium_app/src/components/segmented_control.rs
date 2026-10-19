@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use freya::prelude::*;
 
 use crate::components::{Icon, IconType};
@@ -109,7 +110,7 @@ impl<T: Copy + PartialEq + 'static> Component for SegmentedControl<T> {
             .padding(Gaps::new_all(3.))
             .corner_radius(CornerRadius::new_all(9.))
             .background(colors::component_bg())
-            .border(border_all_color(1., colors::component_border()))
+            .themed_border(border_all_color(1., colors::component_border()))
             .children(self.segments.iter().map(move |seg| {
                 SegmentButton {
                     selected,
@@ -175,13 +176,13 @@ impl<T: Copy + PartialEq + 'static> Component for SegmentButton<T> {
             .maybe(equal_width.is_none(), |el| {
                 el.padding(Gaps::new_symmetric(0., 12.))
             })
-            .background(if is_selected {
+            .background(crate::theme::accent::themed_fill(if is_selected {
                 colors::component_bg_pressed()
             } else {
                 Color::TRANSPARENT
-            })
+            }))
             .maybe(focused && !disabled, |el| {
-                el.border(border_all_color(1., colors::brand()))
+                el.themed_border(border_all_color(1., colors::brand()))
             })
             .maybe(!disabled, |el| {
                 el.cursor(CursorIcon::Pointer)

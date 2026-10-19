@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use freya::prelude::*;
 
 use crate::components::{Button, Icon, IconType, OverlayPopup, Spinner, progress_track};
@@ -72,8 +73,10 @@ fn update_card(state: &UpdateStatus) -> Element {
         .padding(Gaps::new_all(28.))
         .spacing(17.)
         .corner_radius(CornerRadius::new_all(14.))
-        .background(Color::from_rgb(24, 29, 39))
-        .border(border_all_color(1., colors::component_border()))
+        .background(crate::theme::accent::themed_fill(Color::from_rgb(
+            24, 29, 39,
+        )))
+        .themed_border(border_all_color(1., colors::component_border()))
         .child(
             rect()
                 .horizontal()
@@ -240,7 +243,9 @@ mod tests {
                     .width(Size::fill())
                     .height(Size::fill())
                     .center()
-                    .background(Color::from_rgb(12, 16, 23))
+                    .background(crate::theme::accent::themed_fill(Color::from_rgb(
+                        12, 16, 23,
+                    )))
                     .child(update_card(&status))
             };
             let (mut test, _) = TestingRunner::new(app, Size2D::new(600., 430.), |_| (), 1.);

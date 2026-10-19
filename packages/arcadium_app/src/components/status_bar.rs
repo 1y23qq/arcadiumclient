@@ -134,11 +134,11 @@ impl Component for StatusBanner {
                 .width(Size::px(22.))
                 .height(Size::px(22.))
                 .corner_radius(CornerRadius::new_all(6.))
-                .background(if *close_hover.read() {
+                .background(crate::theme::accent::themed_fill(if *close_hover.read() {
                     Color::WHITE.with_a(46)
                 } else {
                     Color::TRANSPARENT
-                })
+                }))
                 .cursor(CursorIcon::Pointer)
                 .on_pointer_enter(move |_| close_hover.set(true))
                 .on_pointer_leave(move |_| close_hover.set(false))
@@ -183,7 +183,7 @@ impl Component for StatusBanner {
             .height(Size::px(BAR_HEIGHT))
             .position(Position::new_global().bottom(0.).left(0.))
             .layer(Layer::OverlayLevel(BAR_LAYER))
-            .background(issue.background())
+            .background(crate::theme::accent::themed_fill(issue.background()))
             .opacity(p)
             .horizontal()
             .content(Content::Flex)

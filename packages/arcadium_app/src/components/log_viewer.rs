@@ -275,11 +275,11 @@ fn auto_scroll_toggle(mut auto_scroll: State<bool>) -> impl IntoElement {
         .spacing(6.)
         .padding(Gaps::new_symmetric(5., 10.))
         .corner_radius(CornerRadius::new_all(7.))
-        .background(if on {
+        .background(crate::theme::accent::themed_fill(if on {
             colors::brand().with_a(40)
         } else {
             colors::component_bg()
-        })
+        }))
         .cursor(CursorIcon::Pointer)
         .on_press(move |_| auto_scroll.toggle())
         .child(Icon::new(IconType::ChevronDown).size(13.).color(if on {

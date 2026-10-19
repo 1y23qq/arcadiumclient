@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use freya::{
     animation::{AnimColor, AnimNum, AnimatedValue, Ease, Function, use_animation_transition},
     prelude::*,
@@ -101,14 +102,14 @@ impl Component for Check {
                     .corner_radius(CornerRadius::new_all(5.))
                     .main_align(Alignment::Center)
                     .cross_align(Alignment::Center)
-                    .background(if disabled {
+                    .background(crate::theme::accent::themed_fill(if disabled {
                         Fill::Color(colors::component_bg_disabled())
                     } else if checked {
                         accent::fill(1.)
                     } else {
                         Fill::Color(background.read().value())
-                    })
-                    .border(ui::border_all_color(1., box_border))
+                    }))
+                    .themed_border(ui::border_all_color(1., box_border))
                     .maybe_child((checked || mark_opacity > 0.).then(|| {
                         rect().opacity(mark_opacity).scale(mark_scale).child(
                             Icon::new(IconType::Check)

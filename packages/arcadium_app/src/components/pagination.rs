@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use freya::prelude::*;
 
 use crate::components::{Button, Icon, IconType, TooltipPlacement};
@@ -82,7 +83,7 @@ impl Component for Pagination {
                     .height(Size::px(32.))
                     .corner_radius(CornerRadius::new_all(8.))
                     .background(colors::component_bg_pressed())
-                    .border(border_all_color(1., colors::brand()))
+                    .themed_border(border_all_color(1., colors::brand()))
                     .child(
                         label()
                             .text(format!("{}", target + 1))

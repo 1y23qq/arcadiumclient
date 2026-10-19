@@ -121,14 +121,14 @@ pub fn rail(parts: Rail) -> Element {
                 .main_align(Alignment::End)
                 .padding(Gaps::new_all(24.))
                 .spacing(18.)
-                .background(
+                .background(crate::theme::accent::themed_fill(
                     LinearGradient::new()
                         .angle(0.)
                         .stop((Color::from_argb(77, 11, 16, 19), 0.))
                         .stop((Color::from_argb(26, 11, 16, 19), 20.))
                         .stop((Color::from_argb(204, 11, 16, 19), 56.))
                         .stop((Color::from_argb(247, 11, 16, 19), 100.)),
-                )
+                ))
                 .child(
                     rect()
                         .vertical()
@@ -167,7 +167,7 @@ pub fn rail(parts: Rail) -> Element {
                                     rect()
                                         .width(Size::fill())
                                         .height(Size::px(1.))
-                                        .background(HAIRLINE),
+                                        .background(crate::theme::accent::themed_fill(HAIRLINE)),
                                 )
                                 .child(
                                     rect()
@@ -179,7 +179,9 @@ pub fn rail(parts: Rail) -> Element {
                                             rect()
                                                 .padding(Gaps::new_symmetric(3., 8.))
                                                 .corner_radius(CornerRadius::new_all(6.))
-                                                .background(CHIP_BG)
+                                                .background(crate::theme::accent::themed_fill(
+                                                    CHIP_BG,
+                                                ))
                                                 .child(
                                                     label()
                                                         .text(tag.clone())

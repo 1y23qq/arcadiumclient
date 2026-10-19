@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use arcadium_events::Level;
 use freya::{
     animation::{AnimNum, Ease, OnCreation, use_animation},
@@ -88,7 +89,7 @@ impl Component for NotificationPanel {
             .background(colors::page_elevated().with_a(220))
             .backdrop_blur(12.)
             .corner_radius(CornerRadius::new_all(12.))
-            .border(
+            .themed_border(
                 Border::new()
                     .fill(colors::component_border())
                     .width(1.)
@@ -323,7 +324,7 @@ fn phase_badge(phase: &str) -> impl IntoElement {
         .center()
         .padding(Gaps::new_symmetric(1., 7.))
         .corner_radius(CornerRadius::new_all(999.))
-        .background(color.with_a(40))
+        .background(crate::theme::accent::themed_fill(color.with_a(40)))
         .child(
             label()
                 .text(phase.to_string())
@@ -370,7 +371,7 @@ fn row_body(entry: &InboxEntry, dispatch: crate::Actions) -> impl IntoElement {
                                     .width(Size::px(6.))
                                     .height(Size::px(6.))
                                     .corner_radius(CornerRadius::new_all(3.))
-                                    .background(colors::brand()),
+                                    .background(crate::theme::accent::themed_fill(colors::brand())),
                             )
                         }),
                 ),

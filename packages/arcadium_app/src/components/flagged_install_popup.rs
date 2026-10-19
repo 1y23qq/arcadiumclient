@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use arcadium_content::packages::ResolvedAlternative;
 use freya::prelude::*;
 use freya::router::RouterContext;
@@ -71,8 +72,8 @@ fn dialog(prompt: FlaggedInstallPrompt, dispatch: crate::Actions) -> impl IntoEl
         .spacing(SECTION_GAP)
         .padding(Gaps::new_all(DIALOG_PADDING))
         .corner_radius(CornerRadius::new_all(14.))
-        .background(CARD_BG)
-        .border(border_all_color(1., colors::component_border()))
+        .background(crate::theme::accent::themed_fill(CARD_BG))
+        .themed_border(border_all_color(1., colors::component_border()))
         .child(
             rect()
                 .vertical()
@@ -215,7 +216,7 @@ fn alternative_row(
         .padding(Gaps::new_symmetric(0., 8.))
         .corner_radius(CornerRadius::new_all(8.))
         .background(colors::component_bg())
-        .border(border_all_color(1., colors::component_border()))
+        .themed_border(border_all_color(1., colors::component_border()))
         .child(icon)
         .child(
             rect()
@@ -261,7 +262,7 @@ fn explanation_panel(markdown: String) -> impl IntoElement {
         .padding(Gaps::new_all(12.))
         .corner_radius(CornerRadius::new_all(8.))
         .background(colors::component_bg())
-        .border(border_all_color(1., colors::component_border()))
+        .themed_border(border_all_color(1., colors::component_border()))
         .child(
             Markdown::new(markdown)
                 .width(Size::fill())

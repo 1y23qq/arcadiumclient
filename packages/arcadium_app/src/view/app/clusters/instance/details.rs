@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use std::path::PathBuf;
 
 use arcadium_cluster::naming::{MAX_TAG_CHARS, NameProblem, is_allowed_name_char, validate_tag};
@@ -274,12 +275,12 @@ impl Component for PresetChip {
             .height(Size::px(26.))
             .padding(Gaps::new_symmetric(0., 10.))
             .corner_radius(CornerRadius::new_all(8.))
-            .background(if hovered {
+            .background(crate::theme::accent::themed_fill(if hovered {
                 colors::component_bg_hover()
             } else {
                 colors::component_bg()
-            })
-            .border(border_all_color(
+            }))
+            .themed_border(border_all_color(
                 1.,
                 if hovered {
                     colors::component_border_hover()
@@ -333,7 +334,7 @@ fn chosen_tags(state: DetailsState, tags: &[String], open: bool) -> Element {
                 .height(Size::px(TAG_ROW_H))
                 .padding(Gaps::new_symmetric(0., 10.))
                 .corner_radius(CornerRadius::new_all(8.))
-                .background(colors::brand())
+                .background(crate::theme::accent::themed_fill(colors::brand()))
                 .cursor(CursorIcon::Pointer)
                 .on_press(move |_| {
                     let next: Vec<String> = all_tags
@@ -497,14 +498,14 @@ fn cover_field(
         .padding(Gaps::new_all(12.))
         .corner_radius(CornerRadius::new_all(CARD_RADIUS))
         .background(colors::component_bg())
-        .border(border_all_color(1., colors::component_border()))
+        .themed_border(border_all_color(1., colors::component_border()))
         .child(
             rect()
                 .width(Size::px(PREVIEW_W))
                 .height(Size::px(PREVIEW_H))
                 .corner_radius(CornerRadius::new_all(8.))
                 .overflow(Overflow::Clip)
-                .border(border_all_color(1., colors::component_border()))
+                .themed_border(border_all_color(1., colors::component_border()))
                 .center()
                 .child(match preview {
                     Some((path, picked)) => LocalImage::new(path, ART_PREVIEW_EDGE, true)

@@ -130,7 +130,9 @@ impl Component for OverlayPopup {
                     .width(Size::window_percent(100.))
                     .height(Size::window_percent(100.))
                     .layer(Layer::OverlayLevel(self.overlay_level.saturating_sub(2)))
-                    .background(Color::from_argb(alpha, 0, 0, 0))
+                    .background(crate::theme::accent::themed_fill(Color::from_argb(
+                        alpha, 0, 0, 0,
+                    )))
                     .on_all_press(move |_| {
                         if let Some(on_close) = scrim_close.as_ref() {
                             on_close.call(());

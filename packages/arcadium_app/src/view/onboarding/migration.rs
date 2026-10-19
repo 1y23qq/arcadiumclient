@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use arcadium_core::{MigrationDetection, MigrationSource, SourceInstance};
 use freya::prelude::*;
 use freya::router::RouterContext;
@@ -310,8 +311,8 @@ fn version_card(
         .spacing(12.)
         .padding(Gaps::new_symmetric(12., 14.))
         .corner_radius(CornerRadius::new_all(10.))
-        .background(bg)
-        .border(border_all_color(1., border_color))
+        .background(crate::theme::accent::themed_fill(bg))
+        .themed_border(border_all_color(1., border_color))
         .child(header);
 
     if importable {
@@ -377,8 +378,8 @@ fn import_choice_card(
         .spacing(10.)
         .padding(Gaps::new_symmetric(12., 14.))
         .corner_radius(CornerRadius::new_all(10.))
-        .background(bg)
-        .border(border_all_color(1., border_color))
+        .background(crate::theme::accent::themed_fill(bg))
+        .themed_border(border_all_color(1., border_color))
         .a11y_role(AccessibilityRole::Button)
         .cursor(CursorIcon::Pointer)
         .on_press(move |_| on_press(()))

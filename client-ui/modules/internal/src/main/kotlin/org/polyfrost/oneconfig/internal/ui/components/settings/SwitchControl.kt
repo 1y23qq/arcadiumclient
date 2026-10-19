@@ -3,8 +3,8 @@ package org.polyfrost.oneconfig.internal.ui.components.settings
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.spring
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import org.polyfrost.oneconfig.internal.ui.themes.accentAwareBackground as background
+import org.polyfrost.oneconfig.internal.ui.themes.accentAwareBorder as border
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box

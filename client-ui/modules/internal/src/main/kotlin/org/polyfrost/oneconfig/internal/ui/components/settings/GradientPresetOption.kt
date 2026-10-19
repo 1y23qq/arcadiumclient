@@ -1,7 +1,8 @@
 package org.polyfrost.oneconfig.internal.ui.components.settings
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import org.polyfrost.oneconfig.internal.ui.themes.accentBrush
+import org.polyfrost.oneconfig.internal.ui.themes.accentAwareBackground as background
+import org.polyfrost.oneconfig.internal.ui.themes.accentAwareBorder as border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -70,7 +71,7 @@ fun GradientPresetOption(prop: Property<*>) {
                 BasicTextField(
                     value = query, onValueChange = { query = it }, singleLine = true,
                     textStyle = TextStyle(fontFamily = theme.typography.family, color = theme.textColor, fontSize = 13.sp),
-                    cursorBrush = SolidColor(Accent),
+                    cursorBrush = accentBrush(),
                     modifier = Modifier.fillMaxWidth().trackTextInputFocus()
                         .background(theme.componentBackground, theme.buttonShape).padding(10.dp),
                     decorationBox = { field ->

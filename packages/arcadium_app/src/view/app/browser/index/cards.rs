@@ -1,4 +1,5 @@
 use super::*;
+use crate::theme::accent::AccentBorderExt;
 
 use std::collections::HashMap;
 
@@ -133,7 +134,7 @@ impl Component for PackageCard {
             .height(Size::px(CARD_H))
             .corner_radius(CornerRadius::new_all(8.))
             .background(colors::component_bg())
-            .border(border_all_color(
+            .themed_border(border_all_color(
                 1.,
                 if focused {
                     colors::brand()
@@ -266,7 +267,7 @@ impl Component for ListRow {
             .padding(Gaps::new_all(16.))
             .corner_radius(CornerRadius::new_all(8.))
             .background(colors::component_bg())
-            .border(border_all_color(
+            .themed_border(border_all_color(
                 1.,
                 if focused {
                     colors::brand()
@@ -418,7 +419,7 @@ impl Component for InstallButton {
                 .padding(Gaps::new_symmetric(0., 10.))
                 .corner_radius(CornerRadius::new_all(6.))
                 .background(colors::component_bg())
-                .border(border_all_color(1., colors::component_border()))
+                .themed_border(border_all_color(1., colors::component_border()))
                 .child(Icon::new(IconType::CheckCircle).size(12.).color(color))
                 .child(
                     label()

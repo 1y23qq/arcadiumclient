@@ -4,6 +4,8 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.*
+import org.polyfrost.oneconfig.internal.ui.themes.accentAwareBackground as background
+import org.polyfrost.oneconfig.internal.ui.themes.accentAwareBorder as border
 import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -1945,7 +1947,7 @@ fun HudDesignStudio(onReturnToOneConfig: (() -> Unit)? = null) {
                             val b = hudBounds(source)
                             if (b != null) {
                                 drawRect(
-                                    color = Accent.copy(alpha = 0.5f),
+                                    brush = accentBrush(.5f),
                                     topLeft = Offset(b.x * mcToScreen, b.y * mcToScreen),
                                     size = Size(b.width * mcToScreen, b.height * mcToScreen),
                                     style = Stroke(width = 1f),
@@ -1960,7 +1962,7 @@ fun HudDesignStudio(onReturnToOneConfig: (() -> Unit)? = null) {
                                 val radius = if (hot) ANCHOR_DOT_RADIUS_PX + 2f else ANCHOR_DOT_RADIUS_PX
                                 drawCircle(Color.White, radius = radius, center = center)
                                 drawCircle(
-                                    color = if (hot) Accent else anchorLineColor,
+                                    brush = if (hot) accentBrush() else SolidColor(anchorLineColor),
                                     radius = radius - 2f,
                                     center = center,
                                 )
@@ -1982,7 +1984,7 @@ fun HudDesignStudio(onReturnToOneConfig: (() -> Unit)? = null) {
                                 val radius = if (hot) ANCHOR_DOT_RADIUS_PX + 2f else ANCHOR_DOT_RADIUS_PX
                                 drawCircle(Color.White, radius = radius, center = center)
                                 drawCircle(
-                                    color = if (hot) Accent else anchorLineColor,
+                                    brush = if (hot) accentBrush() else SolidColor(anchorLineColor),
                                     radius = radius - 2f,
                                     center = center,
                                 )
@@ -3129,7 +3131,7 @@ private fun EvergreenHudSuggestion(modifier: Modifier) {
     val theme = LocalTheme.current
     val source = rememberInteractionSource()
     val isHovered by source.collectIsHoveredAsState()
-    val background by animateColorAsState(if (isHovered) Color.White.copy(0.12f).compositeOver(Accent) else Accent)
+    val hoverAlpha by animateFloatAsState(if (isHovered) .12f else 0f)
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically),
@@ -3146,7 +3148,8 @@ private fun EvergreenHudSuggestion(modifier: Modifier) {
         Box(
             modifier = Modifier
                 .clip(theme.buttonShape)
-                .background(background, theme.buttonShape)
+                .accentBackground(theme.buttonShape)
+                .background(Color.White.copy(alpha = hoverAlpha), theme.buttonShape)
                 .onClick(source) { NetworkUtils.browseLink("https://modrinth.com/mod/evergreenhud") }
                 .pointerHoverIcon(PointerIcon.Hand)
                 .padding(horizontal = 12.dp, vertical = 6.dp),
@@ -3393,7 +3396,7 @@ private fun ModFilterIcon(iconName: String, selected: Boolean, onClick: () -> Un
                 if (selected) {
                     val barHeight = 24.dp.toPx()
                     drawRoundRect(
-                        color = Accent,
+                        brush = accentBrush(),
                         topLeft = Offset(-8.dp.toPx(), (size.height - barHeight) / 2f),
                         size = Size(4.dp.toPx(), barHeight),
                         cornerRadius = CornerRadius(2.dp.toPx()),

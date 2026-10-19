@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use freya::animation::{AnimNum, Ease, OnCreation, use_animation};
 use freya::prelude::*;
 
@@ -128,7 +129,7 @@ impl Component for FilterPanel {
             .corner_radius(CornerRadius::new_all(10.))
             .background(colors::page_elevated().with_a(230))
             .backdrop_blur(12.)
-            .border(crate::ui::border_all_color(1., colors::component_border()))
+            .themed_border(crate::ui::border_all_color(1., colors::component_border()))
             .shadow(Shadow::from((
                 0.,
                 8.,
@@ -218,13 +219,13 @@ impl Component for ChoiceRow {
             .spacing(8.)
             .padding(Gaps::new_symmetric(5., 8.))
             .corner_radius(CornerRadius::new_all(6.))
-            .background(bg)
+            .background(crate::theme::accent::themed_fill(bg))
             .content(Content::Flex)
             .a11y_id(a11y_id)
             .a11y_focusable(true)
             .a11y_role(AccessibilityRole::MenuItemRadio)
             .maybe(focused, |el| {
-                el.border(crate::ui::border_all_color(1., colors::brand()))
+                el.themed_border(crate::ui::border_all_color(1., colors::brand()))
             })
             .cursor(CursorIcon::Pointer)
             .on_press(move |_| on_press.call(()))

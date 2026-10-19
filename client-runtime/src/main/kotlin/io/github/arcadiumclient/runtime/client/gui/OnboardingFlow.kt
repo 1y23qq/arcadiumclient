@@ -9,10 +9,11 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background as flatBackground
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import org.polyfrost.oneconfig.internal.ui.themes.accentAwareBackground as background
+import org.polyfrost.oneconfig.internal.ui.themes.accentAwareBorder as border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -285,7 +286,7 @@ private fun BlockPalette(settings: SetupBlockSettings, label: String, id: String
                 val color = Color(0xFF000000.toInt() or rgb)
                 val selected = settings.color(id) == color
                 Box(Modifier.size(if (compact) 15.dp else 17.dp).clip(uiShape(3.dp))
-                    .background(color).border(if (selected) 2.dp else 1.dp, if (selected) Accent else UiBorderColor, uiShape(3.dp))
+                    .flatBackground(color).border(if (selected) 2.dp else 1.dp, if (selected) Accent else UiBorderColor, uiShape(3.dp))
                     .semantics { contentDescription = "$label: $name"; this.selected = selected }
                     .clickable(role = Role.RadioButton) {
                         settings.set(id, java.awt.Color(rgb))

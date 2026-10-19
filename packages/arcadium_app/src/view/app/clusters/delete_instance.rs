@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use freya::prelude::*;
 use freya::router::RouterContext;
 
@@ -70,7 +71,7 @@ impl Component for DeleteInstanceModal {
                             .padding(Gaps::new_all(20.))
                             .corner_radius(CornerRadius::new_all(16.))
                             .background(colors::page_elevated())
-                            .border(border_all_color(1., colors::component_border()))
+                            .themed_border(border_all_color(1., colors::component_border()))
                             .child(
                                 label()
                                     .text("Delete instance")

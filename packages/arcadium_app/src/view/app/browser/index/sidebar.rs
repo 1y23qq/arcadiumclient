@@ -1,4 +1,5 @@
 use super::*;
+use crate::theme::accent::AccentBorderExt;
 
 use crate::components::ScrollArea;
 use crate::theme::colors;
@@ -101,8 +102,10 @@ impl Component for CategoryRow {
             .padding(Gaps::new_symmetric(0., 10.))
             .corner_radius(CornerRadius::new_all(8.))
             .maybe(selected, |el| {
-                el.background(colors::brand().with_a(40))
-                    .border(border_all_color(1., colors::brand().with_a(115)))
+                el.background(crate::theme::accent::themed_fill(
+                    colors::brand().with_a(40),
+                ))
+                .themed_border(border_all_color(1., colors::brand().with_a(115)))
             })
             .maybe(!selected && hovered, |el| {
                 el.background(colors::ghost_overlay())

@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use std::collections::HashMap;
 
 use arcadium_cluster::naming::{MAX_NAME_CHARS, validate_instance_name};
@@ -217,7 +218,7 @@ fn loader_version_card(mut wizard: Wizard, picks: &Picks, chosen: LoaderChoice) 
         .padding(Gaps::new_all(16.))
         .corner_radius(CornerRadius::new_all(CARD_RADIUS))
         .background(colors::component_bg())
-        .border(border_all_color(1., colors::component_border()))
+        .themed_border(border_all_color(1., colors::component_border()))
         .child(
             rect()
                 .vertical()

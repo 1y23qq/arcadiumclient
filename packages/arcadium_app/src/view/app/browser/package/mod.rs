@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use freya::prelude::*;
 use std::collections::HashMap;
 
@@ -96,7 +97,7 @@ fn pill(text: String) -> impl IntoElement {
         .padding(Gaps::new_symmetric(2., 8.))
         .corner_radius(CornerRadius::new_all(999.))
         .background(colors::component_bg())
-        .border(border_all_color(1., colors::component_border()))
+        .themed_border(border_all_color(1., colors::component_border()))
         .child(
             label()
                 .text(text)

@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use freya::prelude::*;
 
 use super::MarkdownStyle;
@@ -22,7 +23,7 @@ pub fn render_block(block: &Block, key: usize, style: &MarkdownStyle) -> Element
             .into(),
         Block::Code { code } => CodeBlock::new(code.clone())
             .color(style.color_code)
-            .background(style.background_code)
+            .background(crate::theme::accent::themed_fill(style.background_code))
             .font_family(style.code_font_family.clone())
             .font_size(style.code_font_size)
             .key(key)
@@ -43,13 +44,15 @@ pub fn render_block(block: &Block, key: usize, style: &MarkdownStyle) -> Element
             .key(key)
             .width(Size::fill())
             .padding(Gaps::new(12., 12., 12., 16.))
-            .border(
+            .themed_border(
                 Border::new()
                     .width(4.)
                     .fill(style.border_blockquote)
                     .alignment(BorderAlignment::Inner),
             )
-            .background(style.background_blockquote)
+            .background(crate::theme::accent::themed_fill(
+                style.background_blockquote,
+            ))
             .child(
                 render_content(content, style.paragraph_size, style).font_slant(FontSlant::Italic),
             )
@@ -58,7 +61,7 @@ pub fn render_block(block: &Block, key: usize, style: &MarkdownStyle) -> Element
             .key(key)
             .width(Size::fill())
             .height(Size::px(1.))
-            .background(style.background_divider)
+            .background(crate::theme::accent::themed_fill(style.background_divider))
             .into(),
         Block::Table { headers, rows } => render_table(headers, rows, style).key(key).into(),
     }
@@ -162,7 +165,7 @@ fn render_table(
         .vertical()
         .width(Size::fill())
         .corner_radius(CornerRadius::new_all(8.))
-        .border(
+        .themed_border(
             Border::new()
                 .width(1.)
                 .fill(style.background_divider)
@@ -175,7 +178,7 @@ fn render_table(
                     .key(format!("divider-{row_idx}"))
                     .width(Size::fill())
                     .height(Size::px(1.))
-                    .background(style.background_divider)
+                    .background(crate::theme::accent::themed_fill(style.background_divider))
                     .into_element(),
                 table_row(row, style, false).key(row_idx).into_element(),
             ]
@@ -187,7 +190,9 @@ fn table_row(cells: &[Vec<TextSpan>], style: &MarkdownStyle, header: bool) -> Re
         .horizontal()
         .width(Size::fill())
         .content(Content::Flex)
-        .maybe(header, |row| row.background(style.background_code))
+        .maybe(header, |row| {
+            row.background(crate::theme::accent::themed_fill(style.background_code))
+        })
         .children(cells.iter().enumerate().map(|(col_idx, spans)| {
             rect()
                 .key(col_idx)

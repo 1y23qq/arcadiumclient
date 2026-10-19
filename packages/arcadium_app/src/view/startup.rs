@@ -172,7 +172,7 @@ impl Component for Startup {
                     .width(Size::px(8.))
                     .height(Size::px(8.))
                     .corner_radius(CornerRadius::new_all(4.))
-                    .background(dot_color),
+                    .background(crate::theme::accent::themed_fill(dot_color)),
             )
             .child(
                 label()

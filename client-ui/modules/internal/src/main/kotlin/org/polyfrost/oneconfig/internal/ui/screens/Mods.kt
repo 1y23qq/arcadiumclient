@@ -6,8 +6,8 @@ import androidx.compose.animation.core.VisibilityThreshold
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.VerticalScrollbar
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import org.polyfrost.oneconfig.internal.ui.themes.accentAwareBackground as background
+import org.polyfrost.oneconfig.internal.ui.themes.accentAwareBorder as border
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.interaction.InteractionSource
@@ -97,6 +97,8 @@ import org.polyfrost.oneconfig.internal.ui.shell.LocalNavController
 import org.polyfrost.oneconfig.internal.ui.shell.ShellState
 import org.polyfrost.oneconfig.internal.ui.shell.rememberRestorableLazyGridState
 import org.polyfrost.oneconfig.internal.ui.themes.Accent
+import org.polyfrost.oneconfig.internal.ui.themes.drawAccentMask
+import androidx.compose.ui.graphics.Color
 import org.polyfrost.oneconfig.internal.ui.themes.accentBackground
 import androidx.compose.ui.graphics.RectangleShape
 import org.polyfrost.oneconfig.internal.ui.themes.LocalTheme
@@ -498,19 +500,17 @@ fun ModCard(
                     val glowHeight = ModCardGlowHeight.toPx().coerceAtMost(size.height)
                     val glowTop = size.height - glowHeight
                     val glow = Brush.verticalGradient(
-                        0f to Accent.copy(0f),
-                        0.4f to Accent.copy(0.2f),
-                        1f to Accent.copy(0.4f),
+                        0f to Color.White.copy(0f),
+                        0.4f to Color.White.copy(0.2f),
+                        1f to Color.White.copy(0.4f),
                         startY = glowTop,
                         endY = size.height,
                     )
                     onDrawBehind {
                         drawRect(vignette)
-                        drawRect(
-                            glow,
-                            topLeft = Offset(0f, glowTop),
-                            size = Size(size.width, glowHeight),
-                        )
+                        drawAccentMask {
+                            drawRect(glow, topLeft = Offset(0f, glowTop), size = Size(size.width, glowHeight))
+                        }
                     }
                 }
             )

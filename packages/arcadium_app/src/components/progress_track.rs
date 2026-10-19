@@ -8,13 +8,15 @@ pub fn progress_track(pct: f32, height: f32, fill: Color, bg: Color) -> Rect {
     let foreground = if fill == crate::theme::colors::brand() {
         AccentProgressFill { pct, height }.into_element()
     } else {
-        progress_fill(pct, height).background(fill).into_element()
+        progress_fill(pct, height)
+            .background(crate::theme::accent::themed_fill(fill))
+            .into_element()
     };
     rect()
         .width(Size::fill())
         .height(Size::px(height))
         .corner_radius(CornerRadius::new_all(height / 2.))
-        .background(bg)
+        .background(crate::theme::accent::themed_fill(bg))
         .child(foreground)
 }
 
@@ -33,6 +35,8 @@ struct AccentProgressFill {
 
 impl Component for AccentProgressFill {
     fn render(&self) -> impl IntoElement {
-        progress_fill(self.pct, self.height).background(crate::theme::accent::fill(1.))
+        progress_fill(self.pct, self.height).background(crate::theme::accent::themed_fill(
+            crate::theme::accent::fill(1.),
+        ))
     }
 }

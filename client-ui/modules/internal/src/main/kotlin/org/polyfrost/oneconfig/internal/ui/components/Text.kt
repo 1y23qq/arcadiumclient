@@ -16,6 +16,7 @@ import org.apache.logging.log4j.LogManager
 import org.polyfrost.oneconfig.api.platform.v1.Platform
 import org.polyfrost.oneconfig.internal.ui.api.TextComponent
 import org.polyfrost.oneconfig.internal.ui.themes.LocalTheme
+import org.polyfrost.oneconfig.internal.ui.themes.accentTint
 
 fun Any.asRenderText(): String {
     val comp: Any = Platform.compatibility().wrapPlatformComponent(this)
@@ -115,9 +116,10 @@ fun Text(
     maxLines: Int = Int.MAX_VALUE,
     overflow: TextOverflow = TextOverflow.Clip,
 ) {
+    val styledModifier = modifier.accentTint(color)
     when (val comp: Any = Platform.compatibility().wrapPlatformComponent(text)) {
-        is Component -> TextComponent(comp, modifier, color, fontSize, lineHeight, shift, fontWeight, textAlign, maxLines, overflow)
-        is ComponentLike -> TextComponent(comp.asComponent(), modifier, color, fontSize, lineHeight, shift, fontWeight, textAlign, maxLines, overflow)
+        is Component -> TextComponent(comp, styledModifier, color, fontSize, lineHeight, shift, fontWeight, textAlign, maxLines, overflow)
+        is ComponentLike -> TextComponent(comp.asComponent(), styledModifier, color, fontSize, lineHeight, shift, fontWeight, textAlign, maxLines, overflow)
         is String -> BasicText(
             if (comp.indexOf(LEGACY_CHAR) >= 0) parseLegacyFormatting(comp, color) else AnnotatedString(comp),
             style = TextStyle(
@@ -129,7 +131,7 @@ fun Text(
             ),
             maxLines = maxLines,
             overflow = overflow,
-            modifier = modifier
+            modifier = styledModifier
         )
         is Iterable<*> -> {
             Column {

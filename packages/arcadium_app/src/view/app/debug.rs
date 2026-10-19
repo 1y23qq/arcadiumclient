@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use arcadium_db::console::{ConsoleQueryResult, run_console_query};
 use arcadium_db::models::OptionalModStatus;
 use freya::prelude::*;
@@ -1274,7 +1275,7 @@ fn sql_result(state: &SqlResult) -> Element {
             .padding(Gaps::new_symmetric(10., 14.))
             .corner_radius(CornerRadius::new_all(8.))
             .background(colors::component_bg())
-            .border(border_all_color(1., colors::danger()))
+            .themed_border(border_all_color(1., colors::danger()))
             .child(
                 label()
                     .text(err.clone())
@@ -1305,7 +1306,7 @@ fn sql_table(res: &ConsoleQueryResult) -> Element {
         .vertical()
         .width(Size::fill())
         .corner_radius(CornerRadius::new_all(8.))
-        .border(border_all_color(1., colors::component_border()))
+        .themed_border(border_all_color(1., colors::component_border()))
         .child(header);
 
     for row in &res.rows {
@@ -1331,18 +1332,18 @@ fn table_row(cells: &[String], header: bool) -> Element {
         .horizontal()
         .width(Size::fill())
         .content(Content::Flex)
-        .background(if header {
+        .background(crate::theme::accent::themed_fill(if header {
             colors::page_elevated()
         } else {
             colors::component_bg()
-        });
+        }));
 
     for cell in cells {
         row = row.child(
             rect()
                 .width(Size::flex(1.0))
                 .padding(Gaps::new_symmetric(6., 10.))
-                .border(border_all_color(0.5, colors::component_border()))
+                .themed_border(border_all_color(0.5, colors::component_border()))
                 .child(
                     label()
                         .text(cell.clone())

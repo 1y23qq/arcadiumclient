@@ -9,8 +9,8 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import org.polyfrost.oneconfig.internal.ui.themes.accentAwareBackground as background
+import org.polyfrost.oneconfig.internal.ui.themes.accentAwareBorder as border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -62,6 +62,7 @@ import org.polyfrost.oneconfig.internal.ui.navigation.navigation
 import org.polyfrost.oneconfig.internal.ui.screens.SearchResultsScreen
 import org.polyfrost.oneconfig.internal.ui.themes.Accent
 import org.polyfrost.oneconfig.internal.ui.themes.LocalTheme
+import org.polyfrost.oneconfig.internal.ui.themes.drawAccentMask
 import org.polyfrost.oneconfig.internal.ui.themes.withOpacityPercent
 import org.polyfrost.oneconfig.internal.ui.util.cachedDropShadow
 
@@ -144,11 +145,7 @@ fun Shell(
     val glowCache = remember { GlowCache() }
 
     val glowAlpha = (ShellState.glowOpacity / 100f).coerceIn(0f, 1f)
-    val glowPaint = remember(Accent) {
-        Paint().apply {
-            colorFilter = ColorFilter.makeBlend(Accent.copy(alpha = 1f).toArgb(), SkBlendMode.SRC_IN)
-        }
-    }
+    val glowPaint = remember { Paint() }
 
     Row(
         modifier = Modifier.onGloballyPositioned {
@@ -168,15 +165,15 @@ fun Shell(
                     glowAlpha,
                 )
                 if (glow != null) {
-                    drawIntoCanvas {
-                        it.nativeCanvas.drawImageRect(
+                    drawAccentMask {
+                        drawIntoCanvas { canvas -> canvas.nativeCanvas.drawImageRect(
                             glow,
                             Rect.makeWH(glow.width.toFloat(), glow.height.toFloat()),
                             Rect.makeWH(glow.width / GLOW_BAKE_SCALE, glow.height / GLOW_BAKE_SCALE),
                             SamplingMode.LINEAR,
                             glowPaint,
                             true,
-                        )
+                        ) }
                     }
                 }
             }

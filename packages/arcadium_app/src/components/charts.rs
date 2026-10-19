@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use freya::engine::prelude::{Paint, PaintStyle, PathBuilder, SkColor, SkRect};
 use freya::prelude::*;
 
@@ -369,7 +370,7 @@ impl Component for BarChart {
                             .width(Size::fill())
                             .height(Size::px(h))
                             .corner_radius(CornerRadius::new(4., 4., 0., 0.))
-                            .background(color),
+                            .background(crate::theme::accent::themed_fill(color)),
                     ),
             );
         }
@@ -531,13 +532,13 @@ fn readout(name: String, value: String) -> Element {
                 .padding(Gaps::new_symmetric(3., 8.))
                 .corner_radius(CornerRadius::new_all(6.))
                 .background(colors::component_bg())
-                .border(crate::ui::border_all_color(1., colors::component_border()))
+                .themed_border(crate::ui::border_all_color(1., colors::component_border()))
                 .child(
                     rect()
                         .width(Size::px(8.))
                         .height(Size::px(8.))
                         .corner_radius(CornerRadius::new_all(2.))
-                        .background(colors::brand()),
+                        .background(crate::theme::accent::themed_fill(colors::brand())),
                 )
                 .child(
                     label()

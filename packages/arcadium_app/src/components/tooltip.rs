@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use std::cell::Cell;
 use std::rc::Rc;
 use std::time::Duration;
@@ -243,7 +244,7 @@ impl Component for TooltipBubble {
             .padding(Gaps::new_symmetric(5., 9.))
             .corner_radius(CornerRadius::new_all(8.))
             .background(colors::page_elevated())
-            .border(border_all_color(1., colors::component_border()))
+            .themed_border(border_all_color(1., colors::component_border()))
             .on_sized(move |e: Event<SizedEventData>| {
                 let bubble = e.area.size;
                 let previous = *size.peek();

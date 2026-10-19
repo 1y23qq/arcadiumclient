@@ -72,7 +72,9 @@ impl Component for CurtainFade {
             .height(Size::fill())
             .position(Position::new_global().top(0.).left(0.))
             .layer(Layer::Overlay)
-            .background(colors::page().with_a((255. * alpha).round() as u8))
+            .background(crate::theme::accent::themed_fill(
+                colors::page().with_a((255. * alpha).round() as u8),
+            ))
             .window_drag()
             .into_element()
     }

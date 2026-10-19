@@ -4,8 +4,8 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import org.polyfrost.oneconfig.internal.ui.themes.accentAwareBackground as background
+import org.polyfrost.oneconfig.internal.ui.themes.accentAwareBorder as border
 import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import org.polyfrost.compose.layout.PolyAlign
 import org.polyfrost.oneconfig.internal.ui.themes.Accent
 import org.polyfrost.oneconfig.internal.ui.themes.LocalTheme
+import org.polyfrost.oneconfig.internal.ui.themes.accentTint
 
 private val alignmentGrid: Map<PolyAlign, Pair<Int, Int>> = mapOf(
     PolyAlign.TopLeft     to Pair(0, 0),
@@ -185,6 +186,7 @@ private fun CellIndicator(
     Box(
         modifier = Modifier
             .size(cellSize)
+            .accentTint(color)
             .drawBehind {
                 val s = size
                 val strokeWidth = (1.5f * scale).dp.toPx()

@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use std::path::{Path, PathBuf};
 
 use arcadium_content::modpacks::BlockedFile;
@@ -209,7 +210,7 @@ fn folder_row(
                 .spacing(10.)
                 .corner_radius(CornerRadius::new_all(10.))
                 .background(colors::component_bg())
-                .border(border_all_color(1., colors::component_border()))
+                .themed_border(border_all_color(1., colors::component_border()))
                 .child(
                     Icon::new(IconType::FolderCheck)
                         .size(16.)
@@ -327,8 +328,8 @@ fn dialog(
         .max_height(Size::window_percent(85.))
         .overflow(Overflow::Clip)
         .corner_radius(CornerRadius::new_all(16.))
-        .background(CARD_BG)
-        .border(border_all_color(1., colors::component_border()))
+        .background(crate::theme::accent::themed_fill(CARD_BG))
+        .themed_border(border_all_color(1., colors::component_border()))
         .shadow(Shadow::from((
             0.,
             18.,
@@ -501,8 +502,8 @@ fn file_row(file: &BlockedFile, added: bool) -> impl IntoElement {
         .padding(Gaps::new_symmetric(0., 12.))
         .spacing(10.)
         .corner_radius(CornerRadius::new_all(10.))
-        .background(background)
-        .border(border_all_color(1., border))
+        .background(crate::theme::accent::themed_fill(background))
+        .themed_border(border_all_color(1., border))
         .child(
             rect()
                 .vertical()

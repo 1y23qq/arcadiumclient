@@ -1,4 +1,5 @@
 use super::*;
+use crate::theme::accent::AccentBorderExt;
 
 use arcadium_content::packages::ContentType;
 use arcadium_core::settings::ViewLayout;
@@ -440,8 +441,8 @@ impl Component for CategoryChip {
             .center()
             .padding(Gaps::new_symmetric(0., 12.))
             .corner_radius(CornerRadius::new_all(8.))
-            .background(background)
-            .border(crate::ui::border_all_color(
+            .background(crate::theme::accent::themed_fill(background))
+            .themed_border(crate::ui::border_all_color(
                 1.,
                 if selected || focused {
                     colors::brand()
@@ -517,8 +518,10 @@ pub(crate) fn notice_bar(text: String) -> Element {
         .margin(Gaps::new(0., 0., 8., 0.))
         .padding(Gaps::new_symmetric(9., 12.))
         .corner_radius(CornerRadius::new_all(10.))
-        .background(colors::brand().with_a(30))
-        .border(crate::ui::border_all_color(1., colors::brand().with_a(90)))
+        .background(crate::theme::accent::themed_fill(
+            colors::brand().with_a(30),
+        ))
+        .themed_border(crate::ui::border_all_color(1., colors::brand().with_a(90)))
         .child(
             Icon::new(IconType::InfoCircle)
                 .size(16.)
@@ -673,11 +676,13 @@ impl Component for SectionHeader {
             .spacing(8.)
             .padding(Gaps::new_symmetric(0., 12.))
             .corner_radius(CornerRadius::new_all(10.))
-            .background(if interactive && *hovered.read() {
-                colors::ghost_overlay_hover()
-            } else {
-                Color::TRANSPARENT
-            })
+            .background(crate::theme::accent::themed_fill(
+                if interactive && *hovered.read() {
+                    colors::ghost_overlay_hover()
+                } else {
+                    Color::TRANSPARENT
+                },
+            ))
             .maybe(interactive, |el| {
                 el.cursor(CursorIcon::Pointer)
                     .on_pointer_enter(move |_| hovered.set(true))

@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use std::path::Path;
 
 use arcadium_java::{JavaRuntime, JavaVendor, is_launcher_managed};
@@ -144,7 +145,7 @@ fn runtimes_table(
         .width(Size::fill())
         .corner_radius(CornerRadius::new_all(12.))
         .background(colors::page_elevated())
-        .border(border_all_color(1., colors::component_border()))
+        .themed_border(border_all_color(1., colors::component_border()))
         .overflow(Overflow::Clip)
         .child(table_header());
 
@@ -239,7 +240,7 @@ impl Component for RuntimeRow {
             .spacing(12.)
             .padding(Gaps::new_symmetric(8., 14.))
             .maybe(!self.last, |el| {
-                el.border(
+                el.themed_border(
                     Border::new()
                         .width(BorderWidth {
                             bottom: 1.,

@@ -6,6 +6,8 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.*
+import org.polyfrost.oneconfig.internal.ui.themes.accentAwareBackground as background
+import org.polyfrost.oneconfig.internal.ui.themes.accentAwareBorder as border
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
@@ -86,8 +88,7 @@ fun DropdownOption(data: DropdownOptionData) {
         else theme.textColorSecondary
     )
     val backgroundColor by animateColorAsState(
-        if (expanded) Accent.copy(0.2f).compositeOver(theme.componentBackground)
-        else theme.componentBackground
+        theme.componentBackground
     )
     val chevronRotation by animateFloatAsState(
         if (expanded) 0f else 180f
@@ -100,6 +101,7 @@ fun DropdownOption(data: DropdownOptionData) {
                 .height(32.dp)
                 .onSizeChanged { triggerHeightPx = it.height }
                 .background(backgroundColor, DropdownShape)
+                .accentBackground(DropdownShape, alpha = .2f, enabled = expanded)
                 .border(
                     1.dp,
                     borderColor,

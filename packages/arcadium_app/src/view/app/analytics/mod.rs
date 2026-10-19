@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use chrono::{Duration, Local};
 use freya::prelude::*;
 
@@ -57,7 +58,7 @@ pub fn analytics_placeholder(note: &str) -> Element {
                 .padding(Gaps::new_symmetric(16., 24.))
                 .corner_radius(CornerRadius::new_all(12.))
                 .background(colors::page_elevated())
-                .border(border_all_color(1., colors::component_border()))
+                .themed_border(border_all_color(1., colors::component_border()))
                 .center()
                 .child(
                     label()
@@ -222,7 +223,7 @@ pub(super) fn nav_button(
         .center()
         .corner_radius(CornerRadius::new_all(8.))
         .background(colors::component_bg())
-        .border(border_all_color(1., colors::component_border()))
+        .themed_border(border_all_color(1., colors::component_border()))
         .maybe(enabled, |el| {
             el.on_press(on_press).cursor(CursorIcon::Pointer)
         })
@@ -236,5 +237,5 @@ pub(super) fn card() -> Rect {
         .padding(20.)
         .corner_radius(CornerRadius::new_all(14.))
         .background(colors::page_elevated())
-        .border(border_all_color(1., colors::component_border()))
+        .themed_border(border_all_color(1., colors::component_border()))
 }

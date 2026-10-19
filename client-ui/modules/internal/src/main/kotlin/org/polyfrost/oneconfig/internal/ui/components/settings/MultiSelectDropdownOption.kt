@@ -1,12 +1,13 @@
 package org.polyfrost.oneconfig.internal.ui.components.settings
 
+import org.polyfrost.oneconfig.internal.ui.themes.accentBackground
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import org.polyfrost.oneconfig.internal.ui.themes.accentAwareBackground as background
+import org.polyfrost.oneconfig.internal.ui.themes.accentAwareBorder as border
 import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -102,8 +103,7 @@ fun MultiSelectDropdownOption(data: MultiSelectDropdownOptionData) {
         if (isHovered || expanded) theme.textColor else theme.textColorSecondary
     )
     val backgroundColor by animateColorAsState(
-        if (expanded) Accent.copy(0.2f).compositeOver(theme.componentBackground)
-        else theme.componentBackground
+        theme.componentBackground
     )
     val chevronRotation by animateFloatAsState(if (expanded) 0f else 180f)
 
@@ -126,6 +126,7 @@ fun MultiSelectDropdownOption(data: MultiSelectDropdownOptionData) {
                 .height(32.dp)
                 .onSizeChanged { triggerHeightPx = it.height }
                 .background(backgroundColor, DropdownShape)
+                .accentBackground(DropdownShape, alpha = .2f, enabled = expanded)
                 .border(1.dp, borderColor, DropdownShape)
                 .onClick(triggerInteraction) { expanded = !expanded }
                 .hoverable(triggerInteraction)

@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use std::time::Instant;
 
 use freya::prelude::*;
@@ -33,7 +34,7 @@ pub fn note(message: String, accent: Color) -> Element {
         .spacing(10.)
         .padding(Gaps::new_symmetric(12., 14.))
         .corner_radius(CornerRadius::new_all(10.))
-        .background(accent.with_a(30))
+        .background(crate::theme::accent::themed_fill(accent.with_a(30)))
         .child(
             label()
                 .text(message)
@@ -62,8 +63,10 @@ pub fn path_block(caption: &'static str, path: &std::path::Path) -> Element {
                 .width(Size::fill())
                 .padding(Gaps::new_all(10.))
                 .corner_radius(CornerRadius::new_all(8.))
-                .background(theme::colors::component_bg())
-                .border(border_all_color(1., theme::colors::component_border()))
+                .background(crate::theme::accent::themed_fill(
+                    theme::colors::component_bg(),
+                ))
+                .themed_border(border_all_color(1., theme::colors::component_border()))
                 .child(
                     label()
                         .text(path.display().to_string())
@@ -135,7 +138,9 @@ pub fn divider() -> Rect {
     rect()
         .width(Size::fill())
         .height(Size::px(1.))
-        .background(theme::colors::component_border())
+        .background(crate::theme::accent::themed_fill(
+            theme::colors::component_border(),
+        ))
 }
 
 pub fn centered_note(text: &str) -> Element {

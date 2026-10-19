@@ -286,7 +286,7 @@ fn proportion_bar(fraction: f32, fill: Color) -> impl IntoElement {
                 .width(Size::percent(fraction.clamp(0.0, 1.0) * 100.))
                 .height(Size::fill())
                 .corner_radius(CornerRadius::new_all(2.))
-                .background(fill),
+                .background(crate::theme::accent::themed_fill(fill)),
         )
         .into_element()
 }

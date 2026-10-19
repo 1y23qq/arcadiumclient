@@ -6,6 +6,7 @@ pub(crate) use index::{browsable_type, encode_package_id};
 
 mod modpack_prompt;
 mod world_prompt;
+use crate::theme::accent::AccentBorderExt;
 use modpack_prompt::{ModpackVersionPrompt, minecraft_choices};
 use world_prompt::WorldInstallPrompt;
 
@@ -298,7 +299,7 @@ pub(crate) fn activity_badge(active: bool) -> impl IntoElement {
         .cross_align(Alignment::Center)
         .padding(Gaps::new_symmetric(2., 8.))
         .corner_radius(CornerRadius::new_all(999.))
-        .background(color.with_a(38))
+        .background(crate::theme::accent::themed_fill(color.with_a(38)))
         .child(label().text(text).font_size(11.).max_lines(1).color(color))
 }
 
@@ -316,8 +317,10 @@ fn badge(
         .spacing(4.)
         .padding(Gaps::new_symmetric(2., 8.))
         .corner_radius(CornerRadius::new_all(999.))
-        .background(background)
-        .map(border, |el, border| el.border(border_all_color(1., border)))
+        .background(crate::theme::accent::themed_fill(background))
+        .map(border, |el, border| {
+            el.themed_border(border_all_color(1., border))
+        })
         .child(
             Icon::new(IconType::CheckCircle)
                 .size(font_size)
@@ -449,7 +452,7 @@ impl Component for PackageBanner {
             .height(Size::px(h))
             .center()
             .overflow(Overflow::Clip)
-            .background(BANNER_BG);
+            .background(crate::theme::accent::themed_fill(BANNER_BG));
 
         let icon_placeholder = thumbnail_placeholder(icon, 10., 0.45);
         let backdrop_only = self.backdrop_only;
@@ -478,7 +481,7 @@ impl Component for PackageBanner {
                         .width(Size::fill())
                         .height(Size::fill())
                         .backdrop_blur(12.)
-                        .background(BANNER_BG.with_a(120))
+                        .background(crate::theme::accent::themed_fill(BANNER_BG.with_a(120)))
                         .overflow(Overflow::Clip)
                         .layer(Layer::Relative(3))
                         .into_element()

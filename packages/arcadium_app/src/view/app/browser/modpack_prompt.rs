@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use std::collections::HashSet;
 
 use arcadium_common::version::parse_mc_version;
@@ -166,13 +167,13 @@ fn choice_row(
         .height(Size::px(16.))
         .center()
         .corner_radius(CornerRadius::new_all(8.))
-        .border(border_all_color(1.5, ring))
+        .themed_border(border_all_color(1.5, ring))
         .maybe_child(active.then(|| {
             rect()
                 .width(Size::px(8.))
                 .height(Size::px(8.))
                 .corner_radius(CornerRadius::new_all(4.))
-                .background(colors::brand())
+                .background(crate::theme::accent::themed_fill(colors::brand()))
         }));
 
     rect()
@@ -185,7 +186,7 @@ fn choice_row(
         .padding(Gaps::new_symmetric(0., 12.))
         .corner_radius(CornerRadius::new_all(8.))
         .background(colors::component_bg())
-        .border(border_all_color(1., ring))
+        .themed_border(border_all_color(1., ring))
         .on_press(move |_| on_select())
         .child(radio)
         .child(

@@ -1,7 +1,7 @@
 package org.polyfrost.oneconfig.internal.ui.components
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
+import org.polyfrost.oneconfig.internal.ui.themes.accentAwareBackground as background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
@@ -40,6 +40,7 @@ import org.jetbrains.skia.Rect as SkRect
 import org.jetbrains.skia.SamplingMode
 import org.polyfrost.oneconfig.internal.ui.themes.Accent
 import org.polyfrost.oneconfig.internal.ui.themes.LocalTheme
+import org.polyfrost.oneconfig.internal.ui.themes.accentTint
 import org.polyfrost.oneconfig.utils.v1.Multithreading
 
 private object IconResourceMarker
@@ -201,7 +202,7 @@ fun Icon(
                 Image(
                     painter = painter,
                     contentDescription = null,
-                    modifier = modifier.then(iconSizeModifier(aspectRatio)),
+                    modifier = modifier.then(iconSizeModifier(aspectRatio)).accentTint(resolvedColor),
                     colorFilter = ColorFilter.tint(resolvedColor)
                 )
                 return
@@ -248,7 +249,7 @@ fun Icon(
     Image(
         painter = painter,
         contentDescription = null,
-        modifier = clippedResourceModifier,
+        modifier = if (isSvg) clippedResourceModifier.accentTint(resolvedColor) else clippedResourceModifier,
         colorFilter = if (isSvg) ColorFilter.tint(resolvedColor) else null
     )
 }

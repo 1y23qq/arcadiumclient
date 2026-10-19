@@ -1,4 +1,5 @@
 use super::*;
+use crate::theme::accent::AccentBorderExt;
 
 use arcadium_content::packages::ProviderId;
 use arcadium_content::packages::types::{ProjectDetail, ProjectMember};
@@ -46,8 +47,8 @@ pub(super) fn sidebar(
                 .width(Size::fill())
                 .corner_radius(CornerRadius::new_all(12.))
                 .overflow(Overflow::Clip)
-                .background(PANEL_BG)
-                .border(border_all_color(1., colors::component_border()))
+                .background(crate::theme::accent::themed_fill(PANEL_BG))
+                .themed_border(border_all_color(1., colors::component_border()))
                 .child(
                     rect()
                         .width(Size::fill())
@@ -200,7 +201,7 @@ impl Component for ProviderTag {
                     .a11y_role(AccessibilityRole::Link)
                     .corner_radius(CornerRadius::new_all(6.))
                     .maybe(focused, |el| {
-                        el.border(border_all_color(1., colors::brand()))
+                        el.themed_border(border_all_color(1., colors::brand()))
                     })
                     .cursor(CursorIcon::Pointer)
                     .on_press(move |_| confirm.set(Some(url.clone())))
@@ -220,8 +221,8 @@ fn card_spaced(title: &str, rows: Vec<Element>, spacing: f32) -> impl IntoElemen
         .spacing(spacing)
         .padding(Gaps::new_all(16.))
         .corner_radius(CornerRadius::new_all(12.))
-        .background(PANEL_BG)
-        .border(border_all_color(1., colors::component_border()))
+        .background(crate::theme::accent::themed_fill(PANEL_BG))
+        .themed_border(border_all_color(1., colors::component_border()))
         .child(
             label()
                 .text(title.to_string())
@@ -300,7 +301,7 @@ impl Component for AuthorRow {
                     .on_press(move |_| confirm.set(Some(url.clone())))
             })
             .maybe(interactive && focused, |el| {
-                el.border(border_all_color(1., colors::brand()))
+                el.themed_border(border_all_color(1., colors::brand()))
             })
             .child(Thumbnail::new(self.avatar_url.clone(), 32.).radius(6.))
             .child(
@@ -431,7 +432,7 @@ impl Component for LinkRow {
             .a11y_focusable(true)
             .a11y_role(AccessibilityRole::Link)
             .maybe(focused, |el| {
-                el.border(border_all_color(1., colors::brand()))
+                el.themed_border(border_all_color(1., colors::brand()))
             })
             .cursor(CursorIcon::Pointer)
             .on_press(move |_| confirm.set(Some(url.clone())))

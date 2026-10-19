@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use std::path::PathBuf;
 
 use arcadium_common::parse_mc_version;
@@ -252,7 +253,7 @@ impl Component for FolderCard {
                 .spacing(12.)
                 .padding(Gaps::new_all(10.))
                 .corner_radius(CornerRadius::new_all(8.))
-                .background(CARD_BG)
+                .background(crate::theme::accent::themed_fill(CARD_BG))
                 .content(Content::Flex)
                 .on_secondary_down(on_secondary(on_context.clone()))
                 .child(self.list_info(icon))
@@ -307,12 +308,12 @@ impl Component for FolderCard {
                     .spacing(9.)
                     .padding(Gaps::new_all(14.))
                     .corner_radius(CornerRadius::new_all(6.))
-                    .background(if hovering {
+                    .background(crate::theme::accent::themed_fill(if hovering {
                         colors::component_bg_hover()
                     } else {
                         colors::component_bg()
-                    })
-                    .border(border_all_color(
+                    }))
+                    .themed_border(border_all_color(
                         1.,
                         if hovering {
                             colors::component_border_hover()
@@ -471,8 +472,8 @@ pub(crate) fn dialog(
                         .spacing(14.)
                         .padding(Gaps::new_all(20.))
                         .corner_radius(CornerRadius::new_all(14.))
-                        .background(CARD_BG)
-                        .border(border_all_color(1., colors::component_border()))
+                        .background(crate::theme::accent::themed_fill(CARD_BG))
+                        .themed_border(border_all_color(1., colors::component_border()))
                         .child(
                             label()
                                 .text(title)

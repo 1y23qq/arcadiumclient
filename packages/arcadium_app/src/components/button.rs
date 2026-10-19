@@ -1,4 +1,5 @@
 #![allow(dead_code)]
+use crate::theme::accent::AccentBorderExt;
 use std::borrow::Cow;
 
 use freya::prelude::*;
@@ -341,14 +342,16 @@ impl Component for Button {
         } else {
             Fill::Color(background)
         };
-        rect = rect.background(fill).color(foreground);
+        rect = rect
+            .background(crate::theme::accent::themed_fill(fill))
+            .color(foreground);
 
         if !enabled() {
             rect = rect.opacity(DISABLED_OPACITY);
         }
 
         if let Some(border) = border_color {
-            rect = rect.border(
+            rect = rect.themed_border(
                 Border::new()
                     .fill(border)
                     .width(1.)

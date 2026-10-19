@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use arcadium_core::settings::LauncherSettings;
 use freya::prelude::*;
 
@@ -143,7 +144,7 @@ fn big_preview(theme: ThemePreview) -> impl IntoElement {
         .height(Size::px(183.))
         .corner_radius(CornerRadius::new_all(16.))
         .background(colors::page())
-        .border(border_all_color(3., Color::from_argb(26, 255, 255, 255)))
+        .themed_border(border_all_color(3., Color::from_argb(26, 255, 255, 255)))
         .center()
         .child(
             rect()
@@ -151,9 +152,9 @@ fn big_preview(theme: ThemePreview) -> impl IntoElement {
                 .width(Size::px(168.))
                 .height(Size::px(123.))
                 .corner_radius(CornerRadius::new_all(8.))
-                .background(theme.background)
-                .border(border_all_color(1., colors::component_border()))
+                .background(crate::theme::accent::themed_fill(theme.background))
                 .padding(20.)
+                .themed_border(border_all_color(1., colors::component_border()))
                 .spacing(20.)
                 .child(mock_line(108., theme.accent))
                 .child(mock_line(84., line_tint(theme)))
@@ -175,9 +176,9 @@ fn theme_card(theme: ThemePreview, index: usize, selected: State<usize>) -> Elem
         .width(Size::px(126.))
         .height(Size::px(78.))
         .corner_radius(CornerRadius::new_all(8.))
-        .background(theme.background)
-        .border(border_all_color(1., border_color))
+        .background(crate::theme::accent::themed_fill(theme.background))
         .padding(8.)
+        .themed_border(border_all_color(1., border_color))
         .spacing(20.)
         .child(mock_line(108., line_tint(theme)))
         .child(split_bar(theme.accent, 96.))
@@ -189,7 +190,7 @@ fn mock_line(width: f32, color: Color) -> impl IntoElement {
         .width(Size::px(width))
         .height(Size::px(10.))
         .corner_radius(CornerRadius::new_all(4.))
-        .background(color)
+        .background(crate::theme::accent::themed_fill(color))
         .into_element()
 }
 
@@ -199,13 +200,13 @@ fn split_bar(accent: Color, width: f32) -> impl IntoElement {
         .width(Size::px(width))
         .height(Size::px(16.))
         .corner_radius(CornerRadius::new_all(4.))
-        .background(accent.with_a(128))
+        .background(crate::theme::accent::themed_fill(accent.with_a(128)))
         .child(
             rect()
                 .width(Size::px(width / 3.))
                 .height(Size::fill())
                 .corner_radius(CornerRadius::new_all(4.))
-                .background(accent),
+                .background(crate::theme::accent::themed_fill(accent)),
         )
         .into_element()
 }
@@ -248,7 +249,7 @@ impl Component for AccentColorRow {
                 .spacing(12.)
                 .padding(Gaps::new_symmetric(8., 16.))
                 .corner_radius(CornerRadius::new_all(8.))
-                .background(accent::fill(1.))
+                .background(crate::theme::accent::themed_fill(accent::fill(1.)))
                 .child(
                     Icon::new(IconType::Colors)
                         .size(18.)

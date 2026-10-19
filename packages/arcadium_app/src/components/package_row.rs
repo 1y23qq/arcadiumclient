@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use arcadium_content::packages::ProviderId;
 use arcadium_core::SeenStatus;
 use freya::prelude::*;
@@ -234,7 +235,10 @@ impl Component for PackageRow {
                 .layer(Layer::Relative(16))
                 .corner_radius(CornerRadius::new_all(radius))
                 .maybe(self.selected, |el| {
-                    el.background(colors::brand().with_a(28)).border(
+                    el.background(crate::theme::accent::themed_fill(
+                        colors::brand().with_a(28),
+                    ))
+                    .themed_border(
                         border_all_color(2., colors::brand()).alignment(BorderAlignment::Inner),
                     )
                 })
@@ -390,7 +394,7 @@ fn list_card(
         .spacing(12.)
         .padding(Gaps::new_all(10.))
         .corner_radius(CornerRadius::new_all(8.))
-        .background(CARD_BG)
+        .background(crate::theme::accent::themed_fill(CARD_BG))
         .content(Content::Flex)
         .on_secondary_down(on_secondary(on_context.clone()))
         .child(package_info(item, package_type, cluster_id, icon))
@@ -500,8 +504,8 @@ pub(crate) fn grid_card(
         .spacing(9.)
         .padding(Gaps::new_all(GRID_CARD_PADDING))
         .corner_radius(CornerRadius::new_all(6.))
-        .background(bg.with_a(alpha))
-        .border(border_all_color(1., border))
+        .background(crate::theme::accent::themed_fill(bg.with_a(alpha)))
+        .themed_border(border_all_color(1., border))
         .content(Content::Flex)
         .cursor(CursorIcon::Pointer)
         .on_pointer_enter(move |_| hovered.set(true))
@@ -657,11 +661,11 @@ impl Component for KebabButton {
             .width(Size::px(26.))
             .height(Size::px(26.))
             .corner_radius(CornerRadius::new_all(6.))
-            .background(if *hovered.read() {
+            .background(crate::theme::accent::themed_fill(if *hovered.read() {
                 colors::ghost_overlay_hover()
             } else {
                 Color::TRANSPARENT
-            })
+            }))
             .cursor(CursorIcon::Pointer)
             .a11y_role(AccessibilityRole::Button)
             .on_pointer_enter(move |_| hovered.set(true))
@@ -906,7 +910,7 @@ fn status_tag(text: &'static str, accent: Color) -> Element {
                 .width(Size::px(6.))
                 .height(Size::px(6.))
                 .corner_radius(CornerRadius::new_all(3.))
-                .background(accent),
+                .background(crate::theme::accent::themed_fill(accent)),
         )
         .child(
             label()
@@ -943,7 +947,7 @@ pub(crate) fn pill(icon: Option<Element>, text: String, accent: Color) -> Elemen
         .spacing(4.)
         .padding(Gaps::new_symmetric(2., 8.))
         .corner_radius(CornerRadius::new_all(999.))
-        .border(border_all_color(1., colors::component_border()))
+        .themed_border(border_all_color(1., colors::component_border()))
         .background(colors::component_bg())
         .maybe_child(icon)
         .child(

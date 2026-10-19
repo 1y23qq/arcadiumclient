@@ -2,7 +2,7 @@ plugins {
  id("net.fabricmc.fabric-loom-remap") version "1.17.21"
  id("ploceus") version "1.17.7"
 }
-version = "0.3.6"
+version = "0.3.7"
 group = "io.github.arcadiumclient"
 base.archivesName = "ArcadiumBrand"
 tasks.processResources {

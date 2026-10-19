@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use arcadium_java::{AvailableJava, JavaVendor};
 use freya::prelude::*;
 
@@ -128,7 +129,7 @@ impl Component for JavaInstallManager {
                             .padding(Gaps::new_all(20.))
                             .corner_radius(CornerRadius::new_all(16.))
                             .background(colors::page_elevated())
-                            .border(border_all_color(1., colors::component_border()))
+                            .themed_border(border_all_color(1., colors::component_border()))
                             .child(
                                 label()
                                     .text("Install Java")
@@ -223,7 +224,7 @@ impl Component for VersionRow {
                 rect()
                     .padding(Gaps::new_symmetric(2., 8.))
                     .corner_radius(CornerRadius::new_all(6.))
-                    .background(colors::brand())
+                    .background(crate::theme::accent::themed_fill(colors::brand()))
                     .child(
                         label()
                             .text("Suggested")
@@ -244,7 +245,7 @@ impl Component for VersionRow {
             .corner_radius(CornerRadius::new_all(10.))
             .background(colors::component_bg())
             .maybe(self.suggested, |el| {
-                el.border(border_all_color(1., colors::brand()))
+                el.themed_border(border_all_color(1., colors::brand()))
             })
             .child(
                 rect()

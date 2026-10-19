@@ -29,13 +29,25 @@ pub fn bundle(path: &str) -> Option<&'static [u8]> {
 }
 
 pub const BRANDING_MOD: &[u8] = include_bytes!("../assets/distribution/ArcadiumBrand-1.8.9.jar");
-pub const BRANDING_SHA1: &str = "e30be1301dc6ee0ba66d1ff68b77b03c29bd32f5";
+pub const BRANDING_SHA1: &str = "381f046c24b05160fa2b08ad0f5793a976188512";
 
 pub const COMPONENTS: &[(&str, &str)] = &[
-    ("ArcadiumCore-1.8.9.jar", "c91db3b432981686000d22029588b296bfd43fb5"),
-    ("ArcadiumFeatures-1.8.9.jar", "1ba9adabce7b778e9c1b5f6246178cf0b1329bdf"),
-    ("ArcadiumRenderer-1.8.9.jar", "a93ef441f12e02add2c756c3b1dedad0454bc616"),
-    ("ArcadiumForgeCompat-1.8.9.jar", "0aa3eaeb1dc74e9a33a8cc48d3228d2a55e78b8d"),
+    (
+        "ArcadiumCore-1.8.9.jar",
+        "e404e28b1ed686c023c6af5c91cb238a6481c9b2",
+    ),
+    (
+        "ArcadiumFeatures-1.8.9.jar",
+        "77358bc3637ba579fe6ab99ec1fab3857051d697",
+    ),
+    (
+        "ArcadiumRenderer-1.8.9.jar",
+        "a93ef441f12e02add2c756c3b1dedad0454bc616",
+    ),
+    (
+        "ArcadiumForgeCompat-1.8.9.jar",
+        "3e2fa0ee746eb2c79799d2f3fdb4328ab90c5c1e",
+    ),
 ];
 
 #[cfg(test)]

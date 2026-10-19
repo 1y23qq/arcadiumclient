@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use std::path::PathBuf;
 
 use arcadium_core::ScreenshotInfo;
@@ -355,8 +356,10 @@ fn confirm_panel(
                         .spacing(14.)
                         .padding(Gaps::new_all(20.))
                         .corner_radius(CornerRadius::new_all(14.))
-                        .background(Color::from_rgb(26, 34, 41))
-                        .border(border_all_color(1., colors::component_border()))
+                        .background(crate::theme::accent::themed_fill(Color::from_rgb(
+                            26, 34, 41,
+                        )))
+                        .themed_border(border_all_color(1., colors::component_border()))
                         .child(
                             label()
                                 .text(format!(
@@ -404,7 +407,9 @@ fn res_badge(res: Option<(u32, u32)>) -> Option<Element> {
             .position(Position::new_absolute().bottom(6.).right(6.))
             .padding(Gaps::new_symmetric(2., 6.))
             .corner_radius(CornerRadius::new_all(5.))
-            .background(Color::from_argb(170, 0, 0, 0))
+            .background(crate::theme::accent::themed_fill(Color::from_argb(
+                170, 0, 0, 0,
+            )))
             .layer(Layer::Relative(3))
             .child(label().text(text).font_size(9.).color(Color::WHITE))
             .into_element()
@@ -455,9 +460,9 @@ impl Component for ScreenshotTile {
             .width(Size::flex(1.0))
             .max_width(Size::px(MAX_COL_W))
             .corner_radius(CornerRadius::new_all(10.))
-            .background(CARD_BG)
+            .background(crate::theme::accent::themed_fill(CARD_BG))
             .overflow(Overflow::Clip)
-            .border(border_all_color(1., border_color).alignment(BorderAlignment::Inner))
+            .themed_border(border_all_color(1., border_color).alignment(BorderAlignment::Inner))
             .cursor(CursorIcon::Pointer)
             .on_pointer_enter(move |_| hovered.set(true))
             .on_pointer_leave(move |_| hovered.set(false))
@@ -535,12 +540,12 @@ impl Component for ScreenshotRow {
             .spacing(12.)
             .padding(Gaps::new_symmetric(8., 10.))
             .corner_radius(CornerRadius::new_all(10.))
-            .background(if *hovered.read() {
+            .background(crate::theme::accent::themed_fill(if *hovered.read() {
                 colors::component_bg_hover()
             } else {
                 CARD_BG
-            })
-            .border(border_all_color(
+            }))
+            .themed_border(border_all_color(
                 if selected { 2. } else { 1. },
                 if selected {
                     colors::brand()

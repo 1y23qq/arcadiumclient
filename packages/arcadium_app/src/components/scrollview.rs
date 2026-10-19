@@ -825,7 +825,7 @@ impl Component for ScrollThumb {
                     .width(bar_w)
                     .height(bar_h)
                     .corner_radius(CornerRadius::new_all(12.))
-                    .background(color.with_a(160)),
+                    .background(crate::theme::accent::themed_fill(color.with_a(160))),
             )
     }
 }

@@ -95,8 +95,12 @@ impl SharedAccent {
     }
 
     fn fill_at(&self, phase: f32, brightness: f32) -> Fill {
+        self.fill_at_opacity(phase, brightness, 255)
+    }
+
+    fn fill_at_opacity(&self, phase: f32, brightness: f32, opacity: u8) -> Fill {
         if !self.gradient {
-            return Fill::Color(self.solid * brightness);
+            return Fill::Color((self.solid * brightness).with_a(opacity));
         }
         let phase = if self.animate && phase.is_finite() {
             phase.rem_euclid(1.) * 2.
@@ -104,24 +108,21 @@ impl SharedAccent {
             0.
         };
         let mut gradient = LinearGradient::new().angle(270.);
-        gradient = gradient.stop((self.sample(phase) * brightness, 0.));
+        let tint = |color: Color| (color * brightness).with_a(opacity);
+        gradient = gradient.stop((tint(self.sample(phase)), 0.));
         let width = (self.smoothness / 100.).max(0.02);
         let mut previous = phase;
         for section in phase.floor() as i32..=(phase + 1.).floor() as i32 {
             for edge in [0.5 - width / 2., 0.5 + width / 2.] {
                 let boundary = section as f32 + edge;
                 if boundary > previous && boundary < phase + 1. {
-                    gradient = gradient.stop((
-                        self.sample(boundary) * brightness,
-                        (boundary - phase) * 100.,
-                    ));
+                    gradient =
+                        gradient.stop((tint(self.sample(boundary)), (boundary - phase) * 100.));
                     previous = boundary;
                 }
             }
         }
-        gradient
-            .stop((self.sample(phase + 1.) * brightness, 100.))
-            .into()
+        gradient.stop((tint(self.sample(phase + 1.)), 100.)).into()
     }
 
     fn sample(&self, position: f32) -> Color {
@@ -175,6 +176,104 @@ pub fn fill(brightness: f32) -> Fill {
         0.
     };
     theme.fill_at(phase, brightness)
+}
+
+pub fn themed_fill(value: impl Into<Fill>) -> Fill {
+    let value = value.into();
+    let Fill::Color(color) = value else {
+        return value;
+    };
+    let theme = current();
+    if !theme.gradient || color.a() == 0 {
+        return value;
+    }
+    for brightness in [1., 0.92, 0.84, 0.52] {
+        let expected = theme.representative() * brightness;
+        if color.r() == expected.r() && color.g() == expected.g() && color.b() == expected.b() {
+            let phase = if theme.animate {
+                context().map(|state| *state.phase.read()).unwrap_or(0.)
+            } else {
+                0.
+            };
+            return theme.fill_at_opacity(phase, brightness, color.a());
+        }
+    }
+    value
+}
+
+pub trait AccentBorderExt: StyleExt + ChildrenExt + LayoutExt {
+    fn themed_border(mut self, border: impl Into<Option<Border>>) -> Self {
+        let Some(border) = border.into() else {
+            return self;
+        };
+        let color = border.fill;
+        let theme = current();
+        let matching = [1., 0.92, 0.84, 0.52].into_iter().any(|brightness| {
+            let expected = theme.representative() * brightness;
+            color.r() == expected.r() && color.g() == expected.g() && color.b() == expected.b()
+        });
+        if theme.gradient && matching && color.a() > 0 {
+            let corners = self.get_style().corner_radius;
+            let padding = self.get_layout().layout.padding;
+            self.child(GradientBorder {
+                border,
+                corners,
+                padding,
+            })
+        } else {
+            StyleExt::border(self, border)
+        }
+    }
+}
+
+impl<T: StyleExt + ChildrenExt + LayoutExt> AccentBorderExt for T {}
+
+#[derive(PartialEq)]
+struct GradientBorder {
+    border: Border,
+    corners: CornerRadius,
+    padding: Gaps,
+}
+
+impl Component for GradientBorder {
+    fn render(&self) -> impl IntoElement {
+        use freya::elements::rect::RectElement;
+        use skia_safe::{Paint, Rect as SkRect};
+        let mut fill = use_state(|| themed_fill(self.border.fill));
+        fill.set_if_modified(themed_fill(self.border.fill));
+        let border = self.border.clone();
+        let corners = self.corners;
+        let horizontal = self.padding.horizontal();
+        let vertical = self.padding.vertical();
+        canvas(RenderCallback::new(move |context| {
+            let bounds = SkRect::from_wh(context.size.width, context.size.height);
+            let mut paint = Paint::default();
+            paint.set_anti_alias(true);
+            fill.peek()
+                .apply_to_paint(&mut paint, Area::new(Default::default(), context.size));
+            match RectElement::border_shape(bounds, &corners, &border) {
+                BorderShape::DRRect(outer, inner) => {
+                    context.canvas.draw_drrect(&outer, &inner, &paint);
+                }
+                BorderShape::Path(path) => {
+                    context.canvas.draw_path(&path, &paint);
+                }
+            }
+        }))
+        .position(
+            Position::new_absolute()
+                .top(-self.padding.top())
+                .left(-self.padding.left()),
+        )
+        .width(Size::func_data(
+            move |context| Some(context.parent + horizontal),
+            &horizontal.to_bits(),
+        ))
+        .height(Size::func_data(
+            move |context| Some(context.parent + vertical),
+            &vertical.to_bits(),
+        ))
+    }
 }
 
 pub fn use_shared_accent() {
@@ -527,5 +626,122 @@ mod tests {
                 >= 4
         );
         test.render_to_file(directory.join("shared-solid.png"));
+    }
+
+    #[test]
+    fn selected_surfaces_and_borders_keep_geometry_and_animate() {
+        use crate::components::{Icon, IconType};
+        use freya_testing::TestingRunner;
+        use std::{cell::Cell, collections::HashMap, rc::Rc};
+
+        #[derive(PartialEq)]
+        struct Detail;
+        impl Component for Detail {
+            fn render(&self) -> impl IntoElement {
+                let color = super::super::colors::brand();
+                rect()
+                    .horizontal()
+                    .spacing(12.)
+                    .cross_align(Alignment::Center)
+                    .width(Size::px(320.))
+                    .height(Size::px(140.))
+                    .padding(12.)
+                    .corner_radius(CornerRadius::new_all(12.))
+                    .background(themed_fill(color.with_a(38)))
+                    .themed_border(Border::new().fill(color).width(2.))
+                    .child(Icon::new(IconType::CheckCircle).size(24.).color(color))
+                    .child(label().text("Selected account").color(themed_fill(color)))
+            }
+        }
+        let renders = Rc::new(Cell::new(0));
+        let rendering = renders.clone();
+        let app = move || {
+            rendering.set(rendering.get() + 1);
+            rect()
+                .vertical()
+                .padding(20.)
+                .spacing(12.)
+                .width(Size::fill())
+                .height(Size::fill())
+                .background(Color::BLACK)
+                .font_family("Inter")
+                .child(Detail)
+                .child(
+                    rect()
+                        .width(Size::px(320.))
+                        .height(Size::px(20.))
+                        .background(themed_fill(Color::RED)),
+                )
+        };
+        let (mut test, mut shared) = TestingRunner::new(
+            app,
+            Size2D::new(360., 220.),
+            |runner| {
+                runner.provide_root_context(|| AccentContext {
+                    theme: State::create(Arc::new(SharedAccent::default())),
+                    phase: State::create(0.),
+                })
+            },
+            1.,
+        );
+        test.set_fonts(HashMap::from([(
+            "Inter",
+            include_bytes!("../../assets/fonts/Inter-Regular.ttf").as_slice(),
+        )]));
+        let directory =
+            Path::new(env!("CARGO_MANIFEST_DIR")).join("../../build/theme-accent-evidence");
+        std::fs::create_dir_all(&directory).unwrap();
+        test.sync_and_update();
+        test.render_to_file(directory.join("details-gradient-a.png"));
+        let first = image::open(directory.join("details-gradient-a.png"))
+            .unwrap()
+            .to_rgba8();
+        let edge = first.get_pixel(100, 21).0;
+        assert!(
+            edge[1] > 100 && edge[2] > 100,
+            "The gradient border moved inside the card padding"
+        );
+        let count = renders.get();
+        test.run_in(|| shared.phase.set(0.25));
+        test.sync_and_update();
+        test.render_to_file(directory.join("details-gradient-b.png"));
+        let second = image::open(directory.join("details-gradient-b.png"))
+            .unwrap()
+            .to_rgba8();
+        assert_eq!(
+            count,
+            renders.get(),
+            "Accent animation rebuilt the containing page"
+        );
+        let changed = |x0: u32, y0: u32, x1: u32, y1: u32| {
+            (y0..y1)
+                .flat_map(|y| (x0..x1).map(move |x| (x, y)))
+                .filter(|&(x, y)| first.get_pixel(x, y) != second.get_pixel(x, y))
+                .count()
+        };
+        assert!(
+            changed(70, 20, 290, 23) > 100,
+            "The padded card border did not flow at its outer edge"
+        );
+        assert!(
+            changed(32, 35, 60, 150) > 20,
+            "The selected icon did not use a spatial gradient"
+        );
+        assert!(
+            changed(70, 35, 260, 150) > 50,
+            "The accent text or tinted surface did not flow"
+        );
+        assert_eq!(
+            changed(20, 172, 340, 192),
+            0,
+            "The theme recolored a non-accent surface"
+        );
+        test.run_in(|| {
+            let mut theme = SharedAccent::default();
+            theme.gradient = false;
+            shared.theme.set(Arc::new(theme));
+        });
+        test.sync_and_update();
+        test.render_to_file(directory.join("details-solid.png"));
     }
 }

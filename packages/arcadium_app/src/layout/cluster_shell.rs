@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use arcadium_common::parse_mc_version;
 use freya::animation::*;
 use freya::prelude::*;
@@ -378,7 +379,7 @@ fn cluster_tabs(
         .width(Size::fill())
         .height(Size::px(TABS_HEIGHT))
         .cross_align(Alignment::Center)
-        .border(
+        .themed_border(
             Border::new()
                 .fill(colors::component_border())
                 .width(BorderWidth {

@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use std::{cell::Cell, rc::Rc, time::Instant};
 
 use arcadium_events::Level;
@@ -256,7 +257,7 @@ fn toast_shell(entry: &InboxEntry) -> Rect {
         .background(colors::component_bg())
         .corner_radius(CornerRadius::new_all(12.))
         .overflow(Overflow::Clip)
-        .border(
+        .themed_border(
             Border::new()
                 .fill(border_color)
                 .width(1.)
@@ -309,13 +310,13 @@ fn ttl_bar(entry: &InboxEntry, pct: f32) -> impl IntoElement {
     rect()
         .width(Size::fill())
         .height(Size::px(4.))
-        .background(color.with_a(60))
+        .background(crate::theme::accent::themed_fill(color.with_a(60)))
         .child(
             rect()
                 .width(Size::percent(pct.clamp(0.0, 100.0)))
                 .height(Size::px(4.))
                 .corner_radius(CornerRadius::new_all(60.))
-                .background(color),
+                .background(crate::theme::accent::themed_fill(color)),
         )
 }
 

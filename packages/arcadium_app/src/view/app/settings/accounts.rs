@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use arcadium_auth::{AccountKind, MinecraftAccount};
 use chrono::{DateTime, Utc};
 use freya::animation::{AnimNum, Function, OnFinish, use_animation};
@@ -235,7 +236,7 @@ fn model_frame(id: Option<Uuid>) -> impl IntoElement {
                 .overflow(Overflow::Clip)
                 .corner_radius(CornerRadius::new_all(12.))
                 .background(colors::component_bg())
-                .border(border_all_color(1., colors::component_border()))
+                .themed_border(border_all_color(1., colors::component_border()))
                 .child(match id {
                     Some(id) => PlayerModel::new(id)
                         .yaw(-0.5)
@@ -295,7 +296,7 @@ fn offline_dialog(
                         .padding(Gaps::new_all(20.))
                         .corner_radius(CornerRadius::new_all(16.))
                         .background(colors::page_elevated())
-                        .border(border_all_color(1., colors::component_border()))
+                        .themed_border(border_all_color(1., colors::component_border()))
                         .child(
                             label()
                                 .text("Add Cracked account")
@@ -468,7 +469,7 @@ impl Component for AccountRow {
             .padding(Gaps::new_all(12.))
             .corner_radius(CornerRadius::new_all(12.))
             .background(colors::page_elevated())
-            .border(border_all_color(1., border_color))
+            .themed_border(border_all_color(1., border_color))
             .opacity(if is_refreshing {
                 REFRESHING_OPACITY
             } else {
@@ -612,7 +613,7 @@ fn badge(icon: impl IntoElement, text: String, border: Color, fg: Color) -> impl
         .spacing(4.)
         .padding(Gaps::new_symmetric(2., 8.))
         .corner_radius(CornerRadius::new_all(999.))
-        .border(border_all_color(1., border))
+        .themed_border(border_all_color(1., border))
         .background(colors::component_bg())
         .child(icon)
         .child(

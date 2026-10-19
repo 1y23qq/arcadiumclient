@@ -1,6 +1,7 @@
 //! Freya emits one `FileDrop` event per file within a single batch so the shell
 //! handler accumulates them before the prompt first renders
 
+use crate::theme::accent::AccentBorderExt;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
@@ -205,7 +206,9 @@ impl Component for DropVeil {
             .interactive(false)
             .center()
             .opacity(progress)
-            .background(Color::from_argb(190, 10, 14, 20))
+            .background(crate::theme::accent::themed_fill(Color::from_argb(
+                190, 10, 14, 20,
+            )))
             .child(
                 rect()
                     .vertical()
@@ -215,8 +218,8 @@ impl Component for DropVeil {
                     .max_width(Size::px(360.))
                     .offset_y((1. - progress) * 12.)
                     .corner_radius(CornerRadius::new_all(16.))
-                    .background(DIALOG_BG)
-                    .border(border_all_color(1., colors::brand().with_a(120)))
+                    .background(crate::theme::accent::themed_fill(DIALOG_BG))
+                    .themed_border(border_all_color(1., colors::brand().with_a(120)))
                     .shadow(Shadow::from((
                         0.,
                         16.,
@@ -248,7 +251,9 @@ fn icon_badge(icon: IconType, size: f32, icon_size: f32) -> impl IntoElement {
         .height(Size::px(size))
         .center()
         .corner_radius(CornerRadius::new_all(size / 2.))
-        .background(colors::brand().with_a(46))
+        .background(crate::theme::accent::themed_fill(
+            colors::brand().with_a(46),
+        ))
         .child(Icon::new(icon).size(icon_size).color(colors::brand()))
 }
 
@@ -321,8 +326,8 @@ impl Component for DropPrompt {
                             .padding(Gaps::new_all(22.))
                             .spacing(16.)
                             .corner_radius(CornerRadius::new_all(16.))
-                            .background(DIALOG_BG)
-                            .border(border_all_color(1., colors::component_border()))
+                            .background(crate::theme::accent::themed_fill(DIALOG_BG))
+                            .themed_border(border_all_color(1., colors::component_border()))
                             .shadow(Shadow::from((
                                 0.,
                                 18.,
@@ -626,7 +631,7 @@ fn file_field(
             .padding(Gaps::new_all(6.))
             .corner_radius(CornerRadius::new_all(10.))
             .background(colors::page())
-            .border(border_all_color(1., colors::component_border()))
+            .themed_border(border_all_color(1., colors::component_border()))
             .child(
                 ScrollArea::new()
                     .width(Size::fill())

@@ -12,8 +12,8 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.VerticalScrollbar
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import org.polyfrost.oneconfig.internal.ui.themes.accentAwareBackground as background
+import org.polyfrost.oneconfig.internal.ui.themes.accentAwareBorder as border
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitEachGesture
@@ -88,6 +88,7 @@ import org.polyfrost.oneconfig.internal.ui.themes.Accent
 import org.polyfrost.oneconfig.internal.ui.themes.Theme
 import org.polyfrost.oneconfig.internal.ui.themes.LocalTheme
 import org.polyfrost.oneconfig.internal.ui.themes.accentBackground
+import org.polyfrost.oneconfig.internal.ui.themes.accentBrush
 import org.polyfrost.oneconfig.internal.ui.components.Icon
 import io.github.arcadiumclient.runtime.mixin.client.access.VideoOptionsScreenAccessor
 
@@ -330,7 +331,6 @@ private fun VideoSlider(option: VideoSetting, modifier: Modifier, compact: Boole
     val currentOnChange by rememberUpdatedState(onChange)
     val currentValue = (option.value as Number).toInt()
     val fraction = ((currentValue - option.minimum).toFloat() / (option.maximum - option.minimum).coerceAtLeast(1)).coerceIn(0f, 1f)
-    val accent = Accent
     val track = UiBorderColor
     val thumb = UiTextPrimary
     Column(
@@ -381,7 +381,7 @@ private fun VideoSlider(option: VideoSetting, modifier: Modifier, compact: Boole
             val right = (size.width - radius).coerceAtLeast(left)
             val x = left + (right - left) * fraction
             drawLine(track, Offset(left, y), Offset(right, y), strokeWidth = 3.dp.toPx())
-            drawLine(accent, Offset(left, y), Offset(x, y), strokeWidth = 3.dp.toPx())
+            drawLine(accentBrush(), Offset(left, y), Offset(x, y), strokeWidth = 3.dp.toPx())
             drawCircle(thumb, radius, Offset(x, y))
         }
     }

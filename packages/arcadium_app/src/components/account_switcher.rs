@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use arcadium_auth::MinecraftAccount;
 use freya::{
     animation::{AnimNum, Ease, OnCreation, use_animation},
@@ -93,7 +94,7 @@ impl Component for AccountPanel {
             .background(colors::page_elevated().with_a(220))
             .backdrop_blur(12.)
             .corner_radius(CornerRadius::new_all(12.))
-            .border(
+            .themed_border(
                 Border::new()
                     .fill(colors::component_border())
                     .width(1.)

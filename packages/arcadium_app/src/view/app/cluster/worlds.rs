@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use std::collections::HashMap;
 
 use arcadium_core::WorldInfo;
@@ -298,12 +299,12 @@ impl Component for WorldCard {
                 .spacing(11.)
                 .padding(Gaps::new_all(GRID_PAD))
                 .corner_radius(CornerRadius::new_all(6.))
-                .background(if hovering {
+                .background(crate::theme::accent::themed_fill(if hovering {
                     colors::component_bg_hover()
                 } else {
                     colors::component_bg()
-                })
-                .border(border_all_color(
+                }))
+                .themed_border(border_all_color(
                     1.,
                     if hovering {
                         colors::component_border_hover()
@@ -322,7 +323,7 @@ impl Component for WorldCard {
                 .spacing(12.)
                 .padding(Gaps::new_all(LIST_PAD))
                 .corner_radius(CornerRadius::new_all(8.))
-                .background(CARD_BG)
+                .background(crate::theme::accent::themed_fill(CARD_BG))
                 .child(icon)
                 .child(text)
                 .child(meta_size(size.unwrap_or_default()))

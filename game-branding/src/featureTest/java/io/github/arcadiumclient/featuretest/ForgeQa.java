@@ -81,6 +81,15 @@ public final class ForgeQa {
             phaseTicks++;
             if (mc.world != null && mc.player != null) worldTicks++;
             if (capture != null || !PENDING.isEmpty()) return;
+            if (Boolean.getBoolean("arcadium.themeAccentOnlyQa")) {
+                if (ticks < 60 || completeFreshOnboarding(mc) || !ThemeAccentQa.tick(mc, CHECKS)) return;
+                RESULT.put("passed", true);
+                RESULT.put("themeAccentOnly", true);
+                write(mc);
+                done = true;
+                if (Boolean.getBoolean("arcadium.featureTest.exit")) mc.stop();
+                return;
+            }
             if (Boolean.getBoolean("arcadium.onboardingOnlyQa")) {
                 if (ticks < 60 || !OnboardingQa.tick(mc, CHECKS)) return;
                 RESULT.put("passed", true);

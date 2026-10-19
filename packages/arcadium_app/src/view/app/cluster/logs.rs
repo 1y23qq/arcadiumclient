@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use std::path::PathBuf;
 use std::sync::Arc;
 
@@ -421,7 +422,7 @@ impl Component for LogPicker {
                     .a11y_id(a11y_id)
                     .a11y_focusable(true)
                     .a11y_role(AccessibilityRole::Button)
-                    .border(ui::border_all_color(
+                    .themed_border(ui::border_all_color(
                         1.,
                         if focus().is_focused() {
                             colors::brand()
@@ -473,7 +474,7 @@ impl Component for LogPicker {
                             .spacing(4.)
                             .padding(6.)
                             .corner_radius(CornerRadius::new_all(10.))
-                            .border(ui::border_all_color(1., colors::component_border()))
+                            .themed_border(ui::border_all_color(1., colors::component_border()))
                             .background(colors::page_elevated())
                             .overflow(Overflow::Clip)
                             .child(
@@ -552,11 +553,13 @@ impl Component for PickerRow {
             .a11y_id(a11y_id)
             .a11y_focusable(true)
             .a11y_role(AccessibilityRole::Button)
-            .background(if hovering() || focus().is_focused() {
-                colors::ghost_overlay_hover()
-            } else {
-                Color::TRANSPARENT
-            })
+            .background(crate::theme::accent::themed_fill(
+                if hovering() || focus().is_focused() {
+                    colors::ghost_overlay_hover()
+                } else {
+                    Color::TRANSPARENT
+                },
+            ))
             .cursor(CursorIcon::Pointer)
             .on_pointer_enter(move |_| hovering.set(true))
             .on_pointer_leave(move |_| hovering.set(false))
@@ -633,8 +636,8 @@ pub fn confirm_overlay(
                         .spacing(14.)
                         .padding(Gaps::new_all(20.))
                         .corner_radius(CornerRadius::new_all(14.))
-                        .background(CARD_BG)
-                        .border(ui::border_all_color(1., colors::component_border()))
+                        .background(crate::theme::accent::themed_fill(CARD_BG))
+                        .themed_border(ui::border_all_color(1., colors::component_border()))
                         .child(
                             rect()
                                 .horizontal()

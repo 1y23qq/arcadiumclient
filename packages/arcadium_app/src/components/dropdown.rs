@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use freya::prelude::*;
 
 use crate::components::{Icon, IconType, ScrollArea};
@@ -157,16 +158,16 @@ impl Component for Dropdown {
                     .spacing(4.)
                     .padding(Gaps::new_symmetric(0., if outlined { 12. } else { 8. }))
                     .corner_radius(CornerRadius::new_all(if outlined { 8. } else { 6. }))
-                    .background(trigger_bg)
+                    .background(crate::theme::accent::themed_fill(trigger_bg))
                     .maybe(outlined, |el| {
                         el.main_align(Alignment::SpaceBetween)
-                            .border(border_all_color(1., colors::component_border()))
+                            .themed_border(border_all_color(1., colors::component_border()))
                     })
                     .a11y_id(a11y_id)
                     .a11y_focusable(true)
                     .a11y_role(AccessibilityRole::Button)
                     .maybe(focus().is_focused(), |el| {
-                        el.border(border_all_color(1., colors::brand()))
+                        el.themed_border(border_all_color(1., colors::brand()))
                     })
                     .on_pointer_enter(move |_| hovering.set(true))
                     .on_pointer_leave(move |_| hovering.set(false))
@@ -208,7 +209,7 @@ impl Component for Dropdown {
                                 .width(Size::fill())
                                 .padding(4.)
                                 .corner_radius(CornerRadius::new_all(8.))
-                                .border(border_all_color(1., colors::component_border()))
+                                .themed_border(border_all_color(1., colors::component_border()))
                                 .background(colors::page_elevated())
                                 .overflow(Overflow::Clip)
                                 .child(
@@ -284,11 +285,13 @@ impl Component for DropdownOption {
             .a11y_id(a11y_id)
             .a11y_focusable(true)
             .a11y_role(AccessibilityRole::Button)
-            .background(if hovering() || focus().is_focused() {
-                colors::ghost_overlay_hover()
-            } else {
-                Color::TRANSPARENT
-            })
+            .background(crate::theme::accent::themed_fill(
+                if hovering() || focus().is_focused() {
+                    colors::ghost_overlay_hover()
+                } else {
+                    Color::TRANSPARENT
+                },
+            ))
             .on_pointer_enter(move |_| hovering.set(true))
             .on_pointer_leave(move |_| hovering.set(false))
             .on_press(self.on_press.clone())

@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use chrono::{Datelike, Days, Months, NaiveDate};
 use freya::prelude::*;
 
@@ -84,12 +85,12 @@ impl Component for DateRangePicker {
                     .spacing(6.)
                     .padding(Gaps::new_symmetric(0., 10.))
                     .corner_radius(CornerRadius::new_all(9.))
-                    .background(if hovering() {
+                    .background(crate::theme::accent::themed_fill(if hovering() {
                         colors::component_bg_hover()
                     } else {
                         colors::component_bg()
-                    })
-                    .border(border_all_color(
+                    }))
+                    .themed_border(border_all_color(
                         1.,
                         if selected.is_some() {
                             colors::brand()
@@ -138,7 +139,7 @@ impl Component for DateRangePicker {
                     .spacing(8.)
                     .padding(12.)
                     .corner_radius(CornerRadius::new_all(10.))
-                    .border(border_all_color(1., colors::component_border()))
+                    .themed_border(border_all_color(1., colors::component_border()))
                     .background(colors::page_elevated())
                     .on_sized(move |e: Event<SizedEventData>| {
                         panel_height.set_if_modified(e.area.height());
@@ -329,7 +330,7 @@ impl<F: FnMut(NaiveDate) + Clone + 'static> Component for DayCell<F> {
             .height(Size::px(CELL - 2.))
             .center()
             .corner_radius(CornerRadius::new_all(6.))
-            .background(background)
+            .background(crate::theme::accent::themed_fill(background))
             .maybe(enabled, |el| {
                 el.cursor(CursorIcon::Pointer)
                     .on_pointer_enter(move |_| hovering.set(true))

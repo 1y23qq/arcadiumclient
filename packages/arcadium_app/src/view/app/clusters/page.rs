@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use std::path::PathBuf;
 
 use arcadium_common::domain::GameLoader;
@@ -510,7 +511,7 @@ fn toolbar(
         .height(Size::px(TOOLBAR_HEIGHT_PX))
         .cross_align(Alignment::Center)
         .content(Content::Flex)
-        .border(bottom_border())
+        .themed_border(bottom_border())
         .child(
             TabBar::new()
                 .width(Size::auto())
@@ -734,7 +735,7 @@ impl Component for Sidebar {
             .content(Content::Flex)
             .corner_radius(CornerRadius::new_all(20.))
             .background(colors::page_elevated())
-            .border(border_all_color(1., colors::component_border()))
+            .themed_border(border_all_color(1., colors::component_border()))
             .overflow(Overflow::Clip)
             .on_sized(move |event: Event<SizedEventData>| {
                 let height = event.data().area.height();
@@ -834,12 +835,12 @@ fn sidebar_art(art: DynamicArt, type_label: &str, height: f32) -> Element {
                 .height(Size::fill())
                 .position(Position::new_absolute())
                 .layer(Layer::Relative(3))
-                .background(
+                .background(crate::theme::accent::themed_fill(
                     LinearGradient::new()
                         .angle(0.)
                         .stop((colors::page_elevated().with_a(0), 40.))
                         .stop((colors::page_elevated().with_a(242), 100.)),
-                ),
+                )),
         )
         .child(
             rect()
@@ -847,7 +848,9 @@ fn sidebar_art(art: DynamicArt, type_label: &str, height: f32) -> Element {
                 .layer(Layer::Relative(4))
                 .padding(Gaps::new_symmetric(5., 10.))
                 .corner_radius(CornerRadius::new_all(8.))
-                .background(Color::from_af32rgb(0.66, 11, 16, 19))
+                .background(crate::theme::accent::themed_fill(Color::from_af32rgb(
+                    0.66, 11, 16, 19,
+                )))
                 .child(
                     label()
                         .text(type_label.to_string())
@@ -869,7 +872,7 @@ fn meta_list(meta: &[(&'static str, String)]) -> Element {
                 .width(Size::fill())
                 .main_align(Alignment::SpaceBetween)
                 .padding(Gaps::new_symmetric(9., 0.))
-                .border(bottom_border())
+                .themed_border(bottom_border())
                 .child(
                     label()
                         .text(key.to_string())
@@ -959,7 +962,7 @@ fn sidebar_error(width: f32) -> Element {
         .padding(16.)
         .spacing(8.)
         .corner_radius(CornerRadius::new_all(20.))
-        .border(border_all_color(1., colors::component_border()))
+        .themed_border(border_all_color(1., colors::component_border()))
         .background(colors::component_bg())
         .child(
             label()

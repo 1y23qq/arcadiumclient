@@ -1,5 +1,7 @@
 use arcadium_content::packages::ProviderId;
 use freya::prelude::*;
+use skia_safe as skia;
+use std::{cell::RefCell, rc::Rc};
 
 use crate::{AppAssets, theme::colors};
 
@@ -63,12 +65,93 @@ impl Component for Icon {
             .or_else(|| tint.map(|tint| *tint.0.read()))
             .unwrap_or_else(colors::fg_primary);
 
+        let fill = crate::theme::accent::themed_fill(color);
+        if !matches!(fill, Fill::Color(_)) {
+            return GradientIcon {
+                path,
+                size: self.size_px,
+                fill,
+                rotation: self.rotation,
+            }
+            .into_element();
+        }
+
         SvgViewer::new((path, bytes.peek().1.clone()))
             .show_loader(false)
             .width(Size::px(self.size_px))
             .height(Size::px(self.size_px))
             .color(color)
             .map(self.rotation, |svg, degrees| svg.rotation(degrees))
+            .into_element()
+    }
+}
+
+#[derive(PartialEq)]
+struct GradientIcon {
+    path: &'static str,
+    size: f32,
+    fill: Fill,
+    rotation: Option<f32>,
+}
+
+impl Component for GradientIcon {
+    fn render(&self) -> impl IntoElement {
+        let pixels = (self.size * *Platform::get().scale_factor.read() as f32)
+            .ceil()
+            .max(1.) as i32;
+        let cache = use_hook(|| Rc::new(RefCell::new(None::<(&'static str, i32, skia::Image)>)));
+        let mask = {
+            let mut cache = cache.borrow_mut();
+            if cache
+                .as_ref()
+                .is_none_or(|(path, size, _)| *path != self.path || *size != pixels)
+            {
+                let image = AppAssets::get_bytes(self.path).and_then(|bytes| {
+                    let mut dom =
+                        skia::svg::Dom::from_bytes(&bytes, skia::FontMgr::empty()).ok()?;
+                    dom.set_container_size((pixels, pixels));
+                    let mut root = dom.root();
+                    root.set_width(skia::svg::Length::new(
+                        pixels as f32,
+                        skia::svg::LengthUnit::PX,
+                    ));
+                    root.set_height(skia::svg::Length::new(
+                        pixels as f32,
+                        skia::svg::LengthUnit::PX,
+                    ));
+                    root.set_color(skia::Color::WHITE.into());
+                    let mut surface = skia::surfaces::raster_n32_premul((pixels, pixels))?;
+                    dom.render(surface.canvas());
+                    Some(surface.image_snapshot())
+                });
+                *cache = image.map(|image| (self.path, pixels, image));
+            }
+            cache.as_ref().map(|(_, _, image)| image.clone())
+        };
+        let mut fill = use_state(|| self.fill.clone());
+        fill.set_if_modified(self.fill.clone());
+        let rotation = self.rotation;
+        canvas(RenderCallback::new(move |context| {
+            let Some(mask) = mask.as_ref() else { return };
+            let bounds = skia::Rect::from_wh(context.size.width, context.size.height);
+            let saved = context
+                .canvas
+                .save_layer(&skia::canvas::SaveLayerRec::default().bounds(&bounds));
+            if let Some(degrees) = rotation {
+                context.canvas.rotate(degrees, Some(bounds.center()));
+            }
+            context
+                .canvas
+                .draw_image_rect(mask, None, bounds, &skia::Paint::default());
+            let mut paint = skia::Paint::default();
+            fill.peek()
+                .apply_to_paint(&mut paint, Area::new(Default::default(), context.size));
+            paint.set_blend_mode(skia::BlendMode::SrcIn);
+            context.canvas.draw_rect(bounds, &paint);
+            context.canvas.restore_to_count(saved);
+        }))
+        .width(Size::px(self.size))
+        .height(Size::px(self.size))
     }
 }
 

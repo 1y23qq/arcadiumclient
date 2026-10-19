@@ -1,10 +1,11 @@
 package org.polyfrost.oneconfig.internal.ui.components.item
 
+import org.polyfrost.oneconfig.internal.ui.themes.accentBackground
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.VerticalScrollbar
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import org.polyfrost.oneconfig.internal.ui.themes.accentAwareBackground as background
+import org.polyfrost.oneconfig.internal.ui.themes.accentAwareBorder as border
 import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
@@ -189,7 +190,7 @@ fun ItemTile(
     val interactive = enabled && onClick != null
     val background by animateColorAsState(
         when {
-            selected -> Accent.copy(alpha = 0.18f).compositeOver(theme.modCardBackground)
+            selected -> theme.modCardBackground
             hovered && interactive -> theme.componentBackground
             else -> theme.modCardBackground
         }
@@ -203,6 +204,8 @@ fun ItemTile(
                 .aspectRatio(1f)
                 .clip(ItemTileShape)
                 .background(background, ItemTileShape)
+                .accentBackground(ItemTileShape, alpha = .18f, enabled = selected)
+                .accentBackground(ItemTileShape, alpha = .18f, enabled = selected)
                 .border(1.dp, border, ItemTileShape)
                 .hoverable(interaction)
                 .pointerHoverIcon(if (interactive) PointerIcon.Hand else PointerIcon.Default)

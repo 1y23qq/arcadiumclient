@@ -110,7 +110,7 @@ fn progress_bar(step_index: usize, total: usize) -> impl IntoElement {
             rect()
                 .width(Size::percent(filled))
                 .height(Size::fill())
-                .background(colors::brand()),
+                .background(crate::theme::accent::themed_fill(colors::brand())),
         )
 }
 

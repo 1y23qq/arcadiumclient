@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use freya::{
     animation::{AnimNum, Ease, OnCreation, use_animation},
     prelude::*,
@@ -59,7 +60,7 @@ impl Component for ControlPanel {
             .background(colors::page_elevated().with_a(220))
             .backdrop_blur(12.)
             .corner_radius(CornerRadius::new_all(14.))
-            .border(
+            .themed_border(
                 Border::new()
                     .fill(colors::component_border())
                     .width(1.)
@@ -377,10 +378,10 @@ impl Component for QuickTile {
             .spacing(10.)
             .padding(Gaps::new_symmetric(0., 12.))
             .corner_radius(CornerRadius::new_all(10.))
-            .background(background)
+            .background(crate::theme::accent::themed_fill(background))
             .maybe(!enabled, |el| el.opacity(0.45))
             .maybe(!on || !enabled, |el| {
-                el.border(
+                el.themed_border(
                     Border::new()
                         .fill(colors::component_border())
                         .width(1.)
@@ -500,7 +501,7 @@ impl Component for PanelFooter {
                                         .padding(Gaps::new_all(20.))
                                         .corner_radius(CornerRadius::new_all(14.))
                                         .background(colors::page_elevated())
-                                        .border(border_all_color(
+                                        .themed_border(border_all_color(
                                             1.,
                                             colors::component_border(),
                                         ))

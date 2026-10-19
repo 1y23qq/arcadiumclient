@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use arcadium_content::packages::ProviderId;
 use freya::prelude::*;
 
@@ -107,8 +108,8 @@ impl Component for OnboardingModCard {
             .spacing(8.)
             .padding(Gaps::new_all(12.))
             .corner_radius(CornerRadius::new_all(8.))
-            .background(bg)
-            .border(border_all_color(1.5, border))
+            .background(crate::theme::accent::themed_fill(bg))
+            .themed_border(border_all_color(1.5, border))
             .content(Content::Flex)
             .a11y_role(AccessibilityRole::Button)
             .cursor(CursorIcon::Pointer)

@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use arcadium_core::clusters::Cluster;
 use freya::prelude::*;
 
@@ -123,15 +124,15 @@ impl Component for VersionCard {
                     .spacing(5.)
                     .main_align(Alignment::End)
                     .corner_radius(CornerRadius::new_all(16.))
-                    .border(border.alignment(BorderAlignment::Inner))
+                    .themed_border(border.alignment(BorderAlignment::Inner))
                     .layer(Layer::Relative(3))
-                    .background(
+                    .background(crate::theme::accent::themed_fill(
                         LinearGradient::new()
                             .angle(0.)
                             .stop((Color::from_af32rgb(0.1, 11, 16, 19), 0.))
                             .stop((Color::from_af32rgb(0.6, 11, 16, 19), 55.))
                             .stop((Color::from_af32rgb(0.95, 11, 16, 19), 100.)),
-                    )
+                    ))
                     .child(
                         label()
                             .text(self.title.clone())
@@ -154,7 +155,9 @@ impl Component for VersionCard {
                     .layer(Layer::Relative(4))
                     .padding(Gaps::new_symmetric(4., 8.))
                     .corner_radius(CornerRadius::new_all(6.))
-                    .background(Color::from_af32rgb(0.66, 11, 16, 19))
+                    .background(crate::theme::accent::themed_fill(Color::from_af32rgb(
+                        0.66, 11, 16, 19,
+                    )))
                     .child(
                         label()
                             .text(format!("{} instances", self.count))

@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use freya::prelude::*;
 
 use crate::components::{Button, ButtonVariant, Icon, IconType, PlayerModel};
@@ -39,7 +40,7 @@ fn preview_panel(account_uuid: Option<String>) -> impl IntoElement {
                 .height(Size::flex(1.0))
                 .corner_radius(CornerRadius::new_all(16.))
                 .background(colors::page_elevated())
-                .border(border_all_color(1., colors::component_border()))
+                .themed_border(border_all_color(1., colors::component_border()))
                 .child(match account_uuid {
                     Some(uuid) => PlayerModel::new(uuid)
                         .width(Size::fill())
@@ -72,11 +73,11 @@ fn anim_chip(name: &'static str, active: bool) -> impl IntoElement {
         .center()
         .padding(Gaps::new_symmetric(6., 12.))
         .corner_radius(CornerRadius::new_all(8.))
-        .background(if active {
+        .background(crate::theme::accent::themed_fill(if active {
             colors::brand()
         } else {
             colors::component_bg()
-        })
+        }))
         .cursor(CursorIcon::Pointer)
         .child(
             label()
@@ -149,7 +150,7 @@ fn skin_grid(count: usize) -> impl IntoElement {
                 .height(Size::px(80.))
                 .corner_radius(CornerRadius::new_all(8.))
                 .background(colors::page_elevated())
-                .border(border_all_color(
+                .themed_border(border_all_color(
                     if i == 0 { 2. } else { 1. },
                     if i == 0 {
                         colors::brand()

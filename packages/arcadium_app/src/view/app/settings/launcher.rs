@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use std::path::{Path, PathBuf};
 
 use arcadium_core::relocate::RelocationPlan;
@@ -363,7 +364,7 @@ fn confirm_move(
         .padding(Gaps::new_all(20.))
         .corner_radius(CornerRadius::new_all(14.))
         .background(colors::page_elevated())
-        .border(border_all_color(1., colors::component_border()))
+        .themed_border(border_all_color(1., colors::component_border()))
         .child(
             rect()
                 .horizontal()

@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use freya::prelude::*;
 
 use crate::components::{
@@ -44,8 +45,8 @@ impl Component for EssentialConfirmOverlay {
                             .spacing(14.)
                             .padding(Gaps::new_all(20.))
                             .corner_radius(CornerRadius::new_all(14.))
-                            .background(CARD_BG)
-                            .border(border_all_color(1., colors::component_border()))
+                            .background(crate::theme::accent::themed_fill(CARD_BG))
+                            .themed_border(border_all_color(1., colors::component_border()))
                             .child(
                                 rect()
                                     .horizontal()
@@ -124,7 +125,7 @@ impl Component for WarningBody {
                             .padding(Gaps::new_all(12.))
                             .corner_radius(CornerRadius::new_all(8.))
                             .background(colors::component_bg())
-                            .border(border_all_color(1., colors::component_border()))
+                            .themed_border(border_all_color(1., colors::component_border()))
                             .child(Markdown::new(self.body.clone()).width(Size::fill()).style(
                                 MarkdownStyle {
                                     color: Color::WHITE,

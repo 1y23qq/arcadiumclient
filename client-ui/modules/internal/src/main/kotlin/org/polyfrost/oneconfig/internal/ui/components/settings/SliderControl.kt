@@ -2,7 +2,7 @@ package org.polyfrost.oneconfig.internal.ui.components.settings
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
-import androidx.compose.foundation.background
+import org.polyfrost.oneconfig.internal.ui.themes.accentAwareBackground as background
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Box

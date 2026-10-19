@@ -1,3 +1,4 @@
+use crate::theme::accent::AccentBorderExt;
 use arcadium_core::images::DEFAULT_IMAGE_EDGE;
 use freya::prelude::*;
 
@@ -100,7 +101,7 @@ impl Component for VersionArtGallery {
                             .corner_radius(CornerRadius::new_all(16.))
                             .overflow(Overflow::Clip)
                             .background(colors::page_elevated())
-                            .border(border_all_color(1., colors::component_border()))
+                            .themed_border(border_all_color(1., colors::component_border()))
                             .child(header(move |_| header_close.call(())))
                             .child(scroll)
                             .child(footer(failure, move |_| footer_close.call(()))),
@@ -185,7 +186,9 @@ impl Component for GalleryTile {
                     .height(Size::fill())
                     .layer(Layer::Relative(3))
                     .corner_radius(CornerRadius::new_all(12.))
-                    .border(border_all_color(2., border_color).alignment(BorderAlignment::Inner))
+                    .themed_border(
+                        border_all_color(2., border_color).alignment(BorderAlignment::Inner),
+                    )
                     .center()
                     .maybe_child(self.busy.then(|| Spinner::new(22.).into_element())),
             )
@@ -280,7 +283,7 @@ fn footer(
         .cross_align(Alignment::Center)
         .spacing(20.)
         .padding(Gaps::new(16., PANE_PADDING, 16., PANE_PADDING))
-        .border(
+        .themed_border(
             Border::new()
                 .fill(colors::component_border())
                 .width(BorderWidth {
