@@ -1,0 +1,20 @@
+{
+  "repository": "https://huggingface.co/Snowflake/snowflake-arctic-embed-xs",
+  "revision": "d8c86521100d3556476a063fc2342036d45c106f",
+  "license": "Apache-2.0",
+  "licenseGrantSource": "smartsearch-model-pinned-README.md, License section",
+  "separateLicenseFilePresent": false,
+  "weights": {
+    "bundledPath": "models/arctic-embed-xs/model_int8.onnx",
+    "sha256": "e6aa5e656466a73d7c3111e9a3378bd13e5b93af30eaac2b3f13fd56692589a1",
+    "bytes": 22972992,
+    "matchesPublishedLfsObject": true
+  },
+  "tokenizer": {
+    "bundledPath": "models/arctic-embed-xs/tokenizer.json",
+    "sha256": "91f1def9b9391fdabe028cd3f3fcc4efd34e5d1f08c3bf2de513ebb5911a1854",
+    "gitBlobSha1": "3c0e6344ec45a9a6e5a621d6711baf109c2d9f87",
+    "bytes": 711649,
+    "matchesPublishedGitObject": true
+  }
+}

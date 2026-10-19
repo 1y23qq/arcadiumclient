@@ -1,0 +1,26 @@
+[
+  {
+    "artifact": "core-common-2.2.0",
+    "source": "https://dl.google.com/dl/android/maven2/androidx/arch/core/core-common/2.2.0/core-common-2.2.0-sources.jar",
+    "sourceArchiveSha256": "563d430880d847890029234386ef03adb95403c34f3c9dec3a7002e2f4007ae4",
+    "sampleSource": "androidx/arch/core/internal/FastSafeIterableMap.java",
+    "headerFile": "licenses/native/compose-skiko/source-evidence/core-common-2.2.0-original-source-header.txt",
+    "headerSha256": "429519daef6746a246f084ea4f1c6debdac7793059e251bb6b89781b5572e6a2"
+  },
+  {
+    "artifact": "jbr-api-1.9.0",
+    "source": "https://repo.maven.apache.org/maven2/org/jetbrains/runtime/jbr-api/1.9.0/jbr-api-1.9.0-sources.jar",
+    "sourceArchiveSha256": "70381d761a95c275eb9c09ab0dbf506d07f1ae61ece96a013219da19cbba80b8",
+    "sampleSource": "com/jetbrains/AccessibleAnnouncer.java",
+    "headerFile": "licenses/native/compose-skiko/source-evidence/jbr-api-1.9.0-original-source-header.txt",
+    "headerSha256": "842e35b4f5feaad463b29b816917760ed264424afaf2e885c0dbdbb629593a70"
+  },
+  {
+    "artifact": "jspecify-1.0.0",
+    "source": "https://repo.maven.apache.org/maven2/org/jspecify/jspecify/1.0.0/jspecify-1.0.0-sources.jar",
+    "sourceArchiveSha256": "adf0898191d55937fb3192ba971826f4f294292c4a960740f3c27310e7b70296",
+    "sampleSource": "org/jspecify/annotations/NonNull.java",
+    "headerFile": "licenses/native/compose-skiko/source-evidence/jspecify-1.0.0-original-source-header.txt",
+    "headerSha256": "6c1b5209933534590adb55cd1d898915d7ab3f935a71bcc6aaeba7dba7a18100"
+  }
+]

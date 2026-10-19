@@ -1,0 +1,39 @@
+
+{
+  "commit": "03cc513177b4340bee3dbfd46f6dd5fdded43b79",
+  "tree": "fbbe7017a304ed0b535213d705ca212f9c9a2018",
+  "parents": [
+    "7d6a15841642fa6b02874e3c461e332f17c7c33d"
+  ],
+  "author": {
+    "name": "Gregg Tavares",
+    "email": "gman@chromium.org",
+    "time": "Wed Aug 12 02:35:13 2026"
+  },
+  "committer": {
+    "name": "Copybara-Service",
+    "email": "copybara-worker@google.com",
+    "time": "Wed Aug 12 02:42:29 2026"
+  },
+  "message": "Fix ScopedSchedulerLoopQuarantineExclusion\n\nScopedSchedulerLoopQuarantineExclusion was\nexiting on the first invalid thread cache\ninstead of handling all of them.\n\nBug: 538701265\nChange-Id: I02faae787eb139af9b57679652e0cfc26a6a6964\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8145820\nReviewed-by: Stephen Nusko \u003cnuskos@chromium.org\u003e\nCommit-Queue: Gregg Tavares \u003cgman@chromium.org\u003e\nCr-Commit-Position: refs/heads/main@{#1677716}\nNOKEYCHECK\u003dTrue\nGitOrigin-RevId: 684217bd0672571af585e80822a44b860f06a65c\n",
+  "tree_diff": [
+    {
+      "type": "modify",
+      "old_id": "df33806a4e4eaecc2c1dae7a34e23b1093d22453",
+      "old_mode": 33188,
+      "old_path": "src/partition_alloc/scheduler_loop_quarantine_support.cc",
+      "new_id": "7689bf707b6fd6ddc73d757a462e05d2a95cb2b1",
+      "new_mode": 33188,
+      "new_path": "src/partition_alloc/scheduler_loop_quarantine_support.cc"
+    },
+    {
+      "type": "modify",
+      "old_id": "93f601e19d191f542433097708a93a3c31e2a3cc",
+      "old_mode": 33188,
+      "old_path": "src/partition_alloc/scheduler_loop_quarantine_unittest.cc",
+      "new_id": "d54917da5b1412d51a7ab3eb45fdeb14551b5a5f",
+      "new_mode": 33188,
+      "new_path": "src/partition_alloc/scheduler_loop_quarantine_unittest.cc"
+    }
+  ]
+}

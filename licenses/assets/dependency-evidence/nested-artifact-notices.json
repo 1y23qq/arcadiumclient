@@ -1,0 +1,288 @@
+[
+  {
+    "parentProject": "sarcio",
+    "identity": "netty-buffer-4.2.18.Final.jar",
+    "source": "https://repo.maven.apache.org/maven2/io/netty/netty-buffer/4.2.18.Final/netty-buffer-4.2.18.Final.jar",
+    "officialJarSha256": "fdf236d2b76aa9710684401fdad7dff9dec56e43da5d39172c9a55ba5f14b360",
+    "bundledJarSha256": "a6d6f8c6d7cfe26c0f8f032b2a0c0c3c062e5aff27ea7d594f3fa639442b8267",
+    "binaryEntriesCompared": 176,
+    "missingOfficialBinaryEntries": [],
+    "differentBinaryEntries": [],
+    "notices": []
+  },
+  {
+    "parentProject": "sarcio",
+    "identity": "netty-codec-base-4.2.18.Final.jar",
+    "source": "https://repo.maven.apache.org/maven2/io/netty/netty-codec-base/4.2.18.Final/netty-codec-base-4.2.18.Final.jar",
+    "officialJarSha256": "7e4612bead7ba88ac6f7908fa722f90ad6835ea96505c9e40b2f93686c1f61f3",
+    "bundledJarSha256": "577ff225935c015757439e79c902ee385375823d40cc9d818bc426550e9f9872",
+    "binaryEntriesCompared": 97,
+    "missingOfficialBinaryEntries": [],
+    "differentBinaryEntries": [],
+    "notices": []
+  },
+  {
+    "parentProject": "sarcio",
+    "identity": "netty-codec-dns-4.2.18.Final.jar",
+    "source": "https://repo.maven.apache.org/maven2/io/netty/netty-codec-dns/4.2.18.Final/netty-codec-dns-4.2.18.Final.jar",
+    "officialJarSha256": "6f4b6da1483a82a637804740c2fb61385c9337a5e7ae5e357720cc03ba60b728",
+    "bundledJarSha256": "2b7245993d1fb936f1a622f2cff048ce1eb67c2877af4ddf34197f4210e8eca2",
+    "binaryEntriesCompared": 47,
+    "missingOfficialBinaryEntries": [],
+    "differentBinaryEntries": [],
+    "notices": []
+  },
+  {
+    "parentProject": "sarcio",
+    "identity": "netty-common-4.2.18.Final.jar",
+    "source": "https://repo.maven.apache.org/maven2/io/netty/netty-common/4.2.18.Final/netty-common-4.2.18.Final.jar",
+    "officialJarSha256": "5d97cae5669685872339698efe13f74fe3cdb2dccdb36963b2352bd95acf7070",
+    "bundledJarSha256": "d66956ff53122adb02cb5f17df9e9159817e84cbeda20682900002db52098f71",
+    "binaryEntriesCompared": 654,
+    "missingOfficialBinaryEntries": [],
+    "differentBinaryEntries": [],
+    "notices": []
+  },
+  {
+    "parentProject": "sarcio",
+    "identity": "netty-handler-4.2.18.Final.jar",
+    "source": "https://repo.maven.apache.org/maven2/io/netty/netty-handler/4.2.18.Final/netty-handler-4.2.18.Final.jar",
+    "officialJarSha256": "6d5a08d9dd6d7d0211202e22dbb1629b23a62550335c7e80892da1d4cb115540",
+    "bundledJarSha256": "721988dbb09228f0ee1e7b22713d360302d607aba9fbd22ec96a2b6712857659",
+    "binaryEntriesCompared": 340,
+    "missingOfficialBinaryEntries": [],
+    "differentBinaryEntries": [],
+    "notices": []
+  },
+  {
+    "parentProject": "sarcio",
+    "identity": "netty-resolver-4.2.18.Final.jar",
+    "source": "https://repo.maven.apache.org/maven2/io/netty/netty-resolver/4.2.18.Final/netty-resolver-4.2.18.Final.jar",
+    "officialJarSha256": "68373ec544cf769ba17bf2ef455166d98f2c260dff536edf35ef57067a9c155f",
+    "bundledJarSha256": "eb3bdcaad951d75b6aac0624c41e96f9786de0741057035188639e9bde560ec8",
+    "binaryEntriesCompared": 23,
+    "missingOfficialBinaryEntries": [],
+    "differentBinaryEntries": [],
+    "notices": []
+  },
+  {
+    "parentProject": "sarcio",
+    "identity": "netty-resolver-dns-4.2.18.Final.jar",
+    "source": "https://repo.maven.apache.org/maven2/io/netty/netty-resolver-dns/4.2.18.Final/netty-resolver-dns-4.2.18.Final.jar",
+    "officialJarSha256": "7dd3ec96bef04abc91a0f461f8acc19ebc0738c257ea653aea9dd0ad67b3b1ce",
+    "bundledJarSha256": "c1d662498046cab5660d7e6db1a59ffeff43b958b2008ebc3604bf36c75f27a9",
+    "binaryEntriesCompared": 108,
+    "missingOfficialBinaryEntries": [],
+    "differentBinaryEntries": [],
+    "notices": []
+  },
+  {
+    "parentProject": "sarcio",
+    "identity": "netty-resolver-dns-classes-macos-4.2.18.Final.jar",
+    "source": "https://repo.maven.apache.org/maven2/io/netty/netty-resolver-dns-classes-macos/4.2.18.Final/netty-resolver-dns-classes-macos-4.2.18.Final.jar",
+    "officialJarSha256": "377abd8b198bde174d18b74ef9bac84251b56c8e5ce373d7099bde0d297055c7",
+    "bundledJarSha256": "4531ae6f84b8a8dcc894aacf5f7ba54393f6add9813057a6952a78cfff9f8a92",
+    "binaryEntriesCompared": 4,
+    "missingOfficialBinaryEntries": [],
+    "differentBinaryEntries": [],
+    "notices": []
+  },
+  {
+    "parentProject": "sarcio",
+    "identity": "netty-resolver-dns-native-macos-4.2.18.Final-osx-aarch_64.jar",
+    "source": "https://repo.maven.apache.org/maven2/io/netty/netty-resolver-dns-native-macos/4.2.18.Final/netty-resolver-dns-native-macos-4.2.18.Final-osx-aarch_64.jar",
+    "officialJarSha256": "9030827a258287b843f0c5381c22e65300770f7460d7378e7cd83073cafbd857",
+    "bundledJarSha256": "3de5db0a74840c014464a4b99cc7b92a3d2d409f52133281d499a2790a1be36e",
+    "binaryEntriesCompared": 1,
+    "missingOfficialBinaryEntries": [],
+    "differentBinaryEntries": [],
+    "notices": []
+  },
+  {
+    "parentProject": "sarcio",
+    "identity": "netty-resolver-dns-native-macos-4.2.18.Final-osx-x86_64.jar",
+    "source": "https://repo.maven.apache.org/maven2/io/netty/netty-resolver-dns-native-macos/4.2.18.Final/netty-resolver-dns-native-macos-4.2.18.Final-osx-x86_64.jar",
+    "officialJarSha256": "144823796e9b8222cce8ee8ab3f632f263564bdb4231c8569615506530df83f4",
+    "bundledJarSha256": "5e4db5fcabf4154602933308cbe724070b52fcc1dc2b484adc9d5c10ee57c7b4",
+    "binaryEntriesCompared": 1,
+    "missingOfficialBinaryEntries": [],
+    "differentBinaryEntries": [],
+    "notices": []
+  },
+  {
+    "parentProject": "sarcio",
+    "identity": "netty-transport-4.2.18.Final.jar",
+    "source": "https://repo.maven.apache.org/maven2/io/netty/netty-transport/4.2.18.Final/netty-transport-4.2.18.Final.jar",
+    "officialJarSha256": "eac4f12068db4489e60c6520fad663e5d872f0436a7c641aa9e08db649947863",
+    "bundledJarSha256": "44cc7fec9b227fb8a9bde56794f4063f93a4b7f0adf4650550bfd51c4735450a",
+    "binaryEntriesCompared": 389,
+    "missingOfficialBinaryEntries": [],
+    "differentBinaryEntries": [],
+    "notices": []
+  },
+  {
+    "parentProject": "sarcio",
+    "identity": "netty-transport-classes-epoll-4.2.18.Final.jar",
+    "source": "https://repo.maven.apache.org/maven2/io/netty/netty-transport-classes-epoll/4.2.18.Final/netty-transport-classes-epoll-4.2.18.Final.jar",
+    "officialJarSha256": "3677ca998f3db749d3fdb0fb1b1674f9809f4fbe8f819a346f4858dfb16c4d95",
+    "bundledJarSha256": "59cf5d660351a934fdab495019454bba9a003ea80f8f5211bc6c78e7b03420a4",
+    "binaryEntriesCompared": 76,
+    "missingOfficialBinaryEntries": [],
+    "differentBinaryEntries": [],
+    "notices": []
+  },
+  {
+    "parentProject": "sarcio",
+    "identity": "netty-transport-native-epoll-4.2.18.Final-linux-aarch_64.jar",
+    "source": "https://repo.maven.apache.org/maven2/io/netty/netty-transport-native-epoll/4.2.18.Final/netty-transport-native-epoll-4.2.18.Final-linux-aarch_64.jar",
+    "officialJarSha256": "542ec436b3bc5ed6eed946573ce0ad2c8776517badb949817d06c7294b9d023e",
+    "bundledJarSha256": "f50033c8391557da0fa901c36af98edca2d03c9a657a602a81d8ff90d3f14c5d",
+    "binaryEntriesCompared": 2,
+    "missingOfficialBinaryEntries": [],
+    "differentBinaryEntries": [],
+    "notices": []
+  },
+  {
+    "parentProject": "sarcio",
+    "identity": "netty-transport-native-epoll-4.2.18.Final-linux-riscv64.jar",
+    "source": "https://repo.maven.apache.org/maven2/io/netty/netty-transport-native-epoll/4.2.18.Final/netty-transport-native-epoll-4.2.18.Final-linux-riscv64.jar",
+    "officialJarSha256": "cecb20bc4a4429a9787903914f91c3719b6b6e209b2a366d39fba04ee41fae91",
+    "bundledJarSha256": "8364cc328e3fbba597a89c842649f959771c3858cc0438634ec9325245b47071",
+    "binaryEntriesCompared": 2,
+    "missingOfficialBinaryEntries": [],
+    "differentBinaryEntries": [],
+    "notices": []
+  },
+  {
+    "parentProject": "sarcio",
+    "identity": "netty-transport-native-epoll-4.2.18.Final-linux-x86_64.jar",
+    "source": "https://repo.maven.apache.org/maven2/io/netty/netty-transport-native-epoll/4.2.18.Final/netty-transport-native-epoll-4.2.18.Final-linux-x86_64.jar",
+    "officialJarSha256": "32a340971182d901cea513588549cfadc392bb7342f930379a6e34d853a331f0",
+    "bundledJarSha256": "26366c234bc3e23c6d84034922b0a9936743e37e4569f0944e8d2267d53d8af0",
+    "binaryEntriesCompared": 2,
+    "missingOfficialBinaryEntries": [],
+    "differentBinaryEntries": [],
+    "notices": []
+  },
+  {
+    "parentProject": "sarcio",
+    "identity": "netty-transport-native-unix-common-4.2.18.Final.jar",
+    "source": "https://repo.maven.apache.org/maven2/io/netty/netty-transport-native-unix-common/4.2.18.Final/netty-transport-native-unix-common-4.2.18.Final.jar",
+    "officialJarSha256": "cada7023d09136af128511ca94421d69dc84d0f1f64c9e1f127a1271bb62932a",
+    "bundledJarSha256": "016eafb8b654dfb5c8276aa1ba7830457083aa2b59c988ee9c337a2f4850b9fd",
+    "binaryEntriesCompared": 33,
+    "missingOfficialBinaryEntries": [],
+    "differentBinaryEntries": [],
+    "notices": []
+  },
+  {
+    "parentProject": "smartsearch",
+    "identity": "api-0.36.0.jar",
+    "source": "https://repo.maven.apache.org/maven2/ai/djl/api/0.36.0/api-0.36.0.jar",
+    "officialJarSha256": "3d720dad798114f824a9efa32de4cc15e7bebf0e8f2a0cc68fde101d490d0c0a",
+    "bundledJarSha256": "cb9219611f98fa78283b5da53eb13a8da0b3f90b7884b906f6355d1e77defd15",
+    "binaryEntriesCompared": 626,
+    "missingOfficialBinaryEntries": [],
+    "differentBinaryEntries": [],
+    "notices": []
+  },
+  {
+    "parentProject": "smartsearch",
+    "identity": "langchain4j-core-1.18.1.jar",
+    "source": "https://repo.maven.apache.org/maven2/dev/langchain4j/langchain4j-core/1.18.1/langchain4j-core-1.18.1.jar",
+    "officialJarSha256": "2d0d60544d757b3d85f26671ed1aece8079efcdb3c255c8c19e942613d87616f",
+    "bundledJarSha256": "524c98b2d72c70fb52e30aecd1452efc049825150d68cf5a8ff9e6cc9797cb47",
+    "binaryEntriesCompared": 508,
+    "missingOfficialBinaryEntries": [],
+    "differentBinaryEntries": [],
+    "notices": []
+  },
+  {
+    "parentProject": "smartsearch",
+    "identity": "langchain4j-embeddings-1.18.1-beta28.jar",
+    "source": "https://repo.maven.apache.org/maven2/dev/langchain4j/langchain4j-embeddings/1.18.1-beta28/langchain4j-embeddings-1.18.1-beta28.jar",
+    "officialJarSha256": "420c66dcb8003ae953f830d6306ecaaedbdb451dbe65a2e4be9af2dc9e10025c",
+    "bundledJarSha256": "d1c6be6b69db8b4eda179a07f787568c4b7a06b4d67ddd53b4301ff8a9fadb53",
+    "binaryEntriesCompared": 8,
+    "missingOfficialBinaryEntries": [],
+    "differentBinaryEntries": [],
+    "notices": []
+  },
+  {
+    "parentProject": "smartsearch",
+    "identity": "lucene-analysis-common-10.5.0.jar",
+    "source": "https://repo.maven.apache.org/maven2/org/apache/lucene/lucene-analysis-common/10.5.0/lucene-analysis-common-10.5.0.jar",
+    "officialJarSha256": "922e217fe5cc88305b5a8e057cd80a30b7de96be2ff20dc4327fb524d26e6a25",
+    "bundledJarSha256": "d05d2183ee220a947527b58fbacfeca77b45a16ae7d7ca5c427f5f2b30006e83",
+    "binaryEntriesCompared": 652,
+    "missingOfficialBinaryEntries": [],
+    "differentBinaryEntries": [],
+    "notices": [
+      {
+        "archivePath": "META-INF/LICENSE.txt",
+        "evidence": "licenses/assets/dependency-evidence/nested/lucene-analysis-common-10.5.0/META-INF/LICENSE.txt",
+        "sha256": "a2521407b3209df7dcebfc12cd6d732b24bfa2fe44982ef613e269666482521d",
+        "bytes": 26085
+      },
+      {
+        "archivePath": "META-INF/NOTICE.txt",
+        "evidence": "licenses/assets/dependency-evidence/nested/lucene-analysis-common-10.5.0/META-INF/NOTICE.txt",
+        "sha256": "d3b82734d5e181509c4b6b832f5d3a90c8c6a34fc195272fc8957ccb9e8e20a8",
+        "bytes": 9782
+      }
+    ]
+  },
+  {
+    "parentProject": "smartsearch",
+    "identity": "lucene-core-10.5.0.jar",
+    "source": "https://repo.maven.apache.org/maven2/org/apache/lucene/lucene-core/10.5.0/lucene-core-10.5.0.jar",
+    "officialJarSha256": "ec05ee432860dc6116765fc6bd9ffccf65311cb0430a42a3a90f09fffcd310b1",
+    "bundledJarSha256": "5922acbca8cdd789fa7e9a98bdf92376c045d41e939ef7e173e90e3c2419aa17",
+    "binaryEntriesCompared": 2730,
+    "missingOfficialBinaryEntries": [],
+    "differentBinaryEntries": [],
+    "notices": [
+      {
+        "archivePath": "META-INF/LICENSE.txt",
+        "evidence": "licenses/assets/dependency-evidence/nested/lucene-core-10.5.0/META-INF/LICENSE.txt",
+        "sha256": "a2521407b3209df7dcebfc12cd6d732b24bfa2fe44982ef613e269666482521d",
+        "bytes": 26085
+      },
+      {
+        "archivePath": "META-INF/NOTICE.txt",
+        "evidence": "licenses/assets/dependency-evidence/nested/lucene-core-10.5.0/META-INF/NOTICE.txt",
+        "sha256": "d3b82734d5e181509c4b6b832f5d3a90c8c6a34fc195272fc8957ccb9e8e20a8",
+        "bytes": 9782
+      }
+    ]
+  },
+  {
+    "parentProject": "smartsearch",
+    "identity": "onnxruntime-1.27.0.jar",
+    "source": "https://repo.maven.apache.org/maven2/com/microsoft/onnxruntime/onnxruntime/1.27.0/onnxruntime-1.27.0.jar",
+    "officialJarSha256": "00546de2041215df2771c7665f318ba4b40f024feefa3903ceb2600983e159c5",
+    "bundledJarSha256": "76f0843c4df56b5e91a2b37db93bff68322fc9a7091a7834f3be1d64386e095a",
+    "binaryEntriesCompared": 71,
+    "missingOfficialBinaryEntries": [],
+    "differentBinaryEntries": [],
+    "notices": [
+      {
+        "archivePath": "ThirdPartyNotices.txt",
+        "evidence": "licenses/assets/dependency-evidence/nested/onnxruntime-1.27.0/ThirdPartyNotices.txt",
+        "sha256": "fb0af774b4d7cffc5b9d046f2aaeade2f37df2f80abf8033c95dfffcc77a8866",
+        "bytes": 331175
+      }
+    ]
+  },
+  {
+    "parentProject": "smartsearch",
+    "identity": "tokenizers-0.36.0.jar",
+    "source": "https://repo.maven.apache.org/maven2/ai/djl/huggingface/tokenizers/0.36.0/tokenizers-0.36.0.jar",
+    "officialJarSha256": "78764d19760647d3c53c819be04fcd2fd9d1e805dd60a2ed835f53efb3fafade",
+    "bundledJarSha256": "2c7f4a178e879494035e91149868a388d5291425b1d48c3451ce1ac16230241b",
+    "binaryEntriesCompared": 63,
+    "missingOfficialBinaryEntries": [],
+    "differentBinaryEntries": [],
+    "notices": []
+  }
+]

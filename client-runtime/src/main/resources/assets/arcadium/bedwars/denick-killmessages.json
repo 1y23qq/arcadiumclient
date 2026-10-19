@@ -1,0 +1,778 @@
+[
+  {
+    "id": "killmessages_to_the_moon",
+    "sample": "FrostyCookies was crushed into moon dust by uwu_x3."
+  },
+  {
+    "id": "killmessages_to_the_moon",
+    "sample": "FrostyCookies was sent the wrong way by uwu_x3."
+  },
+  {
+    "id": "killmessages_to_the_moon",
+    "sample": "FrostyCookies was hit by an asteroid from uwu_x3."
+  },
+  {
+    "id": "killmessages_to_the_moon",
+    "sample": "FrostyCookies was blasted to the moon by uwu_x3."
+  },
+  {
+    "id": "killmessages_to_the_moon",
+    "sample": "FrostyCookies was blown up by uwu_x3's Dream Defender."
+  },
+  {
+    "id": "killmessages_to_the_moon",
+    "sample": "Blue Bed was blasted to dust by uwu_x3!"
+  },
+  {
+    "id": "killmessages_pirate",
+    "sample": "FrostyCookies be sent to Davy Jones' locker by uwu_x3."
+  },
+  {
+    "id": "killmessages_pirate",
+    "sample": "FrostyCookies be cannonballed to death by uwu_x3."
+  },
+  {
+    "id": "killmessages_pirate",
+    "sample": "FrostyCookies be shot and killed by uwu_x3."
+  },
+  {
+    "id": "killmessages_pirate",
+    "sample": "FrostyCookies be killed with magic by uwu_x3."
+  },
+  {
+    "id": "killmessages_pirate",
+    "sample": "FrostyCookies be killed with metal by uwu_x3's Dream Defender."
+  },
+  {
+    "id": "killmessages_pirate",
+    "sample": "Blue Bed be shot with cannon by uwu_x3!"
+  },
+  {
+    "id": "killmessages_celebratory",
+    "sample": "FrostyCookies was whacked with a party balloon by uwu_x3."
+  },
+  {
+    "id": "killmessages_celebratory",
+    "sample": "FrostyCookies was popped into the void by uwu_x3."
+  },
+  {
+    "id": "killmessages_celebratory",
+    "sample": "FrostyCookies was shot with a roman candle by uwu_x3."
+  },
+  {
+    "id": "killmessages_celebratory",
+    "sample": "FrostyCookies was launched like a firework by uwu_x3."
+  },
+  {
+    "id": "killmessages_celebratory",
+    "sample": "FrostyCookies was lit up by uwu_x3's Dream Defender."
+  },
+  {
+    "id": "killmessages_celebratory",
+    "sample": "Blue Bed exploded from a firework by uwu_x3!"
+  },
+  {
+    "id": "killmessages_dramatic",
+    "sample": "FrostyCookies was tragically backstabbed by uwu_x3."
+  },
+  {
+    "id": "killmessages_dramatic",
+    "sample": "FrostyCookies was heartlessly let go by uwu_x3."
+  },
+  {
+    "id": "killmessages_dramatic",
+    "sample": "FrostyCookies's heart was pierced by uwu_x3."
+  },
+  {
+    "id": "killmessages_dramatic",
+    "sample": "FrostyCookies was delivered into nothingness by uwu_x3."
+  },
+  {
+    "id": "killmessages_dramatic",
+    "sample": "FrostyCookies was dismembered by uwu_x3's Dream Defender."
+  },
+  {
+    "id": "killmessages_dramatic",
+    "sample": "Blue Bed was dreadfully corrupted by uwu_x3!"
+  },
+  {
+    "id": "killmessages_oink",
+    "sample": "FrostyCookies was oinked by uwu_x3."
+  },
+  {
+    "id": "killmessages_oink",
+    "sample": "FrostyCookies slipped into void for uwu_x3."
+  },
+  {
+    "id": "killmessages_oink",
+    "sample": "FrostyCookies got attacked by a carrot from uwu_x3."
+  },
+  {
+    "id": "killmessages_oink",
+    "sample": "FrostyCookies was distracted by a piglet from uwu_x3."
+  },
+  {
+    "id": "killmessages_oink",
+    "sample": "FrostyCookies was oinked by uwu_x3's Dream Defender."
+  },
+  {
+    "id": "killmessages_oink",
+    "sample": "Blue Bed was gulped by uwu_x3!"
+  },
+  {
+    "id": "killmessages_limbo",
+    "sample": "FrostyCookies was sent to limbo by uwu_x3."
+  },
+  {
+    "id": "killmessages_limbo",
+    "sample": "FrostyCookies was pushed into limbo by uwu_x3."
+  },
+  {
+    "id": "killmessages_limbo",
+    "sample": "FrostyCookies was shot into limbo by uwu_x3."
+  },
+  {
+    "id": "killmessages_limbo",
+    "sample": "FrostyCookies was launched into limbo by uwu_x3's Dream Defender."
+  },
+  {
+    "id": "killmessages_limbo",
+    "sample": "Blue Bed was sent to limbo by uwu_x3."
+  },
+  {
+    "id": "killmessages_multiverse",
+    "sample": "FrostyCookies was distorted by uwu_x3."
+  },
+  {
+    "id": "killmessages_multiverse",
+    "sample": "FrostyCookies was thrown into the singularity by uwu_x3."
+  },
+  {
+    "id": "killmessages_multiverse",
+    "sample": "FrostyCookies was shot into another dimension by uwu_x3."
+  },
+  {
+    "id": "killmessages_multiverse",
+    "sample": "FrostyCookies was thrown into a black hole by uwu_x3."
+  },
+  {
+    "id": "killmessages_multiverse",
+    "sample": "FrostyCookies was launched into a wormhole by uwu_x3's Dream Defender."
+  },
+  {
+    "id": "killmessages_multiverse",
+    "sample": "Blue Bed was sucked into a black hole by uwu_x3."
+  },
+  {
+    "id": "killmessages_default",
+    "sample": "FrostyCookies was killed by uwu_x3."
+  },
+  {
+    "id": "killmessages_default",
+    "sample": "FrostyCookies was knocked into the void by uwu_x3."
+  },
+  {
+    "id": "killmessages_default",
+    "sample": "FrostyCookies was shot by uwu_x3."
+  },
+  {
+    "id": "killmessages_default",
+    "sample": "Blue Bed was destroyed by uwu_x3!"
+  },
+  {
+    "id": "killmessages_default",
+    "sample": "FrostyCookies was killed by uwu_x3's Dream Defender."
+  },
+  {
+    "id": "killmessages_default",
+    "sample": "FrostyCookies was killed by uwu_x3's Bedbug."
+  },
+  {
+    "id": "killmessages_primal",
+    "sample": "FrostyCookies was hunted down by uwu_x3."
+  },
+  {
+    "id": "killmessages_primal",
+    "sample": "FrostyCookies stumbled on a trap set by uwu_x3."
+  },
+  {
+    "id": "killmessages_primal",
+    "sample": "FrostyCookies got skewered by uwu_x3."
+  },
+  {
+    "id": "killmessages_primal",
+    "sample": "FrostyCookies was thrown into a volcano by uwu_x3."
+  },
+  {
+    "id": "killmessages_primal",
+    "sample": "FrostyCookies was mauled by uwu_x3's Dream Defender."
+  },
+  {
+    "id": "killmessages_primal",
+    "sample": "Blue Bed was sacrificed by uwu_x3!"
+  },
+  {
+    "id": "killmessages_old_man",
+    "sample": "FrostyCookies was yelled at by uwu_x3."
+  },
+  {
+    "id": "killmessages_old_man",
+    "sample": "FrostyCookies was thrown off the lawn by uwu_x3."
+  },
+  {
+    "id": "killmessages_old_man",
+    "sample": "FrostyCookies was accidentally spit on by uwu_x3."
+  },
+  {
+    "id": "killmessages_old_man",
+    "sample": "FrostyCookies slipped on the fake teeth of uwu_x3."
+  },
+  {
+    "id": "killmessages_old_man",
+    "sample": "FrostyCookies was chased away by uwu_x3's Dream Defender."
+  },
+  {
+    "id": "killmessages_old_man",
+    "sample": "Blue Bed was sold in a garage sale by uwu_x3!"
+  },
+  {
+    "id": "killmessages_santa_workshop",
+    "sample": "FrostyCookies was wrapped into a gift by uwu_x3."
+  },
+  {
+    "id": "killmessages_santa_workshop",
+    "sample": "FrostyCookies hit the hard-wood floor because of uwu_x3."
+  },
+  {
+    "id": "killmessages_santa_workshop",
+    "sample": "FrostyCookies was put on the naughty list by uwu_x3."
+  },
+  {
+    "id": "killmessages_santa_workshop",
+    "sample": "FrostyCookies was pushed down a slope by uwu_x3."
+  },
+  {
+    "id": "killmessages_santa_workshop",
+    "sample": "FrostyCookies was turned to gingerbread by uwu_x3's Dream Defender."
+  },
+  {
+    "id": "killmessages_santa_workshop",
+    "sample": "Blue Bed was traded in for milk and cookies by uwu_x3!"
+  },
+  {
+    "id": "killmessages_spooky",
+    "sample": "FrostyCookies was spooked by uwu_x3."
+  },
+  {
+    "id": "killmessages_spooky",
+    "sample": "FrostyCookies was spooked off the map by uwu_x3."
+  },
+  {
+    "id": "killmessages_spooky",
+    "sample": "FrostyCookies was remotely spooked by uwu_x3."
+  },
+  {
+    "id": "killmessages_spooky",
+    "sample": "FrostyCookies was totally spooked by uwu_x3."
+  },
+  {
+    "id": "killmessages_spooky",
+    "sample": "FrostyCookies was spooked by uwu_x3's Dream Defender."
+  },
+  {
+    "id": "killmessages_spooky",
+    "sample": "Blue Bed was spooked by uwu_x3!"
+  },
+  {
+    "id": "killmessages_love",
+    "sample": "FrostyCookies was given the cold shoulder by uwu_x3."
+  },
+  {
+    "id": "killmessages_love",
+    "sample": "FrostyCookies was hit off by a love bomb from uwu_x3."
+  },
+  {
+    "id": "killmessages_love",
+    "sample": "FrostyCookies was struck with Cupid's arrow by uwu_x3."
+  },
+  {
+    "id": "killmessages_love",
+    "sample": "FrostyCookies was out of the league of uwu_x3."
+  },
+  {
+    "id": "killmessages_love",
+    "sample": "FrostyCookies was no match for uwu_x3's Dream Defender."
+  },
+  {
+    "id": "killmessages_love",
+    "sample": "Blue Bed was dismantled by uwu_x3!"
+  },
+  {
+    "id": "killmessages_squeak",
+    "sample": "FrostyCookies was chewed up by uwu_x3."
+  },
+  {
+    "id": "killmessages_squeak",
+    "sample": "FrostyCookies was scared into the void by uwu_x3."
+  },
+  {
+    "id": "killmessages_squeak",
+    "sample": "FrostyCookies stepped in a mouse trap placed by uwu_x3."
+  },
+  {
+    "id": "killmessages_squeak",
+    "sample": "FrostyCookies was distracted by a rat dragging pizza from uwu_x3."
+  },
+  {
+    "id": "killmessages_squeak",
+    "sample": "FrostyCookies squeaked around with uwu_x3's Dream Defender."
+  },
+  {
+    "id": "killmessages_squeak",
+    "sample": "Blue Bed was squeaked apart by uwu_x3!"
+  },
+  {
+    "id": "killmessages_social_distancing",
+    "sample": "FrostyCookies was too shy to meet uwu_x3."
+  },
+  {
+    "id": "killmessages_social_distancing",
+    "sample": "FrostyCookies didn't distance themselves properly from uwu_x3."
+  },
+  {
+    "id": "killmessages_social_distancing",
+    "sample": "FrostyCookies was coughed at by uwu_x3."
+  },
+  {
+    "id": "killmessages_social_distancing",
+    "sample": "FrostyCookies tripped while trying to run away from uwu_x3."
+  },
+  {
+    "id": "killmessages_social_distancing",
+    "sample": "FrostyCookies got too close to uwu_x3's Dream Defender."
+  },
+  {
+    "id": "killmessages_social_distancing",
+    "sample": "Blue Bed was contaminated by uwu_x3!"
+  },
+  {
+    "id": "killmessages_honourable",
+    "sample": "FrostyCookies died in close combat to uwu_x3."
+  },
+  {
+    "id": "killmessages_honourable",
+    "sample": "FrostyCookies fought to the edge with uwu_x3."
+  },
+  {
+    "id": "killmessages_honourable",
+    "sample": "FrostyCookies fell to the great marksmanship of uwu_x3."
+  },
+  {
+    "id": "killmessages_honourable",
+    "sample": "FrostyCookies stumbled off a ledge with help by uwu_x3."
+  },
+  {
+    "id": "killmessages_honourable",
+    "sample": "FrostyCookies tangoed with uwu_x3's Dream Defender."
+  },
+  {
+    "id": "killmessages_honourable",
+    "sample": "Blue Bed had to raise the white flag to uwu_x3!"
+  },
+  {
+    "id": "killmessages_eggy",
+    "sample": "FrostyCookies was painted pretty by uwu_x3."
+  },
+  {
+    "id": "killmessages_eggy",
+    "sample": "FrostyCookies was deviled into the void by uwu_x3."
+  },
+  {
+    "id": "killmessages_eggy",
+    "sample": "FrostyCookies slipped into a pan placed by uwu_x3."
+  },
+  {
+    "id": "killmessages_eggy",
+    "sample": "FrostyCookies was flipped off the edge by uwu_x3."
+  },
+  {
+    "id": "killmessages_eggy",
+    "sample": "FrostyCookies was made sunny side up by uwu_x3's Dream Defender."
+  },
+  {
+    "id": "killmessages_eggy",
+    "sample": "Blue Bed was scrambled by uwu_x3!"
+  },
+  {
+    "id": "killmessages_memed",
+    "sample": "FrostyCookies got rekt by uwu_x3."
+  },
+  {
+    "id": "killmessages_memed",
+    "sample": "FrostyCookies took the L to uwu_x3."
+  },
+  {
+    "id": "killmessages_memed",
+    "sample": "FrostyCookies got smacked by uwu_x3."
+  },
+  {
+    "id": "killmessages_memed",
+    "sample": "FrostyCookies got roasted by uwu_x3."
+  },
+  {
+    "id": "killmessages_memed",
+    "sample": "FrostyCookies got bamboozled by uwu_x3's Dream Defender."
+  },
+  {
+    "id": "killmessages_memed",
+    "sample": "Blue Bed got memed by uwu_x3!"
+  },
+  {
+    "id": "killmessages_oxed",
+    "sample": "FrostyCookies was trampled by uwu_x3."
+  },
+  {
+    "id": "killmessages_oxed",
+    "sample": "FrostyCookies was back kicked into the void by uwu_x3."
+  },
+  {
+    "id": "killmessages_oxed",
+    "sample": "FrostyCookies was impaled from a distance by uwu_x3."
+  },
+  {
+    "id": "killmessages_oxed",
+    "sample": "FrostyCookies was headbutted off a cliff by uwu_x3."
+  },
+  {
+    "id": "killmessages_oxed",
+    "sample": "FrostyCookies was trampled by uwu_x3's Dream Defender."
+  },
+  {
+    "id": "killmessages_oxed",
+    "sample": "Blue Bed was impaled by uwu_x3!"
+  },
+  {
+    "id": "killmessages_counter",
+    "sample": "FrostyCookies was bested by uwu_x3."
+  },
+  {
+    "id": "killmessages_counter",
+    "sample": "FrostyCookies was uwu_x3's final #10,000."
+  },
+  {
+    "id": "killmessages_counter",
+    "sample": "FrostyCookies was knocked into the void by uwu_x3."
+  },
+  {
+    "id": "killmessages_counter",
+    "sample": "FrostyCookies was shot by uwu_x3."
+  },
+  {
+    "id": "killmessages_counter",
+    "sample": "FrostyCookies was knocked off an edge by uwu_x3."
+  },
+  {
+    "id": "killmessages_counter",
+    "sample": "FrostyCookies was bested by uwu_x3's Dream Defender."
+  },
+  {
+    "id": "killmessages_counter",
+    "sample": "Blue Bed was bed #10,000 destroyed by uwu_x3!"
+  },
+  {
+    "id": "killmessages_buzz",
+    "sample": "FrostyCookies was buzzed to death by uwu_x3."
+  },
+  {
+    "id": "killmessages_buzz",
+    "sample": "FrostyCookies was bzzz'd into the void by uwu_x3."
+  },
+  {
+    "id": "killmessages_buzz",
+    "sample": "FrostyCookies was startled by uwu_x3."
+  },
+  {
+    "id": "killmessages_buzz",
+    "sample": "FrostyCookies was stung off the edge by uwu_x3."
+  },
+  {
+    "id": "killmessages_buzz",
+    "sample": "FrostyCookies was bee'd by uwu_x3's Dream Defender."
+  },
+  {
+    "id": "killmessages_buzz",
+    "sample": "Blue Bed was stung by uwu_x3!"
+  },
+  {
+    "id": "killmessages_bbq",
+    "sample": "FrostyCookies was glazed in BBQ sauce by uwu_x3."
+  },
+  {
+    "id": "killmessages_bbq",
+    "sample": "FrostyCookies slipped in BBQ sauce off the edge spilled by uwu_x3."
+  },
+  {
+    "id": "killmessages_bbq",
+    "sample": "FrostyCookies was thrown chili powder at by uwu_x3."
+  },
+  {
+    "id": "killmessages_bbq",
+    "sample": "FrostyCookies was not spicy enough for uwu_x3."
+  },
+  {
+    "id": "killmessages_bbq",
+    "sample": "FrostyCookies was sliced up by uwu_x3's Dream Defender."
+  },
+  {
+    "id": "killmessages_bbq",
+    "sample": "Blue Bed was deep fried by uwu_x3!"
+  },
+  {
+    "id": "killmessages_glorious",
+    "sample": "FrostyCookies was stomped by uwu_x3."
+  },
+  {
+    "id": "killmessages_glorious",
+    "sample": "FrostyCookies was uwu_x3's final #10,000."
+  },
+  {
+    "id": "killmessages_glorious",
+    "sample": "FrostyCookies was thrown down a pit by uwu_x3."
+  },
+  {
+    "id": "killmessages_glorious",
+    "sample": "FrostyCookies was shot by uwu_x3."
+  },
+  {
+    "id": "killmessages_glorious",
+    "sample": "FrostyCookies was thrown to the ground by uwu_x3."
+  },
+  {
+    "id": "killmessages_glorious",
+    "sample": "FrostyCookies was outclassed by uwu_x3's Dream Defender."
+  },
+  {
+    "id": "killmessages_glorious",
+    "sample": "Blue Bed was bed #10,000 destroyed by uwu_x3!"
+  },
+  {
+    "id": "killmessages_western",
+    "sample": "FrostyCookies was filled full of lead by uwu_x3."
+  },
+  {
+    "id": "killmessages_western",
+    "sample": "FrostyCookies met their end by uwu_x3."
+  },
+  {
+    "id": "killmessages_western",
+    "sample": "FrostyCookies was killed with dynamite by uwu_x3."
+  },
+  {
+    "id": "killmessages_western",
+    "sample": "FrostyCookies lost a drinking contest with uwu_x3."
+  },
+  {
+    "id": "killmessages_western",
+    "sample": "FrostyCookies lost the draw to uwu_x3's Dream Defender."
+  },
+  {
+    "id": "killmessages_western",
+    "sample": "Blue Bed was iced by uwu_x3!"
+  },
+  {
+    "id": "killmessages_bridging_for_dummies",
+    "sample": "FrostyCookies had a small brain moment while fighting uwu_x3."
+  },
+  {
+    "id": "killmessages_bridging_for_dummies",
+    "sample": "FrostyCookies was not able to block clutch against uwu_x3."
+  },
+  {
+    "id": "killmessages_bridging_for_dummies",
+    "sample": "FrostyCookies got 360 no-scoped by uwu_x3."
+  },
+  {
+    "id": "killmessages_bridging_for_dummies",
+    "sample": "FrostyCookies forgot how many blocks they had left while fighting uwu_x3."
+  },
+  {
+    "id": "killmessages_bridging_for_dummies",
+    "sample": "FrostyCookies got absolutely destroyed by uwu_x3's Dream Defender."
+  },
+  {
+    "id": "killmessages_bridging_for_dummies",
+    "sample": "Blue Bed has left the game after seeing uwu_x3!"
+  },
+  {
+    "id": "killmessages_snow_storm",
+    "sample": "FrostyCookies was locked outside during a snow storm by uwu_x3."
+  },
+  {
+    "id": "killmessages_snow_storm",
+    "sample": "FrostyCookies was pushed into a snowbank by uwu_x3."
+  },
+  {
+    "id": "killmessages_snow_storm",
+    "sample": "FrostyCookies was hit with a snowball from uwu_x3."
+  },
+  {
+    "id": "killmessages_snow_storm",
+    "sample": "FrostyCookies was shoved down an icy slope by uwu_x3."
+  },
+  {
+    "id": "killmessages_snow_storm",
+    "sample": "FrostyCookies got snowed in by uwu_x3's Dream Defender."
+  },
+  {
+    "id": "killmessages_snow_storm",
+    "sample": "Blue Bed was made into a snowman by uwu_x3!"
+  },
+  {
+    "id": "killmessages_fire",
+    "sample": "FrostyCookies was struck down by uwu_x3."
+  },
+  {
+    "id": "killmessages_fire",
+    "sample": "FrostyCookies was turned to dust by uwu_x3."
+  },
+  {
+    "id": "killmessages_fire",
+    "sample": "FrostyCookies was melted by uwu_x3."
+  },
+  {
+    "id": "killmessages_fire",
+    "sample": "FrostyCookies was turned to ash by uwu_x3."
+  },
+  {
+    "id": "killmessages_fire",
+    "sample": "FrostyCookies was fried by uwu_x3's Dream Defender."
+  },
+  {
+    "id": "killmessages_fire",
+    "sample": "Blue Bed was incinerated by uwu_x3!"
+  },
+  {
+    "id": "killmessages_festive",
+    "sample": "FrostyCookies was smothered in holiday cheer by uwu_x3."
+  },
+  {
+    "id": "killmessages_festive",
+    "sample": "FrostyCookies was banished into the ether by uwu_x3's holiday spirit."
+  },
+  {
+    "id": "killmessages_festive",
+    "sample": "FrostyCookies was sniped by a missile of festivity by uwu_x3."
+  },
+  {
+    "id": "killmessages_festive",
+    "sample": "FrostyCookies was pushed by uwu_x3's holiday spirit."
+  },
+  {
+    "id": "killmessages_festive",
+    "sample": "FrostyCookies was sung holiday tunes to by uwu_x3's Dream Defender."
+  },
+  {
+    "id": "killmessages_festive",
+    "sample": "Blue Bed was melted by uwu_x3's holiday spirit!"
+  },
+  {
+    "id": "killmessages_wrapped_up",
+    "sample": "FrostyCookies was wrapped up by uwu_x3."
+  },
+  {
+    "id": "killmessages_wrapped_up",
+    "sample": "FrostyCookies was tied into a bow by uwu_x3."
+  },
+  {
+    "id": "killmessages_wrapped_up",
+    "sample": "FrostyCookies was glued up by uwu_x3."
+  },
+  {
+    "id": "killmessages_wrapped_up",
+    "sample": "FrostyCookies tripped over a present placed by uwu_x3."
+  },
+  {
+    "id": "killmessages_wrapped_up",
+    "sample": "FrostyCookies was taped together by uwu_x3's Dream Defender."
+  },
+  {
+    "id": "killmessages_wrapped_up",
+    "sample": "Blue Bed was stuffed with tissue paper by uwu_x3!"
+  },
+  {
+    "id": "killmessages_roar",
+    "sample": "FrostyCookies was ripped to shreds by uwu_x3."
+  },
+  {
+    "id": "killmessages_roar",
+    "sample": "FrostyCookies was charged by uwu_x3."
+  },
+  {
+    "id": "killmessages_roar",
+    "sample": "FrostyCookies was pounced on by uwu_x3."
+  },
+  {
+    "id": "killmessages_roar",
+    "sample": "FrostyCookies was ripped and thrown by uwu_x3."
+  },
+  {
+    "id": "killmessages_roar",
+    "sample": "FrostyCookies was ripped to shreds by uwu_x3's Dream Defender."
+  },
+  {
+    "id": "killmessages_roar",
+    "sample": "Blue Bed was ripped to shreds by uwu_x3."
+  },
+  {
+    "id": "killmessages_noble",
+    "sample": "FrostyCookies was crushed by uwu_x3."
+  },
+  {
+    "id": "killmessages_noble",
+    "sample": "FrostyCookies was uwu_x3's final #10,000."
+  },
+  {
+    "id": "killmessages_noble",
+    "sample": "FrostyCookies was dominated by uwu_x3."
+  },
+  {
+    "id": "killmessages_noble",
+    "sample": "FrostyCookies was assassinated by uwu_x3."
+  },
+  {
+    "id": "killmessages_noble",
+    "sample": "FrostyCookies was thrown off their high horse by uwu_x3."
+  },
+  {
+    "id": "killmessages_noble",
+    "sample": "FrostyCookies was degraded by uwu_x3's Dream Defender."
+  },
+  {
+    "id": "killmessages_noble",
+    "sample": "Blue Bed was bed #10,000 destroyed by uwu_x3!"
+  },
+  {
+    "id": "killmessages_woof_woof",
+    "sample": "FrostyCookies was bitten by uwu_x3."
+  },
+  {
+    "id": "killmessages_woof_woof",
+    "sample": "FrostyCookies howled into the void for uwu_x3."
+  },
+  {
+    "id": "killmessages_woof_woof",
+    "sample": "FrostyCookies caught the ball thrown by uwu_x3."
+  },
+  {
+    "id": "killmessages_woof_woof",
+    "sample": "FrostyCookies was distracted by a puppy placed by uwu_x3."
+  },
+  {
+    "id": "killmessages_woof_woof",
+    "sample": "FrostyCookies played too rough with uwu_x3's Dream Defender."
+  },
+  {
+    "id": "killmessages_woof_woof",
+    "sample": "Blue Bed was ripped apart by uwu_x3!"
+  }
+]

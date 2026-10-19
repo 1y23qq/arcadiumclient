@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "id": "oneconfigv1",
+  "name": "Arcadium Core (Platform Module)",
+  "version": "${mod_version}",
+  "description": "Arcadium configuration and HUD library, adapted from OneConfig.",
+  "authors": [
+    "Polyfrost",
+    "0aurorq3 (Arcadium modifications)"
+  ],
+  "contact": {
+    "homepage": "https://arcadiumclient.com",
+    "sources": "https://github.com/0aurorq3/arcadiumclient",
+    "issues": "https://discord.gg/QbNfaCHjUz"
+  },
+  "license": "GPL-3.0-only",
+  "environment": "client",
+  "accessWidener": "oneconfigv1.classtweaker",
+  "mixins": [
+    "mixins.oneconfigv1.init.json",
+    "mixins.oneconfigv1.json"
+  ],
+  "entrypoints": {
+    "client": [
+      "org.polyfrost.oneconfig.internal.OneConfig"
+    ],
+    "modmenu": [
+      {
+        "adapter": "kotlin",
+        "value": "org.polyfrost.oneconfig.internal.compat.ModMenuEntrypoint"
+      }
+    ],
+    "preLaunch": [
+      "org.polyfrost.oneconfig.internal.SkikoDataPathPreLaunch"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.18.0",
+    "minecraft": "${fabric_mc_version}",
+    "fabric-api": "*"
+  },
+  "custom": {
+    "modmenu": {
+      "parent": "oneconfig",
+      "badges": [
+        "library"
+      ]
+    },
+    "arcadium:upstream": {
+      "name": "OneConfig",
+      "authors": "Polyfrost and contributors",
+      "sources": "https://github.com/Polyfrost/OneConfig",
+      "license": "LICENSE"
+    }
+  }
+}

@@ -1,0 +1,3 @@
+plugins {
+    `oneconfig-setup`
+}

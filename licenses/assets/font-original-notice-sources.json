@@ -1,0 +1,34 @@
+[
+  {
+    "file": "Poppins-OFL.txt",
+    "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/poppins/OFL.txt",
+    "sha256": "6be04893d770899a015649c7aa3b582f871b272f8747a92b78b17c3e5c8b2573",
+    "bytes": 4385
+  },
+  {
+    "file": "Unifont-original-OFL-1.1.txt",
+    "source": "https://unifoundry.com/OFL-1.1.txt",
+    "sha256": "869692af094c57fb7258c57fe26820c759319603321d0ffeb278de3651763ded",
+    "bytes": 4340
+  },
+  {
+    "file": "Unifont-original-LICENSE.txt",
+    "source": "https://unifoundry.com/LICENSE.txt",
+    "sha256": "1e74cb82bf476843e97c2596297b04219b1a7e51f7238944a8c031cb9401fa87",
+    "bytes": 24142
+  },
+  {
+    "file": "unifont-reference-font",
+    "source": "https://unifoundry.com/pub/unifont/unifont-17.0.05/font-builds/unifont-17.0.05.otf",
+    "sha256": "85701ab9b1e251ee16f4df00b13f22eac311d72b7dab427a7d975fe7f5064702",
+    "bytes": 5321628,
+    "matchesBundledFont": true
+  },
+  {
+    "file": "poppins-reference-font",
+    "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/poppins/Poppins-Regular.ttf",
+    "sha256": "7e65201e9b79159e2300267cc885e16c8dcef2424cdfa09a29bfb0980a94a7ba",
+    "bytes": 160316,
+    "matchesBundledFont": false
+  }
+]

@@ -1,0 +1,35 @@
+{
+  "completed": true,
+  "externalPackages": 867,
+  "noticeFilesVerified": 1466,
+  "emptyNoticeSets": 0,
+  "upstreamWorkspaceRecovery": 104,
+  "canonicalReferencesInsteadOfAbsentOriginalStandaloneText": [
+    {
+      "name": "block",
+      "version": "0.1.6"
+    },
+    {
+      "name": "dispatch",
+      "version": "0.2.0"
+    },
+    {
+      "name": "drm-fourcc",
+      "version": "2.2.0"
+    },
+    {
+      "name": "malloc_buf",
+      "version": "0.0.6"
+    },
+    {
+      "name": "selectors",
+      "version": "0.38.0"
+    },
+    {
+      "name": "simd_helpers",
+      "version": "0.1.0"
+    }
+  ],
+  "interfrostSelection": "MIT",
+  "originalSpdxExpressionsAndAuthorsPreserved": true
+}

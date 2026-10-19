@@ -1,0 +1,19 @@
+[
+  {
+    "file": "d3d12allocator-LICENSE.txt",
+    "source": "https://raw.githubusercontent.com/GPUOpen-LibrariesAndSDKs/D3D12MemoryAllocator/169895d529dfce00390a20e69c2f516066fe7a3b/LICENSE.txt",
+    "sha256": "e078ee4f8c5ed0673f4d93b5318557eb8b4e0d7dbccef2ab45c763c7693f0f37",
+    "summary": "Copyright (c) 2019-2020 Advanced Micro Devices, Inc. All rights reserved.\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Softw"
+  },
+  {
+    "file": "d3d12allocator-LICENSE",
+    "source": "https://raw.githubusercontent.com/GPUOpen-LibrariesAndSDKs/D3D12MemoryAllocator/169895d529dfce00390a20e69c2f516066fe7a3b/LICENSE",
+    "error": "HTTP Error 404: Not Found"
+  },
+  {
+    "file": "partition-original-commit.json",
+    "source": "https://chromium.googlesource.com/chromium/src/base/allocator/partition_allocator.git/+/03cc513177b4340bee3dbfd46f6dd5fdded43b79?format=JSON",
+    "sha256": "cdcab368983dcdd58c533b979e39a5204b3fced5ef0e788de2751b6b8daad93f",
+    "summary": "Fix ScopedSchedulerLoopQuarantineExclusion\n\nScopedSchedulerLoopQuarantineExclusion was\nexiting on the first invalid thread cache\ninstead of handling all of them.\n\nBug: 538701265\nChange-Id: I02faae787eb139af9b57679652e0cfc26a6a6964\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8145820\nReviewed-by: Stephen Nusko <nuskos@chromium.org>\nCommit-Queue: Gregg Tavares <gman@chromium.org>\nCr-Commit-Position: refs/heads/main@{#1677716}\nNOKEYCHECK=True\nGitOrigin-RevId: 684217bd0672571af585e80822a44b860f06a65c\n"
+  }
+]

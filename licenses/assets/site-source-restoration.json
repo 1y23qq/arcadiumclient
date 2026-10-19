@@ -1,0 +1,167 @@
+{
+  "revision": "9d04104",
+  "files": [
+    {
+      "path": "sites/arcadium-official/public/404.html",
+      "sha256": "4885d9a6c03e4b40fba632973a2cded41e265c5240f14a81a4a3b4419f102f22",
+      "source": "git:9d04104:sites/arcadium-official/dist/404.html"
+    },
+    {
+      "path": "sites/arcadium-official/public/_headers",
+      "sha256": "7cd9bfc93012ae7ffa865c4b18612d450ea9a5ac756c6df6b87e0b04ddb30389",
+      "source": "git:9d04104:sites/arcadium-official/dist/_headers"
+    },
+    {
+      "path": "sites/arcadium-official/public/_redirects",
+      "sha256": "1311b45c6782504709f6ebc6365746dd407f431449bd6280c235ed1f5cbfa10a",
+      "source": "git:9d04104:sites/arcadium-official/dist/_redirects"
+    },
+    {
+      "path": "sites/arcadium-official/public/app.js",
+      "sha256": "0a6a1516d9005637194a1bdd3c0d95bc2cc36eabef8b1a58a8c7c9d15caa5b5e",
+      "source": "git:9d04104:sites/arcadium-official/dist/app.js"
+    },
+    {
+      "path": "sites/arcadium-official/public/assets/Inter-OFL.txt",
+      "sha256": "262481e844521b326f5ecd053e59b98c8b2da78c8ee1bdbb6e8174305e54935a",
+      "source": "git:9d04104:sites/arcadium-official/dist/assets/Inter-OFL.txt"
+    },
+    {
+      "path": "sites/arcadium-official/public/assets/Inter-Regular.ttf",
+      "sha256": "3e5f90a0138b38de4cf4d779ad78391974ea1df776b9164842bdcbb60ce383c5",
+      "source": "git:9d04104:sites/arcadium-official/dist/assets/Inter-Regular.ttf"
+    },
+    {
+      "path": "sites/arcadium-official/public/assets/Manrope-FONTLOG.txt",
+      "sha256": "b6b54bcc1dbd1b18d5afd087ec0b578097644b1c9ec3e0a642d4df7808f449c2",
+      "source": "git:9d04104:sites/arcadium-official/dist/assets/Manrope-FONTLOG.txt"
+    },
+    {
+      "path": "sites/arcadium-official/public/assets/Manrope-Latin-Variable.woff2",
+      "sha256": "a30ddcd349703aff7464c34bef3fffdff405ee50c113440d7c8693c02d210972",
+      "source": "git:9d04104:sites/arcadium-official/dist/assets/Manrope-Latin-Variable.woff2"
+    },
+    {
+      "path": "sites/arcadium-official/public/assets/Manrope-OFL.txt",
+      "sha256": "58172e0c0fac2cda8a37b348164bb55e44b0e69051e557e92b1d3f6910141f7b",
+      "source": "git:9d04104:sites/arcadium-official/dist/assets/Manrope-OFL.txt"
+    },
+    {
+      "path": "sites/arcadium-official/public/assets/Sora-Latin-Variable.woff2",
+      "sha256": "811e11966d29f3a01fcb19b087b61ac067d380665a55aebb7fcdf2cda95e4a93",
+      "source": "git:9d04104:sites/arcadium-official/dist/assets/Sora-Latin-Variable.woff2"
+    },
+    {
+      "path": "sites/arcadium-official/public/assets/Sora-OFL.txt",
+      "sha256": "ba0b9729c9428ba79a0459ab8ec575791b51509dbec213e383d0316d37fec299",
+      "source": "git:9d04104:sites/arcadium-official/dist/assets/Sora-OFL.txt"
+    },
+    {
+      "path": "sites/arcadium-official/public/assets/arcadium.svg",
+      "sha256": "8087fdb5e0c8e4fe4277cded04d4ac6d4beb203d8419fc2fde5d97b9e8ba3f1a",
+      "source": "git:9d04104:sites/arcadium-official/dist/assets/arcadium.svg"
+    },
+    {
+      "path": "sites/arcadium-official/public/assets/client-main-menu.png",
+      "sha256": "f661ca43b3e24a35cebb1a7628c010b4dad01d1e0e33219a79fe55311a249b50",
+      "source": "git:9d04104:sites/arcadium-official/dist/assets/client-main-menu.png"
+    },
+    {
+      "path": "sites/arcadium-official/public/assets/discord.svg",
+      "sha256": "5ba72d750bae7120e9b4d5dc0ec13b227e496a20df38944a607c1408c57d2891",
+      "source": "git:9d04104:sites/arcadium-official/dist/assets/discord.svg"
+    },
+    {
+      "path": "sites/arcadium-official/public/assets/fps-comparison-original.jpg",
+      "sha256": "2ee790ca1f13e660007b707359930d0e5543fdc56237737bf63e239f52b55d93",
+      "source": "git:9d04104:sites/arcadium-official/dist/assets/fps-comparison-original.jpg"
+    },
+    {
+      "path": "sites/arcadium-official/public/assets/glass-dark.png",
+      "sha256": "414845b2567c1b2b648288d95c11b1461c1e6cf811b6d5bca2fff7b5367ec2ff",
+      "source": "git:9d04104:sites/arcadium-official/dist/assets/glass-dark.png"
+    },
+    {
+      "path": "sites/arcadium-official/public/assets/glass-light.png",
+      "sha256": "d5fed557fc36018e8c1d4615f7909f9130ebdd7a83616523f33a7033805d69fd",
+      "source": "git:9d04104:sites/arcadium-official/dist/assets/glass-light.png"
+    },
+    {
+      "path": "sites/arcadium-official/public/assets/launcher-home.png",
+      "sha256": "ff0cb524156f1639d0aeacf3e4b97dfcdd0cfa26c38fad800638301b3127f7a0",
+      "source": "git:9d04104:sites/arcadium-official/dist/assets/launcher-home.png"
+    },
+    {
+      "path": "sites/arcadium-official/public/assets/platform-icons/LICENSE.txt",
+      "sha256": "08a35001794dcde74d25c7d35387f1956186b07053bfc8d8759dfe72a389afc7",
+      "source": "git:9d04104:sites/arcadium-official/dist/assets/platform-icons/LICENSE.txt"
+    },
+    {
+      "path": "sites/arcadium-official/public/assets/platform-icons/NOTICE.txt",
+      "sha256": "ae8182223a57caf553a5f0338b118484d7e5fe1dc15d768f3c7932793367bbd4",
+      "source": "git:9d04104:sites/arcadium-official/dist/assets/platform-icons/NOTICE.txt"
+    },
+    {
+      "path": "sites/arcadium-official/public/assets/platform-icons/linux.svg",
+      "sha256": "5823772c7fc1aecd40584b7a7e9c42b75cddfc45d559b1c3caa31221741bbd3c",
+      "source": "git:9d04104:sites/arcadium-official/dist/assets/platform-icons/linux.svg"
+    },
+    {
+      "path": "sites/arcadium-official/public/assets/platform-icons/macos.svg",
+      "sha256": "7a47ab31a71da207ead1a35140c566530e76db6ae03adb08dc877dc0e0f2b5bf",
+      "source": "git:9d04104:sites/arcadium-official/dist/assets/platform-icons/macos.svg"
+    },
+    {
+      "path": "sites/arcadium-official/public/assets/platform-icons/windows.svg",
+      "sha256": "7947c1d0547739cd4ed21b244ea90b5662c74db0afdbf3fb73200e658f96ff80",
+      "source": "git:9d04104:sites/arcadium-official/dist/assets/platform-icons/windows.svg"
+    },
+    {
+      "path": "sites/arcadium-official/public/download/index.html",
+      "sha256": "8b32e30bccced5fea458a612a10e6d96fa633ddd0f6d05224a9c1a18e35e42fd",
+      "source": "git:9d04104:sites/arcadium-official/dist/download/index.html"
+    },
+    {
+      "path": "sites/arcadium-official/public/index.html",
+      "sha256": "d6823f6b822ce7a4d28c3715e9d00375e6171755cde87ef3968656ed863bf74d",
+      "source": "git:9d04104:sites/arcadium-official/dist/index.html"
+    },
+    {
+      "path": "sites/arcadium-official/public/privacy/index.html",
+      "sha256": "5b8709fa1a65c834100a47d555ee50dda6f50edcc8ccb4b89d84761ba89fd4e1",
+      "source": "git:9d04104:sites/arcadium-official/dist/privacy/index.html"
+    },
+    {
+      "path": "sites/arcadium-official/public/release.json",
+      "sha256": "d0b93540ec32aa396f0bf3cc0f670480b45f45c1f3d1ea5a5b1ce1adc988bd75",
+      "source": "git:9d04104:sites/arcadium-official/dist/release.json"
+    },
+    {
+      "path": "sites/arcadium-official/public/robots.txt",
+      "sha256": "8a66fb5af6162f66f153558e6450b7bd51307576b29197dea31f5e174fee62cf",
+      "source": "git:9d04104:sites/arcadium-official/dist/robots.txt"
+    },
+    {
+      "path": "sites/arcadium-official/public/sitemap.xml",
+      "sha256": "eacacd7c667858a361a730bb13240ff6faa33e94452423d3e2f8ab2e1ad4102a",
+      "source": "git:9d04104:sites/arcadium-official/dist/sitemap.xml"
+    },
+    {
+      "path": "sites/arcadium-official/public/styles.css",
+      "sha256": "8f957c3304c8403eacfae1948e9c41818372ccd7b573c2c28486b1ca13a6d8ff",
+      "source": "git:9d04104:sites/arcadium-official/dist/styles.css"
+    },
+    {
+      "path": "sites/arcadium-official/public/terms/index.html",
+      "sha256": "79e115a94d206fb2865980050f71a6f51880b2ebabbb2b98be6822544d942d72",
+      "source": "git:9d04104:sites/arcadium-official/dist/terms/index.html"
+    }
+  ],
+  "notRestoredFromStable": [
+    "assets/badlion-client-logo.png",
+    "assets/fps-comparison.svg",
+    "assets/lunar-client-logo.svg"
+  ],
+  "replacementComparison": "sites/arcadium-official/public/assets/fps-comparison.svg is newly composed from the unchanged original JPEG, plain client names and the owned Arcadium mark.",
+  "note": "File hashes below identify the restored stable originals before the explicitly documented license/support edits."
+}

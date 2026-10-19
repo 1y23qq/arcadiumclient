@@ -1,0 +1,34 @@
+[
+  {
+    "artifact": "trove4j-3.0.3",
+    "url": "https://repo.maven.apache.org/maven2/net/sf/trove4j/trove4j/3.0.3/trove4j-3.0.3-sources.jar",
+    "sha256": "3bf9df54516959c0683dca31f0f39e566d43af86879b8c2e2f8e2b6012bdc93c",
+    "bytes": 1793123,
+    "notices": [],
+    "sample": "gnu/trove/Version.java",
+    "sampleText": "///////////////////////////////////////////////////////////////////////////////\r\n// Copyright (c) 2001, Eric D. Friedman All Rights Reserved.\r\n// Copyright (c) 2009, Rob Eden All Rights Reserved.\r\n// Copyright (c) 2009, Jeff Randall All Rights Reserved.\r\n//\r\n// This library is free software; you can redistribute it and/or\r\n// modify it under the terms of the GNU Lesser General Public\r\n// License as published by the Free Software Foundation; either\r\n// version 2.1 of the License, or (at your option) any later version.\r\n//\r\n// This library is distributed in the hope that it will be useful,\r\n// but WITHOUT ANY WARRANTY; without even the implied warranty of\r\n// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\r\n// GNU General Public License for more details.\r\n//\r\n// You should have received a copy of the GNU Lesser General Public\r\n// License along with this program; if not, write to the Free Software\r\n// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.\r\n///////////////////////////////////////////////////////////////////////////////\r\n\r\npackage gnu.trove;\r\n\r\n/**\r\n * Simple class meant as a possible main class (via manifest) to report the\r\n * implementation version of the trove4j jar.\r\n * <p/>\r\n * This may be useful to ask feedback WITH build version information\r\n * <p/>\r\n * The Main-Class entry in the manifest.mf should be set during the build as well\r\n * as the Implementation-Version manifest attribute should be set as well.\r\n * <p/>\r\n * Created by IntelliJ IDEA.\r\n * User: Johan Parent\r\n * Date: 3/03/11\r\n * Time: 22:10\r\n */\r\npublic class Version {\r\n    public static void main(String[] args) {\r\n        System.out.println(getVersion());\r\n    }\r\n\r\n    /**\r\n     * Returns the implementation version of trove4j. Intended for applications\r\n   "
+  },
+  {
+    "artifact": "trove4j-3.0.3",
+    "url": "https://repo.maven.apache.org/maven2/net/sf/trove4j/trove4j/3.0.3/trove4j-3.0.3.pom",
+    "sha256": "11327b94615d0bf16d4e17334902de783c2022f5e909d51fbce993a7a9d7e1d8",
+    "bytes": 1442,
+    "text": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<project xmlns=\"http://maven.apache.org/POM/4.0.0\"\n         xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n         xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0\n                            http://maven.apache.org/xsd/maven-4.0.0.xsd\">\n    <modelVersion>4.0.0</modelVersion>\n    <groupId>net.sf.trove4j</groupId>\n    <artifactId>trove4j</artifactId>\n    <version>3.0.3</version>\n    <packaging>jar</packaging>\n    <name>GNU Trove</name>\n    <description>The Trove library provides high speed regular and primitive\n        collections for Java.\n    </description>\n    <url>http://trove4j.sf.net</url>\n    <licenses>\n        <license>\n            <name>GNU Lesser General Public License 2.1</name>\n            <url>http://www.gnu.org/licenses/lgpl-2.1.txt</url>\n            <distribution>repo</distribution>\n        </license>\n    </licenses>\n    <scm>\n        <connection>scm:svn:https://trove4j.svn.sourceforge.net/svnroot/trove4j</connection>\n        <url>https://trove4j.svn.sourceforge.net/svnroot/trove4j</url>\n    </scm>\n    <developers>\n        <developer>\n            <name>Rob Eden</name>\n        </developer>\n        <developer>\n            <name>Jeff Randall</name>\n        </developer>\n        <developer>\n            <name>Johan Parent</name>\n        </developer>\n        <developer>\n            <name>Eric D. Friedman</name>\n        </developer>\n    </developers>\n</project>\n"
+  },
+  {
+    "url": "https://maven.minecraftforge.net/lzma/lzma/0.0.1/lzma-0.0.1.pom",
+    "error": "HTTP Error 403: Forbidden"
+  },
+  {
+    "url": "https://maven.minecraftforge.net/lzma/lzma/0.0.1/lzma-0.0.1-sources.jar",
+    "error": "HTTP Error 403: Forbidden"
+  },
+  {
+    "url": "https://maven.minecraftforge.net/java3d/vecmath/1.5.2/vecmath-1.5.2.pom",
+    "error": "HTTP Error 403: Forbidden"
+  },
+  {
+    "url": "https://maven.minecraftforge.net/java3d/vecmath/1.5.2/vecmath-1.5.2-sources.jar",
+    "error": "HTTP Error 403: Forbidden"
+  }
+]

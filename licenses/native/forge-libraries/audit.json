@@ -1,0 +1,149 @@
+{
+  "completed": true,
+  "binaryLibrariesVerified": 3,
+  "thirdPartyGrantsInferredFromForgeLicense": false,
+  "binaryDistributionPerformed": false,
+  "libraries": [
+    {
+      "coordinate": "lzma:lzma:0.0.1",
+      "binarySource": "https://libraries.minecraft.net/lzma/lzma/0.0.1/lzma-0.0.1.jar",
+      "sha256": "0c3085cb93c3ef95d731c274b6f2dd195aa0405fe9328d69cab7f5e899d5e124",
+      "sha1": "521616dc7487b42bef0e803bd2fa3faf668101d7",
+      "bytes": 5762,
+      "nestedBinaryMatchesOfficialDownload": true,
+      "licenseExpression": "LicenseRef-LZMA-SDK-dual-LGPL-CPL-with-linking-exception",
+      "originalNotices": [
+        {
+          "file": "licenses/native/forge-libraries/lzma-0.0.1/original-lwjgl-lzma-license.txt",
+          "source": "https://raw.githubusercontent.com/LWJGL/lwjgl/8deac76a5b374ce2f1011c772f989c3368c935d6/doc/3rdparty/lzma_license.txt",
+          "sha256": "23d21d42840e9b1b01e56c9cb0a4e3acfda34faff3a70715b5e239ae130e5ff1",
+          "bytes": 583
+        }
+      ],
+      "officialDistributionTag": "lwjgl2.9.0",
+      "officialDistributionCommit": "8deac76a5b374ce2f1011c772f989c3368c935d6",
+      "officialDistributionBinary": "https://raw.githubusercontent.com/LWJGL/lwjgl/8deac76a5b374ce2f1011c772f989c3368c935d6/libs/lzma.jar",
+      "selectedLicenseAlternative": "GNU LGPL",
+      "versionScope": "The original directly associated upstream notice says GNU LGPL or CPL without a version number. No more specific SPDX version is asserted.",
+      "fullVersionedLicenseReference": {
+        "file": "licenses/native/forge-libraries/LGPL-2.1-full.txt",
+        "source": "https://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt",
+        "sha256": "20e50fe7aae3e56378ebf0417d9de904f55a0e61e4df315333e632a4d3555d95",
+        "bytes": 26419
+      },
+      "sourceCorrespondence": {
+        "verified": false,
+        "publishedSourceClassifier": "https://libraries.minecraft.net/lzma/lzma/0.0.1/lzma-0.0.1-sources.jar",
+        "sourceClassifierResult": "404; pinned LWJGL release contains the exact binary and original license, but no original Java source for these three classes was located in this bounded audit.",
+        "futureBinaryConveyanceAction": "Recover exact corresponding LZMA library source or independently resolve its distribution requirements before conveying a binary that contains it. The linking exception does not remove conditions on the library itself."
+      }
+    },
+    {
+      "coordinate": "java3d:vecmath:1.5.2",
+      "binarySource": "https://libraries.minecraft.net/java3d/vecmath/1.5.2/vecmath-1.5.2.jar",
+      "sha256": "09adf7955baa6bddf57a4bdbf9a91cf690261314969b59a18085ece1e05eccf9",
+      "sha1": "79846ba34cbd89e2422d74d53752f993dcc2ccaf",
+      "bytes": 318956,
+      "nestedBinaryMatchesOfficialDownload": true,
+      "licenseExpression": "GPL-2.0-only WITH Classpath-exception-2.0",
+      "originalNotices": [
+        {
+          "archivePath": "javax/COPYRIGHT.txt",
+          "file": "licenses/native/forge-libraries/vecmath-1.5.2/javax/COPYRIGHT.txt",
+          "sha256": "059de385c12a219acede0589023248eea4fefc56f205f739f0792c6d6d8912c9",
+          "bytes": 3908
+        },
+        {
+          "archivePath": "javax/LICENSE.txt",
+          "file": "licenses/native/forge-libraries/vecmath-1.5.2/javax/LICENSE.txt",
+          "sha256": "e138710ed19cee8839bcdb478fc5e383e37a80e45d2cad922d1a6438082392dd",
+          "bytes": 19241
+        }
+      ],
+      "sourceArchive": {
+        "source": "https://repo.maven.apache.org/maven2/javax/vecmath/vecmath/1.5.2/vecmath-1.5.2-sources.jar",
+        "sha256": "7bea4e97b737757c14bc346a45bb5e57a3f6ddd5c1bafe51e4d1eacd64347030",
+        "bytes": 183220,
+        "javaFiles": 47,
+        "originalCopyrightNotices": {
+          "file": "licenses/native/forge-libraries/vecmath-1.5.2/original-source-copyright-notices.txt",
+          "source": "https://repo.maven.apache.org/maven2/javax/vecmath/vecmath/1.5.2/vecmath-1.5.2-sources.jar",
+          "sha256": "c7d42c4f16142f5fec72881948d4f57eb86f9c6a13d51523c010889bf168bd22",
+          "bytes": 10906
+        },
+        "reproducibleBinaryBuildClaimed": false
+      },
+      "sourceCorrespondence": {
+        "verified": false,
+        "basis": "Original nested binary carries Sun GPL2+CPE. Published javax.vecmath 1.5.2 sources declare the same version and 2008 Sun headers. The republished javax binary differs in all 47 class files; no exact-source/reproducible correspondence to the signed java3d binary is asserted.",
+        "futureBinaryConveyanceAction": "Corroborate original Java3D 1.5.2 corresponding source/build provenance before binary distribution; retain the exact embedded GPL2+CPE and copyright notices."
+      }
+    },
+    {
+      "coordinate": "net.sf.trove4j:trove4j:3.0.3",
+      "binarySource": "https://repo.maven.apache.org/maven2/net/sf/trove4j/trove4j/3.0.3/trove4j-3.0.3.jar",
+      "sha256": "3c8616203d61a12a7e3487e8b34f3c198c2b5ba9e90da0c7ea32d99cd4958012",
+      "sha1": "42ccaf4761f0dfdfa805c9e340d99a755907e2dd",
+      "bytes": 2523218,
+      "nestedBinaryMatchesOfficialDownload": true,
+      "licenseExpression": "LGPL-2.1-or-later AND LicenseRef-CERN-permission",
+      "originalNotices": [],
+      "sourceArchive": {
+        "source": "https://repo.maven.apache.org/maven2/net/sf/trove4j/trove4j/3.0.3/trove4j-3.0.3-sources.jar",
+        "sha256": "3bf9df54516959c0683dca31f0f39e566d43af86879b8c2e2f8e2b6012bdc93c",
+        "bytes": 1793123,
+        "javaFiles": 691,
+        "originalCopyrightNotices": {
+          "file": "licenses/native/forge-libraries/trove4j-3.0.3/original-source-copyright-notices.txt",
+          "source": "https://repo.maven.apache.org/maven2/net/sf/trove4j/trove4j/3.0.3/trove4j-3.0.3-sources.jar",
+          "sha256": "9b4c2e09f7f55f448b8a37b1d9801f4d59574702c350635cdef67dc385f89f43",
+          "bytes": 48261
+        },
+        "reproducibleBinaryBuildClaimed": false
+      },
+      "sourceRelease": {
+        "releaseArchive": {
+          "source": "https://sourceforge.net/projects/trove4j/files/trove/3.0.3/trove-3.0.3.tar.gz/download",
+          "sha256": "6242de1c7a8715016ca98013b456b27b0c0dbe700cd1d2e8020871bfa3829bc2",
+          "bytes": 5863629
+        },
+        "notices": [
+          {
+            "archivePath": "3.0.3/AUTHORS.txt",
+            "file": "licenses/native/forge-libraries/trove4j-3.0.3/original-release-notices/AUTHORS.txt",
+            "sha256": "1b2868046bc0e020d96fc30fea96e1f5ffc55d473b1ba424d8afc3097b88b814",
+            "bytes": 553
+          },
+          {
+            "archivePath": "3.0.3/LICENSE.txt",
+            "file": "licenses/native/forge-libraries/trove4j-3.0.3/original-release-notices/LICENSE.txt",
+            "sha256": "b6f9200ac8f1dc990e73c4942ea2b5ba0c5cd99aa257dcb766b4c7ff8b92dd99",
+            "bytes": 26976
+          },
+          {
+            "archivePath": "3.0.3/README-license.txt",
+            "file": "licenses/native/forge-libraries/trove4j-3.0.3/original-release-notices/README-license.txt",
+            "sha256": "934ecc80489a5cd706102364a42204e386291fb9d4350d8e1a17a50a1fce266e",
+            "bytes": 889
+          }
+        ],
+        "releaseJarCandidates": [
+          {
+            "archivePath": "3.0.3/lib/trove-3.0.3.jar",
+            "sha256": "3c8616203d61a12a7e3487e8b34f3c198c2b5ba9e90da0c7ea32d99cd4958012",
+            "bytes": 2523218
+          }
+        ]
+      },
+      "sourceCorrespondence": {
+        "verified": true,
+        "basis": "Official 3.0.3 source release archive includes this exact unchanged binary plus its full source, build files, authors, LGPL license and CERN permission notice."
+      },
+      "futureBinaryConveyanceAction": "Preserve original LGPL/CERN notices, source/build access and the user ability to replace this separately nested library; do not assign the Forge wrapper license to Trove."
+    }
+  ],
+  "remainingSourceCorrespondenceItems": [
+    "lzma:lzma:0.0.1",
+    "java3d:vecmath:1.5.2"
+  ]
+}

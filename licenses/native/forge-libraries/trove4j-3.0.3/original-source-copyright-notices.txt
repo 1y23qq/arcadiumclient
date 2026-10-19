@@ -1,0 +1,335 @@
+Source files: gnu/trove/Version.java, gnu/trove/impl/hash/TCustomObjectHash.java, gnu/trove/impl/hash/THash.java, gnu/trove/impl/hash/TObjectHash.java, gnu/trove/impl/hash/TPrimitiveHash.java, gnu/trove/iterator/TPrimitiveIterator.java, gnu/trove/iterator/hash/TObjectHashIterator.java, gnu/trove/list/linked/TLinkedList.java, gnu/trove/map/hash/THashMap.java, gnu/trove/set/hash/TCustomHashSet.java, gnu/trove/set/hash/THashSet.java
+
+///////////////////////////////////////////////////////////////////////////////
+// Copyright (c) 2001, Eric D. Friedman All Rights Reserved.
+// Copyright (c) 2009, Rob Eden All Rights Reserved.
+// Copyright (c) 2009, Jeff Randall All Rights Reserved.
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License, or (at your option) any later version.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public
+// License along with this program; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+///////////////////////////////////////////////////////////////////////////////
+
+Source files: gnu/trove/function/TObjectFunction.java, gnu/trove/impl/hash/THashIterator.java, gnu/trove/list/TLinkable.java, gnu/trove/procedure/TObjectObjectProcedure.java, gnu/trove/procedure/TObjectProcedure.java, gnu/trove/procedure/array/ToObjectArrayProceedure.java
+
+///////////////////////////////////////////////////////////////////////////////
+// Copyright (c) 2001, Eric D. Friedman All Rights Reserved.
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License, or (at your option) any later version.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public
+// License along with this program; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+///////////////////////////////////////////////////////////////////////////////
+
+Source files: gnu/trove/impl/Constants.java
+
+// ////////////////////////////////////////////////////////////////////////////
+// Copyright (c) 2009, Rob Eden All Rights Reserved.
+// Copyright (c) 2009, Jeff Randall All Rights Reserved.
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License, or (at your option) any later version.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public
+// License along with this program; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+// ////////////////////////////////////////////////////////////////////////////
+
+Source files: gnu/trove/impl/HashFunctions.java
+
+// Copyright (c) 1999 CERN - European Organization for Nuclear Research.
+
+// Permission to use, copy, modify, distribute and sell this software and
+// its documentation for any purpose is hereby granted without fee,
+// provided that the above copyright notice appear in all copies and that
+// both that copyright notice and this permission notice appear in
+// supporting documentation. CERN makes no representations about the
+// suitability of this software for any purpose. It is provided "as is"
+// without expressed or implied warranty.
+
+Source files: gnu/trove/impl/PrimeFinder.java
+
+//   Copyright (c) 1999 CERN - European Organization for Nuclear Research.
+
+//   Permission to use, copy, modify, distribute and sell this software
+//   and its documentation for any purpose is hereby granted without fee,
+//   provided that the above copyright notice appear in all copies and
+//   that both that copyright notice and this permission notice appear in
+//   supporting documentation. CERN makes no representations about the
+//   suitability of this software for any purpose. It is provided "as is"
+//   without expressed or implied warranty.
+
+Source files: gnu/trove/impl/hash/THashPrimitiveIterator.java, gnu/trove/impl/sync/SynchronizedCollection.java, gnu/trove/impl/sync/SynchronizedSet.java, gnu/trove/iterator/TAdvancingIterator.java
+
+// ////////////////////////////////////////////////////////////////////////////
+// Copyright (c) 2009, Rob Eden All Rights Reserved.
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License, or (at your option) any later version.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public
+// License along with this program; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+// ////////////////////////////////////////////////////////////////////////////
+
+Source files: gnu/trove/iterator/TIterator.java, gnu/trove/map/hash/TCustomHashMap.java
+
+///////////////////////////////////////////////////////////////////////////////
+// Copyright (c) 2009, Rob Eden All Rights Reserved.
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License, or (at your option) any later version.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public
+// License along with this program; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+///////////////////////////////////////////////////////////////////////////////
+
+Source files: gnu/trove/map/TMap.java
+
+///////////////////////////////////////////////////////////////////////////////
+// Copyright (c) 2011, Rob Eden All Rights Reserved.
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License, or (at your option) any later version.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public
+// License along with this program; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+///////////////////////////////////////////////////////////////////////////////
+
+Source files: gnu/trove/strategy/HashingStrategy.java
+
+///////////////////////////////////////////////////////////////////////////////
+// Copyright (c) 2002, Eric D. Friedman All Rights Reserved.
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License, or (at your option) any later version.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public
+// License along with this program; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+///////////////////////////////////////////////////////////////////////////////
+
+Source files: gnu/trove/TByteCollection.java, gnu/trove/TCharCollection.java, gnu/trove/TDoubleCollection.java, gnu/trove/TFloatCollection.java, gnu/trove/TIntCollection.java, gnu/trove/TLongCollection.java, gnu/trove/TShortCollection.java, gnu/trove/impl/hash/TByteByteHash.java, gnu/trove/impl/hash/TByteCharHash.java, gnu/trove/impl/hash/TByteDoubleHash.java, gnu/trove/impl/hash/TByteFloatHash.java, gnu/trove/impl/hash/TByteHash.java, gnu/trove/impl/hash/TByteIntHash.java, gnu/trove/impl/hash/TByteLongHash.java, gnu/trove/impl/hash/TByteShortHash.java, gnu/trove/impl/hash/TCharByteHash.java, gnu/trove/impl/hash/TCharCharHash.java, gnu/trove/impl/hash/TCharDoubleHash.java, gnu/trove/impl/hash/TCharFloatHash.java, gnu/trove/impl/hash/TCharHash.java, gnu/trove/impl/hash/TCharIntHash.java, gnu/trove/impl/hash/TCharLongHash.java, gnu/trove/impl/hash/TCharShortHash.java, gnu/trove/impl/hash/TDoubleByteHash.java, gnu/trove/impl/hash/TDoubleCharHash.java, gnu/trove/impl/hash/TDoubleDoubleHash.java, gnu/trove/impl/hash/TDoubleFloatHash.java, gnu/trove/impl/hash/TDoubleHash.java, gnu/trove/impl/hash/TDoubleIntHash.java, gnu/trove/impl/hash/TDoubleLongHash.java, gnu/trove/impl/hash/TDoubleShortHash.java, gnu/trove/impl/hash/TFloatByteHash.java, gnu/trove/impl/hash/TFloatCharHash.java, gnu/trove/impl/hash/TFloatDoubleHash.java, gnu/trove/impl/hash/TFloatFloatHash.java, gnu/trove/impl/hash/TFloatHash.java, gnu/trove/impl/hash/TFloatIntHash.java, gnu/trove/impl/hash/TFloatLongHash.java, gnu/trove/impl/hash/TFloatShortHash.java, gnu/trove/impl/hash/TIntByteHash.java, gnu/trove/impl/hash/TIntCharHash.java, gnu/trove/impl/hash/TIntDoubleHash.java, gnu/trove/impl/hash/TIntFloatHash.java, gnu/trove/impl/hash/TIntHash.java, gnu/trove/impl/hash/TIntIntHash.java, gnu/trove/impl/hash/TIntLongHash.java, gnu/trove/impl/hash/TIntShortHash.java, gnu/trove/impl/hash/TLongByteHash.java, gnu/trove/impl/hash/TLongCharHash.java, gnu/trove/impl/hash/TLongDoubleHash.java, gnu/trove/impl/hash/TLongFloatHash.java, gnu/trove/impl/hash/TLongHash.java, gnu/trove/impl/hash/TLongIntHash.java, gnu/trove/impl/hash/TLongLongHash.java, gnu/trove/impl/hash/TLongShortHash.java, gnu/trove/impl/hash/TShortByteHash.java, gnu/trove/impl/hash/TShortCharHash.java, gnu/trove/impl/hash/TShortDoubleHash.java, gnu/trove/impl/hash/TShortFloatHash.java, gnu/trove/impl/hash/TShortHash.java, gnu/trove/impl/hash/TShortIntHash.java, gnu/trove/impl/hash/TShortLongHash.java, gnu/trove/impl/hash/TShortShortHash.java, gnu/trove/iterator/TByteObjectIterator.java, gnu/trove/iterator/TCharObjectIterator.java, gnu/trove/iterator/TDoubleObjectIterator.java, gnu/trove/iterator/TFloatObjectIterator.java, gnu/trove/iterator/TIntObjectIterator.java, gnu/trove/iterator/TLongObjectIterator.java, gnu/trove/iterator/TObjectByteIterator.java, gnu/trove/iterator/TObjectCharIterator.java, gnu/trove/iterator/TObjectDoubleIterator.java, gnu/trove/iterator/TObjectFloatIterator.java, gnu/trove/iterator/TObjectIntIterator.java, gnu/trove/iterator/TObjectLongIterator.java, gnu/trove/iterator/TObjectShortIterator.java, gnu/trove/iterator/TShortObjectIterator.java, gnu/trove/list/array/TByteArrayList.java, gnu/trove/list/array/TCharArrayList.java, gnu/trove/list/array/TDoubleArrayList.java, gnu/trove/list/array/TFloatArrayList.java, gnu/trove/list/array/TIntArrayList.java, gnu/trove/list/array/TLongArrayList.java, gnu/trove/list/array/TShortArrayList.java, gnu/trove/map/TByteObjectMap.java, gnu/trove/map/TCharObjectMap.java, gnu/trove/map/TDoubleObjectMap.java, gnu/trove/map/TFloatObjectMap.java, gnu/trove/map/TIntObjectMap.java, gnu/trove/map/TLongObjectMap.java, gnu/trove/map/TObjectByteMap.java, gnu/trove/map/TObjectCharMap.java, gnu/trove/map/TObjectDoubleMap.java, gnu/trove/map/TObjectFloatMap.java, gnu/trove/map/TObjectIntMap.java, gnu/trove/map/TObjectLongMap.java, gnu/trove/map/TObjectShortMap.java, gnu/trove/map/TShortObjectMap.java, gnu/trove/map/custom_hash/TObjectByteCustomHashMap.java, gnu/trove/map/custom_hash/TObjectCharCustomHashMap.java, gnu/trove/map/custom_hash/TObjectDoubleCustomHashMap.java, gnu/trove/map/custom_hash/TObjectFloatCustomHashMap.java, gnu/trove/map/custom_hash/TObjectIntCustomHashMap.java, gnu/trove/map/custom_hash/TObjectLongCustomHashMap.java, gnu/trove/map/custom_hash/TObjectShortCustomHashMap.java, gnu/trove/map/hash/TByteByteHashMap.java, gnu/trove/map/hash/TByteCharHashMap.java, gnu/trove/map/hash/TByteDoubleHashMap.java, gnu/trove/map/hash/TByteFloatHashMap.java, gnu/trove/map/hash/TByteIntHashMap.java, gnu/trove/map/hash/TByteLongHashMap.java, gnu/trove/map/hash/TByteObjectHashMap.java, gnu/trove/map/hash/TByteShortHashMap.java, gnu/trove/map/hash/TCharByteHashMap.java, gnu/trove/map/hash/TCharCharHashMap.java, gnu/trove/map/hash/TCharDoubleHashMap.java, gnu/trove/map/hash/TCharFloatHashMap.java, gnu/trove/map/hash/TCharIntHashMap.java, gnu/trove/map/hash/TCharLongHashMap.java, gnu/trove/map/hash/TCharObjectHashMap.java, gnu/trove/map/hash/TCharShortHashMap.java, gnu/trove/map/hash/TDoubleByteHashMap.java, gnu/trove/map/hash/TDoubleCharHashMap.java, gnu/trove/map/hash/TDoubleDoubleHashMap.java, gnu/trove/map/hash/TDoubleFloatHashMap.java, gnu/trove/map/hash/TDoubleIntHashMap.java, gnu/trove/map/hash/TDoubleLongHashMap.java, gnu/trove/map/hash/TDoubleObjectHashMap.java, gnu/trove/map/hash/TDoubleShortHashMap.java, gnu/trove/map/hash/TFloatByteHashMap.java, gnu/trove/map/hash/TFloatCharHashMap.java, gnu/trove/map/hash/TFloatDoubleHashMap.java, gnu/trove/map/hash/TFloatFloatHashMap.java, gnu/trove/map/hash/TFloatIntHashMap.java, gnu/trove/map/hash/TFloatLongHashMap.java, gnu/trove/map/hash/TFloatObjectHashMap.java, gnu/trove/map/hash/TFloatShortHashMap.java, gnu/trove/map/hash/TIntByteHashMap.java, gnu/trove/map/hash/TIntCharHashMap.java, gnu/trove/map/hash/TIntDoubleHashMap.java, gnu/trove/map/hash/TIntFloatHashMap.java, gnu/trove/map/hash/TIntIntHashMap.java, gnu/trove/map/hash/TIntLongHashMap.java, gnu/trove/map/hash/TIntObjectHashMap.java, gnu/trove/map/hash/TIntShortHashMap.java, gnu/trove/map/hash/TLongByteHashMap.java, gnu/trove/map/hash/TLongCharHashMap.java, gnu/trove/map/hash/TLongDoubleHashMap.java, gnu/trove/map/hash/TLongFloatHashMap.java, gnu/trove/map/hash/TLongIntHashMap.java, gnu/trove/map/hash/TLongLongHashMap.java, gnu/trove/map/hash/TLongObjectHashMap.java, gnu/trove/map/hash/TLongShortHashMap.java, gnu/trove/map/hash/TObjectByteHashMap.java, gnu/trove/map/hash/TObjectCharHashMap.java, gnu/trove/map/hash/TObjectDoubleHashMap.java, gnu/trove/map/hash/TObjectFloatHashMap.java, gnu/trove/map/hash/TObjectIntHashMap.java, gnu/trove/map/hash/TObjectLongHashMap.java, gnu/trove/map/hash/TObjectShortHashMap.java, gnu/trove/map/hash/TShortByteHashMap.java, gnu/trove/map/hash/TShortCharHashMap.java, gnu/trove/map/hash/TShortDoubleHashMap.java, gnu/trove/map/hash/TShortFloatHashMap.java, gnu/trove/map/hash/TShortIntHashMap.java, gnu/trove/map/hash/TShortLongHashMap.java, gnu/trove/map/hash/TShortObjectHashMap.java, gnu/trove/map/hash/TShortShortHashMap.java, gnu/trove/set/TByteSet.java, gnu/trove/set/TCharSet.java, gnu/trove/set/TDoubleSet.java, gnu/trove/set/TFloatSet.java, gnu/trove/set/TIntSet.java, gnu/trove/set/TLongSet.java, gnu/trove/set/TShortSet.java, gnu/trove/set/hash/TByteHashSet.java, gnu/trove/set/hash/TCharHashSet.java, gnu/trove/set/hash/TDoubleHashSet.java, gnu/trove/set/hash/TFloatHashSet.java, gnu/trove/set/hash/TIntHashSet.java, gnu/trove/set/hash/TLongHashSet.java, gnu/trove/set/hash/TShortHashSet.java, gnu/trove/stack/TByteStack.java, gnu/trove/stack/TCharStack.java, gnu/trove/stack/TDoubleStack.java, gnu/trove/stack/TFloatStack.java, gnu/trove/stack/TIntStack.java, gnu/trove/stack/TLongStack.java, gnu/trove/stack/TShortStack.java, gnu/trove/stack/array/TByteArrayStack.java, gnu/trove/stack/array/TCharArrayStack.java, gnu/trove/stack/array/TDoubleArrayStack.java, gnu/trove/stack/array/TFloatArrayStack.java, gnu/trove/stack/array/TIntArrayStack.java, gnu/trove/stack/array/TLongArrayStack.java, gnu/trove/stack/array/TShortArrayStack.java
+
+///////////////////////////////////////////////////////////////////////////////
+// Copyright (c) 2001, Eric D. Friedman All Rights Reserved.
+// Copyright (c) 2009, Rob Eden All Rights Reserved.
+// Copyright (c) 2009, Jeff Randall All Rights Reserved.
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License, or (at your option) any later version.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public
+// License along with this program; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+///////////////////////////////////////////////////////////////////////////////
+
+Source files: gnu/trove/TCollections.java, gnu/trove/TDecorators.java, gnu/trove/impl/sync/TSynchronizedByteByteMap.java, gnu/trove/impl/sync/TSynchronizedByteCharMap.java, gnu/trove/impl/sync/TSynchronizedByteCollection.java, gnu/trove/impl/sync/TSynchronizedByteDoubleMap.java, gnu/trove/impl/sync/TSynchronizedByteFloatMap.java, gnu/trove/impl/sync/TSynchronizedByteIntMap.java, gnu/trove/impl/sync/TSynchronizedByteList.java, gnu/trove/impl/sync/TSynchronizedByteLongMap.java, gnu/trove/impl/sync/TSynchronizedByteObjectMap.java, gnu/trove/impl/sync/TSynchronizedByteSet.java, gnu/trove/impl/sync/TSynchronizedByteShortMap.java, gnu/trove/impl/sync/TSynchronizedCharByteMap.java, gnu/trove/impl/sync/TSynchronizedCharCharMap.java, gnu/trove/impl/sync/TSynchronizedCharCollection.java, gnu/trove/impl/sync/TSynchronizedCharDoubleMap.java, gnu/trove/impl/sync/TSynchronizedCharFloatMap.java, gnu/trove/impl/sync/TSynchronizedCharIntMap.java, gnu/trove/impl/sync/TSynchronizedCharList.java, gnu/trove/impl/sync/TSynchronizedCharLongMap.java, gnu/trove/impl/sync/TSynchronizedCharObjectMap.java, gnu/trove/impl/sync/TSynchronizedCharSet.java, gnu/trove/impl/sync/TSynchronizedCharShortMap.java, gnu/trove/impl/sync/TSynchronizedDoubleByteMap.java, gnu/trove/impl/sync/TSynchronizedDoubleCharMap.java, gnu/trove/impl/sync/TSynchronizedDoubleCollection.java, gnu/trove/impl/sync/TSynchronizedDoubleDoubleMap.java, gnu/trove/impl/sync/TSynchronizedDoubleFloatMap.java, gnu/trove/impl/sync/TSynchronizedDoubleIntMap.java, gnu/trove/impl/sync/TSynchronizedDoubleList.java, gnu/trove/impl/sync/TSynchronizedDoubleLongMap.java, gnu/trove/impl/sync/TSynchronizedDoubleObjectMap.java, gnu/trove/impl/sync/TSynchronizedDoubleSet.java, gnu/trove/impl/sync/TSynchronizedDoubleShortMap.java, gnu/trove/impl/sync/TSynchronizedFloatByteMap.java, gnu/trove/impl/sync/TSynchronizedFloatCharMap.java, gnu/trove/impl/sync/TSynchronizedFloatCollection.java, gnu/trove/impl/sync/TSynchronizedFloatDoubleMap.java, gnu/trove/impl/sync/TSynchronizedFloatFloatMap.java, gnu/trove/impl/sync/TSynchronizedFloatIntMap.java, gnu/trove/impl/sync/TSynchronizedFloatList.java, gnu/trove/impl/sync/TSynchronizedFloatLongMap.java, gnu/trove/impl/sync/TSynchronizedFloatObjectMap.java, gnu/trove/impl/sync/TSynchronizedFloatSet.java, gnu/trove/impl/sync/TSynchronizedFloatShortMap.java, gnu/trove/impl/sync/TSynchronizedIntByteMap.java, gnu/trove/impl/sync/TSynchronizedIntCharMap.java, gnu/trove/impl/sync/TSynchronizedIntCollection.java, gnu/trove/impl/sync/TSynchronizedIntDoubleMap.java, gnu/trove/impl/sync/TSynchronizedIntFloatMap.java, gnu/trove/impl/sync/TSynchronizedIntIntMap.java, gnu/trove/impl/sync/TSynchronizedIntList.java, gnu/trove/impl/sync/TSynchronizedIntLongMap.java, gnu/trove/impl/sync/TSynchronizedIntObjectMap.java, gnu/trove/impl/sync/TSynchronizedIntSet.java, gnu/trove/impl/sync/TSynchronizedIntShortMap.java, gnu/trove/impl/sync/TSynchronizedLongByteMap.java, gnu/trove/impl/sync/TSynchronizedLongCharMap.java, gnu/trove/impl/sync/TSynchronizedLongCollection.java, gnu/trove/impl/sync/TSynchronizedLongDoubleMap.java, gnu/trove/impl/sync/TSynchronizedLongFloatMap.java, gnu/trove/impl/sync/TSynchronizedLongIntMap.java, gnu/trove/impl/sync/TSynchronizedLongList.java, gnu/trove/impl/sync/TSynchronizedLongLongMap.java, gnu/trove/impl/sync/TSynchronizedLongObjectMap.java, gnu/trove/impl/sync/TSynchronizedLongSet.java, gnu/trove/impl/sync/TSynchronizedLongShortMap.java, gnu/trove/impl/sync/TSynchronizedObjectByteMap.java, gnu/trove/impl/sync/TSynchronizedObjectCharMap.java, gnu/trove/impl/sync/TSynchronizedObjectDoubleMap.java, gnu/trove/impl/sync/TSynchronizedObjectFloatMap.java, gnu/trove/impl/sync/TSynchronizedObjectIntMap.java, gnu/trove/impl/sync/TSynchronizedObjectLongMap.java, gnu/trove/impl/sync/TSynchronizedObjectShortMap.java, gnu/trove/impl/sync/TSynchronizedRandomAccessByteList.java, gnu/trove/impl/sync/TSynchronizedRandomAccessCharList.java, gnu/trove/impl/sync/TSynchronizedRandomAccessDoubleList.java, gnu/trove/impl/sync/TSynchronizedRandomAccessFloatList.java, gnu/trove/impl/sync/TSynchronizedRandomAccessIntList.java, gnu/trove/impl/sync/TSynchronizedRandomAccessLongList.java, gnu/trove/impl/sync/TSynchronizedRandomAccessShortList.java, gnu/trove/impl/sync/TSynchronizedShortByteMap.java, gnu/trove/impl/sync/TSynchronizedShortCharMap.java, gnu/trove/impl/sync/TSynchronizedShortCollection.java, gnu/trove/impl/sync/TSynchronizedShortDoubleMap.java, gnu/trove/impl/sync/TSynchronizedShortFloatMap.java, gnu/trove/impl/sync/TSynchronizedShortIntMap.java, gnu/trove/impl/sync/TSynchronizedShortList.java, gnu/trove/impl/sync/TSynchronizedShortLongMap.java, gnu/trove/impl/sync/TSynchronizedShortObjectMap.java, gnu/trove/impl/sync/TSynchronizedShortSet.java, gnu/trove/impl/sync/TSynchronizedShortShortMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableByteByteMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableByteCharMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableByteCollection.java, gnu/trove/impl/unmodifiable/TUnmodifiableByteDoubleMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableByteFloatMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableByteIntMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableByteList.java, gnu/trove/impl/unmodifiable/TUnmodifiableByteLongMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableByteObjectMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableByteSet.java, gnu/trove/impl/unmodifiable/TUnmodifiableByteShortMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableCharByteMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableCharCharMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableCharCollection.java, gnu/trove/impl/unmodifiable/TUnmodifiableCharDoubleMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableCharFloatMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableCharIntMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableCharList.java, gnu/trove/impl/unmodifiable/TUnmodifiableCharLongMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableCharObjectMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableCharSet.java, gnu/trove/impl/unmodifiable/TUnmodifiableCharShortMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableDoubleByteMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableDoubleCharMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableDoubleCollection.java, gnu/trove/impl/unmodifiable/TUnmodifiableDoubleDoubleMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableDoubleFloatMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableDoubleIntMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableDoubleList.java, gnu/trove/impl/unmodifiable/TUnmodifiableDoubleLongMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableDoubleObjectMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableDoubleSet.java, gnu/trove/impl/unmodifiable/TUnmodifiableDoubleShortMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableFloatByteMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableFloatCharMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableFloatCollection.java, gnu/trove/impl/unmodifiable/TUnmodifiableFloatDoubleMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableFloatFloatMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableFloatIntMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableFloatList.java, gnu/trove/impl/unmodifiable/TUnmodifiableFloatLongMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableFloatObjectMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableFloatSet.java, gnu/trove/impl/unmodifiable/TUnmodifiableFloatShortMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableIntByteMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableIntCharMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableIntCollection.java, gnu/trove/impl/unmodifiable/TUnmodifiableIntDoubleMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableIntFloatMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableIntIntMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableIntList.java, gnu/trove/impl/unmodifiable/TUnmodifiableIntLongMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableIntObjectMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableIntSet.java, gnu/trove/impl/unmodifiable/TUnmodifiableIntShortMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableLongByteMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableLongCharMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableLongCollection.java, gnu/trove/impl/unmodifiable/TUnmodifiableLongDoubleMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableLongFloatMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableLongIntMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableLongList.java, gnu/trove/impl/unmodifiable/TUnmodifiableLongLongMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableLongObjectMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableLongSet.java, gnu/trove/impl/unmodifiable/TUnmodifiableLongShortMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableObjectByteMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableObjectCharMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableObjectDoubleMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableObjectFloatMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableObjectIntMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableObjectLongMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableObjectShortMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableRandomAccessByteList.java, gnu/trove/impl/unmodifiable/TUnmodifiableRandomAccessCharList.java, gnu/trove/impl/unmodifiable/TUnmodifiableRandomAccessDoubleList.java, gnu/trove/impl/unmodifiable/TUnmodifiableRandomAccessFloatList.java, gnu/trove/impl/unmodifiable/TUnmodifiableRandomAccessIntList.java, gnu/trove/impl/unmodifiable/TUnmodifiableRandomAccessLongList.java, gnu/trove/impl/unmodifiable/TUnmodifiableRandomAccessShortList.java, gnu/trove/impl/unmodifiable/TUnmodifiableShortByteMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableShortCharMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableShortCollection.java, gnu/trove/impl/unmodifiable/TUnmodifiableShortDoubleMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableShortFloatMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableShortIntMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableShortList.java, gnu/trove/impl/unmodifiable/TUnmodifiableShortLongMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableShortObjectMap.java, gnu/trove/impl/unmodifiable/TUnmodifiableShortSet.java, gnu/trove/impl/unmodifiable/TUnmodifiableShortShortMap.java
+
+///////////////////////////////////////////////////////////////////////////////
+// Copyright (c) 2008, Robert D. Eden All Rights Reserved.
+// Copyright (c) 2009, Jeff Randall All Rights Reserved.
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License, or (at your option) any later version.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public
+// License along with this program; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+///////////////////////////////////////////////////////////////////////////////
+
+Source files: gnu/trove/decorator/TByteByteMapDecorator.java, gnu/trove/decorator/TByteCharMapDecorator.java, gnu/trove/decorator/TByteDoubleMapDecorator.java, gnu/trove/decorator/TByteFloatMapDecorator.java, gnu/trove/decorator/TByteIntMapDecorator.java, gnu/trove/decorator/TByteLongMapDecorator.java, gnu/trove/decorator/TByteObjectMapDecorator.java, gnu/trove/decorator/TByteSetDecorator.java, gnu/trove/decorator/TByteShortMapDecorator.java, gnu/trove/decorator/TCharByteMapDecorator.java, gnu/trove/decorator/TCharCharMapDecorator.java, gnu/trove/decorator/TCharDoubleMapDecorator.java, gnu/trove/decorator/TCharFloatMapDecorator.java, gnu/trove/decorator/TCharIntMapDecorator.java, gnu/trove/decorator/TCharLongMapDecorator.java, gnu/trove/decorator/TCharObjectMapDecorator.java, gnu/trove/decorator/TCharSetDecorator.java, gnu/trove/decorator/TCharShortMapDecorator.java, gnu/trove/decorator/TDoubleByteMapDecorator.java, gnu/trove/decorator/TDoubleCharMapDecorator.java, gnu/trove/decorator/TDoubleDoubleMapDecorator.java, gnu/trove/decorator/TDoubleFloatMapDecorator.java, gnu/trove/decorator/TDoubleIntMapDecorator.java, gnu/trove/decorator/TDoubleLongMapDecorator.java, gnu/trove/decorator/TDoubleObjectMapDecorator.java, gnu/trove/decorator/TDoubleSetDecorator.java, gnu/trove/decorator/TDoubleShortMapDecorator.java, gnu/trove/decorator/TFloatByteMapDecorator.java, gnu/trove/decorator/TFloatCharMapDecorator.java, gnu/trove/decorator/TFloatDoubleMapDecorator.java, gnu/trove/decorator/TFloatFloatMapDecorator.java, gnu/trove/decorator/TFloatIntMapDecorator.java, gnu/trove/decorator/TFloatLongMapDecorator.java, gnu/trove/decorator/TFloatObjectMapDecorator.java, gnu/trove/decorator/TFloatSetDecorator.java, gnu/trove/decorator/TFloatShortMapDecorator.java, gnu/trove/decorator/TIntByteMapDecorator.java, gnu/trove/decorator/TIntCharMapDecorator.java, gnu/trove/decorator/TIntDoubleMapDecorator.java, gnu/trove/decorator/TIntFloatMapDecorator.java, gnu/trove/decorator/TIntIntMapDecorator.java, gnu/trove/decorator/TIntLongMapDecorator.java, gnu/trove/decorator/TIntObjectMapDecorator.java, gnu/trove/decorator/TIntSetDecorator.java, gnu/trove/decorator/TIntShortMapDecorator.java, gnu/trove/decorator/TLongByteMapDecorator.java, gnu/trove/decorator/TLongCharMapDecorator.java, gnu/trove/decorator/TLongDoubleMapDecorator.java, gnu/trove/decorator/TLongFloatMapDecorator.java, gnu/trove/decorator/TLongIntMapDecorator.java, gnu/trove/decorator/TLongLongMapDecorator.java, gnu/trove/decorator/TLongObjectMapDecorator.java, gnu/trove/decorator/TLongSetDecorator.java, gnu/trove/decorator/TLongShortMapDecorator.java, gnu/trove/decorator/TObjectByteMapDecorator.java, gnu/trove/decorator/TObjectCharMapDecorator.java, gnu/trove/decorator/TObjectDoubleMapDecorator.java, gnu/trove/decorator/TObjectFloatMapDecorator.java, gnu/trove/decorator/TObjectIntMapDecorator.java, gnu/trove/decorator/TObjectLongMapDecorator.java, gnu/trove/decorator/TObjectShortMapDecorator.java, gnu/trove/decorator/TShortByteMapDecorator.java, gnu/trove/decorator/TShortCharMapDecorator.java, gnu/trove/decorator/TShortDoubleMapDecorator.java, gnu/trove/decorator/TShortFloatMapDecorator.java, gnu/trove/decorator/TShortIntMapDecorator.java, gnu/trove/decorator/TShortLongMapDecorator.java, gnu/trove/decorator/TShortObjectMapDecorator.java, gnu/trove/decorator/TShortSetDecorator.java, gnu/trove/decorator/TShortShortMapDecorator.java
+
+///////////////////////////////////////////////////////////////////////////////
+// Copyright (c) 2002, Eric D. Friedman All Rights Reserved.
+// Copyright (c) 2009, Robert D. Eden All Rights Reserved.
+// Copyright (c) 2009, Jeff Randall All Rights Reserved.
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License, or (at your option) any later version.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public
+// License along with this program; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+///////////////////////////////////////////////////////////////////////////////
+
+Source files: gnu/trove/decorator/TByteListDecorator.java, gnu/trove/decorator/TCharListDecorator.java, gnu/trove/decorator/TDoubleListDecorator.java, gnu/trove/decorator/TFloatListDecorator.java, gnu/trove/decorator/TIntListDecorator.java, gnu/trove/decorator/TLongListDecorator.java, gnu/trove/decorator/TShortListDecorator.java
+
+///////////////////////////////////////////////////////////////////////////////
+// Copyright (c) 2009, Robert D. Eden All Rights Reserved.
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License, or (at your option) any later version.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public
+// License along with this program; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+///////////////////////////////////////////////////////////////////////////////
+
+Source files: gnu/trove/function/TByteFunction.java, gnu/trove/function/TCharFunction.java, gnu/trove/function/TDoubleFunction.java, gnu/trove/function/TFloatFunction.java, gnu/trove/function/TIntFunction.java, gnu/trove/function/TLongFunction.java, gnu/trove/function/TShortFunction.java, gnu/trove/iterator/TByteByteIterator.java, gnu/trove/iterator/TByteCharIterator.java, gnu/trove/iterator/TByteDoubleIterator.java, gnu/trove/iterator/TByteFloatIterator.java, gnu/trove/iterator/TByteIntIterator.java, gnu/trove/iterator/TByteIterator.java, gnu/trove/iterator/TByteLongIterator.java, gnu/trove/iterator/TByteShortIterator.java, gnu/trove/iterator/TCharByteIterator.java, gnu/trove/iterator/TCharCharIterator.java, gnu/trove/iterator/TCharDoubleIterator.java, gnu/trove/iterator/TCharFloatIterator.java, gnu/trove/iterator/TCharIntIterator.java, gnu/trove/iterator/TCharIterator.java, gnu/trove/iterator/TCharLongIterator.java, gnu/trove/iterator/TCharShortIterator.java, gnu/trove/iterator/TDoubleByteIterator.java, gnu/trove/iterator/TDoubleCharIterator.java, gnu/trove/iterator/TDoubleDoubleIterator.java, gnu/trove/iterator/TDoubleFloatIterator.java, gnu/trove/iterator/TDoubleIntIterator.java, gnu/trove/iterator/TDoubleIterator.java, gnu/trove/iterator/TDoubleLongIterator.java, gnu/trove/iterator/TDoubleShortIterator.java, gnu/trove/iterator/TFloatByteIterator.java, gnu/trove/iterator/TFloatCharIterator.java, gnu/trove/iterator/TFloatDoubleIterator.java, gnu/trove/iterator/TFloatFloatIterator.java, gnu/trove/iterator/TFloatIntIterator.java, gnu/trove/iterator/TFloatIterator.java, gnu/trove/iterator/TFloatLongIterator.java, gnu/trove/iterator/TFloatShortIterator.java, gnu/trove/iterator/TIntByteIterator.java, gnu/trove/iterator/TIntCharIterator.java, gnu/trove/iterator/TIntDoubleIterator.java, gnu/trove/iterator/TIntFloatIterator.java, gnu/trove/iterator/TIntIntIterator.java, gnu/trove/iterator/TIntIterator.java, gnu/trove/iterator/TIntLongIterator.java, gnu/trove/iterator/TIntShortIterator.java, gnu/trove/iterator/TLongByteIterator.java, gnu/trove/iterator/TLongCharIterator.java, gnu/trove/iterator/TLongDoubleIterator.java, gnu/trove/iterator/TLongFloatIterator.java, gnu/trove/iterator/TLongIntIterator.java, gnu/trove/iterator/TLongIterator.java, gnu/trove/iterator/TLongLongIterator.java, gnu/trove/iterator/TLongShortIterator.java, gnu/trove/iterator/TShortByteIterator.java, gnu/trove/iterator/TShortCharIterator.java, gnu/trove/iterator/TShortDoubleIterator.java, gnu/trove/iterator/TShortFloatIterator.java, gnu/trove/iterator/TShortIntIterator.java, gnu/trove/iterator/TShortIterator.java, gnu/trove/iterator/TShortLongIterator.java, gnu/trove/iterator/TShortShortIterator.java, gnu/trove/procedure/TByteByteProcedure.java, gnu/trove/procedure/TByteCharProcedure.java, gnu/trove/procedure/TByteDoubleProcedure.java, gnu/trove/procedure/TByteFloatProcedure.java, gnu/trove/procedure/TByteIntProcedure.java, gnu/trove/procedure/TByteLongProcedure.java, gnu/trove/procedure/TByteObjectProcedure.java, gnu/trove/procedure/TByteProcedure.java, gnu/trove/procedure/TByteShortProcedure.java, gnu/trove/procedure/TCharByteProcedure.java, gnu/trove/procedure/TCharCharProcedure.java, gnu/trove/procedure/TCharDoubleProcedure.java, gnu/trove/procedure/TCharFloatProcedure.java, gnu/trove/procedure/TCharIntProcedure.java, gnu/trove/procedure/TCharLongProcedure.java, gnu/trove/procedure/TCharObjectProcedure.java, gnu/trove/procedure/TCharProcedure.java, gnu/trove/procedure/TCharShortProcedure.java, gnu/trove/procedure/TDoubleByteProcedure.java, gnu/trove/procedure/TDoubleCharProcedure.java, gnu/trove/procedure/TDoubleDoubleProcedure.java, gnu/trove/procedure/TDoubleFloatProcedure.java, gnu/trove/procedure/TDoubleIntProcedure.java, gnu/trove/procedure/TDoubleLongProcedure.java, gnu/trove/procedure/TDoubleObjectProcedure.java, gnu/trove/procedure/TDoubleProcedure.java, gnu/trove/procedure/TDoubleShortProcedure.java, gnu/trove/procedure/TFloatByteProcedure.java, gnu/trove/procedure/TFloatCharProcedure.java, gnu/trove/procedure/TFloatDoubleProcedure.java, gnu/trove/procedure/TFloatFloatProcedure.java, gnu/trove/procedure/TFloatIntProcedure.java, gnu/trove/procedure/TFloatLongProcedure.java, gnu/trove/procedure/TFloatObjectProcedure.java, gnu/trove/procedure/TFloatProcedure.java, gnu/trove/procedure/TFloatShortProcedure.java, gnu/trove/procedure/TIntByteProcedure.java, gnu/trove/procedure/TIntCharProcedure.java, gnu/trove/procedure/TIntDoubleProcedure.java, gnu/trove/procedure/TIntFloatProcedure.java, gnu/trove/procedure/TIntIntProcedure.java, gnu/trove/procedure/TIntLongProcedure.java, gnu/trove/procedure/TIntObjectProcedure.java, gnu/trove/procedure/TIntProcedure.java, gnu/trove/procedure/TIntShortProcedure.java, gnu/trove/procedure/TLongByteProcedure.java, gnu/trove/procedure/TLongCharProcedure.java, gnu/trove/procedure/TLongDoubleProcedure.java, gnu/trove/procedure/TLongFloatProcedure.java, gnu/trove/procedure/TLongIntProcedure.java, gnu/trove/procedure/TLongLongProcedure.java, gnu/trove/procedure/TLongObjectProcedure.java, gnu/trove/procedure/TLongProcedure.java, gnu/trove/procedure/TLongShortProcedure.java, gnu/trove/procedure/TObjectByteProcedure.java, gnu/trove/procedure/TObjectCharProcedure.java, gnu/trove/procedure/TObjectDoubleProcedure.java, gnu/trove/procedure/TObjectFloatProcedure.java, gnu/trove/procedure/TObjectIntProcedure.java, gnu/trove/procedure/TObjectLongProcedure.java, gnu/trove/procedure/TObjectShortProcedure.java, gnu/trove/procedure/TShortByteProcedure.java, gnu/trove/procedure/TShortCharProcedure.java, gnu/trove/procedure/TShortDoubleProcedure.java, gnu/trove/procedure/TShortFloatProcedure.java, gnu/trove/procedure/TShortIntProcedure.java, gnu/trove/procedure/TShortLongProcedure.java, gnu/trove/procedure/TShortObjectProcedure.java, gnu/trove/procedure/TShortProcedure.java, gnu/trove/procedure/TShortShortProcedure.java
+
+///////////////////////////////////////////////////////////////////////////////
+// Copyright (c) 2001, Eric D. Friedman All Rights Reserved.
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License, or (at your option) any later version.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public
+// License along with this program; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+///////////////////////////////////////////////////////////////////////////////
+
+Source files: gnu/trove/list/TByteList.java, gnu/trove/list/TCharList.java, gnu/trove/list/TDoubleList.java, gnu/trove/list/TFloatList.java, gnu/trove/list/TIntList.java, gnu/trove/list/TLongList.java, gnu/trove/list/TShortList.java
+
+///////////////////////////////////////////////////////////////////////////////
+// Copyright (c) 2009, Rob Eden All Rights Reserved.
+// Copyright (c) 2009, Jeff Randall All Rights Reserved.
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License, or (at your option) any later version.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public
+// License along with this program; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+///////////////////////////////////////////////////////////////////////////////
+
+Source files: gnu/trove/list/linked/TByteLinkedList.java, gnu/trove/list/linked/TCharLinkedList.java, gnu/trove/list/linked/TDoubleLinkedList.java, gnu/trove/list/linked/TFloatLinkedList.java, gnu/trove/list/linked/TIntLinkedList.java, gnu/trove/list/linked/TLongLinkedList.java, gnu/trove/list/linked/TShortLinkedList.java
+
+///////////////////////////////////////////////////////////////////////////////
+// Copyright (c) 2001, Eric D. Friedman All Rights Reserved.
+// Copyright (c) 2009, Rob Eden All Rights Reserved.
+// Copyright (c) 2009, Jeff Randall All Rights Reserved.
+// Copyright (c) 2011, Johan Parent All Rights Reserved.
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License, or (at your option) any later version.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public
+// License along with this program; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+///////////////////////////////////////////////////////////////////////////////
+
+Source files: gnu/trove/map/TByteByteMap.java, gnu/trove/map/TByteCharMap.java, gnu/trove/map/TByteDoubleMap.java, gnu/trove/map/TByteFloatMap.java, gnu/trove/map/TByteIntMap.java, gnu/trove/map/TByteLongMap.java, gnu/trove/map/TByteShortMap.java, gnu/trove/map/TCharByteMap.java, gnu/trove/map/TCharCharMap.java, gnu/trove/map/TCharDoubleMap.java, gnu/trove/map/TCharFloatMap.java, gnu/trove/map/TCharIntMap.java, gnu/trove/map/TCharLongMap.java, gnu/trove/map/TCharShortMap.java, gnu/trove/map/TDoubleByteMap.java, gnu/trove/map/TDoubleCharMap.java, gnu/trove/map/TDoubleDoubleMap.java, gnu/trove/map/TDoubleFloatMap.java, gnu/trove/map/TDoubleIntMap.java, gnu/trove/map/TDoubleLongMap.java, gnu/trove/map/TDoubleShortMap.java, gnu/trove/map/TFloatByteMap.java, gnu/trove/map/TFloatCharMap.java, gnu/trove/map/TFloatDoubleMap.java, gnu/trove/map/TFloatFloatMap.java, gnu/trove/map/TFloatIntMap.java, gnu/trove/map/TFloatLongMap.java, gnu/trove/map/TFloatShortMap.java, gnu/trove/map/TIntByteMap.java, gnu/trove/map/TIntCharMap.java, gnu/trove/map/TIntDoubleMap.java, gnu/trove/map/TIntFloatMap.java, gnu/trove/map/TIntIntMap.java, gnu/trove/map/TIntLongMap.java, gnu/trove/map/TIntShortMap.java, gnu/trove/map/TLongByteMap.java, gnu/trove/map/TLongCharMap.java, gnu/trove/map/TLongDoubleMap.java, gnu/trove/map/TLongFloatMap.java, gnu/trove/map/TLongIntMap.java, gnu/trove/map/TLongLongMap.java, gnu/trove/map/TLongShortMap.java, gnu/trove/map/TShortByteMap.java, gnu/trove/map/TShortCharMap.java, gnu/trove/map/TShortDoubleMap.java, gnu/trove/map/TShortFloatMap.java, gnu/trove/map/TShortIntMap.java, gnu/trove/map/TShortLongMap.java, gnu/trove/map/TShortShortMap.java, gnu/trove/queue/TByteQueue.java, gnu/trove/queue/TCharQueue.java, gnu/trove/queue/TDoubleQueue.java, gnu/trove/queue/TFloatQueue.java, gnu/trove/queue/TIntQueue.java, gnu/trove/queue/TLongQueue.java, gnu/trove/queue/TShortQueue.java
+
+///////////////////////////////////////////////////////////////////////////////
+// Copyright (c) 2009, Rob Eden All Rights Reserved.
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License, or (at your option) any later version.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public
+// License along with this program; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+///////////////////////////////////////////////////////////////////////////////

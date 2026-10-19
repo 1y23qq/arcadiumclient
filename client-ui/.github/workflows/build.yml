@@ -1,0 +1,166 @@
+# Build Workflow
+
+name: Build
+
+on:
+  pull_request:
+  workflow_dispatch:
+  push:
+    branches-ignore:
+      - develop-v0
+      - main-v0
+    paths-ignore:
+      - 'README.md'
+      - '.github/**'
+      - '!.github/workflows/**'
+      - '.editorconfig'
+      - 'CODE_OF_CONDUCT.md'
+      - 'CONTRIBUTING.md'
+      - 'SECURITY.md'
+      - 'LICENSE'
+      - '.gitattributes'
+      - '.gitignore'
+
+concurrency:
+  group: ${{ github.head_ref || format('{0}-{1}', github.ref, github.run_number) }}
+  cancel-in-progress: true
+
+permissions:
+  pull-requests: write
+  contents: write
+
+jobs:
+  modules:
+    name: Build modules
+
+    runs-on: ubuntu-26.04
+
+    steps:
+      - &checkout
+        name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - &setup-java
+        name: Setup Java
+        uses: actions/setup-java@v6
+        with:
+          java-version: 25
+          distribution: temurin
+
+      - &setup-gradle
+        name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          add-job-summary-as-pr-comment: never
+          add-job-summary: always
+          build-scan-publish: true
+          build-scan-terms-of-use-url: "https://gradle.com/terms-of-service"
+          build-scan-terms-of-use-agree: "yes"
+          validate-wrappers: true
+          cache-read-only: ${{ github.ref != 'refs/heads/v1' }}
+
+      - &loom-cache
+        uses: actions/cache@v6
+        with:
+          path: |
+            **/loom-cache
+            **/prebundled-jars
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Build
+        run: ./gradlew -p modules build --no-daemon
+
+      - name: Test publication
+        run: ./gradlew -p modules publishToMavenLocal
+
+      - name: Upload compose-bundle
+        uses: actions/upload-artifact@v7
+        with:
+          path: |
+            modules/compose-bundle/build/libs/*.jar
+            !**/*-javadoc.jar
+            !**/*-sources.jar
+            !**/*-ornithe.jar
+          archive: false
+          if-no-files-found: error
+
+      - name: Upload module libs
+        uses: actions/upload-artifact@v7
+        with:
+          name: lib-artifacts-modules
+          # the compose-bundle main jar is uploaded on its own
+          path: |
+            modules/**/build/libs/
+            !modules/compose-bundle/build/libs/*.jar
+            modules/compose-bundle/build/libs/*-javadoc.jar
+            modules/compose-bundle/build/libs/*-sources.jar
+          if-no-files-found: error
+
+  minecraft:
+    name: Build ${{ matrix.node }}
+
+    runs-on: ubuntu-26.04
+
+    strategy:
+      fail-fast: false
+      matrix:
+        node:
+          - 1.8.9-ornithe
+          - 1.21.1-fabric
+          - 1.21.4-fabric
+          - 1.21.5-fabric
+          - 1.21.8-fabric
+          - 1.21.10-fabric
+          - 1.21.11-fabric
+          - 26.1-fabric
+          - 26.2-fabric
+          - 26.3-fabric
+
+    env:
+      NODE: ${{ matrix.node }}
+
+    steps:
+      - *checkout
+      - *setup-java
+      - *setup-gradle
+      - *loom-cache
+
+      - name: Build
+        run: ./gradlew :minecraft:$NODE:build :bootstrap:$NODE:build --no-daemon
+
+      - name: Test publication
+        run: ./gradlew :minecraft:$NODE:publishToMavenLocal
+
+      - name: Upload bootstrap jar
+        uses: actions/upload-artifact@v7
+        with:
+          path: bootstrap/versions/${{ env.NODE }}/build/libs/*.jar
+          archive: false
+          if-no-files-found: error
+
+      - name: Upload Minecraft libs
+        uses: actions/upload-artifact@v7
+        with:
+          name: lib-artifacts-${{ env.NODE }}
+          path: minecraft/versions/${{ env.NODE }}/build/libs/
+          if-no-files-found: error
+
+  lib-artifacts:
+    name: Merge dev artifacts
+
+    needs: [modules, minecraft]
+    if: ${{ !cancelled() }}
+
+    runs-on: ubuntu-26.04
+
+    steps:
+      - uses: actions/upload-artifact/merge@v7
+        with:
+          name: lib-artifacts (Development purposes)
+          pattern: lib-artifacts-*
+          separate-directories: true
+          delete-merged: true

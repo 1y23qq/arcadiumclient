@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "id": "oneconfig-deps",
+  "name": "Arcadium Core Dependencies",
+  "version": "${version}",
+  "description": "Legacy dependency bundle for Arcadium Core.",
+  "authors": [
+    "Polyfrost"
+  ],
+  "contact": {
+    "homepage": "https://polyfrost.org",
+    "sources": "https://github.com/Polyfrost/OneConfig",
+    "issues": "https://discord.gg/QbNfaCHjUz"
+  },
+  "license": "LGPL-3.0",
+  "environment": "client",
+  "custom": {
+    "modmenu": {
+      "badges": [
+        "library"
+      ]
+    }
+  }
+}

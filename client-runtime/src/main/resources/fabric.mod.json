@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "arcadium_runtime",
+  "version": "${version}",
+  "name": "Arcadium Client",
+  "license": "GPL-3.0-only",
+  "authors": [
+    "0aurorq3 and Arcadium contributors"
+  ],
+  "environment": "client",
+  "contact": {
+    "homepage": "https://arcadiumclient.com",
+    "sources": "https://github.com/0aurorq3/arcadiumclient",
+    "issues": "https://discord.gg/QbNfaCHjUz"
+  },
+  "entrypoints": {
+    "client": [
+      "io.github.arcadiumclient.runtime.ArcadiumRuntime"
+    ]
+  },
+  "mixins": [
+    "arcadium-runtime.mixins.json"
+  ],
+  "depends": {
+    "minecraft": "1.8.9",
+    "java": ">=25",
+    "fabricloader": ">=0.19.5",
+    "oneconfigv1": ">=1.2.23-arcadium",
+    "fabric-language-kotlin": ">=1.13.13"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "arcadium_forge_compat",
+  "version": "${version}",
+  "name": "Arcadium Forge Compatibility",
+  "description": "Forge 1.8.9 mod compatibility for Arcadium Client.",
+  "authors": ["0aurorq3"],
+  "license": "GPL-3.0-only",
+  "contact": {
+    "homepage": "https://arcadiumclient.com",
+    "sources": "https://github.com/0aurorq3/arcadiumclient",
+    "issues": "https://discord.gg/QbNfaCHjUz"
+  },
+  "environment": "client",
+  "entrypoints": {
+    "preLaunch": ["io.github.arcadiumclient.forgecompat.ForgeCompatBootstrap"]
+  },
+  "depends": {
+    "fabricloader": ">=0.19.5",
+    "minecraft": "1.8.9",
+    "java": ">=25"
+  }
+}

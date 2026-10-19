@@ -1,0 +1,10 @@
+{
+  "ref": "refs/tags/1.15.1+mc1.8.9-ornithe",
+  "node_id": "REF_kwDOUOWo8toAIHJlZnMvdGFncy8xLjE1LjErbWMxLjguOS1vcm5pdGhl",
+  "url": "https://api.github.com/repos/Polyfrost/betterhurtcam/git/refs/tags/1.15.1+mc1.8.9-ornithe",
+  "object": {
+    "sha": "94eb8b594cedb65fa0cf2727c6b252c65424ddad",
+    "type": "commit",
+    "url": "https://api.github.com/repos/Polyfrost/betterhurtcam/git/commits/94eb8b594cedb65fa0cf2727c6b252c65424ddad"
+  }
+}

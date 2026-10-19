@@ -1,0 +1,13 @@
+{
+  "completed": true,
+  "binaryMatchesToOfficialDownloads": 3,
+  "originalLicenseGrantVerified": 3,
+  "retainedOriginalNoticeAndReceiptFileHashesVerified": 9,
+  "troveExactSourceReleaseIncludesIdenticalBinary": true,
+  "sourceCorrespondenceLimitationsExplicitlyRecorded": [
+    "lzma:lzma:0.0.1",
+    "java3d:vecmath:1.5.2"
+  ],
+  "dependencyLicensesInferredFromForge": false,
+  "binaryPublicationPerformed": false
+}

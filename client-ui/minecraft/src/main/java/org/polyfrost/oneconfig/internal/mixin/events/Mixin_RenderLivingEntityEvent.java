@@ -1,0 +1,119 @@
+package org.polyfrost.oneconfig.internal.mixin.events;
+
+import net.minecraft.client.renderer.entity.LivingEntityRenderer;
+import org.polyfrost.oneconfig.api.event.v1.EventManager;
+import org.polyfrost.oneconfig.api.event.v1.events.RenderLivingEvent;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+//? if >= 26.1 {
+import net.minecraft.client.renderer.state.level.CameraRenderState;
+//?}
+
+//? if >= 1.21.9 {
+import net.minecraft.client.renderer.SubmitNodeCollector;
+//?}
+
+//? if >= 1.21.2 {
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
+//?}
+
+//? if > 1.8.9 {
+import com.mojang.blaze3d.vertex.PoseStack;
+//?}
+
+//? if >= 1.21.10 && < 26.1 {
+/*import net.minecraft.client.renderer.state.CameraRenderState;
+*///?}
+
+//? if < 1.21.9 && > 1.8.9 {
+/*import net.minecraft.client.renderer.MultiBufferSource;
+*///?}
+
+//? if < 1.21.2 {
+/*import net.minecraft.world.entity.LivingEntity;
+*///?}
+
+@Mixin(LivingEntityRenderer.class)
+public class Mixin_RenderLivingEntityEvent {
+    @Inject(
+            //? >= 1.21.9 {
+            //~ if >= 26.1 'state/Camera' -> 'state/level/Camera'
+            method = "submit(Lnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;Lnet/minecraft/client/renderer/state/level/CameraRenderState;)V",
+            //? } >= 1.21.2 {
+            /*method = "render(Lnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
+            *///?} elif > 1.8.9 {
+            /*method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
+            *///?} else
+            //method = "render(Lnet/minecraft/entity/living/LivingEntity;DDDFF)V",
+            at = @At("HEAD"),
+            cancellable = true
+    )
+    //? if >= 1.21.9 {
+    private void onPreEntityRenderCallback(LivingEntityRenderState entity, PoseStack matrixStack, SubmitNodeCollector renderQueue, CameraRenderState cameraState, CallbackInfo ci) {
+    //?} elif >= 1.21.2 {
+    /*private void onPreEntityRenderCallback(LivingEntityRenderState entity, PoseStack matrixStack, MultiBufferSource buffer, int packedLight, CallbackInfo ci) {
+    *///?} elif > 1.8.9 {
+    /*private void onPreEntityRenderCallback(LivingEntity entity, float entityYaw, float partialTicks, PoseStack matrixStack, MultiBufferSource buffer, int packedLight, CallbackInfo ci) {
+    *///?} else {
+    /*private void onPreEntityRenderCallback(LivingEntity entity, double x, double y, double z, float yaw, float partialTicks, CallbackInfo ci) {
+    *///?}
+        if (!EventManager.INSTANCE.hasListeners(RenderLivingEvent.Pre.class)) return;
+
+        //? >= 1.21.2 {
+        double x = entity.x;
+        double y = entity.y;
+        double z = entity.z;
+        float partialTicks = Minecraft.getInstance().getFrameTimeNs();
+        //?} elif > 1.8.9 {
+        /*double x = entity.getX();
+        double y = entity.getY();
+        double z = entity.getZ();
+        *///? }
+        RenderLivingEvent event = new RenderLivingEvent.Pre(entity, partialTicks, x, y, z);
+        EventManager.INSTANCE.post(event);
+        if (event.cancelled) {
+            ci.cancel();
+        }
+    }
+
+    @Inject(
+            //? >= 1.21.9 {
+            //~ if >= 26.1 'state/Camera' -> 'state/level/Camera'
+            method = "submit(Lnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;Lnet/minecraft/client/renderer/state/level/CameraRenderState;)V",
+            //? } >= 1.21.2 {
+             /*method = "render(Lnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
+            *///?} elif > 1.8.9 {
+            /*method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
+            *///?} else
+            //method = "render(Lnet/minecraft/entity/living/LivingEntity;DDDFF)V",
+            at = @At("TAIL")
+    )
+    //? if >= 1.21.9 {
+    private void onPostEntityRenderCallback(LivingEntityRenderState entity, PoseStack matrixStack, SubmitNodeCollector renderQueue, CameraRenderState cameraState, CallbackInfo ci) {
+    //?} elif >= 1.21.2 {
+    /*private void onPostEntityRenderCallback(LivingEntityRenderState entity, PoseStack matrixStack, MultiBufferSource buffer, int packedLight, CallbackInfo ci) {
+    *///?} elif > 1.8.9 {
+    /*private void onPostEntityRenderCallback(LivingEntity entity, float entityYaw, float partialTicks, PoseStack matrixStack, MultiBufferSource buffer, int packedLight, CallbackInfo ci) {
+    *///?} else {
+    /*private void onPostEntityRenderCallback(LivingEntity entity, double x, double y, double z, float yaw, float partialTicks, CallbackInfo ci) {
+    *///?}
+        if (!EventManager.INSTANCE.hasListeners(RenderLivingEvent.Post.class)) return;
+        //? >= 1.21.2 {
+        double x = entity.x;
+        double y = entity.y;
+        double z = entity.z;
+        float partialTicks = Minecraft.getInstance().getFrameTimeNs();
+        //? } elif > 1.8.9 {
+        /*double x = entity.getX();
+        double y = entity.getY();
+        double z = entity.getZ();
+        *///? }
+        RenderLivingEvent event = new RenderLivingEvent.Post(entity, partialTicks, x, y, z);
+        EventManager.INSTANCE.post(event);
+        // cannot cancel when the method has already returned
+    }
+}

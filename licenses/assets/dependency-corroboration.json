@@ -1,0 +1,119 @@
+{
+  "completed": true,
+  "scope": "Primary-source license corroboration for four exact historical locked mod artifacts; packaging and corresponding-source hosting still require the parent release audit.",
+  "mods": [
+    {
+      "project": "pylon",
+      "lockedFile": "mods/pylon-0.2.2-beta.1.jar",
+      "sha1": "5cb0d71a6838b046670cdab4f33715865eaa92d5",
+      "sha256": "74201f39ef378b4eee49676221dff0ec28de57b30e6a4c3008eeb4fecdc59f65",
+      "lockedBinaryMatchesOfficialRelease": true,
+      "release": "https://github.com/Polyfrost/pylon/releases/tag/0.2.2-beta.1",
+      "license": "LGPL-3.0-only",
+      "licenseGrantCorroborated": true,
+      "sourceRepository": "https://github.com/Polyfrost/pylon",
+      "sourceCommit": "7c7cb32d4780cd4c69841f3d96a23adc03b08044",
+      "sourceArchive": "https://github.com/Polyfrost/pylon/archive/7c7cb32d4780cd4c69841f3d96a23adc03b08044.zip",
+      "sourceBindingEvidence": "exact release tag + official asset SHA256 digest",
+      "sourceCommitBitwiseBuildVerified": false,
+      "sourceCommitSelectionIsInferred": false,
+      "licenseText": "licenses/assets/dependency-evidence/pylon/LICENSE.md",
+      "licenseTextSha256": "c084d3d0560c3731716fc2f2d7993647953810bba5d880e2aa2290d1c66d18d6"
+    },
+    {
+      "project": "sarcio",
+      "lockedFile": "mods/Sarcio-1.1.0.jar",
+      "sha1": "f9a527ab0207c5c862e870c2e857f795f5efa1d1",
+      "sha256": "bbccff506dcbe04b1b081b46cc5d98f93fcf1af316bd5fda333a499bc5bc378f",
+      "lockedBinaryMatchesOfficialRelease": true,
+      "release": "https://github.com/QuicksilverMC/Sarcio/releases/tag/v1.1.0",
+      "license": "LGPL-3.0-or-later",
+      "licenseGrantCorroborated": true,
+      "sourceRepository": "https://github.com/QuicksilverMC/Sarcio",
+      "sourceCommit": "224f5400e130c14d13c7c213d0b269d557c91e0a",
+      "sourceArchive": "https://github.com/QuicksilverMC/Sarcio/archive/224f5400e130c14d13c7c213d0b269d557c91e0a.zip",
+      "sourceBindingEvidence": "exact release tag + official asset SHA256 digest",
+      "sourceCommitBitwiseBuildVerified": false,
+      "sourceCommitSelectionIsInferred": false,
+      "licenseText": "licenses/assets/dependency-evidence/sarcio/COPYING",
+      "licenseTextSha256": "e3a994d82e644b03a792a930f574002658412f62407f5fee083f2555c5f23118"
+    },
+    {
+      "project": "smartsearch",
+      "lockedFile": "mods/smartsearch-1.2.0-ornithe.jar",
+      "sha1": "897326ec6573fc78a0ff46f24f42a2b76f257e27",
+      "sha256": "a52d6d96d37bfe982063dd012afb40a4f621e945961422ad69221e87d794218b",
+      "lockedBinaryMatchesOfficialRelease": true,
+      "release": "https://modrinth.com/mod/N5EQhK31/version/xUnOUkeY",
+      "license": "GPL-3.0-only",
+      "licenseGrantCorroborated": true,
+      "sourceRepository": "https://github.com/Polyfrost/SmartSearch",
+      "sourceCommit": "18065017f2eafc6f2dc431da703fd684676b24ee",
+      "sourceArchive": "https://github.com/Polyfrost/SmartSearch/archive/18065017f2eafc6f2dc431da703fd684676b24ee.zip",
+      "sourceBindingEvidence": "exact Modrinth version hash + closest source commit before publication declaring version 1.2.0",
+      "sourceCommitBitwiseBuildVerified": false,
+      "sourceCommitSelectionIsInferred": true,
+      "licenseText": "licenses/assets/dependency-evidence/smartsearch/LICENSE",
+      "licenseTextSha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
+    },
+    {
+      "project": "itemphysic",
+      "lockedFile": "mods/O-ItemPhysicLite-1.1.0.jar",
+      "sha1": "8154421c5814c927972a3f1b62aa28cc4c9544ba",
+      "sha256": "f7125b92cfa21bc4266b2530c4f99f74b56bc4c5596652a583b88cc139c921c8",
+      "lockedBinaryMatchesOfficialRelease": true,
+      "release": "https://modrinth.com/mod/hEEywddE/version/qfpc7Zm7",
+      "license": "GPL-3.0-only",
+      "licenseGrantCorroborated": true,
+      "sourceRepository": "https://github.com/Tryflle/O-ItemPhysicLite",
+      "sourceCommit": "b62f61e8381f386495a5a30c9a109d00d49f666b",
+      "sourceArchive": "https://github.com/Tryflle/O-ItemPhysicLite/archive/b62f61e8381f386495a5a30c9a109d00d49f666b.zip",
+      "sourceBindingEvidence": "exact source release tag 1.1.0 + Modrinth version hash",
+      "sourceCommitBitwiseBuildVerified": false,
+      "sourceCommitSelectionIsInferred": false,
+      "licenseText": "licenses/assets/dependency-evidence/itemphysic/LICENSE",
+      "licenseTextSha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
+    }
+  ],
+  "nestedDependencies": {
+    "officialMavenBinaryEntriesCompared": 6613,
+    "officialMavenArtifactsCompared": 23,
+    "binaryDifferences": 0,
+    "report": "licenses/assets/dependency-evidence/nested-artifact-notices.json",
+    "licenseAndNoticeSources": "licenses/assets/dependency-evidence/original-notice-sources.json"
+  },
+  "pylonShadedComponents": {
+    "lwjglVersion": "3.4.3",
+    "unchangedNativeBinaries": 16,
+    "modifiedLwjglClasses": [
+      "org/lwjgl/openal/AL.class",
+      "org/lwjgl/openal/AL10.class",
+      "org/lwjgl/opengl/ARBShaderObjects.class",
+      "org/lwjgl/opengl/GL11.class",
+      "org/lwjgl/opengl/GL20.class",
+      "org/lwjgl/opengl/GLCapabilities.class"
+    ],
+    "report": "licenses/assets/dependency-evidence/pylon-shaded-lwjgl-verification.json",
+    "licenses": [
+      "BSD-3-Clause (LWJGL)",
+      "MIT (libffi/liburing/Khronos)",
+      "Zlib (SDL)",
+      "LGPL-2.0-or-later (OpenAL Soft 1.25.2)",
+      "BSD-3-Clause (ASM 9.10.1)"
+    ],
+    "noticeSources": [
+      "licenses/assets/dependency-evidence/pylon-lwjgl-notice-sources.json",
+      "licenses/assets/dependency-evidence/openal-original-notice-sources.json",
+      "licenses/assets/dependency-evidence/asm-9.10.1-LICENSE.txt"
+    ],
+    "openalSource": "https://github.com/kcat/openal-soft/tree/1.25.2",
+    "openalSourceArchive": "https://github.com/kcat/openal-soft/archive/refs/tags/1.25.2.zip"
+  },
+  "smartsearchModel": "licenses/assets/dependency-evidence/smartsearch-model-verification.json",
+  "outstandingReleaseActions": [
+    "Ship the original copied licenses, copyright notices and native third-party notices with the installer.",
+    "Provide the complete corresponding sources/build scripts for distributed GPL/LGPL components, including the LGPL OpenAL native library, alongside binaries with working public access.",
+    "Keep library replacement/rebuild paths available for LGPL components.",
+    "Do not mark this corroboration as a completed distribution/hosting audit; the parent agent owns that closure."
+  ]
+}

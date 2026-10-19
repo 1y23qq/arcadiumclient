@@ -1,0 +1,78 @@
+[
+  {
+    "component": "brotli",
+    "upstreamRepository": "https://skia.googlesource.com/external/github.com/google/brotli.git",
+    "upstreamRevision": "6d03dfbedda1615c4cba1211f8d81735575209c8",
+    "notices": [
+      {
+        "source": "https://skia.googlesource.com/external/github.com/google/brotli.git/+/6d03dfbedda1615c4cba1211f8d81735575209c8/LICENSE?format=TEXT",
+        "file": "licenses/native/rust-skia/original-notices/brotli/LICENSE",
+        "sha256": "3d180008e36922a4e8daec11c34c7af264fed5962d07924aea928c38e8663c94",
+        "bytes": 1084
+      }
+    ],
+    "missingCandidates": []
+  },
+  {
+    "component": "vulkanmemoryallocator",
+    "upstreamRepository": "https://chromium.googlesource.com/external/github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator",
+    "upstreamRevision": "eb744ea7a2b17040121b4bbb4d6f9e8a77e3cae7",
+    "notices": [
+      {
+        "source": "https://chromium.googlesource.com/external/github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator/+/eb744ea7a2b17040121b4bbb4d6f9e8a77e3cae7/LICENSE.txt?format=TEXT",
+        "file": "licenses/native/rust-skia/original-notices/vulkanmemoryallocator/LICENSE.txt",
+        "sha256": "52df2c03d6cfc9ffec13c9d3626c530fc9ce0cbe41d5ea3d10cd46edeb1aeb38",
+        "bytes": 1099
+      }
+    ],
+    "missingCandidates": [
+      {
+        "source": "https://chromium.googlesource.com/external/github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator/+/eb744ea7a2b17040121b4bbb4d6f9e8a77e3cae7/LICENSE?format=TEXT",
+        "error": "HTTP Error 404: Not Found"
+      }
+    ]
+  },
+  {
+    "component": "spirv-cross",
+    "upstreamRepository": "https://chromium.googlesource.com/external/github.com/KhronosGroup/SPIRV-Cross",
+    "upstreamRevision": "b8fcf307f1f347089e3c46eb4451d27f32ebc8d3",
+    "notices": [
+      {
+        "source": "https://chromium.googlesource.com/external/github.com/KhronosGroup/SPIRV-Cross/+/b8fcf307f1f347089e3c46eb4451d27f32ebc8d3/LICENSE?format=TEXT",
+        "file": "licenses/native/rust-skia/original-notices/spirv-cross/LICENSE",
+        "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+        "bytes": 11358
+      },
+      {
+        "source": "https://chromium.googlesource.com/external/github.com/KhronosGroup/SPIRV-Cross/+/b8fcf307f1f347089e3c46eb4451d27f32ebc8d3/LICENSES/Apache-2.0.txt?format=TEXT",
+        "file": "licenses/native/rust-skia/original-notices/spirv-cross/LICENSES__Apache-2.0.txt",
+        "sha256": "44b0a56e80b41a1b0a6bd1292515e806539fd97b30be54c2719e6c763190ab57",
+        "bytes": 10343
+      }
+    ],
+    "missingCandidates": []
+  },
+  {
+    "component": "wuffs",
+    "upstreamRepository": "https://skia.googlesource.com/external/github.com/google/wuffs-mirror-release-c.git",
+    "upstreamRevision": "e3f919ccfe3ef542cfc983a82146070258fb57f8",
+    "notices": [
+      {
+        "source": "https://skia.googlesource.com/external/github.com/google/wuffs-mirror-release-c.git/+/e3f919ccfe3ef542cfc983a82146070258fb57f8/LICENSE?format=TEXT",
+        "file": "licenses/native/rust-skia/original-notices/wuffs/LICENSE",
+        "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+        "bytes": 11358
+      }
+    ],
+    "missingCandidates": [
+      {
+        "source": "https://skia.googlesource.com/external/github.com/google/wuffs-mirror-release-c.git/+/e3f919ccfe3ef542cfc983a82146070258fb57f8/LICENSE-MIT?format=TEXT",
+        "error": "HTTP Error 404: Not Found"
+      },
+      {
+        "source": "https://skia.googlesource.com/external/github.com/google/wuffs-mirror-release-c.git/+/e3f919ccfe3ef542cfc983a82146070258fb57f8/LICENSE-APACHE?format=TEXT",
+        "error": "HTTP Error 404: Not Found"
+      }
+    ]
+  }
+]

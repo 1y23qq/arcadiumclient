@@ -1,0 +1,172 @@
+{
+  "licenseExpression": "Apache-2.0",
+  "scope": "Only the three public Gradle Wrapper JARs and their launch scripts. Gradle distributions downloaded at build time are not published here.",
+  "jarVersionsIndependentOfConfiguredDistribution": true,
+  "wrappers": [
+    {
+      "path": "client-ui/gradle/wrapper/gradle-wrapper.jar",
+      "sha256": "2db75c40782f5e8ba1fc278a5574bab070adccb2d21ca5a6e5ed840888448046",
+      "bytes": 43583,
+      "unchangedOfficialJar": true,
+      "officialSourceTag": "v8.12.1",
+      "officialSourceCommit": "0b1ee1ff81d1f4a26574ff4a362ac9180852b140",
+      "officialJarSource": "https://raw.githubusercontent.com/gradle/gradle/0b1ee1ff81d1f4a26574ff4a362ac9180852b140/gradle/wrapper/gradle-wrapper.jar",
+      "officialWrapperChecksumSource": "https://services.gradle.org/distributions/gradle-8.12.1-wrapper.jar.sha256",
+      "licenseFiles": [
+        {
+          "file": "licenses/gradle-wrapper/8.12.1/LICENSE",
+          "source": "https://raw.githubusercontent.com/gradle/gradle/0b1ee1ff81d1f4a26574ff4a362ac9180852b140/LICENSE",
+          "sha256": "9536d88ea948603d18e232a13f5958d67807cd80828036b082bff171d2cf0703",
+          "bytes": 23622
+        },
+        {
+          "file": "licenses/gradle-wrapper/8.12.1/NOTICE",
+          "source": "https://raw.githubusercontent.com/gradle/gradle/0b1ee1ff81d1f4a26574ff4a362ac9180852b140/subprojects/distributions-full/src/toplevel/NOTICE",
+          "sha256": "c2de5fd9adc7ccc4e1382a0e1f38ec6e14f8ca6e28d3c20289fe80353b019aa1",
+          "bytes": 868
+        }
+      ],
+      "embeddedApacheLicenseSha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594",
+      "configuredDistributionUrl": "https\\://services.gradle.org/distributions/gradle-9.5.0-bin.zip",
+      "scripts": [
+        {
+          "path": "client-ui/gradlew",
+          "sha256": "a3648413b47ef77af21d5ebc36c687c7d103aaef3e17f33de7d4f080a6f300a3",
+          "originalApacheHeaderRetained": true,
+          "comparedUpstreamSource": "https://raw.githubusercontent.com/gradle/gradle/0b1ee1ff81d1f4a26574ff4a362ac9180852b140/gradlew",
+          "byteIdentical": false,
+          "identicalIgnoringLineEndings": false
+        },
+        {
+          "path": "client-ui/gradlew.bat",
+          "sha256": "57931b17dd228e5c24dac90e815d0bf82477e831a4618dfab4136f5446b42a9f",
+          "originalApacheHeaderRetained": true,
+          "comparedUpstreamSource": "https://raw.githubusercontent.com/gradle/gradle/0b1ee1ff81d1f4a26574ff4a362ac9180852b140/gradlew.bat",
+          "byteIdentical": false,
+          "identicalIgnoringLineEndings": false
+        }
+      ]
+    },
+    {
+      "path": "client-runtime/gradle/wrapper/gradle-wrapper.jar",
+      "sha256": "497c8c2a7e5031f6aa847f88104aa80a93532ec32ee17bdb8d1d2f67a194a9c7",
+      "bytes": 48462,
+      "unchangedOfficialJar": true,
+      "officialSourceTag": "v9.5.1",
+      "officialSourceCommit": "fd78213f09782e62ca4957f9cfd3d90c6c3f1767",
+      "officialJarSource": "https://raw.githubusercontent.com/gradle/gradle/fd78213f09782e62ca4957f9cfd3d90c6c3f1767/gradle/wrapper/gradle-wrapper.jar",
+      "officialWrapperChecksumSource": "https://services.gradle.org/distributions/gradle-9.5.1-wrapper.jar.sha256",
+      "licenseFiles": [
+        {
+          "file": "licenses/gradle-wrapper/9.5.1/LICENSE",
+          "source": "https://raw.githubusercontent.com/gradle/gradle/fd78213f09782e62ca4957f9cfd3d90c6c3f1767/LICENSE",
+          "sha256": "cf234c4188d773406f640bf89be680d9288f40ff96901c70d643fcea96ad46df",
+          "bytes": 23645
+        },
+        {
+          "file": "licenses/gradle-wrapper/9.5.1/NOTICE",
+          "source": "https://raw.githubusercontent.com/gradle/gradle/fd78213f09782e62ca4957f9cfd3d90c6c3f1767/packaging/distributions-full/src/toplevel/NOTICE",
+          "sha256": "c2de5fd9adc7ccc4e1382a0e1f38ec6e14f8ca6e28d3c20289fe80353b019aa1",
+          "bytes": 868
+        }
+      ],
+      "embeddedApacheLicenseSha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594",
+      "configuredDistributionUrl": "https\\://services.gradle.org/distributions/gradle-9.7.0-bin.zip",
+      "scripts": [
+        {
+          "path": "client-runtime/gradlew",
+          "sha256": "a5a5c199ba02189ae8c46a334223371a20599d9c298ef65e7540ede4a3f72d59",
+          "originalApacheHeaderRetained": true,
+          "comparedUpstreamSource": "https://raw.githubusercontent.com/gradle/gradle/fd78213f09782e62ca4957f9cfd3d90c6c3f1767/gradlew",
+          "byteIdentical": false,
+          "identicalIgnoringLineEndings": false
+        },
+        {
+          "path": "client-runtime/gradlew.bat",
+          "sha256": "59328c7a17f673b1a63040bfb380a0c749e5d6df3406f7f18641060314cd9aa1",
+          "originalApacheHeaderRetained": true,
+          "comparedUpstreamSource": "https://raw.githubusercontent.com/gradle/gradle/fd78213f09782e62ca4957f9cfd3d90c6c3f1767/gradlew.bat",
+          "byteIdentical": false,
+          "identicalIgnoringLineEndings": false
+        }
+      ]
+    },
+    {
+      "path": "game-branding/gradle/wrapper/gradle-wrapper.jar",
+      "sha256": "497c8c2a7e5031f6aa847f88104aa80a93532ec32ee17bdb8d1d2f67a194a9c7",
+      "bytes": 48462,
+      "unchangedOfficialJar": true,
+      "officialSourceTag": "v9.5.1",
+      "officialSourceCommit": "fd78213f09782e62ca4957f9cfd3d90c6c3f1767",
+      "officialJarSource": "https://raw.githubusercontent.com/gradle/gradle/fd78213f09782e62ca4957f9cfd3d90c6c3f1767/gradle/wrapper/gradle-wrapper.jar",
+      "officialWrapperChecksumSource": "https://services.gradle.org/distributions/gradle-9.5.1-wrapper.jar.sha256",
+      "licenseFiles": [
+        {
+          "file": "licenses/gradle-wrapper/9.5.1/LICENSE",
+          "source": "https://raw.githubusercontent.com/gradle/gradle/fd78213f09782e62ca4957f9cfd3d90c6c3f1767/LICENSE",
+          "sha256": "cf234c4188d773406f640bf89be680d9288f40ff96901c70d643fcea96ad46df",
+          "bytes": 23645
+        },
+        {
+          "file": "licenses/gradle-wrapper/9.5.1/NOTICE",
+          "source": "https://raw.githubusercontent.com/gradle/gradle/fd78213f09782e62ca4957f9cfd3d90c6c3f1767/packaging/distributions-full/src/toplevel/NOTICE",
+          "sha256": "c2de5fd9adc7ccc4e1382a0e1f38ec6e14f8ca6e28d3c20289fe80353b019aa1",
+          "bytes": 868
+        }
+      ],
+      "embeddedApacheLicenseSha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594",
+      "configuredDistributionUrl": "https\\://services.gradle.org/distributions/gradle-9.7.0-bin.zip",
+      "scripts": [
+        {
+          "path": "game-branding/gradlew",
+          "sha256": "a5a5c199ba02189ae8c46a334223371a20599d9c298ef65e7540ede4a3f72d59",
+          "originalApacheHeaderRetained": true,
+          "comparedUpstreamSource": "https://raw.githubusercontent.com/gradle/gradle/fd78213f09782e62ca4957f9cfd3d90c6c3f1767/gradlew",
+          "byteIdentical": false,
+          "identicalIgnoringLineEndings": false
+        },
+        {
+          "path": "game-branding/gradlew.bat",
+          "sha256": "59328c7a17f673b1a63040bfb380a0c749e5d6df3406f7f18641060314cd9aa1",
+          "originalApacheHeaderRetained": true,
+          "comparedUpstreamSource": "https://raw.githubusercontent.com/gradle/gradle/fd78213f09782e62ca4957f9cfd3d90c6c3f1767/gradlew.bat",
+          "byteIdentical": false,
+          "identicalIgnoringLineEndings": false
+        }
+      ]
+    }
+  ],
+  "sourceFiles": [
+    {
+      "file": "licenses/gradle-wrapper/8.12.1/LICENSE",
+      "source": "https://raw.githubusercontent.com/gradle/gradle/0b1ee1ff81d1f4a26574ff4a362ac9180852b140/LICENSE",
+      "sha256": "9536d88ea948603d18e232a13f5958d67807cd80828036b082bff171d2cf0703",
+      "bytes": 23622
+    },
+    {
+      "file": "licenses/gradle-wrapper/8.12.1/NOTICE",
+      "source": "https://raw.githubusercontent.com/gradle/gradle/0b1ee1ff81d1f4a26574ff4a362ac9180852b140/subprojects/distributions-full/src/toplevel/NOTICE",
+      "sha256": "c2de5fd9adc7ccc4e1382a0e1f38ec6e14f8ca6e28d3c20289fe80353b019aa1",
+      "bytes": 868
+    },
+    {
+      "file": "licenses/gradle-wrapper/9.5.1/LICENSE",
+      "source": "https://raw.githubusercontent.com/gradle/gradle/fd78213f09782e62ca4957f9cfd3d90c6c3f1767/LICENSE",
+      "sha256": "cf234c4188d773406f640bf89be680d9288f40ff96901c70d643fcea96ad46df",
+      "bytes": 23645
+    },
+    {
+      "file": "licenses/gradle-wrapper/9.5.1/NOTICE",
+      "source": "https://raw.githubusercontent.com/gradle/gradle/fd78213f09782e62ca4957f9cfd3d90c6c3f1767/packaging/distributions-full/src/toplevel/NOTICE",
+      "sha256": "c2de5fd9adc7ccc4e1382a0e1f38ec6e14f8ca6e28d3c20289fe80353b019aa1",
+      "bytes": 868
+    },
+    {
+      "file": "licenses/gradle-wrapper/Apache-2.0-full.txt",
+      "source": "https://www.apache.org/licenses/LICENSE-2.0.txt",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "bytes": 11358
+    }
+  ],
+  "noticeScope": "Unmodified original Gradle distribution NOTICE is retained for attribution; its dependency list does not assert that the complete Gradle distribution or all listed dependencies are vendored in this source snapshot."
+}

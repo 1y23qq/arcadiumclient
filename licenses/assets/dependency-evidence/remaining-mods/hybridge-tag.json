@@ -1,0 +1,10 @@
+{
+  "ref": "refs/tags/v0.0.0",
+  "node_id": "REF_kwDOUev_aLByZWZzL3RhZ3MvdjAuMC4w",
+  "url": "https://api.github.com/repos/TomekoYT/HyBridge/git/refs/tags/v0.0.0",
+  "object": {
+    "sha": "1cc05144277bd5327843ef3587e480e19195a623",
+    "type": "commit",
+    "url": "https://api.github.com/repos/TomekoYT/HyBridge/git/commits/1cc05144277bd5327843ef3587e480e19195a623"
+  }
+}

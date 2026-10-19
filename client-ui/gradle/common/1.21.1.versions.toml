@@ -1,0 +1,11 @@
+[versions]
+minecraft = "1.21.1"
+
+rconfig = "3.0.11"
+
+[libraries]
+
+rconfig = { module = "com.teamresourceful.resourcefulconfig:resourcefulconfig-common-1.21", version.ref = "rconfig"}
+
+[bundles]
+common-compat = ["rconfig"]

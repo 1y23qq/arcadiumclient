@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "id": "arcadium_performance_test",
+  "version": "1.0.0",
+  "name": "Arcadium Performance Fixture",
+  "environment": "client",
+  "mixins": ["arcadium-performance-test.mixins.json"],
+  "depends": {"fabricloader": ">=0.19.5", "minecraft": "1.8.9", "java": ">=25"}
+}

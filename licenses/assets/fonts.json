@@ -1,0 +1,229 @@
+{
+  "files": [
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/fonts/Inter-Regular.ttf",
+      "family": "Inter",
+      "sha256": "3e5f90a0138b38de4cf4d779ad78391974ea1df776b9164842bdcbb60ce383c5",
+      "license": "OFL-1.1",
+      "notice": "licenses/assets/Inter-OFL.txt",
+      "source": "https://github.com/rsms/inter/tree/v4.1",
+      "modified": false
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/fonts/Poppins/Poppins-Black.ttf",
+      "family": "Poppins",
+      "sha256": "291e4388a436cf0c0d532ce4735a4ca36bd2286912b051ea423d5c383be06cd7",
+      "license": "OFL-1.1",
+      "notice": "licenses/assets/Poppins-OFL.txt",
+      "source": "https://github.com/itfoundry/Poppins",
+      "modified": false
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/fonts/Poppins/Poppins-BlackItalic.ttf",
+      "family": "Poppins",
+      "sha256": "a5e3e31e9dc6878269fdda8a968f8c0212beef9f7ef6028b6d1e02293316db7d",
+      "license": "OFL-1.1",
+      "notice": "licenses/assets/Poppins-OFL.txt",
+      "source": "https://github.com/itfoundry/Poppins",
+      "modified": false
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/fonts/Poppins/Poppins-Bold.ttf",
+      "family": "Poppins",
+      "sha256": "7219547ee25334cbac0fe4b3acf0bf631e48ebb622c71af038edaaa652c60875",
+      "license": "OFL-1.1",
+      "notice": "licenses/assets/Poppins-OFL.txt",
+      "source": "https://github.com/itfoundry/Poppins",
+      "modified": false
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/fonts/Poppins/Poppins-BoldItalic.ttf",
+      "family": "Poppins",
+      "sha256": "9d4d9f3c2c289eaec403660ec215bdc45e62b49f978807714bfc31ca7916c8fe",
+      "license": "OFL-1.1",
+      "notice": "licenses/assets/Poppins-OFL.txt",
+      "source": "https://github.com/itfoundry/Poppins",
+      "modified": false
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/fonts/Poppins/Poppins-ExtraBold.ttf",
+      "family": "Poppins",
+      "sha256": "94a215f88fbde9099cb3bd1431b8142aba26af36f8771effec56a94bc3aad1fd",
+      "license": "OFL-1.1",
+      "notice": "licenses/assets/Poppins-OFL.txt",
+      "source": "https://github.com/itfoundry/Poppins",
+      "modified": false
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/fonts/Poppins/Poppins-ExtraBoldItalic.ttf",
+      "family": "Poppins",
+      "sha256": "bba986e116690660f70d3ebb18a74d8d2c8eafcda6c28c8ffc4306aa1e2b91e4",
+      "license": "OFL-1.1",
+      "notice": "licenses/assets/Poppins-OFL.txt",
+      "source": "https://github.com/itfoundry/Poppins",
+      "modified": false
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/fonts/Poppins/Poppins-ExtraLight.ttf",
+      "family": "Poppins",
+      "sha256": "60c4bb1b8f272f0ac4702b962cc46e58e885a65624479be1c0646c9e37d9ce62",
+      "license": "OFL-1.1",
+      "notice": "licenses/assets/Poppins-OFL.txt",
+      "source": "https://github.com/itfoundry/Poppins",
+      "modified": false
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/fonts/Poppins/Poppins-ExtraLightItalic.ttf",
+      "family": "Poppins",
+      "sha256": "05418f4d333f25ddaf359adaf39b2777e64dad0f83c3fa4502d193d0ad19a9b7",
+      "license": "OFL-1.1",
+      "notice": "licenses/assets/Poppins-OFL.txt",
+      "source": "https://github.com/itfoundry/Poppins",
+      "modified": false
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/fonts/Poppins/Poppins-Italic.ttf",
+      "family": "Poppins",
+      "sha256": "3225cec6a018310497ea9ee116aa43b2a833464fed6156dceb9a3a4424bb8613",
+      "license": "OFL-1.1",
+      "notice": "licenses/assets/Poppins-OFL.txt",
+      "source": "https://github.com/itfoundry/Poppins",
+      "modified": false
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/fonts/Poppins/Poppins-Light.ttf",
+      "family": "Poppins",
+      "sha256": "647f014d36822ef7e0413ffbb65598ae0cb57fb798e635c63912c93d94eb356a",
+      "license": "OFL-1.1",
+      "notice": "licenses/assets/Poppins-OFL.txt",
+      "source": "https://github.com/itfoundry/Poppins",
+      "modified": false
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/fonts/Poppins/Poppins-LightItalic.ttf",
+      "family": "Poppins",
+      "sha256": "6d00aa5531c8b8ba0934de7925985c6636c99fbc89b4c9f79629fb4a9067654f",
+      "license": "OFL-1.1",
+      "notice": "licenses/assets/Poppins-OFL.txt",
+      "source": "https://github.com/itfoundry/Poppins",
+      "modified": false
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/fonts/Poppins/Poppins-Medium.ttf",
+      "family": "Poppins",
+      "sha256": "8d909883de81344e0fbcfef30e931872e92d9aeecdf85b6dcf6e0b28c078e98e",
+      "license": "OFL-1.1",
+      "notice": "licenses/assets/Poppins-OFL.txt",
+      "source": "https://github.com/itfoundry/Poppins",
+      "modified": false
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/fonts/Poppins/Poppins-MediumItalic.ttf",
+      "family": "Poppins",
+      "sha256": "449f6bd907fe29dbdfd5ef0990bdbb7fd800efa748a83f7b7529dcb94f79955b",
+      "license": "OFL-1.1",
+      "notice": "licenses/assets/Poppins-OFL.txt",
+      "source": "https://github.com/itfoundry/Poppins",
+      "modified": false
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/fonts/Poppins/Poppins-Regular.ttf",
+      "family": "Poppins",
+      "sha256": "707fdc5c8bab57a90061c6a8ed7b70d5ffb82fc810e994e79f90bace890c255a",
+      "license": "OFL-1.1",
+      "notice": "licenses/assets/Poppins-OFL.txt",
+      "source": "https://github.com/itfoundry/Poppins",
+      "modified": false
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/fonts/Poppins/Poppins-SemiBold.ttf",
+      "family": "Poppins",
+      "sha256": "248c0244b350ec68880996aa6be6d7796274b49992d5fcbbefe251906aa4ea36",
+      "license": "OFL-1.1",
+      "notice": "licenses/assets/Poppins-OFL.txt",
+      "source": "https://github.com/itfoundry/Poppins",
+      "modified": false
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/fonts/Poppins/Poppins-SemiBoldItalic.ttf",
+      "family": "Poppins",
+      "sha256": "74b31cbc29dc90c2d630e77673e7b6f714ff9bb01e5d424670bc61ca85b6093a",
+      "license": "OFL-1.1",
+      "notice": "licenses/assets/Poppins-OFL.txt",
+      "source": "https://github.com/itfoundry/Poppins",
+      "modified": false
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/fonts/Poppins/Poppins-Thin.ttf",
+      "family": "Poppins",
+      "sha256": "95875f9ef0d12d5cbdd64852933a578021c810cec247f7564207e046cf6c7289",
+      "license": "OFL-1.1",
+      "notice": "licenses/assets/Poppins-OFL.txt",
+      "source": "https://github.com/itfoundry/Poppins",
+      "modified": false
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/fonts/Poppins/Poppins-ThinItalic.ttf",
+      "family": "Poppins",
+      "sha256": "043226b0e187263ab54de3e971b663a77e52c3857cbb235c8410388db6d28de8",
+      "license": "OFL-1.1",
+      "notice": "licenses/assets/Poppins-OFL.txt",
+      "source": "https://github.com/itfoundry/Poppins",
+      "modified": false
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/fonts/Monocraft/Monocraft-Bold.otf",
+      "family": "Monocraft",
+      "sha256": "c5093945155086f33da9533e9e2c8d5fe190cec3b4c582d739482257fc8bfbca",
+      "license": "OFL-1.1",
+      "notice": "licenses/assets/Monocraft-OFL.txt",
+      "source": "https://github.com/IdreesInc/Monocraft/releases/tag/v4.2.1",
+      "modified": false
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/fonts/Monocraft/Monocraft.otf",
+      "family": "Monocraft",
+      "sha256": "468a33902ad6867d73202b3c976d695f53c8f3e2066270e3d288367221de9515",
+      "license": "OFL-1.1",
+      "notice": "licenses/assets/Monocraft-OFL.txt",
+      "source": "https://github.com/IdreesInc/Monocraft/releases/tag/v4.2.1",
+      "modified": false
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/fonts/unifont/unifont.otf",
+      "family": "GNU Unifont 17.0.05",
+      "sha256": "85701ab9b1e251ee16f4df00b13f22eac311d72b7dab427a7d975fe7f5064702",
+      "license": "OFL-1.1",
+      "notice": "licenses/assets/Unifont-OFL.txt",
+      "source": "https://unifoundry.com/pub/unifont/unifont-17.0.05/font-builds/",
+      "modified": false
+    },
+    {
+      "path": "sites/arcadium-official/public/assets/Inter-Regular.ttf",
+      "family": "Inter",
+      "sha256": "3e5f90a0138b38de4cf4d779ad78391974ea1df776b9164842bdcbb60ce383c5",
+      "license": "OFL-1.1",
+      "notice": "licenses/assets/Inter-OFL.txt",
+      "source": "https://github.com/rsms/inter",
+      "modified": false
+    },
+    {
+      "path": "sites/arcadium-official/public/assets/Manrope-Latin-Variable.woff2",
+      "family": "Manrope",
+      "sha256": "a30ddcd349703aff7464c34bef3fffdff405ee50c113440d7c8693c02d210972",
+      "license": "OFL-1.1",
+      "notice": "sites/arcadium-official/public/assets/Manrope-OFL.txt",
+      "source": "https://github.com/google/fonts/tree/main/ofl/manrope",
+      "modified": false
+    },
+    {
+      "path": "sites/arcadium-official/public/assets/Sora-Latin-Variable.woff2",
+      "family": "Sora",
+      "sha256": "811e11966d29f3a01fcb19b087b61ac067d380665a55aebb7fcdf2cda95e4a93",
+      "license": "OFL-1.1",
+      "notice": "sites/arcadium-official/public/assets/Sora-OFL.txt",
+      "source": "https://github.com/google/fonts/tree/main/ofl/sora",
+      "modified": false
+    }
+  ]
+}

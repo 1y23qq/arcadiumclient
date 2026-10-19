@@ -1,0 +1,40 @@
+{
+  "container": "forge-compat/build/libs/ArcadiumForgeCompat-0.3.6.jar",
+  "sha256": "262d3acceaa8c7e1006e1c3b9496c1ab2d8259092125419f378f74a31267b97c",
+  "libraries": [
+    {
+      "nestedPath": "META-INF/arcadium/libraries/lzma-0.0.1.jar",
+      "sha256": "0c3085cb93c3ef95d731c274b6f2dd195aa0405fe9328d69cab7f5e899d5e124",
+      "sha1": "521616dc7487b42bef0e803bd2fa3faf668101d7",
+      "bytes": 5762,
+      "notices": []
+    },
+    {
+      "nestedPath": "META-INF/arcadium/libraries/trove4j-3.0.3.jar",
+      "sha256": "3c8616203d61a12a7e3487e8b34f3c198c2b5ba9e90da0c7ea32d99cd4958012",
+      "sha1": "42ccaf4761f0dfdfa805c9e340d99a755907e2dd",
+      "bytes": 2523218,
+      "notices": []
+    },
+    {
+      "nestedPath": "META-INF/arcadium/libraries/vecmath-1.5.2.jar",
+      "sha256": "09adf7955baa6bddf57a4bdbf9a91cf690261314969b59a18085ece1e05eccf9",
+      "sha1": "79846ba34cbd89e2422d74d53752f993dcc2ccaf",
+      "bytes": 318956,
+      "notices": [
+        {
+          "archivePath": "javax/COPYRIGHT.txt",
+          "file": "licenses/native/forge-libraries/vecmath-1.5.2/javax/COPYRIGHT.txt",
+          "sha256": "059de385c12a219acede0589023248eea4fefc56f205f739f0792c6d6d8912c9",
+          "bytes": 3908
+        },
+        {
+          "archivePath": "javax/LICENSE.txt",
+          "file": "licenses/native/forge-libraries/vecmath-1.5.2/javax/LICENSE.txt",
+          "sha256": "e138710ed19cee8839bcdb478fc5e383e37a80e45d2cad922d1a6438082392dd",
+          "bytes": 19241
+        }
+      ]
+    }
+  ]
+}

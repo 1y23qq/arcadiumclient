@@ -1,0 +1,96 @@
+[
+  {
+    "name": "block",
+    "version": "0.1.6",
+    "repository": "https://github.com/SSheldon/rust-block",
+    "revision": "47178790cfc9d4a8b092051d8b413b78bd31254a",
+    "path_in_vcs": "",
+    "evidence": "Published Cargo license=MIT; standalone notice absent in both the published crate and identified exact release/source revision. Canonical text is labeled as a reference; authors are retained verbatim.",
+    "mode": "declared-license",
+    "license_selection": "MIT"
+  },
+  {
+    "name": "malloc_buf",
+    "version": "0.0.6",
+    "repository": "https://github.com/SSheldon/malloc_buf",
+    "revision": "a7811e5f4c6f9685dd57ad9bfe34e9bf6b0ba4f9",
+    "path_in_vcs": "",
+    "evidence": "Published Cargo license=MIT; standalone notice absent in both the published crate and identified exact release/source revision. Canonical text is labeled as a reference; authors are retained verbatim.",
+    "mode": "declared-license",
+    "license_selection": "MIT"
+  },
+  {
+    "name": "winapi-i686-pc-windows-gnu",
+    "version": "0.4.0",
+    "repository": "https://github.com/retep998/winapi-rs",
+    "revision": "30ed8e3b86f4a8a55e68865843c19800f57bcd7f",
+    "path_in_vcs": "i686",
+    "evidence": "Last source commit before the original publication on2018-01-18 regenerates the import libraries; original Cargo declarations identify the target package. See evidence/winapi-release-era-commit.json."
+  },
+  {
+    "name": "winapi-x86_64-pc-windows-gnu",
+    "version": "0.4.0",
+    "repository": "https://github.com/retep998/winapi-rs",
+    "revision": "30ed8e3b86f4a8a55e68865843c19800f57bcd7f",
+    "path_in_vcs": "x86_64",
+    "evidence": "Last source commit before the original publication on2018-01-18 regenerates the import libraries; original Cargo declarations identify the target package. See evidence/winapi-release-era-commit.json."
+  },
+  {
+    "name": "zune-inflate",
+    "version": "0.2.54",
+    "repository": "https://github.com/etemesi254/zune-image",
+    "revision": "69502ce83fdfecdd0beefd677e2abb3781b29d98",
+    "path_in_vcs": "zune-inflate",
+    "mode": "raw-files",
+    "files": [
+      "LICENSE-ZLIB"
+    ],
+    "license_selection": "Zlib",
+    "evidence": "Exact cargo_vcs_info source revision; the original Zlib alternative is explicitly offered by the published SPDX expression."
+  },
+  {
+    "name": "dispatch",
+    "version": "0.2.0",
+    "mode": "declared-license",
+    "revision": "82d6c7a5b75dc0c71c3f46f87bb6c16a476f7748",
+    "license_selection": "MIT",
+    "evidence": "Published Cargo license=MIT; standalone notice absent in both the published crate and identified exact release/source revision. Canonical text is labeled as a reference; authors are retained verbatim."
+  },
+  {
+    "name": "drm-fourcc",
+    "version": "2.2.0",
+    "mode": "declared-license",
+    "revision": "7b9f80060ffd4b35cd236437e65a17fb517d163c",
+    "license_selection": "MIT",
+    "evidence": "Published Cargo license=MIT; standalone notice absent in both the published crate and identified exact release/source revision. Canonical text is labeled as a reference; authors are retained verbatim."
+  },
+  {
+    "name": "simd_helpers",
+    "version": "0.1.0",
+    "mode": "declared-license",
+    "revision": "ca1a2f84aa386d758e98f8a609d990263932fb85",
+    "license_selection": "MIT",
+    "evidence": "Published Cargo license=MIT; standalone notice absent in both the published crate and identified exact release/source revision. Canonical text is labeled as a reference; authors are retained verbatim."
+  },
+  {
+    "name": "selectors",
+    "version": "0.38.0",
+    "mode": "declared-license",
+    "revision": "572ecba2d1600e7c3d490586692a209faf703baa",
+    "license_selection": "MPL-2.0",
+    "copyright_sources": [
+      "lib.rs"
+    ],
+    "evidence": "Published Cargo metadata and original source header explicitly specify MPL2; the source repository omits a standalone text, so the fixed canonical MPL2 text is supplied with the original header."
+  },
+  {
+    "name": "libappindicator-sys",
+    "version": "0.9.0",
+    "mode": "sibling-crate",
+    "donor": {
+      "name": "libappindicator",
+      "version": "0.9.0"
+    },
+    "evidence": "The published ancestor workspace crate includes original MIT/Apache texts. Both published crates identify exactly the same Git revision eafd1e3682a1247f595410266091e9684021cb6f and ancestor paths."
+  }
+]

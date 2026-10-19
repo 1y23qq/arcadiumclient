@@ -1,0 +1,120 @@
+
+{
+  "id": "fbbe7017a304ed0b535213d705ca212f9c9a2018",
+  "entries": [
+    {
+      "mode": 33188,
+      "type": "blob",
+      "id": "c4aff2215dfbe5508c780621677efe13d63aaa59",
+      "name": ".clang-tidy"
+    },
+    {
+      "mode": 33188,
+      "type": "blob",
+      "id": "bf4b4d70cb5bf812f75aec7acaddc0149ba9fbdd",
+      "name": ".gn"
+    },
+    {
+      "mode": 33188,
+      "type": "blob",
+      "id": "22c177deb9d06542920e672053ec7007af3f0c69",
+      "name": "BUILD.gn"
+    },
+    {
+      "mode": 33188,
+      "type": "blob",
+      "id": "bd53d678f77705a3052cc076ef17ee3bd98161ba",
+      "name": "DEPS"
+    },
+    {
+      "mode": 33188,
+      "type": "blob",
+      "id": "ed583fe464d11dd30098bf5b277463802781c3c9",
+      "name": "DIR_METADATA"
+    },
+    {
+      "mode": 33188,
+      "type": "blob",
+      "id": "7df1768aa97e7c9359021e99e8d5dc89fb85f19f",
+      "name": "OWNERS"
+    },
+    {
+      "mode": 33188,
+      "type": "blob",
+      "id": "3f342396f212f1f0bd8b7e3bbc00891358d6d269",
+      "name": "PRESUBMIT.py"
+    },
+    {
+      "mode": 33261,
+      "type": "blob",
+      "id": "e55c40db5a2a5390784c89f35d82de149582774b",
+      "name": "PRESUBMIT_test.py"
+    },
+    {
+      "mode": 33188,
+      "type": "blob",
+      "id": "c8e9a77d0640322fde6b3b8febe7fbd742bccef1",
+      "name": "PartitionAlloc.md"
+    },
+    {
+      "mode": 33188,
+      "type": "blob",
+      "id": "97ce6f11156a6838b9ff29c7dee8c52fc0352e0b",
+      "name": "buckets.md"
+    },
+    {
+      "mode": 33188,
+      "type": "blob",
+      "id": "2cd2df1ed474d1e400bb8c943d53cbd5f4753435",
+      "name": "build_config.md"
+    },
+    {
+      "mode": 16384,
+      "type": "tree",
+      "id": "bbf17f2acc7388c64d83147ed9d3e7b12ac013a0",
+      "name": "build_overrides"
+    },
+    {
+      "mode": 33188,
+      "type": "blob",
+      "id": "aa1d2da38ed8bcdbcaab6ff0eb54cd838cb800a8",
+      "name": "external_builds.md"
+    },
+    {
+      "mode": 33188,
+      "type": "blob",
+      "id": "c1ca507b588553be038ec9d38dcf7ffaf593e265",
+      "name": "glossary.md"
+    },
+    {
+      "mode": 16384,
+      "type": "tree",
+      "id": "9795d112a9f574616550bee1a4699ec29ac9776a",
+      "name": "gn"
+    },
+    {
+      "mode": 33188,
+      "type": "blob",
+      "id": "ac621824983f40aa68b24f796fe51e7e69800324",
+      "name": "pa_check.md"
+    },
+    {
+      "mode": 33188,
+      "type": "blob",
+      "id": "4f8d896b82f43ab0912ddee6c9d986f310787ee7",
+      "name": "partition_alloc.gni"
+    },
+    {
+      "mode": 16384,
+      "type": "tree",
+      "id": "b4ee5d60d1fe7b0a4451ed19c86527f3466ffb61",
+      "name": "src"
+    },
+    {
+      "mode": 33188,
+      "type": "blob",
+      "id": "0b51ff5acc76a6ad445d5530faebf17d68f27053",
+      "name": "static_local_danger.md"
+    }
+  ]
+}

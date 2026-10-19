@@ -1,0 +1,38 @@
+[
+  {
+    "source": "https://raw.githubusercontent.com/kcat/openal-soft/1.25.2/COPYING",
+    "path": "licenses/assets/dependency-evidence/original-notices/openal-soft-1.25.2/COPYING",
+    "sha256": "d808ce217e5b611854da622b57ec29fe545584c48bc5352fae72a4b6e5074a15",
+    "bytes": 23330
+  },
+  {
+    "source": "https://raw.githubusercontent.com/kcat/openal-soft/1.25.2/LICENSE-pffft",
+    "path": "licenses/assets/dependency-evidence/original-notices/openal-soft-1.25.2/LICENSE-pffft",
+    "sha256": "64056328b3e7bc104e24ef96accc1a7abead156f0c02d1b87c97e3f3a28030de",
+    "bytes": 1669
+  },
+  {
+    "source": "https://raw.githubusercontent.com/kcat/openal-soft/1.25.2/fmt-11.2.0/LICENSE",
+    "path": "licenses/assets/dependency-evidence/original-notices/openal-soft-1.25.2/fmt-11.2.0/LICENSE",
+    "sha256": "07580f2a3b35709ce703d523f447b242f6dfec7582a8c0df102c7fa2849375f8",
+    "bytes": 1431
+  },
+  {
+    "source": "https://raw.githubusercontent.com/kcat/openal-soft/1.25.2/fmt-11.2.0/doc/python-license.txt",
+    "path": "licenses/assets/dependency-evidence/original-notices/openal-soft-1.25.2/fmt-11.2.0/doc/python-license.txt",
+    "sha256": "dcc4d9738d3e8d3b9f51286f1dc90d0c49ea8325982008ced021932a0b0b0cda",
+    "bytes": 14903
+  },
+  {
+    "source": "https://raw.githubusercontent.com/kcat/openal-soft/1.25.2/gsl/LICENSE",
+    "path": "licenses/assets/dependency-evidence/original-notices/openal-soft-1.25.2/gsl/LICENSE",
+    "sha256": "4c21dc82a1c7186ea754fd59d504c00947953a3401fe8e24eaa44109ef8e2555",
+    "bytes": 1157
+  },
+  {
+    "source": "https://raw.githubusercontent.com/kcat/openal-soft/1.25.2/gsl/ThirdPartyNotices.txt",
+    "path": "licenses/assets/dependency-evidence/original-notices/openal-soft-1.25.2/gsl/ThirdPartyNotices.txt",
+    "sha256": "691d94413053d5bda219c05f57739192b30c171db0925f3722604fe06f865d3b",
+    "bytes": 2022
+  }
+]

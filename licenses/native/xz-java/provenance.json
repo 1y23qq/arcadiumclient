@@ -1,0 +1,37 @@
+{
+  "coordinate": "org.tukaani:xz:1.10",
+  "licenseExpression": "0BSD",
+  "source": "https://repo.maven.apache.org/maven2/org/tukaani/xz/1.10/xz-1.10.jar",
+  "sha256": "95c63c1a55b22dd6453890a419cc1a640f790bbf7d8ae82db1e30aefefb08888",
+  "sourceArchive": {
+    "source": "https://repo.maven.apache.org/maven2/org/tukaani/xz/1.10/xz-1.10-sources.jar",
+    "sha256": "6ac7a5478e952a23fe1f354efa70303f94b2331b7a6279c923f4dbe0ac6e352c"
+  },
+  "tag": "v1.10",
+  "commit": "0f5ee02ca950b5e7cdadf89f8c314388092ad64c",
+  "sourceArchiveToTag": {
+    "javaFiles": 116,
+    "identical": 116,
+    "differences": []
+  },
+  "originalNotices": [
+    {
+      "source": "https://raw.githubusercontent.com/tukaani-project/xz-java/0f5ee02ca950b5e7cdadf89f8c314388092ad64c/COPYING",
+      "file": "licenses/native/xz-java/COPYING",
+      "sha256": "1e77ef26cee5216d6531e49cbf2f6111a0270dc7b322fc65477063c5aff88766",
+      "bytes": 663
+    },
+    {
+      "source": "https://raw.githubusercontent.com/tukaani-project/xz-java/0f5ee02ca950b5e7cdadf89f8c314388092ad64c/LICENSES/0BSD.txt",
+      "file": "licenses/native/xz-java/LICENSES/0BSD.txt",
+      "sha256": "0b01625d853911cd0e2e088dcfb743261034a091bb379246cb25a14cc4c74bf1",
+      "bytes": 607
+    },
+    {
+      "source": "https://raw.githubusercontent.com/tukaani-project/xz-java/0f5ee02ca950b5e7cdadf89f8c314388092ad64c/AUTHORS.md",
+      "file": "licenses/native/xz-java/AUTHORS.md",
+      "sha256": "bda4a998dada456aec8bb1bcf8eba5d987f7aa38e290abaa381c6a862c64a3c2",
+      "bytes": 452
+    }
+  ]
+}

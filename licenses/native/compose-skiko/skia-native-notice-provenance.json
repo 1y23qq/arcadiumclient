@@ -1,0 +1,276 @@
+{
+  "skikoVersion": "0.154.0",
+  "skikoSourceCommit": "a0c3d414a614b90810f3fc1654a8e8a18dbd983d",
+  "skiaTag": "m154-ab5932137b",
+  "components": [
+    {
+      "component": "icu",
+      "upstreamRepository": "https://chromium.googlesource.com/chromium/deps/icu.git",
+      "upstreamRevision": "d578f2e8b7bd5938e21cfb6bf15c079e0aa5b738",
+      "notices": [
+        {
+          "source": "https://chromium.googlesource.com/chromium/deps/icu.git/+/d578f2e8b7bd5938e21cfb6bf15c079e0aa5b738/LICENSE?format=TEXT",
+          "file": "licenses/native/compose-skiko/skia-native-originals/icu/LICENSE",
+          "sha256": "e55522d81edc687a341a4411e0776e54ca654e90147f354a90458aaced4116af",
+          "bytes": 27718
+        }
+      ],
+      "missingCandidates": [
+        {
+          "source": "https://chromium.googlesource.com/chromium/deps/icu.git/+/d578f2e8b7bd5938e21cfb6bf15c079e0aa5b738/icu4c/LICENSE?format=TEXT",
+          "error": "HTTP Error 404: Not Found"
+        },
+        {
+          "source": "https://chromium.googlesource.com/chromium/deps/icu.git/+/d578f2e8b7bd5938e21cfb6bf15c079e0aa5b738/source/LICENSE?format=TEXT",
+          "error": "HTTP Error 404: Not Found"
+        }
+      ]
+    },
+    {
+      "component": "harfbuzz",
+      "upstreamRepository": "https://chromium.googlesource.com/external/github.com/harfbuzz/harfbuzz.git",
+      "upstreamRevision": "9cb1fee51069b206effb4736e443b038d230789d",
+      "notices": [
+        {
+          "source": "https://chromium.googlesource.com/external/github.com/harfbuzz/harfbuzz.git/+/9cb1fee51069b206effb4736e443b038d230789d/COPYING?format=TEXT",
+          "file": "licenses/native/compose-skiko/skia-native-originals/harfbuzz/COPYING",
+          "sha256": "ba8f810f2455c2f08e2d56bb49b72f37fcf68f1f4fade38977cfd7372050ad64",
+          "bytes": 1971
+        }
+      ],
+      "missingCandidates": []
+    },
+    {
+      "component": "libpng",
+      "upstreamRepository": "https://skia.googlesource.com/third_party/libpng.git",
+      "upstreamRevision": "d5515b5b8be3901aac04e5bd8bd5c89f287bcd33",
+      "notices": [
+        {
+          "source": "https://skia.googlesource.com/third_party/libpng.git/+/d5515b5b8be3901aac04e5bd8bd5c89f287bcd33/LICENSE?format=TEXT",
+          "file": "licenses/native/compose-skiko/skia-native-originals/libpng/LICENSE",
+          "sha256": "bdb0a645ea18c60507d0368379b1ac5474b92255fcc2d115e07486a7672ba526",
+          "bytes": 5345
+        }
+      ],
+      "missingCandidates": []
+    },
+    {
+      "component": "libjpeg-turbo",
+      "upstreamRepository": "https://chromium.googlesource.com/chromium/deps/libjpeg_turbo.git",
+      "upstreamRevision": "e14cbfaa85529d47f9f55b0f104a579c1061f9ad",
+      "notices": [
+        {
+          "source": "https://chromium.googlesource.com/chromium/deps/libjpeg_turbo.git/+/e14cbfaa85529d47f9f55b0f104a579c1061f9ad/LICENSE.md?format=TEXT",
+          "file": "licenses/native/compose-skiko/skia-native-originals/libjpeg-turbo/LICENSE.md",
+          "sha256": "96f5b328adbb78eeaaec6980d73fd558cb1e4d62560ed615646bc3cf5e532430",
+          "bytes": 5620
+        },
+        {
+          "source": "https://chromium.googlesource.com/chromium/deps/libjpeg_turbo.git/+/e14cbfaa85529d47f9f55b0f104a579c1061f9ad/README.ijg?format=TEXT",
+          "file": "licenses/native/compose-skiko/skia-native-originals/libjpeg-turbo/README.ijg",
+          "sha256": "75815e3bf6484201a3c3d17a1bbf10f2e8e3237f84df10a2357ea896db2a81d6",
+          "bytes": 12799
+        }
+      ],
+      "missingCandidates": []
+    },
+    {
+      "component": "libwebp",
+      "upstreamRepository": "https://chromium.googlesource.com/webm/libwebp.git",
+      "upstreamRevision": "845d5476a866141ba35ac133f856fa62f0b7445f",
+      "notices": [
+        {
+          "source": "https://chromium.googlesource.com/webm/libwebp.git/+/845d5476a866141ba35ac133f856fa62f0b7445f/COPYING?format=TEXT",
+          "file": "licenses/native/compose-skiko/skia-native-originals/libwebp/COPYING",
+          "sha256": "5aec868f669e384a22372a4e8a1a6cd7d44c64cd451f960ca69cc170d1e13acf",
+          "bytes": 1496
+        },
+        {
+          "source": "https://chromium.googlesource.com/webm/libwebp.git/+/845d5476a866141ba35ac133f856fa62f0b7445f/PATENTS?format=TEXT",
+          "file": "licenses/native/compose-skiko/skia-native-originals/libwebp/PATENTS",
+          "sha256": "cc3273e0694ea5896145e0677699b53471b03ea43021ddc50e7923fbb9f5023c",
+          "bytes": 1436
+        }
+      ],
+      "missingCandidates": []
+    },
+    {
+      "component": "zlib",
+      "upstreamRepository": "https://chromium.googlesource.com/chromium/src/third_party/zlib",
+      "upstreamRevision": "646b7f569718921d7d4b5b8e22572ff6c76f2596",
+      "notices": [
+        {
+          "source": "https://chromium.googlesource.com/chromium/src/third_party/zlib/+/646b7f569718921d7d4b5b8e22572ff6c76f2596/LICENSE?format=TEXT",
+          "file": "licenses/native/compose-skiko/skia-native-originals/zlib/LICENSE",
+          "sha256": "e1cfcc55c325b3f78cf55df9664abaa066e2271dffe8213347d9fccdfbac8f2c",
+          "bytes": 910
+        }
+      ],
+      "missingCandidates": [
+        {
+          "source": "https://chromium.googlesource.com/chromium/src/third_party/zlib/+/646b7f569718921d7d4b5b8e22572ff6c76f2596/README?format=TEXT",
+          "error": "HTTP Error 404: Not Found"
+        }
+      ]
+    },
+    {
+      "component": "expat",
+      "upstreamRepository": "https://chromium.googlesource.com/external/github.com/libexpat/libexpat.git",
+      "upstreamRevision": "6154446fccefbf3ca644894f598969113b0c7bcd",
+      "notices": [
+        {
+          "source": "https://chromium.googlesource.com/external/github.com/libexpat/libexpat.git/+/6154446fccefbf3ca644894f598969113b0c7bcd/COPYING?format=TEXT",
+          "file": "licenses/native/compose-skiko/skia-native-originals/expat/COPYING",
+          "sha256": "31b15de82aa19a845156169a17a5488bf597e561b2c318d159ed583139b25e87",
+          "bytes": 1144
+        },
+        {
+          "source": "https://chromium.googlesource.com/external/github.com/libexpat/libexpat.git/+/6154446fccefbf3ca644894f598969113b0c7bcd/expat/COPYING?format=TEXT",
+          "file": "licenses/native/compose-skiko/skia-native-originals/expat/expat__COPYING",
+          "sha256": "31b15de82aa19a845156169a17a5488bf597e561b2c318d159ed583139b25e87",
+          "bytes": 1144
+        }
+      ],
+      "missingCandidates": []
+    },
+    {
+      "component": "d3d12allocator",
+      "upstreamRepository": "https://skia.googlesource.com/external/github.com/GPUOpen-LibrariesAndSDKs/D3D12MemoryAllocator.git",
+      "upstreamRevision": "169895d529dfce00390a20e69c2f516066fe7a3b",
+      "notices": [
+        {
+          "source": "https://raw.githubusercontent.com/GPUOpen-LibrariesAndSDKs/D3D12MemoryAllocator/169895d529dfce00390a20e69c2f516066fe7a3b/LICENSE.txt",
+          "file": "licenses/native/compose-skiko/skia-native-originals/d3d12allocator/LICENSE.txt",
+          "sha256": "e078ee4f8c5ed0673f4d93b5318557eb8b4e0d7dbccef2ab45c763c7693f0f37",
+          "bytes": 1099,
+          "sourceBinding": "Official upstream repository at the exact Skia DEPS revision; the Gitiles mirror required authorization."
+        }
+      ],
+      "missingCandidates": [
+        {
+          "source": "https://skia.googlesource.com/external/github.com/GPUOpen-LibrariesAndSDKs/D3D12MemoryAllocator.git/+/169895d529dfce00390a20e69c2f516066fe7a3b/LICENSE.txt?format=TEXT",
+          "error": "HTTP Error 401: Unauthorized"
+        }
+      ]
+    },
+    {
+      "component": "partition_alloc",
+      "upstreamRepository": "https://chromium.googlesource.com/chromium/src/base/allocator/partition_allocator.git",
+      "upstreamRevision": "03cc513177b4340bee3dbfd46f6dd5fdded43b79",
+      "notices": [
+        {
+          "source": "https://chromium.googlesource.com/chromium/src/+/684217bd0672571af585e80822a44b860f06a65c/LICENSE?format=TEXT",
+          "file": "licenses/native/compose-skiko/skia-native-originals/partition_alloc/LICENSE",
+          "sha256": "368cca1106be99d39ecd32a38d8305585d802a475effb66380b91ffc9bcf709b",
+          "bytes": 1536,
+          "sourceBinding": "GitOrigin-RevId in exact partition allocator commit maps to this Chromium ancestor workspace revision."
+        }
+      ],
+      "missingCandidates": [
+        {
+          "source": "https://chromium.googlesource.com/chromium/src/base/allocator/partition_allocator.git/+/03cc513177b4340bee3dbfd46f6dd5fdded43b79/LICENSE?format=TEXT",
+          "error": "HTTP Error 404: Not Found"
+        }
+      ]
+    },
+    {
+      "component": "piex",
+      "upstreamRepository": "https://android.googlesource.com/platform/external/piex.git",
+      "upstreamRevision": "bb217acdca1cc0c16b704669dd6f91a1b509c406",
+      "notices": [
+        {
+          "source": "https://android.googlesource.com/platform/external/piex.git/+/bb217acdca1cc0c16b704669dd6f91a1b509c406/LICENSE?format=TEXT",
+          "file": "licenses/native/compose-skiko/skia-native-originals/piex/LICENSE",
+          "sha256": "58d1e17ffe5109a7ae296caafcadfdbe6a7d176f0bc4ab01e12a689b0499d8bd",
+          "bytes": 11357
+        }
+      ],
+      "missingCandidates": []
+    },
+    {
+      "component": "dng_sdk",
+      "upstreamRepository": "https://android.googlesource.com/platform/external/dng_sdk.git",
+      "upstreamRevision": "dbe0a676450d9b8c71bf00688bb306409b779e90",
+      "notices": [
+        {
+          "source": "https://android.googlesource.com/platform/external/dng_sdk.git/+/dbe0a676450d9b8c71bf00688bb306409b779e90/LICENSE?format=TEXT",
+          "file": "licenses/native/compose-skiko/skia-native-originals/dng_sdk/LICENSE",
+          "sha256": "012e875468ac2f9a2070ee25a950588afa2735b4b2d961f491e3d72c8f572306",
+          "bytes": 5240
+        }
+      ],
+      "missingCandidates": [
+        {
+          "source": "https://android.googlesource.com/platform/external/dng_sdk.git/+/dbe0a676450d9b8c71bf00688bb306409b779e90/License.txt?format=TEXT",
+          "error": "HTTP Error 404: Not Found"
+        },
+        {
+          "source": "https://android.googlesource.com/platform/external/dng_sdk.git/+/dbe0a676450d9b8c71bf00688bb306409b779e90/README.android?format=TEXT",
+          "error": "HTTP Error 404: Not Found"
+        }
+      ]
+    },
+    {
+      "component": "freetype",
+      "upstreamRepository": "https://chromium.googlesource.com/chromium/src/third_party/freetype2.git",
+      "upstreamRevision": "264b5fbf5b912b39f98d038bf75d39be0a73f21b",
+      "notices": [
+        {
+          "source": "https://chromium.googlesource.com/chromium/src/third_party/freetype2.git/+/264b5fbf5b912b39f98d038bf75d39be0a73f21b/LICENSE.TXT?format=TEXT",
+          "file": "licenses/native/compose-skiko/skia-native-originals/freetype/LICENSE.TXT",
+          "sha256": "bd36c8b474855fa294c2ec5c184544478ef3720aad37d65a6296a4f264fd2d3b",
+          "bytes": 2149
+        },
+        {
+          "source": "https://chromium.googlesource.com/chromium/src/third_party/freetype2.git/+/264b5fbf5b912b39f98d038bf75d39be0a73f21b/docs/FTL.TXT?format=TEXT",
+          "file": "licenses/native/compose-skiko/skia-native-originals/freetype/docs__FTL.TXT",
+          "sha256": "5a5ee54c5001bbad1cdc1a57cc3dd4c42199b2da09d39c7ee41fab002d02967f",
+          "bytes": 6743
+        },
+        {
+          "source": "https://chromium.googlesource.com/chromium/src/third_party/freetype2.git/+/264b5fbf5b912b39f98d038bf75d39be0a73f21b/docs/GPLv2.TXT?format=TEXT",
+          "file": "licenses/native/compose-skiko/skia-native-originals/freetype/docs__GPLv2.TXT",
+          "sha256": "c4120c6752c910c299e3bd9cb3a46ff262c268303ca2069b61f92f10a5656c18",
+          "bytes": 17994
+        },
+        {
+          "source": "https://chromium.googlesource.com/chromium/src/third_party/freetype2.git/+/264b5fbf5b912b39f98d038bf75d39be0a73f21b/include/freetype/freetype.h?format=TEXT",
+          "file": "licenses/native/compose-skiko/skia-native-originals/freetype/include__freetype__freetype.h",
+          "sha256": "953fc63557031d8c11fcfe3859f350ef5390cabee12bca51487eaea302aff955",
+          "bytes": 177129
+        },
+        {
+          "source": "https://chromium.googlesource.com/chromium/src/third_party/freetype2.git/+/264b5fbf5b912b39f98d038bf75d39be0a73f21b/src/bdf/README?format=TEXT",
+          "file": "licenses/native/compose-skiko/skia-native-originals/freetype/src__bdf__README",
+          "sha256": "7984455e7e5a9faba3797c8bf095fbe10cc846316b7320aff8c58402e22b82fe",
+          "bytes": 5972
+        },
+        {
+          "source": "https://chromium.googlesource.com/chromium/src/third_party/freetype2.git/+/264b5fbf5b912b39f98d038bf75d39be0a73f21b/src/pcf/README?format=TEXT",
+          "file": "licenses/native/compose-skiko/skia-native-originals/freetype/src__pcf__README",
+          "sha256": "18d9782898d9eac04476e2f744678137b2a889689ed3e923e052fc396a86f86b",
+          "bytes": 3311
+        },
+        {
+          "source": "https://chromium.googlesource.com/chromium/src/third_party/freetype2.git/+/264b5fbf5b912b39f98d038bf75d39be0a73f21b/src/base/fthash.c?format=TEXT",
+          "file": "licenses/native/compose-skiko/skia-native-originals/freetype/src__base__fthash.c",
+          "sha256": "693e5a54b3ce30140975a94a3369dbe706eb1f280c69e80da426d39cc45b94ef",
+          "bytes": 8406
+        },
+        {
+          "source": "https://chromium.googlesource.com/chromium/src/third_party/freetype2.git/+/264b5fbf5b912b39f98d038bf75d39be0a73f21b/src/gzip/zlib.h?format=TEXT",
+          "file": "licenses/native/compose-skiko/skia-native-originals/freetype/src__gzip__zlib.h",
+          "sha256": "c86a25c27f74cb97b8fa07b175f479f063d5064ace9995b4684063643c81cf1b",
+          "bytes": 97499
+        },
+        {
+          "source": "https://chromium.googlesource.com/chromium/src/third_party/freetype2.git/+/264b5fbf5b912b39f98d038bf75d39be0a73f21b/src/autofit/ft-hb-ft.c?format=TEXT",
+          "file": "licenses/native/compose-skiko/skia-native-originals/freetype/src__autofit__ft-hb-ft.c",
+          "sha256": "84dd5ddff1cec222e1755b4962faf45836238dfa3a46854dabd969eb4e50f8be",
+          "bytes": 3315
+        }
+      ],
+      "missingCandidates": []
+    }
+  ]
+}

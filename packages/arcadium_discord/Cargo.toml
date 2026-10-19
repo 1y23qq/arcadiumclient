@@ -1,0 +1,26 @@
+[package]
+name = "arcadium_discord"
+description = "Discord rich presence for Arcadium Client"
+version.workspace = true
+license.workspace = true
+edition.workspace = true
+repository.workspace = true
+documentation.workspace = true
+readme.workspace = true
+homepage.workspace = true
+authors.workspace = true
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+arcadium_common.workspace = true
+
+chrono.workspace = true
+discord-rich-presence.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true
+tracing-subscriber.workspace = true

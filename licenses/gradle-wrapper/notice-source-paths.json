@@ -1,0 +1,34 @@
+[
+  {
+    "tag": "v8.12.1",
+    "source": "https://api.github.com/repos/gradle/gradle/git/trees/v8.12.1?recursive=1",
+    "sha": "0b1ee1ff81d1f4a26574ff4a362ac9180852b140",
+    "truncated": false,
+    "noticeFiles": [
+      {
+        "path": "subprojects/distributions-full/src/toplevel/NOTICE",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "00a36efcde24d430435211f7e48eeb20d156e7ad",
+        "size": 868,
+        "url": "https://api.github.com/repos/gradle/gradle/git/blobs/00a36efcde24d430435211f7e48eeb20d156e7ad"
+      }
+    ]
+  },
+  {
+    "tag": "v9.5.1",
+    "source": "https://api.github.com/repos/gradle/gradle/git/trees/v9.5.1?recursive=1",
+    "sha": "fd78213f09782e62ca4957f9cfd3d90c6c3f1767",
+    "truncated": false,
+    "noticeFiles": [
+      {
+        "path": "packaging/distributions-full/src/toplevel/NOTICE",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "00a36efcde24d430435211f7e48eeb20d156e7ad",
+        "size": 868,
+        "url": "https://api.github.com/repos/gradle/gradle/git/blobs/00a36efcde24d430435211f7e48eeb20d156e7ad"
+      }
+    ]
+  }
+]

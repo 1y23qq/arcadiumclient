@@ -1,0 +1,10 @@
+Package: simd_helpers 0.1.0
+Published license expression: MIT
+Published authors: ["Luca Barbato <lu_zero@gentoo.org>"]
+Locked crate SHA256: 95890f873bec569a0362c235787f3aca6e1e887302ba4840839bcc6459c42da6
+Source: https://crates.io/api/v1/crates/simd_helpers/0.1.0/download
+
+The published crate and its identified source omit a standalone original license file.
+The package explicitly declares the SPDX license above; the canonical license text is
+supplied as a reference. It is not represented as a recovered upstream copyright notice.
+No author names, copyright years or copyright ownership statements have been invented.

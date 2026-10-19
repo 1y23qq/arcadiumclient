@@ -1,0 +1,9 @@
+* text=auto eol=lf
+Cargo.lock -diff linguist-generated
+
+# Preserve audited third-party notice bytes.
+licenses/** -text
+**/LICENSE* -text
+**/NOTICE* -text
+**/COPYING* -text
+**/*OFL*.txt -text

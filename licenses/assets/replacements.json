@@ -1,0 +1,45 @@
+{
+  "removedFromPublicationSnapshot": [
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/fonts/minecraft/Minecraft-Regular.otf",
+      "sha256": "c5bcd562c9151e23deb35ce8fb069bf3f8d22e1b71f0e2b70e253ee3925c2174"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/fonts/minecraft/Minecraft-Bold.otf",
+      "sha256": "62a3173d3d0fb1e7fd836dc08b2c00fab9d0724b77d8a2a0c8341f1b84c1db28"
+    },
+    {
+      "path": "client-ui/modules/internal/src/main/resources/assets/oneconfig/brand/by-polyfrost.svg",
+      "sha256": "062ff361933f242b566e7a27ce41132c2f94e6c77c26a8cd388a590f665c3267"
+    },
+    {
+      "path": "client-ui/modules/internal/src/main/resources/assets/oneconfig/brand/atmofrost.svg",
+      "sha256": "3ac9d28ad456bc15912a859d0231fd25040bbad0c8d842877f960a04b418d4a4"
+    },
+    {
+      "path": "client-ui/modules/internal/src/main/resources/assets/oneconfig/images/header.png",
+      "sha256": "9b2318a9bcaeb8e2479b79131b7316f8cda06bd11cb58696605edd45c715d144"
+    }
+  ],
+  "replacementUiPixelFont": {
+    "family": "Monocraft",
+    "version": "4.2.1",
+    "release": "https://github.com/IdreesInc/Monocraft/releases/tag/v4.2.1",
+    "license": "OFL-1.1",
+    "nativeMinecraftFontChanged": false
+  },
+  "arcadiumLogoSource": "packages/arcadium_app/assets/logo.svg",
+  "arcadiumRasterSource": "game-branding/src/main/resources/assets/arcadiumclient/icon.png",
+  "additionalReplacements": [
+    {
+      "path": "client-ui/modules/internal/src/main/resources/assets/oneconfig/images/head.png",
+      "previousSha256": "3cc7b66ed3bb11ce5cc1f8f58f791db5d0db5c16ea235797e714647b72dc3ed1",
+      "replacement": "Owned Arcadium A fallback; no vanilla skin texture"
+    },
+    {
+      "path": "client-runtime/src/main/resources/assets/arcadiumclient/textures/branding/player-badge.png",
+      "source": "client-ui/modules/internal/src/main/resources/assets/oneconfig/brand/arcadium-badge.png",
+      "sha256": "043bab31829a736f1a6916ab948099045e3a619e0e202ed453f2ea572f1c648a"
+    }
+  ]
+}

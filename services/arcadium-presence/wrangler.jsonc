@@ -1,0 +1,19 @@
+{
+  "name": "arcadium-presence-test",
+  "main": "src/worker.js",
+  "compatibility_date": "2026-10-01",
+  "account_id": "70e27d23ba0e65902af102f10a7b6865",
+  "workers_dev": false,
+  "routes": [{"pattern": "presence-test.arcadiumclient.com", "custom_domain": true}],
+  "durable_objects": {
+    "bindings": [
+      {"name": "PRESENCE", "class_name": "ArcadiumPresence"},
+      {"name": "USAGE", "class_name": "ArcadiumUsage"}
+    ]
+  },
+  "exports": {
+    "ArcadiumPresence": {"type": "durable-object", "storage": "sqlite"},
+    "ArcadiumUsage": {"type": "durable-object", "storage": "sqlite"}
+  },
+  "observability": {"enabled": false}
+}

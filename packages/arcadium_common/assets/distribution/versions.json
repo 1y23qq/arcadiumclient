@@ -1,0 +1,23 @@
+{
+  "clusters": [
+    {
+      "major_version": 8,
+      "name": "Arcadium 1.8.9",
+      "long_description": "",
+      "tags": [
+        "PvP"
+      ],
+      "entries": [
+        {
+          "minor_version": 9,
+          "loader": "ornithe",
+          "java_version": 25,
+          "tags": [
+            "PvP"
+          ]
+        }
+      ]
+    }
+  ],
+  "migrations": []
+}

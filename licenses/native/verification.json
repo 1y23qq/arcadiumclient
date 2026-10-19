@@ -1,0 +1,16 @@
+{
+  "completed": true,
+  "rustPackages": 867,
+  "rustNoticeFilesVerified": 1466,
+  "rustEmptyNoticeSets": 0,
+  "interfrostLicenseSelection": "MIT",
+  "composeNestedArtifactsVerified": 48,
+  "embeddedOriginalJavaNoticeFilesVerified": 38,
+  "skikoNativeLibraryHashesVerified": 6,
+  "nativeOriginalNoticeAndEvidenceFilesVerified": 104,
+  "webviewOfficialSdkBinaryMatches": 9,
+  "pack200TagSourceByteMatches": "25/26; remaining Javadoc-only difference recorded",
+  "xzTagSourceByteMatches": "116/116",
+  "unresolvedMissingNativeNoticeSets": [],
+  "nativeBuildReproductionClaimed": false
+}

@@ -1,0 +1,38 @@
+[
+  {
+    "source": "https://raw.githubusercontent.com/LWJGL/lwjgl3/3.4.3/LICENSE.md",
+    "path": "licenses/assets/dependency-evidence/original-notices/lwjgl-3.4.3/LICENSE.md",
+    "sha256": "4c2f770897d0cfda4d9a65bb4d6d6983dccfd57d4c7eb74ea5ded0762cbc0e75",
+    "bytes": 1518
+  },
+  {
+    "source": "https://raw.githubusercontent.com/LWJGL/lwjgl3/3.4.3/modules/lwjgl/core/libffi_license.txt",
+    "path": "licenses/assets/dependency-evidence/original-notices/lwjgl-3.4.3/modules/lwjgl/core/libffi_license.txt",
+    "sha256": "d66f6a020ebb611afe64b93270d447aa32a9345d2d3a43d296493e9806b944f8",
+    "bytes": 1131
+  },
+  {
+    "source": "https://raw.githubusercontent.com/LWJGL/lwjgl3/3.4.3/modules/lwjgl/core/liburing_license.txt",
+    "path": "licenses/assets/dependency-evidence/original-notices/lwjgl-3.4.3/modules/lwjgl/core/liburing_license.txt",
+    "sha256": "1ec30e534aecb8eef3439fe3e36b20be20461bb758ca85107602fdaa3e23d274",
+    "bytes": 1049
+  },
+  {
+    "source": "https://raw.githubusercontent.com/LWJGL/lwjgl3/3.4.3/modules/lwjgl/openal/openal_soft_license.txt",
+    "path": "licenses/assets/dependency-evidence/original-notices/lwjgl-3.4.3/modules/lwjgl/openal/openal_soft_license.txt",
+    "sha256": "b7993225104d90ddd8024fd838faf300bea5e83d91203eab98e29512acebd69c",
+    "bytes": 25383
+  },
+  {
+    "source": "https://raw.githubusercontent.com/LWJGL/lwjgl3/3.4.3/modules/lwjgl/opengl/khronos_license.txt",
+    "path": "licenses/assets/dependency-evidence/original-notices/lwjgl-3.4.3/modules/lwjgl/opengl/khronos_license.txt",
+    "sha256": "f3857759226191860119a14e6cc0420df506c10a5c1b6b2ff8abc8f8d31920fb",
+    "bytes": 1146
+  },
+  {
+    "source": "https://raw.githubusercontent.com/LWJGL/lwjgl3/3.4.3/modules/lwjgl/sdl/sdl_license.txt",
+    "path": "licenses/assets/dependency-evidence/original-notices/lwjgl-3.4.3/modules/lwjgl/sdl/sdl_license.txt",
+    "sha256": "a0e8ce06504966e45088ee1cc7583cc8af9aac615d4cf56d47d847da9cb15139",
+    "bytes": 878
+  }
+]

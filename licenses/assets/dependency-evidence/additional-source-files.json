@@ -1,0 +1,31 @@
+[
+  {
+    "file": "pylon-versions.toml",
+    "source": "https://raw.githubusercontent.com/Polyfrost/pylon/7c7cb32d4780cd4c69841f3d96a23adc03b08044/gradle/libs.versions.toml",
+    "sha256": "50c9b4a8c817f127dad9d60e613c21f186bff893b2e90b096b2916a0cfd5c620",
+    "bytes": 800
+  },
+  {
+    "file": "pylon-buildlogic.gradle.kts",
+    "source": "https://raw.githubusercontent.com/Polyfrost/pylon/7c7cb32d4780cd4c69841f3d96a23adc03b08044/build-logic/build.gradle.kts",
+    "sha256": "e3029dd2fa94877dc36a900a18ac364f457ff7d97e836324def0f6573e63ae33",
+    "bytes": 462
+  },
+  {
+    "file": "smartsearch-model-metadata.json",
+    "source": "https://huggingface.co/api/models/Snowflake/snowflake-arctic-embed-xs",
+    "sha256": "9f2770f3a41769ce1488e959095a07895aaaacdc44276f7e47431d25af62c7ef",
+    "bytes": 160480
+  },
+  {
+    "file": "smartsearch-model-LICENSE.txt",
+    "source": "https://huggingface.co/Snowflake/snowflake-arctic-embed-xs/resolve/main/LICENSE",
+    "error": "HTTP Error 404: Not Found"
+  },
+  {
+    "file": "smartsearch-model-README.md",
+    "source": "https://huggingface.co/Snowflake/snowflake-arctic-embed-xs/resolve/main/README.md",
+    "sha256": "6bfaf51250f5360e505272dde4a9ffcdc41bf66b090d68e8f9ecc4807ab80507",
+    "bytes": 85189
+  }
+]

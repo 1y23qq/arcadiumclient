@@ -1,0 +1,10 @@
+Package: dispatch 0.2.0
+Published license expression: MIT
+Published authors: ["Steven Sheldon"]
+Locked crate SHA256: bd0c93bb4b0c6d9b77f4435b0ae98c24d17f1c45b2ff844c6151a07256ca923b
+Source: https://crates.io/api/v1/crates/dispatch/0.2.0/download
+
+The published crate and its identified source omit a standalone original license file.
+The package explicitly declares the SPDX license above; the canonical license text is
+supplied as a reference. It is not represented as a recovered upstream copyright notice.
+No author names, copyright years or copyright ownership statements have been invented.

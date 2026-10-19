@@ -1,0 +1,14 @@
+Font Awesome Free 6.7.2 brand glyphs, copyright 2024 Fonticons, Inc. (https://fontawesome.com).
+Windows, Apple and Linux glyph paths are unchanged; SVG wrappers use currentColor.
+The Discord SVG is an unmodified copy of the official Font Awesome file.
+Icons are licensed under Creative Commons Attribution 4.0 International.
+License: https://creativecommons.org/licenses/by/4.0/
+Full legal text: Font-Awesome-CC-BY-4.0.txt
+Original package license: Font-Awesome-Free-LICENSE.txt
+
+Pinned sources:
+https://github.com/FortAwesome/Font-Awesome/tree/6.7.2/svgs/brands
+https://github.com/FortAwesome/Font-Awesome/blob/6.7.2/LICENSE.txt
+
+These symbols identify Windows, macOS, Linux and Discord respectively.
+Their owners' trademarks are not licensed by the software license, and no endorsement is implied.

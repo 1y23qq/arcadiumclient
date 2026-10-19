@@ -1,0 +1,85 @@
+{
+  "scope": "Minecraft 1.8.9 bundled distribution. Third-party notices and copyright remain with their respective authors.",
+  "excluded": [
+    {
+      "id": "polyplus",
+      "license": "PolyForm-Shield-1.0.0",
+      "reason": "Noncompete restrictions are incompatible with the intended free source distribution.",
+      "replacement": "client-runtime: independent Arcadium-added code only"
+    },
+    {
+      "id": "chattweaks",
+      "license": "CC-BY-NC-SA-4.0",
+      "evidence": "Exact locked JAR LICENSE_chattweaks",
+      "replacement": "Independent Arcadium chat controls",
+      "historicalArtifacts": [
+        {
+          "file": "mods/chattweaks-1.2.1+1.8.9.jar",
+          "sha1": "8bbfe748a8b7cb84352bcb3f9bc1545095aa49b3",
+          "sha256": "8e56b96fbe23664cd9698e8615883517e07c15d1319018f528bdb3d550897892"
+        }
+      ]
+    },
+    {
+      "id": "polysprint",
+      "license": "AGPL-3.0-only",
+      "evidence": "Exact locked JAR LICENSE_polysprint; metadata incorrectly says GPL-3.0-or-later",
+      "replacement": "Independent Arcadium sprint controls",
+      "historicalArtifacts": [
+        {
+          "file": "mods/polysprint-1.3.2+1.8.9.jar",
+          "sha1": "e234afa5498ac6a5b5a986f2d547ad3761b31b8d",
+          "sha256": "15df80cae56dfd52b053b0e3341b8888591be864cd0020908c9800fd03d155a6"
+        }
+      ]
+    },
+    {
+      "id": "crashpatch",
+      "reason": "Crash recovery is excluded from Arcadium managed bundles.",
+      "historicalArtifacts": [
+        {
+          "file": "mods/CrashPatch-2.2.0+1.8.9.jar",
+          "sha1": "70147ae8a48250b6017d8e77a47ae2a357113d18",
+          "sha256": "38eef0180bbada01b30b5ab00d74c727d448f6c3defbd270e4c653d8651f62ff"
+        }
+      ]
+    },
+    {
+      "path": "resourcepacks/NewDefault+mc1.8.9.zip",
+      "source": "https://github.com/awruff/jappa-verbatim/tree/588ee46",
+      "reason": "Pack compilation is public-domain but textures remain Mojang-owned; no independent texture redistribution grant found. User-imported resource packs remain supported.",
+      "historicalArtifacts": [
+        {
+          "file": "resourcepacks/NewDefault+mc1.8.9.zip",
+          "sha1": "3c2adaa32cf142aa5fd9d7ea02cfa48685e3d529",
+          "sha256": "2968d84d31eb9dd12bfc085413132b3d30d6df114c9820dbe752b916381b3c35"
+        }
+      ]
+    }
+  ],
+  "externalDependenciesOutsideProjectLicense": [
+    {
+      "id": "argentum",
+      "license": "All-Rights-Reserved",
+      "source": "https://github.com/QuicksilverMC/Argentum/blob/v1.0.1/README.md",
+      "distribution": "Official, unmodified dependency from the historical 0.3.6 lock. Its source/binaries are not published in this repository and are not covered by the project GPL license."
+    },
+    {
+      "id": "argentum-extras",
+      "license": "All-Rights-Reserved",
+      "source": "https://github.com/QuicksilverMC/Argentum/blob/v1.0.1/README.md",
+      "distribution": "Official, unmodified dependency from the historical 0.3.6 lock. Its source/binaries are not published in this repository and are not covered by the project GPL license."
+    },
+    {
+      "id": "cera",
+      "license": "All-Rights-Reserved",
+      "source": "https://github.com/QuicksilverMC/Argentum/blob/v1.0.1/README.md",
+      "distribution": "Official, unmodified dependency from the historical 0.3.6 lock. Its source/binaries are not published in this repository and are not covered by the project GPL license."
+    },
+    {
+      "id": "tipper",
+      "license": "OSL-3.0",
+      "distribution": "Original independently licensed upstream download dependency, retained outside the OneClient/Polyfrost remediation scope."
+    }
+  ]
+}

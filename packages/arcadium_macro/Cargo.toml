@@ -1,0 +1,25 @@
+[package]
+name = "arcadium_macro"
+description = "Macros for Arcadium Client"
+version = { workspace = true }
+license = { workspace = true }
+edition = { workspace = true }
+repository = { workspace = true }
+documentation = { workspace = true }
+readme = { workspace = true }
+homepage = { workspace = true }
+authors = { workspace = true }
+
+[lib]
+name = "arcadium_macro"
+path = "src/lib.rs"
+proc-macro = true
+
+[features]
+default = []
+freya = []
+
+[dependencies]
+syn = { workspace = true }
+quote = { workspace = true }
+proc-macro2 = { workspace = true }

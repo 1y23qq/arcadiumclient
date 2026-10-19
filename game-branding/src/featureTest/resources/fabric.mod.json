@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "id": "arcadium_feature_test",
+  "version": "1.0.0",
+  "name": "Arcadium Feature QA",
+  "environment": "client",
+  "mixins": ["arcadium-feature-test.mixins.json"],
+  "depends": {"fabricloader": ">=0.19.5", "minecraft": "1.8.9", "java": ">=25"}
+}

@@ -1,0 +1,11 @@
+{
+  "forkBaseCommit": "97df4a7651881bbf7ab899aeba7af4f428154a38",
+  "forkBaseLicenseSource": "https://raw.githubusercontent.com/Polyfrost/OneConfig/97df4a7651881bbf7ab899aeba7af4f428154a38/LICENSE",
+  "forkBaseLicenseSha256": "2afc780cec59015c7c6b0c022924798376414fb9ae64955cfd1b00d82c9c3b99",
+  "retainedClientUiLicenseSha256": "2afc780cec59015c7c6b0c022924798376414fb9ae64955cfd1b00d82c9c3b99",
+  "retainedLicenseExactBytes": true,
+  "retainedLicenseEqualIgnoringLineEndings": true,
+  "verifiedAssetCommit": "82b113fb2f5a5a604238d03675fbbf441047357b",
+  "verifiedAssetLicenseSource": "https://raw.githubusercontent.com/Polyfrost/OneConfig/82b113fb2f5a5a604238d03675fbbf441047357b/LICENSE",
+  "verifiedAssetLicenseSha256": "2afc780cec59015c7c6b0c022924798376414fb9ae64955cfd1b00d82c9c3b99"
+}

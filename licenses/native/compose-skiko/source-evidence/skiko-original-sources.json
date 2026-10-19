@@ -1,0 +1,22 @@
+[
+  {
+    "source": "https://raw.githubusercontent.com/JetBrains/skiko/a0c3d414a614b90810f3fc1654a8e8a18dbd983d/NOTICE",
+    "file": "licenses/native/compose-skiko/source-evidence/skiko-NOTICE",
+    "sha256": "35dd077c24768b53625101cfcc0ad853ae7e2abc08bd2a111a0267760d1406d8"
+  },
+  {
+    "source": "https://raw.githubusercontent.com/JetBrains/skiko/a0c3d414a614b90810f3fc1654a8e8a18dbd983d/dependencies.toml",
+    "file": "licenses/native/compose-skiko/source-evidence/skiko-dependencies.toml",
+    "sha256": "4528379ea279388ebd938bf39604305e191c5909deada729a1cde586de63d1a2"
+  },
+  {
+    "source": "https://raw.githubusercontent.com/JetBrains/skiko/a0c3d414a614b90810f3fc1654a8e8a18dbd983d/skiko/gradle.properties",
+    "file": "licenses/native/compose-skiko/source-evidence/skiko-skiko__gradle.properties",
+    "sha256": "fc68cfaf3599ec9a3b1f7ebb3bd0ff8f95b299eb66a3cd12e52fc7853a0a17bf"
+  },
+  {
+    "source": "https://raw.githubusercontent.com/JetBrains/skiko/a0c3d414a614b90810f3fc1654a8e8a18dbd983d/skiko/buildSrc/src/main/kotlin/dsl/SkikoDependency.kt",
+    "file": "licenses/native/compose-skiko/source-evidence/skiko-skiko__buildSrc__src__main__kotlin__dsl__SkikoDependency.kt",
+    "sha256": "a09f091c92a1af9ea4520d22a24c8778584980aec774950c3a4464fec1f7d3f6"
+  }
+]

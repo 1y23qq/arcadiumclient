@@ -1,0 +1,10 @@
+{
+  "ref": "refs/tags/legacy-gui-blur-6.3.4-mc1.8.9-fabric",
+  "node_id": "REF_kwDOUT0gyNoALnJlZnMvdGFncy9sZWdhY3ktZ3VpLWJsdXItNi4zLjQtbWMxLjguOS1mYWJyaWM",
+  "url": "https://api.github.com/repos/Polyfrost/Blur/git/refs/tags/legacy-gui-blur-6.3.4-mc1.8.9-fabric",
+  "object": {
+    "sha": "7693f7673c5975b0e3ce1e06704670bd55e17015",
+    "type": "commit",
+    "url": "https://api.github.com/repos/Polyfrost/Blur/git/commits/7693f7673c5975b0e3ce1e06704670bd55e17015"
+  }
+}

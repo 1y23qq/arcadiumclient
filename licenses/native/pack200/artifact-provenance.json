@@ -1,0 +1,191 @@
+{
+  "source": "https://repo.maven.apache.org/maven2/org/glavo/pack200/0.3.0/pack200-0.3.0.jar",
+  "sha256": "9b65fae9a51947f8d9bb9f2baf5eeacbddc74423037372fe3d4f62b78f30635d",
+  "bytes": 324952,
+  "originalLicenses": [
+    {
+      "sourceArchive": "https://repo.maven.apache.org/maven2/org/glavo/pack200/0.3.0/pack200-0.3.0-sources.jar",
+      "sha256": "ed435ff4172b70cd1834aedbf6a408516f774d1b9642a1626255af73f8b351e0",
+      "sampleSource": "org/glavo/pack200/impl/AdaptiveCoding.java",
+      "originalHeader": "licenses/native/pack200/original-source-header.txt"
+    }
+  ],
+  "licenseExpression": "GPL-2.0-only WITH Classpath-exception-2.0",
+  "upstreamTag": "0.3.0",
+  "upstreamCommit": "9cdee365bc34e5e312b215adf8907016eb57747f",
+  "upstreamArchive": {
+    "url": "https://codeload.github.com/Glavo/pack200/tar.gz/9cdee365bc34e5e312b215adf8907016eb57747f",
+    "sha256": "92b84da4620ebe7b9d4ef43c628dea50bfac2a38edc9fc99c54403ad7645e699"
+  },
+  "sourceArchiveToTaggedSource": {
+    "files": [
+      {
+        "file": "org/glavo/pack200/impl/AdaptiveCoding.java",
+        "tagSource": "src/main/java/org/glavo/pack200/impl/AdaptiveCoding.java",
+        "identical": true,
+        "sha256": "a77a58a83c8b856199dc5e3f1abccd9efc378baba1aaeb13da018cfc5284bbfb"
+      },
+      {
+        "file": "org/glavo/pack200/impl/Attribute.java",
+        "tagSource": "src/main/java/org/glavo/pack200/impl/Attribute.java",
+        "identical": true,
+        "sha256": "7e5737879d3214bc9fb73c4bc5d0d9971dd3b00cd3955e38f29aa9b3a082ba90"
+      },
+      {
+        "file": "org/glavo/pack200/impl/BandStructure.java",
+        "tagSource": "src/main/java/org/glavo/pack200/impl/BandStructure.java",
+        "identical": true,
+        "sha256": "e47b7fee8d95ba75f27a9159fe8e595b1a31af7e0124f421a2dfec9e1a4c5e0d"
+      },
+      {
+        "file": "org/glavo/pack200/impl/ClassReader.java",
+        "tagSource": "src/main/java/org/glavo/pack200/impl/ClassReader.java",
+        "identical": true,
+        "sha256": "5aa95fbf31aced0ec60731da52bc4ad1c8e69a117724425ee3c68ad13b83c43c"
+      },
+      {
+        "file": "org/glavo/pack200/impl/ClassWriter.java",
+        "tagSource": "src/main/java/org/glavo/pack200/impl/ClassWriter.java",
+        "identical": true,
+        "sha256": "c9bda4f0c32568f6bbea43ca0ff03ebce591202613e34d1af634eef5a8bd2e8d"
+      },
+      {
+        "file": "org/glavo/pack200/impl/Code.java",
+        "tagSource": "src/main/java/org/glavo/pack200/impl/Code.java",
+        "identical": true,
+        "sha256": "805645a7156321100a10699f35fa282057d99a94a63ea9550798a5dfe3ebe4d4"
+      },
+      {
+        "file": "org/glavo/pack200/impl/Coding.java",
+        "tagSource": "src/main/java/org/glavo/pack200/impl/Coding.java",
+        "identical": true,
+        "sha256": "06b27f63043a399bf5a3f1b524abc0b8a797c2bbb90c0e8ccd861751a6751bad"
+      },
+      {
+        "file": "org/glavo/pack200/impl/CodingChooser.java",
+        "tagSource": "src/main/java/org/glavo/pack200/impl/CodingChooser.java",
+        "identical": true,
+        "sha256": "46a49a8af2e32acf2ffacabdfc6db875235fb6ef249eaefc9fb134f07dcf400b"
+      },
+      {
+        "file": "org/glavo/pack200/impl/CodingMethod.java",
+        "tagSource": "src/main/java/org/glavo/pack200/impl/CodingMethod.java",
+        "identical": true,
+        "sha256": "6461acaecf21e8ad904e6ebbe43c0fe4fda88dd09c9dd402972f4e057c5b0fdd"
+      },
+      {
+        "file": "org/glavo/pack200/impl/ConstantPool.java",
+        "tagSource": "src/main/java/org/glavo/pack200/impl/ConstantPool.java",
+        "identical": true,
+        "sha256": "cfbbf9ea8a36668c9cb4905e28997691b8699f3cdc9a52b252a85ac7227b389e"
+      },
+      {
+        "file": "org/glavo/pack200/impl/Constants.java",
+        "tagSource": "src/main/java/org/glavo/pack200/impl/Constants.java",
+        "identical": true,
+        "sha256": "e1c6fdf1a71738dedb2376026fb5df4a66cd295f55fdcbb5eed5bcb33d27a284"
+      },
+      {
+        "file": "org/glavo/pack200/impl/FixedList.java",
+        "tagSource": "src/main/java/org/glavo/pack200/impl/FixedList.java",
+        "identical": true,
+        "sha256": "c553560e645a34cc7f9179297aa7cdd4c1413826c9ec73994a27357d1f7d467a"
+      },
+      {
+        "file": "org/glavo/pack200/impl/Fixups.java",
+        "tagSource": "src/main/java/org/glavo/pack200/impl/Fixups.java",
+        "identical": true,
+        "sha256": "4a2bff67df531cfdb1ee1106931d18bde0c11d25f94bf7a77cb9b03ff3715e89"
+      },
+      {
+        "file": "org/glavo/pack200/impl/Histogram.java",
+        "tagSource": "src/main/java/org/glavo/pack200/impl/Histogram.java",
+        "identical": true,
+        "sha256": "1ec92224fe0127563a3741e2cdf64fdaa16b7df48f9a8b44659c40413f2c3799"
+      },
+      {
+        "file": "org/glavo/pack200/impl/Instruction.java",
+        "tagSource": "src/main/java/org/glavo/pack200/impl/Instruction.java",
+        "identical": true,
+        "sha256": "b4809ca4720044269273533865c916a8548526764c7dc3341af318861422af3e"
+      },
+      {
+        "file": "org/glavo/pack200/impl/package-info.java",
+        "tagSource": "src/main/java/org/glavo/pack200/impl/package-info.java",
+        "identical": false,
+        "sha256": "4f9f99810866da33fa2c1c5581481b7e7177ca800fc2f841dcf9834a3e29e6d1"
+      },
+      {
+        "file": "org/glavo/pack200/impl/Package.java",
+        "tagSource": "src/main/java/org/glavo/pack200/impl/Package.java",
+        "identical": true,
+        "sha256": "2c75b97d5896d94983fee61e72b9eff7c808528202603447d9e57ab73d2530cc"
+      },
+      {
+        "file": "org/glavo/pack200/impl/PackageReader.java",
+        "tagSource": "src/main/java/org/glavo/pack200/impl/PackageReader.java",
+        "identical": true,
+        "sha256": "5b0fafbef0e26b5bb01fadd9681999deb3de31c11bd9dbaecb03668d1a65c7a4"
+      },
+      {
+        "file": "org/glavo/pack200/impl/PackageWriter.java",
+        "tagSource": "src/main/java/org/glavo/pack200/impl/PackageWriter.java",
+        "identical": true,
+        "sha256": "e462842125bc9e2095d84ba4166c17feb26f345c1b2f3a67a212160c4ccb2f1d"
+      },
+      {
+        "file": "org/glavo/pack200/impl/PackerImpl.java",
+        "tagSource": "src/main/java/org/glavo/pack200/impl/PackerImpl.java",
+        "identical": true,
+        "sha256": "33fca4131c5a634624802f7fa54c1149d02856fc340f7443049843887564842d"
+      },
+      {
+        "file": "org/glavo/pack200/impl/PopulationCoding.java",
+        "tagSource": "src/main/java/org/glavo/pack200/impl/PopulationCoding.java",
+        "identical": true,
+        "sha256": "ff1e816111ada8b936d6fc5b213dd76b71efb7021e4ce8df361c6df237ae95f1"
+      },
+      {
+        "file": "org/glavo/pack200/impl/PropMap.java",
+        "tagSource": "src/main/java/org/glavo/pack200/impl/PropMap.java",
+        "identical": true,
+        "sha256": "2dbd326c114f2c18b7c878c0030dfa5c27d70a36be3c3c004c806436907f7e97"
+      },
+      {
+        "file": "org/glavo/pack200/impl/TLGlobals.java",
+        "tagSource": "src/main/java/org/glavo/pack200/impl/TLGlobals.java",
+        "identical": true,
+        "sha256": "12e13177a54287aa07526838682f3f12a931b5dca1e6cd49a39c33104de61754"
+      },
+      {
+        "file": "org/glavo/pack200/impl/UnpackerImpl.java",
+        "tagSource": "src/main/java/org/glavo/pack200/impl/UnpackerImpl.java",
+        "identical": true,
+        "sha256": "12f80ff3579e3dff683a1701efa5b94ff900368a0b7ed3c6757c64732b0be77b"
+      },
+      {
+        "file": "org/glavo/pack200/impl/Utils.java",
+        "tagSource": "src/main/java/org/glavo/pack200/impl/Utils.java",
+        "identical": true,
+        "sha256": "0ff271df21a6c36b893d880f6443539e431140b182d11e04c26b766777be9744"
+      },
+      {
+        "file": "org/glavo/pack200/Pack200.java",
+        "tagSource": "src/main/java/org/glavo/pack200/Pack200.java",
+        "identical": true,
+        "sha256": "d47ed294c44ca6ea43adaf2302df11ea100e343d166d98ad4d55a623051dd3f1"
+      }
+    ],
+    "allIdentical": false,
+    "differenceExplanation": "25 of 26 Java files exactly match the release tag. package-info.java differs only by Javadoc link/list repair; executable Java declarations are unchanged. The exact published source archive is separately pinned above; no reproducible-binary claim is made.",
+    "javadocDifference": "licenses/native/pack200/source-javadoc-difference.patch"
+  },
+  "fullOriginalLicense": {
+    "source": "https://raw.githubusercontent.com/openjdk/jdk/jdk-13%2B33/LICENSE",
+    "file": "licenses/native/pack200/GPL-2.0-with-classpath-exception.txt",
+    "sha256": "4b9abebc4338048a7c2dc184e9f800deb349366bdf28eb23c2677a77b4c87726",
+    "bytes": 19274
+  },
+  "fullLicenseOriginNote": "Glavo release omits a standalone LICENSE; its Oracle source headers designate the OpenJDK Classpath exception. This is the complete original JDK 13 license, the upstream identified by the repository README.",
+  "redistributionNote": "The Classpath exception permits linking independent modules under their chosen licenses; it does not relicense Pack200 itself or remove its GPL version 2 corresponding-source conditions."
+}

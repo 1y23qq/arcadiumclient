@@ -1,0 +1,7 @@
+{
+  "version": 1,
+  "privacy_version": 1,
+  "updated_at": "2026-10-16",
+  "terms": "# Arcadium Client\n\nMinecraft 1.8.9 launcher. Minecraft and bundled mods retain their original licenses. A licensed Microsoft Minecraft account is required for online play.",
+  "privacy": "# Privacy\n\nAccounts, settings and game files are stored locally. Microsoft, Xbox, Mojang and download providers receive requests needed for sign-in and installation. Arcadium badges verify your Minecraft account through a separate temporary presence service.\n\nThe online count uses a random installation ID and temporary process sessions while the launcher or game is running. The same installation is counted once. No account name, Minecraft access token, server address or world name is sent to the counter. Sessions expire after 90 seconds without a heartbeat. Disable Online Count in Launcher settings to stop both launcher and game contributions.\n\nDiscord activity is optional. Launcher updates ask before downloading. Full policy: https://arcadiumclient.com/privacy/"
+}

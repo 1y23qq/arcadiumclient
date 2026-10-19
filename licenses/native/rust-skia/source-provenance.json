@@ -1,0 +1,111 @@
+{
+  "rustCrate": "freya-skia-bindings",
+  "version": "0.100.0-beta.1",
+  "rustSourceCommit": "c31b06a70312314463141579057f12df09f3d624",
+  "skiaTag": "m153-0.101.2",
+  "sources": [
+    {
+      "file": "licenses/native/rust-skia/LICENSE",
+      "source": "https://raw.githubusercontent.com/rust-skia/skia/m153-0.101.2/LICENSE",
+      "sha256": "5f787c1dee3c56547f09ccc2906ab5f5293c4d8dd6c8654e573216c38e908dbd",
+      "bytes": 1507
+    },
+    {
+      "file": "licenses/native/rust-skia/DEPS",
+      "source": "https://raw.githubusercontent.com/rust-skia/skia/m153-0.101.2/DEPS",
+      "sha256": "765be0ad1aff9088cdaad44d06ea9253293aec89a9647a5f5f4e13cdd6750e02",
+      "bytes": 4712
+    }
+  ],
+  "resolvedCargoFeatures": [
+    "binary-cache",
+    "egl",
+    "embed-icudtl",
+    "ganesh",
+    "gl",
+    "jpeg",
+    "jpeg-decode",
+    "jpeg-encode",
+    "metal",
+    "svg",
+    "textlayout",
+    "vulkan",
+    "wayland",
+    "webp-decode",
+    "webp-encode",
+    "x11"
+  ],
+  "nativeComponentSourceRelation": "This wrapper pins rust-skia/skia m153-0.101.2; it does not use JetBrains Skia m154. Shared external dependency revisions are compared explicitly below.",
+  "sharedExternalDependencyPins": [
+    {
+      "component": "brotli",
+      "source": "https://skia.googlesource.com/external/github.com/google/brotli.git@6d03dfbedda1615c4cba1211f8d81735575209c8",
+      "identicalToSkikoSkiaDeps": true
+    },
+    {
+      "component": "d3d12allocator",
+      "source": "https://skia.googlesource.com/external/github.com/GPUOpen-LibrariesAndSDKs/D3D12MemoryAllocator.git@169895d529dfce00390a20e69c2f516066fe7a3b",
+      "identicalToSkikoSkiaDeps": true
+    },
+    {
+      "component": "expat",
+      "source": "https://chromium.googlesource.com/external/github.com/libexpat/libexpat.git@6154446fccefbf3ca644894f598969113b0c7bcd",
+      "identicalToSkikoSkiaDeps": true
+    },
+    {
+      "component": "freetype",
+      "source": "https://chromium.googlesource.com/chromium/src/third_party/freetype2.git@264b5fbf5b912b39f98d038bf75d39be0a73f21b",
+      "identicalToSkikoSkiaDeps": true
+    },
+    {
+      "component": "harfbuzz",
+      "source": "https://chromium.googlesource.com/external/github.com/harfbuzz/harfbuzz.git@9cb1fee51069b206effb4736e443b038d230789d",
+      "identicalToSkikoSkiaDeps": true
+    },
+    {
+      "component": "icu",
+      "source": "https://chromium.googlesource.com/chromium/deps/icu.git@d578f2e8b7bd5938e21cfb6bf15c079e0aa5b738",
+      "identicalToSkikoSkiaDeps": true
+    },
+    {
+      "component": "libjpeg-turbo",
+      "source": "https://chromium.googlesource.com/chromium/deps/libjpeg_turbo.git@e14cbfaa85529d47f9f55b0f104a579c1061f9ad",
+      "identicalToSkikoSkiaDeps": true
+    },
+    {
+      "component": "libpng",
+      "source": "https://skia.googlesource.com/third_party/libpng.git@d5515b5b8be3901aac04e5bd8bd5c89f287bcd33",
+      "identicalToSkikoSkiaDeps": true
+    },
+    {
+      "component": "libwebp",
+      "source": "https://chromium.googlesource.com/webm/libwebp.git@845d5476a866141ba35ac133f856fa62f0b7445f",
+      "identicalToSkikoSkiaDeps": true
+    },
+    {
+      "component": "vulkanmemoryallocator",
+      "source": "https://chromium.googlesource.com/external/github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator@eb744ea7a2b17040121b4bbb4d6f9e8a77e3cae7",
+      "identicalToSkikoSkiaDeps": true
+    },
+    {
+      "component": "spirv-cross",
+      "source": "https://chromium.googlesource.com/external/github.com/KhronosGroup/SPIRV-Cross@b8fcf307f1f347089e3c46eb4451d27f32ebc8d3",
+      "identicalToSkikoSkiaDeps": true
+    },
+    {
+      "component": "v8",
+      "source": "https://chromium.googlesource.com/v8/v8.git@5f1ae66d5634e43563b2d25ea652dfb94c31a3b4",
+      "identicalToSkikoSkiaDeps": true
+    },
+    {
+      "component": "wuffs",
+      "source": "https://skia.googlesource.com/external/github.com/google/wuffs-mirror-release-c.git@e3f919ccfe3ef542cfc983a82146070258fb57f8",
+      "identicalToSkikoSkiaDeps": true
+    },
+    {
+      "component": "zlib",
+      "source": "https://chromium.googlesource.com/chromium/src/third_party/zlib@646b7f569718921d7d4b5b8e22572ff6c76f2596",
+      "identicalToSkikoSkiaDeps": true
+    }
+  ]
+}

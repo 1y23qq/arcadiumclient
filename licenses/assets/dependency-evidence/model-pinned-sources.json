@@ -1,0 +1,26 @@
+[
+  {
+    "file": "smartsearch-model-pinned-README.md",
+    "source": "https://huggingface.co/Snowflake/snowflake-arctic-embed-xs/resolve/d8c86521100d3556476a063fc2342036d45c106f/README.md",
+    "sha256": "6bfaf51250f5360e505272dde4a9ffcdc41bf66b090d68e8f9ecc4807ab80507",
+    "bytes": 85189
+  },
+  {
+    "file": "smartsearch-model-tree-onnx.json",
+    "source": "https://huggingface.co/api/models/Snowflake/snowflake-arctic-embed-xs/tree/d8c86521100d3556476a063fc2342036d45c106f/onnx?expand=true",
+    "sha256": "dc5fb38134196fbab29dae9af15dce48bef5052a82832b700f2fcad3e32085b3",
+    "bytes": 9026
+  },
+  {
+    "file": "smartsearch-model-tree-root.json",
+    "source": "https://huggingface.co/api/models/Snowflake/snowflake-arctic-embed-xs/tree/d8c86521100d3556476a063fc2342036d45c106f?expand=true",
+    "sha256": "6d99cbcb54940d69cc3f61f9b953adc6c05122025488752126e0a20f52db97db",
+    "bytes": 11038
+  },
+  {
+    "file": "smartsearch-model-APACHE-2.0.txt",
+    "source": "https://www.apache.org/licenses/LICENSE-2.0.txt",
+    "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+    "bytes": 11358
+  }
+]

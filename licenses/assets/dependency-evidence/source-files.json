@@ -1,0 +1,114 @@
+[
+  {
+    "project": "pylon",
+    "source": "https://raw.githubusercontent.com/Polyfrost/pylon/7c7cb32d4780cd4c69841f3d96a23adc03b08044/LICENSE.md",
+    "path": "licenses/assets/dependency-evidence/pylon/LICENSE.md",
+    "sha256": "c084d3d0560c3731716fc2f2d7993647953810bba5d880e2aa2290d1c66d18d6",
+    "bytes": 7680
+  },
+  {
+    "project": "pylon",
+    "source": "https://raw.githubusercontent.com/Polyfrost/pylon/7c7cb32d4780cd4c69841f3d96a23adc03b08044/README.md",
+    "path": "licenses/assets/dependency-evidence/pylon/README.md",
+    "sha256": "30d5ea66337fb9355d274075766a2119a7706fdb6e0713f46b9e0091d3483455",
+    "bytes": 1028
+  },
+  {
+    "project": "pylon",
+    "source": "https://raw.githubusercontent.com/Polyfrost/pylon/7c7cb32d4780cd4c69841f3d96a23adc03b08044/gradle.properties",
+    "path": "licenses/assets/dependency-evidence/pylon/gradle.properties",
+    "sha256": "a26542f796cf0f5c1127fe0f1db8c637be94daddd650661099218c4cb6d33d82",
+    "bytes": 124
+  },
+  {
+    "project": "pylon",
+    "source": "https://raw.githubusercontent.com/Polyfrost/pylon/7c7cb32d4780cd4c69841f3d96a23adc03b08044/build.gradle.kts",
+    "path": "licenses/assets/dependency-evidence/pylon/build.gradle.kts",
+    "sha256": "e03af6d66be425e2a49ad4fa4e4b0749d8d6abedb3e278830febb6caa9648f45",
+    "bytes": 34
+  },
+  {
+    "project": "sarcio",
+    "source": "https://raw.githubusercontent.com/QuicksilverMC/Sarcio/224f5400e130c14d13c7c213d0b269d557c91e0a/COPYING",
+    "path": "licenses/assets/dependency-evidence/sarcio/COPYING",
+    "sha256": "e3a994d82e644b03a792a930f574002658412f62407f5fee083f2555c5f23118",
+    "bytes": 7652
+  },
+  {
+    "project": "sarcio",
+    "source": "https://raw.githubusercontent.com/QuicksilverMC/Sarcio/224f5400e130c14d13c7c213d0b269d557c91e0a/README.md",
+    "path": "licenses/assets/dependency-evidence/sarcio/README.md",
+    "sha256": "4ec9f32a3c9edc228d7afb2935c6073cc53f11edff22b48d5eebaf62cb9a4707",
+    "bytes": 1225
+  },
+  {
+    "project": "sarcio",
+    "source": "https://raw.githubusercontent.com/QuicksilverMC/Sarcio/224f5400e130c14d13c7c213d0b269d557c91e0a/gradle.properties",
+    "path": "licenses/assets/dependency-evidence/sarcio/gradle.properties",
+    "sha256": "758b76531ad33d42cc8c10bcbd7454d897945353ed6d4a2fc012f52a5c8f0964",
+    "bytes": 80
+  },
+  {
+    "project": "sarcio",
+    "source": "https://raw.githubusercontent.com/QuicksilverMC/Sarcio/224f5400e130c14d13c7c213d0b269d557c91e0a/build.gradle.kts",
+    "path": "licenses/assets/dependency-evidence/sarcio/build.gradle.kts",
+    "sha256": "78534fd0c59f33127933501b20d05b8798470207b4bb0a39624daca7a3804510",
+    "bytes": 2488
+  },
+  {
+    "project": "smartsearch",
+    "source": "https://raw.githubusercontent.com/Polyfrost/SmartSearch/18065017f2eafc6f2dc431da703fd684676b24ee/LICENSE",
+    "path": "licenses/assets/dependency-evidence/smartsearch/LICENSE",
+    "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
+    "bytes": 35149
+  },
+  {
+    "project": "smartsearch",
+    "source": "https://raw.githubusercontent.com/Polyfrost/SmartSearch/18065017f2eafc6f2dc431da703fd684676b24ee/README.md",
+    "path": "licenses/assets/dependency-evidence/smartsearch/README.md",
+    "sha256": "b9faf42340bcbd5faa0eabb7428c1b936db20b1d682ca6bf3a455a8a1975ba92",
+    "bytes": 80
+  },
+  {
+    "project": "smartsearch",
+    "source": "https://raw.githubusercontent.com/Polyfrost/SmartSearch/18065017f2eafc6f2dc431da703fd684676b24ee/gradle.properties",
+    "path": "licenses/assets/dependency-evidence/smartsearch/gradle.properties",
+    "sha256": "128850cfeb97f9b41f9680ffdafb077355d60ca904798e5975c7754f43d9bd31",
+    "bytes": 27
+  },
+  {
+    "project": "smartsearch",
+    "source": "https://raw.githubusercontent.com/Polyfrost/SmartSearch/18065017f2eafc6f2dc431da703fd684676b24ee/build.gradle.kts",
+    "path": "licenses/assets/dependency-evidence/smartsearch/build.gradle.kts",
+    "sha256": "224e9e4499d2da0c05ac5add45c52726eac17d55343f1e749886aa825a385559",
+    "bytes": 7438
+  },
+  {
+    "project": "itemphysic",
+    "source": "https://raw.githubusercontent.com/Tryflle/O-ItemPhysicLite/b62f61e8381f386495a5a30c9a109d00d49f666b/LICENSE",
+    "path": "licenses/assets/dependency-evidence/itemphysic/LICENSE",
+    "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
+    "bytes": 35149
+  },
+  {
+    "project": "itemphysic",
+    "source": "https://raw.githubusercontent.com/Tryflle/O-ItemPhysicLite/b62f61e8381f386495a5a30c9a109d00d49f666b/README.md",
+    "path": "licenses/assets/dependency-evidence/itemphysic/README.md",
+    "sha256": "c549415e6ff9ff9c74f9cdf20362abd55ec611ab3ca2ca223e9495b390765ace",
+    "bytes": 447
+  },
+  {
+    "project": "itemphysic",
+    "source": "https://raw.githubusercontent.com/Tryflle/O-ItemPhysicLite/b62f61e8381f386495a5a30c9a109d00d49f666b/gradle.properties",
+    "path": "licenses/assets/dependency-evidence/itemphysic/gradle.properties",
+    "sha256": "aa87cd3f6134ba8501fb32ed44c0c0bc8a9cfe05297b7826e17999113d2a0158",
+    "bytes": 193
+  },
+  {
+    "project": "itemphysic",
+    "source": "https://raw.githubusercontent.com/Tryflle/O-ItemPhysicLite/b62f61e8381f386495a5a30c9a109d00d49f666b/build.gradle.kts",
+    "path": "licenses/assets/dependency-evidence/itemphysic/build.gradle.kts",
+    "sha256": "1d3d1cd047f7d021d155043f7df37d643cdf7edee61d6ffd8933838708f2a765",
+    "bytes": 845
+  }
+]

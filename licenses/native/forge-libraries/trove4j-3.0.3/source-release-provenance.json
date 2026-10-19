@@ -1,0 +1,34 @@
+{
+  "releaseArchive": {
+    "source": "https://sourceforge.net/projects/trove4j/files/trove/3.0.3/trove-3.0.3.tar.gz/download",
+    "sha256": "6242de1c7a8715016ca98013b456b27b0c0dbe700cd1d2e8020871bfa3829bc2",
+    "bytes": 5863629
+  },
+  "notices": [
+    {
+      "archivePath": "3.0.3/AUTHORS.txt",
+      "file": "licenses/native/forge-libraries/trove4j-3.0.3/original-release-notices/AUTHORS.txt",
+      "sha256": "1b2868046bc0e020d96fc30fea96e1f5ffc55d473b1ba424d8afc3097b88b814",
+      "bytes": 553
+    },
+    {
+      "archivePath": "3.0.3/LICENSE.txt",
+      "file": "licenses/native/forge-libraries/trove4j-3.0.3/original-release-notices/LICENSE.txt",
+      "sha256": "b6f9200ac8f1dc990e73c4942ea2b5ba0c5cd99aa257dcb766b4c7ff8b92dd99",
+      "bytes": 26976
+    },
+    {
+      "archivePath": "3.0.3/README-license.txt",
+      "file": "licenses/native/forge-libraries/trove4j-3.0.3/original-release-notices/README-license.txt",
+      "sha256": "934ecc80489a5cd706102364a42204e386291fb9d4350d8e1a17a50a1fce266e",
+      "bytes": 889
+    }
+  ],
+  "releaseJarCandidates": [
+    {
+      "archivePath": "3.0.3/lib/trove-3.0.3.jar",
+      "sha256": "3c8616203d61a12a7e3487e8b34f3c198c2b5ba9e90da0c7ea32d99cd4958012",
+      "bytes": 2523218
+    }
+  ]
+}

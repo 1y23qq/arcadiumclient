@@ -1,0 +1,67 @@
+package org.polyfrost.oneconfig.internal.ui.navigation
+
+import androidx.navigation.NavDestination
+import androidx.navigation.NavDestination.Companion.hasRoute
+import androidx.navigation.NavDestination.Companion.hierarchy
+import org.polyfrost.oneconfig.internal.ui.navigation.graph.ChangeLogGraph
+import org.polyfrost.oneconfig.internal.ui.navigation.graph.CreditsGraph
+import org.polyfrost.oneconfig.internal.ui.navigation.graph.KeybindsGraph
+import org.polyfrost.oneconfig.internal.ui.navigation.graph.ModsGraph
+import org.polyfrost.oneconfig.internal.ui.navigation.graph.PreferencesGraph
+import org.polyfrost.oneconfig.internal.ui.navigation.graph.ProfilesGraph
+import org.polyfrost.oneconfig.internal.ui.navigation.graph.ThemesGraph
+
+data class NavigationRoute(
+    val id: String,
+    val icon: String,
+    val route: Any,
+)
+
+class NavigationGroup(
+    val id: String,
+    vararg val routes: NavigationRoute
+)
+
+val NavigationGroups = listOf(
+    NavigationGroup(
+        id = "Mods & Options",
+        NavigationRoute(
+            id = "mods",
+            icon = "settings",
+            route = ModsGraph
+        ),
+        NavigationRoute(
+            id = "profiles",
+            icon = "profiles",
+            route = ProfilesGraph
+        ),
+        NavigationRoute(
+            id = "keybinds",
+            icon = "keyboard",
+            route = KeybindsGraph
+        )
+    ),
+    NavigationGroup(
+        id = "Personalization",
+        NavigationRoute(
+            id = "themes",
+            icon = "paintbrush",
+            route = ThemesGraph
+        ),
+        NavigationRoute(
+            id = "preferences",
+            icon = "cog",
+            route = PreferencesGraph
+        ),
+    )
+)
+
+fun searchPlaceholder(destination: NavDestination?): String {
+    val section = NavigationGroups
+        .asSequence()
+        .flatMap { it.routes.asSequence() }
+        .firstOrNull { def ->
+            destination?.hierarchy?.any { it.hasRoute(def.route::class) } == true
+        }
+    return if (section != null) "Search ${section.id}..." else "Search..."
+}

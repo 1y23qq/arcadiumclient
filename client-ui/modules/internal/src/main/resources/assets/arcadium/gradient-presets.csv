@@ -1,0 +1,256 @@
+Arcadium,#3AA0FF,#36F1B0
+Arcadium Breeze,#5DBFFF,#5DFFCF
+Arcadium Dusk,#2767CF,#24C37F
+Arcadium Dawn,#4AC3FF,#48FBCD
+Arcadium Soft,#89BEFF,#88FFD1
+Arcadium Vivid,#0F97FF,#0DF3AA
+Arcadium Deep,#197EB8,#17AE84
+Arcadium Frost,#A0C0FF,#A0FFD4
+Ember,#FF7048,#FFD166
+Ember Breeze,#FF7D69,#FFE082
+Ember Dusk,#CF6A33,#CF9D4C
+Ember Dawn,#FF6257,#FFE172
+Ember Soft,#FFB191,#FFE0A3
+Ember Vivid,#FF4520,#FFCC44
+Ember Deep,#B83324,#B89B3C
+Ember Frost,#FFCAA7,#FFE1B6
+Sakura,#F7A8D7,#D983FF
+Sakura Breeze,#FFBCE9,#E599FF
+Sakura Dusk,#C885A4,#A665CF
+Sakura Dawn,#FFB4EC,#E68DFF
+Sakura Soft,#FFCEE8,#E5B5FF
+Sakura Vivid,#F998D7,#D568FF
+Sakura Deep,#B2729F,#A054B8
+Sakura Frost,#FFD8E8,#E6C3FF
+Riviera,#32C8D3,#6AA8FF
+Riviera Breeze,#55E4E2,#85B2FF
+Riviera Dusk,#228FAB,#508FCF
+Riviera Dawn,#41DBCF,#76A3FF
+Riviera Soft,#79D2E0,#A6CEFF
+Riviera Vivid,#0FD1D5,#498FFF
+Riviera Deep,#169892,#3F69B8
+Riviera Frost,#97D8EE,#B7DDFF
+Orchard,#90D34F,#E5D578
+Orchard Breeze,#B2E46F,#F7EE97
+Orchard Dusk,#63AB3B,#B9A45D
+Orchard Dawn,#AEDB5D,#EEE886
+Orchard Soft,#AFE08C,#F3E6AD
+Orchard Vivid,#8BD532,#E7D861
+Orchard Deep,#6E982D,#A59E4D
+Orchard Frost,#BDEEA7,#FFF0C5
+Amethyst,#AD79FF,#F69DD2
+Amethyst Breeze,#B391FF,#FFB3DD
+Amethyst Dusk,#985DCF,#C77CAF
+Amethyst Dawn,#A184FF,#FFAAD5
+Amethyst Soft,#D3AFFF,#FFC8EB
+Amethyst Vivid,#935CFF,#F88BC9
+Amethyst Deep,#694CB8,#B1698F
+Amethyst Frost,#E3BFFF,#FFD3F2
+Coral,#FF7E87,#FFC59D
+Coral Breeze,#FF95A5,#FFD3AF
+Coral Dusk,#CF6861,#CF977B
+Coral Dawn,#FF88A2,#FFD2A5
+Coral Soft,#FFB2B2,#FFDAC4
+Coral Vivid,#FF6274,#FFBC87
+Coral Deep,#B85063,#B88E69
+Coral Frost,#FFC8C1,#FFDED0
+Lagoon,#28C6A2,#79E0EB
+Lagoon Breeze,#4AD6AA,#99EFFE
+Lagoon Dusk,#1AA094,#5DBDBE
+Lagoon Dawn,#37CE95,#87E0F4
+Lagoon Soft,#6DD2C2,#B1F5F9
+Lagoon Vivid,#05C892,#61DCED
+Lagoon Deep,#0F8F63,#4D9AA9
+Lagoon Frost,#8AE0DC,#C4FFFE
+Sunrise,#F9B252,#F16C87
+Sunrise Breeze,#FFB873,#FF8C9D
+Sunrise Dusk,#CAA03C,#C35272
+Sunrise Dawn,#FFA562,#FB7B8A
+Sunrise Soft,#FFDA98,#FFABBF
+Sunrise Vivid,#FB9A2E,#F3506C
+Sunrise Deep,#B36A2D,#AE4251
+Sunrise Frost,#FFEBAD,#FFBBD1
+Glacier,#8AD9FF,#B4B5F9
+Glacier Breeze,#9FE8FF,#C7C5FF
+Glacier Dusk,#6BA1CF,#8F95CA
+Glacier Dawn,#93ECFF,#C3BEFF
+Glacier Soft,#B9E4FF,#D5D7FF
+Glacier Vivid,#70D8FF,#A8A6FB
+Glacier Deep,#59A4B8,#7F7CB3
+Glacier Frost,#C7E2FF,#DDE1FF
+Meadow,#54C78C,#B7D776
+Meadow Breeze,#71D79A,#C8E892
+Meadow Dusk,#3FA17C,#9AAE5C
+Meadow Dawn,#61CF86,#B9E083
+Meadow Soft,#8AD3B2,#D2E4A6
+Meadow Vivid,#3BC979,#AED962
+Meadow Deep,#338F55,#7C9B4D
+Meadow Frost,#A2E1CC,#E7F3BE
+Copper,#E99C6B,#E9C48E
+Copper Breeze,#FCAE8C,#FCDFAB
+Copper Dusk,#BD8A52,#BD976F
+Copper Dawn,#F2977A,#F2D79B
+Copper Soft,#F7CBA7,#F7DDBD
+Copper Vivid,#EB8550,#EBC17B
+Copper Deep,#A85E42,#A88F5E
+Copper Frost,#FFE3BD,#FFE6CF
+Orchid,#DC7DE7,#9CA6FF
+Orchid Breeze,#E89CF9,#AEB2FF
+Orchid Dusk,#BB61B8,#7A8ACF
+Orchid Dawn,#D78BF0,#A4A5FF
+Orchid Soft,#F2B1F5,#C4CCFF
+Orchid Vivid,#D567E9,#868FFF
+Orchid Deep,#9351A6,#686AB8
+Orchid Frost,#FFC7FB,#CFDAFF
+Tidal,#5099EE,#40C7C7
+Tidal Breeze,#74C0FF,#5FD1D7
+Tidal Dusk,#3A67C1,#2EA198
+Tidal Dawn,#60BDF8,#4EC3CF
+Tidal Soft,#98C0FC,#7DD3D0
+Tidal Vivid,#2E91F0,#23C4C9
+Tidal Deep,#2C76AB,#22888F
+Tidal Frost,#AEC4FF,#98E1D9
+Flamingo,#F28DAA,#FBBE8A
+Flamingo Breeze,#FFA8C8,#FFD1A1
+Flamingo Dusk,#C46E7B,#CB906B
+Flamingo Dawn,#FC9BC5,#FFCF95
+Flamingo Soft,#FFBFCD,#FFD7BA
+Flamingo Vivid,#F478A2,#FEB772
+Flamingo Deep,#AE5D7E,#B58A5A
+Flamingo Frost,#FFCCD1,#FFDBC8
+Citron,#D3D35A,#81D184
+Citron Breeze,#E4DB79,#9BE2A1
+Citron Dusk,#9DAB44,#68A965
+Citron Dawn,#DBCA68,#8DD997
+Citron Soft,#DBE093,#ABDEAB
+Citron Vivid,#D5CE40,#71D377
+Citron Deep,#988D36,#56965D
+Citron Frost,#E2EEAD,#C4ECC1
+Wisteria,#B199EA,#E0ABDD
+Wisteria Breeze,#C4B5FD,#F2C3ED
+Wisteria Dusk,#9679BE,#B488B5
+Wisteria Dawn,#B1A6F3,#E9B6E2
+Wisteria Soft,#D7C5F8,#EDCCED
+Wisteria Vivid,#A189EC,#E2A1DD
+Wisteria Deep,#7367A8,#A1779C
+Wisteria Frost,#E9D5FF,#FCE0FD
+Marina,#57B6DD,#7ED4A4
+Marina Breeze,#78D6EF,#99E5BE
+Marina Dusk,#4183B3,#63AC7D
+Marina Dawn,#66D4E6,#8ADCB6
+Marina Soft,#95CCEA,#AAE1C0
+Marina Vivid,#3AB7DF,#6CD69E
+Marina Deep,#338C9F,#539977
+Marina Frost,#B1D7FA,#C1F0D0
+Apricot,#FFAC81,#F8D896
+Apricot Breeze,#FFB298,#FFE8AC
+Apricot Dusk,#CF9663,#C9A776
+Apricot Dawn,#FFA18B,#FFE9A2
+Apricot Soft,#FFD2B3,#FFE9C3
+Apricot Vivid,#FF9265,#FAD782
+Apricot Deep,#B86952,#B39E64
+Apricot Frost,#FFE2C3,#FFEACF
+Rosewood,#DC7D99,#B99AE8
+Rosewood Breeze,#EE99B9,#D4B5FB
+Rosewood Dusk,#B2616E,#8F7ABC
+Rosewood Dawn,#E58AB2,#CBA7F1
+Rosewood Soft,#E9ADBB,#D6C4F6
+Rosewood Vivid,#DE6991,#B38AEA
+Rosewood Deep,#9E5271,#8668A7
+Rosewood Frost,#F9C5CB,#E2D6FF
+Jade,#4FC5A4,#A5D580
+Jade Breeze,#6CD5AF,#B8E69B
+Jade Dusk,#3BA091,#89AD64
+Jade Dawn,#5CCD9C,#A8DE8C
+Jade Soft,#86D1C1,#C5E2AC
+Jade Vivid,#36C797,#99D76E
+Jade Deep,#2F8E68,#6E9955
+Jade Frost,#9FDFD8,#DCF1C3
+Honey,#F5C75C,#F29C64
+Honey Breeze,#FFCD7C,#FFBB84
+Honey Dusk,#C6B144,#C4714B
+Honey Dawn,#FFBD6C,#FCB674
+Honey Soft,#FFE99F,#FFC5A5
+Honey Vivid,#F7B53B,#F49045
+Honey Deep,#B07D35,#AE713C
+Honey Frost,#FFF6B3,#FFCCB7
+Iris,#8594EA,#BF96DF
+Iris Breeze,#A3B8FD,#D8B0F1
+Iris Dusk,#6869BE,#9477B5
+Iris Dawn,#93B0F3,#D0A2E8
+Iris Soft,#B8BDF8,#D6BEEC
+Iris Vivid,#7089EC,#BC87E1
+Iris Deep,#576DA8,#8B66A1
+Iris Frost,#CCCAFF,#E6D4FC
+Arctic,#76C8DD,#A7E1D0
+Arctic Breeze,#93E4EF,#C0F3E7
+Arctic Dusk,#5B95B3,#85B6A4
+Arctic Dawn,#83E1E6,#B3EADF
+Arctic Soft,#A9D9EA,#CAEEE2
+Arctic Vivid,#60CCDF,#9CE3D0
+Arctic Deep,#4C989F,#73A298
+Arctic Frost,#C2E4FA,#DFFEF2
+Papaya,#EE9470,#E9B45D
+Papaya Breeze,#FFA790,#FCD380
+Papaya Dusk,#C18356,#BD8646
+Papaya Dawn,#F88F7F,#F2CC6C
+Papaya Soft,#FCC8AC,#F7D29E
+Papaya Vivid,#F07A55,#EBAF3F
+Papaya Deep,#AB5746,#A88537
+Papaya Frost,#FFDDBE,#FFDBB5
+Lavender,#AD9DE8,#E4B1CF
+Lavender Breeze,#C1B8FB,#F6C9E1
+Lavender Dusk,#927CBC,#B98DAA
+Lavender Dawn,#AEAAF1,#EDBCD5
+Lavender Soft,#D4C6F6,#F2D1E6
+Lavender Vivid,#9D8EEA,#E6A7CB
+Lavender Deep,#706BA7,#A47B90
+Lavender Frost,#E7D7FF,#FFE4F7
+Seabreeze,#75BADA,#84D5BF
+Seabreeze Breeze,#92D7EB,#9EE6D6
+Seabreeze Dusk,#5B8AB1,#68AD94
+Seabreeze Dawn,#82D3E3,#90DECF
+Seabreeze Soft,#A7CEE7,#AEE2D2
+Seabreeze Vivid,#60BBDC,#73D7BF
+Seabreeze Deep,#4C8D9D,#58998C
+Seabreeze Frost,#C0DBF6,#C5F1E0
+Peony,#E99BC2,#F0B49F
+Peony Breeze,#FCB7DF,#FFCEB8
+Peony Dusk,#BD7A93,#C28A7E
+Peony Dawn,#F2A8D8,#FAC7AC
+Peony Soft,#F7C5DB,#FED6CB
+Peony Vivid,#EB8BC0,#F2AB8F
+Peony Deep,#A86990,#AD816B
+Peony Frost,#FFD6E3,#FFDCD6
+Fern,#81BF81,#C3CB79
+Fern Breeze,#9CCE97,#D1DB93
+Fern Dusk,#669B6D,#A3A45F
+Fern Dawn,#94C78B,#C4D385
+Fern Soft,#A3CAA6,#D4D7A3
+Fern Vivid,#78C175,#C0CD68
+Fern Deep,#5D8A58,#879250
+Fern Frost,#B6D8BC,#E5E5B9
+Sapphire,#6B99E1,#8ACDDF
+Sapphire Breeze,#8ABCF3,#A6DDF1
+Sapphire Dusk,#526CB6,#6CABB5
+Sapphire Dawn,#79B6EA,#97CFE8
+Sapphire Soft,#A3BCEE,#B6E3EC
+Sapphire Vivid,#5292E3,#78C8E1
+Sapphire Deep,#4373A2,#5C8DA1
+Sapphire Frost,#BECBFE,#CEF7FC
+Persimmon,#EC8E68,#DDA168
+Persimmon Breeze,#FFA28A,#EFBF87
+Persimmon Dusk,#BF7E4F,#B37850
+Persimmon Dawn,#F58977,#E6B776
+Persimmon Soft,#FAC4A6,#EAC1A0
+Persimmon Vivid,#EE724C,#DF9A4F
+Persimmon Deep,#AA523F,#9F7541
+Persimmon Frost,#FFDBBB,#FAD2BA
+Moonstone,#A5B6E8,#A9D4CD
+Moonstone Breeze,#BFD3FB,#BFE5E1
+Moonstone Dusk,#838ABC,#87ACA3
+Moonstone Dawn,#B1CBF1,#B3DCD9
+Moonstone Soft,#CBD3F6,#C5E1DB
+Moonstone Vivid,#98B1EA,#A1D6CF
+Moonstone Deep,#7185A7,#769995
+Moonstone Frost,#DCDEFF,#D8F0E9

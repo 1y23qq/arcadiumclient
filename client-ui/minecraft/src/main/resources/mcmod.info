@@ -1,0 +1,19 @@
+[
+  {
+    "modid": "oneconfigv1",
+    "name": "${mod_name}",
+    "description": "Arcadium configuration and HUD library, adapted from OneConfig.",
+    "version": "${mod_version}",
+    "mcversion": "${mc_version}",
+    "url": "https://arcadiumclient.com",
+    "updateUrl": "",
+    "authorList": [
+      "Polyfrost",
+      "0aurorq3 (Arcadium modifications)"
+    ],
+    "credits": "Original OneConfig by Polyfrost and contributors. Original license and notices retained.",
+    "logoFile": "",
+    "screenshots": [],
+    "dependencies": []
+  }
+]

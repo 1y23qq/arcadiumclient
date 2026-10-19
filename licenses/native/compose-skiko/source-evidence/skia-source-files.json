@@ -1,0 +1,50 @@
+[
+  {
+    "file": "skiko-build.gradle.kts",
+    "source": "https://raw.githubusercontent.com/JetBrains/skiko/a0c3d414a614b90810f3fc1654a8e8a18dbd983d/skiko/build.gradle.kts",
+    "sha256": "858a299162f47b832df44189f5f0d9e120b3e142895e26fcceb24874160a1413",
+    "summary": [
+      "                \"skunicode_icu\",",
+      "                \"icu\",",
+      "                \"harfbuzz\",",
+      "                directStaticSkiaLibs(",
+      "                    \"skunicode_icu\",",
+      "                directStaticSkiaLibs(\"skia\", \"skia_ganesh_ext\")",
+      "                directStaticSkiaLibs(",
+      "                    \"skunicode_icu\",",
+      "                \"freetype2\","
+    ]
+  },
+  {
+    "file": "skiko-SkiaTarget.kt",
+    "source": "https://raw.githubusercontent.com/JetBrains/skiko/a0c3d414a614b90810f3fc1654a8e8a18dbd983d/skiko/buildSrc/src/main/kotlin/SkiaTarget.kt",
+    "sha256": "c7510074f2473b91d78a7c7e4d4b6bc65cbfe0d1df9195c9ceb7722c134015db",
+    "summary": []
+  },
+  {
+    "file": "skia-LICENSE",
+    "source": "https://raw.githubusercontent.com/JetBrains/skia/m154-ab5932137b/LICENSE",
+    "sha256": "5f787c1dee3c56547f09ccc2906ab5f5293c4d8dd6c8654e573216c38e908dbd",
+    "summary": [
+      "A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT"
+    ]
+  },
+  {
+    "file": "skia-DEPS",
+    "source": "https://raw.githubusercontent.com/JetBrains/skia/m154-ab5932137b/DEPS",
+    "sha256": "ebb0e737f98dab08499afcf0f0ed87f9de0c6e8c25a31fc4fb5283baab42a9d6",
+    "summary": [
+      "  \"third_party/externals/angle2\"                 : \"https://chromium.googlesource.com/angle/angle.git@107da744f62a319b3c6851694740d9ebf247d048\",",
+      "  \"third_party/externals/freetype\"               : \"https://chromium.googlesource.com/chromium/src/third_party/freetype2.git@264b5fbf5b912b39f98d038bf75d39be0a73f21b\",",
+      "  \"third_party/externals/harfbuzz\"               : \"https://chromium.googlesource.com/external/github.com/harfbuzz/harfbuzz.git@9cb1fee51069b206effb4736e443b038d230789d\",",
+      "  \"third_party/externals/icu\"                    : \"https://chromium.googlesource.com/chromium/deps/icu.git@d578f2e8b7bd5938e21cfb6bf15c079e0aa5b738\",",
+      "  \"third_party/externals/icu4x\"                  : \"https://chromium.googlesource.com/external/github.com/unicode-org/icu4x.git@bcf4f7198d4dc5f3127e84a6ca657c88e7d07a13\","
+    ]
+  },
+  {
+    "file": "skia-third_party-README",
+    "source": "https://raw.githubusercontent.com/JetBrains/skia/m154-ab5932137b/third_party/README",
+    "sha256": "1e905f1636252db992dd6e776816609b5646e72685ab7e3ff3a5d63bc064891b",
+    "summary": []
+  }
+]

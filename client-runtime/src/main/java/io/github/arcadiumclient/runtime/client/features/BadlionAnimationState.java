@@ -1,0 +1,64 @@
+// SPDX-License-Identifier: GPL-3.0-only
+// Copyright (c) 2026 0aurorq3 and Arcadium contributors.
+
+package io.github.arcadiumclient.runtime.client.features;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+public record BadlionAnimationState(
+        boolean itemHeld, boolean itemSwitch, boolean hitBox, boolean inventory,
+        boolean blockHit, boolean heartAnimation, boolean damageAnimation, boolean sneakingAnimation,
+        boolean eatAnimation, boolean thrownItems, boolean fishingRod, boolean swordSwing,
+        boolean bowAnimation, boolean alwaysSwing, boolean removeTitles, boolean oldEnchantGlint,
+        boolean leftHanded, boolean noSmallArms, boolean noShake, boolean fixLiquidPlace,
+        boolean movableTitles, float shakeIntensity, float titleX, float titleY) {
+
+    public boolean swingWhileUsing(String action) {
+        return switch (action) {
+            case "BLOCK" -> blockHit;
+            case "EAT", "DRINK" -> eatAnimation;
+            case "BOW" -> bowAnimation;
+            default -> false;
+        };
+    }
+
+    public float hurtCameraScale() {
+        return noShake ? 0f : Float.isFinite(shakeIntensity) ? Math.max(0f, Math.min(100f, shakeIntensity)) / 100f : 1f;
+    }
+
+    public float titleOffsetX(int width) {
+        return movableTitles && Float.isFinite(titleX) ? Math.max(-0.45f, Math.min(0.45f, titleX)) * width : 0f;
+    }
+
+    public float titleOffsetY(int height) {
+        return movableTitles && Float.isFinite(titleY) ? Math.max(-0.45f, Math.min(0.45f, titleY)) * height : 0f;
+    }
+
+    public Map<String, Object> overflowValues() {
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("items.itemPositions", itemHeld);
+        out.put("items.itemPositionsInThirdPerson", itemHeld);
+        out.put("items.equipAnimationVersion", itemSwitch ? "V1_7" : "VANILLA");
+        out.put("items.itemUsageSwinging", blockHit || eatAnimation || bowAnimation || alwaysSwing);
+        out.put("items.alwaysUsageSwing", alwaysSwing);
+        out.put("items.fakeMissPenaltySwing", alwaysSwing);
+        out.put("items.itemDrops2D", thrownItems);
+        out.put("items.itemDropsFaceCamera", thrownItems);
+        out.put("items.fishingRodVersion", fishingRod ? "V1_7" : "VANILLA");
+        out.put("items.itemGlint", oldEnchantGlint ? "V1_7" : "VANILLA");
+        out.put("items.armorGlint", oldEnchantGlint ? "V1_8" : "VANILLA");
+        out.put("items.potionGlint", oldEnchantGlint ? "V1_7" : "VANILLA");
+        out.put("screen.disableHeartFlash", heartAnimation);
+        out.put("movement.sneakAnimation", sneakingAnimation ? "V1_7" : "VANILLA");
+        out.put("movement.longUnsneak", sneakingAnimation);
+        out.put("movement.bowArmMovement", bowAnimation);
+        out.put("other.damageTintArmor", damageAnimation);
+        out.put("other.damageTintItems", damageAnimation);
+        out.put("other.damageTintCape", damageAnimation);
+        out.put("other.damageTintStyle", damageAnimation ? "V1_7" : "VANILLA");
+        out.put("other.thirdPersonSwordBlockingPosition", blockHit);
+        out.put("other.lockBlockingArmRotation", blockHit);
+        return out;
+    }
+}

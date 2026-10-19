@@ -1,0 +1,449 @@
+{
+  "artifacts": [
+    {
+      "artifact": "META-INF/jars/animation-core-desktop-1.13.0-alpha02.jar",
+      "sha256": "f2b13d2e386f2f4212f2f67a9c1dbb30601308798e159834904c48f9707945a3",
+      "noticeResolution": "original-embedded-notices",
+      "noticeFiles": [
+        "licenses/native/compose-skiko/animation-core-desktop-1.13.0-alpha02/META-INF/org/jetbrains/compose/animation/animation-core/LICENSE.txt"
+      ],
+      "skiaNativeDependencyNoticesRequired": false
+    },
+    {
+      "artifact": "META-INF/jars/animation-desktop-1.13.0-alpha02.jar",
+      "sha256": "dabad031ac977a3a75136a3fb425c75ddee393d8f17e103ae9184cd33da36f88",
+      "noticeResolution": "original-embedded-notices",
+      "noticeFiles": [
+        "licenses/native/compose-skiko/animation-desktop-1.13.0-alpha02/META-INF/org/jetbrains/compose/animation/animation/LICENSE.txt"
+      ],
+      "skiaNativeDependencyNoticesRequired": false
+    },
+    {
+      "artifact": "META-INF/jars/annotation-jvm-1.9.1.jar",
+      "sha256": "884fd17df96cec2872fba6c5978432c97a41ed9b4d27a27775275b651a19403d",
+      "noticeResolution": "original-embedded-notices",
+      "noticeFiles": [
+        "licenses/native/compose-skiko/annotation-jvm-1.9.1/META-INF/androidx/annotation/annotation/LICENSE.txt"
+      ],
+      "skiaNativeDependencyNoticesRequired": false
+    },
+    {
+      "artifact": "META-INF/jars/collection-jvm-1.6.0.jar",
+      "sha256": "4e4d2e92e08ca0b182e87d92bd799a2cf9f9c7430e9ab8b592e7416d6c8cdb54",
+      "noticeResolution": "original-embedded-notices",
+      "noticeFiles": [
+        "licenses/native/compose-skiko/collection-jvm-1.6.0/META-INF/androidx/collection/collection/LICENSE.txt"
+      ],
+      "skiaNativeDependencyNoticesRequired": false
+    },
+    {
+      "artifact": "META-INF/jars/core-common-2.2.0.jar",
+      "sha256": "8f97274bac076ade766abed1ef8ccfc6372b1828e2c17ff412e76d962f6736d2",
+      "noticeResolution": "published-Apache-declaration-original-header-and-full-canonical-text",
+      "noticeFiles": [
+        "licenses/native/compose-skiko/source-evidence/Apache-2.0.txt",
+        "licenses/native/compose-skiko/source-evidence/core-common-2.2.0-original-source-header.txt"
+      ],
+      "skiaNativeDependencyNoticesRequired": false
+    },
+    {
+      "artifact": "META-INF/jars/foundation-desktop-1.13.0-alpha02.jar",
+      "sha256": "9e08396fbb660824a9aabf151e3d018580062e8f75c4939cd887fe9e12ba187c",
+      "noticeResolution": "original-embedded-notices",
+      "noticeFiles": [
+        "licenses/native/compose-skiko/foundation-desktop-1.13.0-alpha02/META-INF/org/jetbrains/compose/foundation/foundation/LICENSE.txt"
+      ],
+      "skiaNativeDependencyNoticesRequired": false
+    },
+    {
+      "artifact": "META-INF/jars/foundation-layout-desktop-1.13.0-alpha02.jar",
+      "sha256": "fbdb532400bcbe2e55de43acd7bcac5c95dcf89f0f88f99c385a3da79812d7f8",
+      "noticeResolution": "original-embedded-notices",
+      "noticeFiles": [
+        "licenses/native/compose-skiko/foundation-layout-desktop-1.13.0-alpha02/META-INF/org/jetbrains/compose/foundation/foundation-layout/LICENSE.txt"
+      ],
+      "skiaNativeDependencyNoticesRequired": false
+    },
+    {
+      "artifact": "META-INF/jars/graphics-shapes-desktop-1.1.0.jar",
+      "sha256": "ac233c23910bb7835678b879224a9afff688e9f7137ab14385ccc67ea92c0fdd",
+      "noticeResolution": "original-embedded-notices",
+      "noticeFiles": [
+        "licenses/native/compose-skiko/graphics-shapes-desktop-1.1.0/META-INF/androidx/graphics/graphics-shapes/LICENSE.txt"
+      ],
+      "skiaNativeDependencyNoticesRequired": false
+    },
+    {
+      "artifact": "META-INF/jars/jbr-api-1.9.0.jar",
+      "sha256": "a2bab3af654b69fac0fcdd1196f37f2032755a89dffc356c268b158bfca0bb2b",
+      "noticeResolution": "corroborated-original-source-notices",
+      "noticeFiles": [
+        "licenses/native/compose-skiko/source-evidence/jbr-api-LICENSE.txt",
+        "licenses/native/compose-skiko/source-evidence/jbr-api-1.9.0-original-source-header.txt"
+      ],
+      "skiaNativeDependencyNoticesRequired": false
+    },
+    {
+      "artifact": "META-INF/jars/jspecify-1.0.0.jar",
+      "sha256": "f383254f227a454c5b046de31dc628633dc66cf9dc748817c09c75c7c3ad75ce",
+      "noticeResolution": "corroborated-original-source-notices",
+      "noticeFiles": [
+        "licenses/native/compose-skiko/source-evidence/jspecify-license.txt",
+        "licenses/native/compose-skiko/source-evidence/jspecify-1.0.0-original-source-header.txt"
+      ],
+      "skiaNativeDependencyNoticesRequired": false
+    },
+    {
+      "artifact": "META-INF/jars/lifecycle-common-jvm-2.11.0.jar",
+      "sha256": "b9b8ea1a877fb7439682f34150bd8fbc5b8be8e180f81bfb898773c9850803ae",
+      "noticeResolution": "original-embedded-notices",
+      "noticeFiles": [
+        "licenses/native/compose-skiko/lifecycle-common-jvm-2.11.0/META-INF/androidx/lifecycle/lifecycle-common/LICENSE.txt"
+      ],
+      "skiaNativeDependencyNoticesRequired": false
+    },
+    {
+      "artifact": "META-INF/jars/lifecycle-runtime-compose-desktop-2.11.0.jar",
+      "sha256": "088525050f0cee4607e01893676d7b20d6769b258c421c8783d0ec85c65666e6",
+      "noticeResolution": "original-embedded-notices",
+      "noticeFiles": [
+        "licenses/native/compose-skiko/lifecycle-runtime-compose-desktop-2.11.0/META-INF/androidx/lifecycle/lifecycle-runtime-compose/LICENSE.txt"
+      ],
+      "skiaNativeDependencyNoticesRequired": false
+    },
+    {
+      "artifact": "META-INF/jars/lifecycle-runtime-desktop-2.11.0.jar",
+      "sha256": "2f29864ea44a7c25ee4b0dc2f5f749d0cb6040b0afa7e4a2b5bf839893ed7b38",
+      "noticeResolution": "original-embedded-notices",
+      "noticeFiles": [
+        "licenses/native/compose-skiko/lifecycle-runtime-desktop-2.11.0/META-INF/androidx/lifecycle/lifecycle-runtime/LICENSE.txt"
+      ],
+      "skiaNativeDependencyNoticesRequired": false
+    },
+    {
+      "artifact": "META-INF/jars/lifecycle-viewmodel-compose-desktop-2.11.0.jar",
+      "sha256": "0d93888b398fd5f676795d86eefdc479b681237bcde65ea146506b83d0db6cef",
+      "noticeResolution": "original-embedded-notices",
+      "noticeFiles": [
+        "licenses/native/compose-skiko/lifecycle-viewmodel-compose-desktop-2.11.0/META-INF/androidx/lifecycle/lifecycle-viewmodel-compose/LICENSE.txt"
+      ],
+      "skiaNativeDependencyNoticesRequired": false
+    },
+    {
+      "artifact": "META-INF/jars/lifecycle-viewmodel-desktop-2.11.0.jar",
+      "sha256": "2aab5bda0b88ecde5277e9901ceac4af6410b8333e98edc01899388d1877a26e",
+      "noticeResolution": "original-embedded-notices",
+      "noticeFiles": [
+        "licenses/native/compose-skiko/lifecycle-viewmodel-desktop-2.11.0/META-INF/androidx/lifecycle/lifecycle-viewmodel/LICENSE.txt"
+      ],
+      "skiaNativeDependencyNoticesRequired": false
+    },
+    {
+      "artifact": "META-INF/jars/lifecycle-viewmodel-savedstate-desktop-2.11.0.jar",
+      "sha256": "e3f7dcefb55fb0d6c1328fe94376b995e544eaba58318fa2b8467aaf386accb5",
+      "noticeResolution": "original-embedded-notices",
+      "noticeFiles": [
+        "licenses/native/compose-skiko/lifecycle-viewmodel-savedstate-desktop-2.11.0/META-INF/androidx/lifecycle/lifecycle-viewmodel-savedstate/LICENSE.txt"
+      ],
+      "skiaNativeDependencyNoticesRequired": false
+    },
+    {
+      "artifact": "META-INF/jars/material-desktop-1.13.0-alpha02.jar",
+      "sha256": "74cd6514e94e962f1551b54da11dadc1e499bf1303aeb896ba5c5832e0d523c9",
+      "noticeResolution": "original-embedded-notices",
+      "noticeFiles": [
+        "licenses/native/compose-skiko/material-desktop-1.13.0-alpha02/META-INF/org/jetbrains/compose/material/material/LICENSE.txt"
+      ],
+      "skiaNativeDependencyNoticesRequired": false
+    },
+    {
+      "artifact": "META-INF/jars/material-ripple-desktop-1.13.0-alpha02.jar",
+      "sha256": "60288e04d5f1645cd8ba60cb167997bd7fb4a9fb70b30a53801172200668d6dd",
+      "noticeResolution": "original-embedded-notices",
+      "noticeFiles": [
+        "licenses/native/compose-skiko/material-ripple-desktop-1.13.0-alpha02/META-INF/org/jetbrains/compose/material/material-ripple/LICENSE.txt"
+      ],
+      "skiaNativeDependencyNoticesRequired": false
+    },
+    {
+      "artifact": "META-INF/jars/navigation-common-desktop-2.10.0-alpha01.jar",
+      "sha256": "8360ece4f386b43d4e9e1572ce2d538e7a382f16a7d9e4739d551ccf51d91af4",
+      "noticeResolution": "original-embedded-notices",
+      "noticeFiles": [
+        "licenses/native/compose-skiko/navigation-common-desktop-2.10.0-alpha01/META-INF/androidx/navigation/navigation-common/LICENSE.txt"
+      ],
+      "skiaNativeDependencyNoticesRequired": false
+    },
+    {
+      "artifact": "META-INF/jars/navigation-common-desktop-2.10.0-alpha03.jar",
+      "sha256": "66684b2899f0d276f0d1802de61717216c21abab1b4f5f0dd120d29f001ae92d",
+      "noticeResolution": "original-embedded-notices",
+      "noticeFiles": [
+        "licenses/native/compose-skiko/navigation-common-desktop-2.10.0-alpha03/META-INF/androidx/navigation/navigation-common/LICENSE.txt"
+      ],
+      "skiaNativeDependencyNoticesRequired": false
+    },
+    {
+      "artifact": "META-INF/jars/navigation-compose-desktop-2.10.0-alpha01.jar",
+      "sha256": "4c337b7c72d9d3c5d6934a70cfd4d761e115541907056716e21c96b9f16d57a5",
+      "noticeResolution": "original-embedded-notices",
+      "noticeFiles": [
+        "licenses/native/compose-skiko/navigation-compose-desktop-2.10.0-alpha01/META-INF/androidx/navigation/navigation-compose/LICENSE.txt"
+      ],
+      "skiaNativeDependencyNoticesRequired": false
+    },
+    {
+      "artifact": "META-INF/jars/navigation-runtime-desktop-2.10.0-alpha01.jar",
+      "sha256": "db673440dbef7c47a7e61d4020fa796574ec85a6a9612ac996fc144299e7e7a6",
+      "noticeResolution": "original-embedded-notices",
+      "noticeFiles": [
+        "licenses/native/compose-skiko/navigation-runtime-desktop-2.10.0-alpha01/META-INF/androidx/navigation/navigation-runtime/LICENSE.txt"
+      ],
+      "skiaNativeDependencyNoticesRequired": false
+    },
+    {
+      "artifact": "META-INF/jars/navigation-runtime-desktop-2.10.0-alpha03.jar",
+      "sha256": "18db515485249d403e977bd7c4120daa3feba9ed664b7bd2b5e4969ed6cfe895",
+      "noticeResolution": "original-embedded-notices",
+      "noticeFiles": [
+        "licenses/native/compose-skiko/navigation-runtime-desktop-2.10.0-alpha03/META-INF/androidx/navigation/navigation-runtime/LICENSE.txt"
+      ],
+      "skiaNativeDependencyNoticesRequired": false
+    },
+    {
+      "artifact": "META-INF/jars/navigationevent-compose-desktop-1.1.0.jar",
+      "sha256": "233d0ca8921f183d06196c4bd26affa7281ab0acb978757bb006b0644cdc6a2a",
+      "noticeResolution": "original-embedded-notices",
+      "noticeFiles": [
+        "licenses/native/compose-skiko/navigationevent-compose-desktop-1.1.0/META-INF/androidx/navigationevent/navigationevent-compose/LICENSE.txt"
+      ],
+      "skiaNativeDependencyNoticesRequired": false
+    },
+    {
+      "artifact": "META-INF/jars/navigationevent-compose-desktop-1.1.1.jar",
+      "sha256": "997730cc3934a0a5f4cf2bfee1837b83192dcc743a982b36f72da566304a9755",
+      "noticeResolution": "original-embedded-notices",
+      "noticeFiles": [
+        "licenses/native/compose-skiko/navigationevent-compose-desktop-1.1.1/META-INF/androidx/navigationevent/navigationevent-compose/LICENSE.txt"
+      ],
+      "skiaNativeDependencyNoticesRequired": false
+    },
+    {
+      "artifact": "META-INF/jars/navigationevent-desktop-1.1.1.jar",
+      "sha256": "43bda33eefec378d2f46ada4d89b3ba167a3a64b93b4e5a48748f020ac9f81cf",
+      "noticeResolution": "original-embedded-notices",
+      "noticeFiles": [
+        "licenses/native/compose-skiko/navigationevent-desktop-1.1.1/META-INF/androidx/navigationevent/navigationevent/LICENSE.txt"
+      ],
+      "skiaNativeDependencyNoticesRequired": false
+    },
+    {
+      "artifact": "META-INF/jars/runtime-annotation-jvm-1.13.0-alpha03.jar",
+      "sha256": "34273d9be434a89834bf62d6826153574c777b8dd2ad190a5f8911972ddd47e2",
+      "noticeResolution": "original-embedded-notices",
+      "noticeFiles": [
+        "licenses/native/compose-skiko/runtime-annotation-jvm-1.13.0-alpha03/META-INF/androidx/compose/runtime/runtime-annotation/LICENSE.txt"
+      ],
+      "skiaNativeDependencyNoticesRequired": false
+    },
+    {
+      "artifact": "META-INF/jars/runtime-desktop-1.13.0-alpha03.jar",
+      "sha256": "a5a9fddf27a8fbb4cf8269b7dbe40c7bfdf4b59e6b2d9577620321455bf2a074",
+      "noticeResolution": "original-embedded-notices",
+      "noticeFiles": [
+        "licenses/native/compose-skiko/runtime-desktop-1.13.0-alpha03/META-INF/androidx/compose/runtime/runtime/LICENSE.txt"
+      ],
+      "skiaNativeDependencyNoticesRequired": false
+    },
+    {
+      "artifact": "META-INF/jars/runtime-retain-desktop-1.13.0-alpha03.jar",
+      "sha256": "c22b442f086f26f9149bbe524d186527c36ea6f40381207a5dc2cb3fcdcca552",
+      "noticeResolution": "original-embedded-notices",
+      "noticeFiles": [
+        "licenses/native/compose-skiko/runtime-retain-desktop-1.13.0-alpha03/META-INF/androidx/compose/runtime/runtime-retain/LICENSE.txt"
+      ],
+      "skiaNativeDependencyNoticesRequired": false
+    },
+    {
+      "artifact": "META-INF/jars/runtime-saveable-desktop-1.13.0-alpha03.jar",
+      "sha256": "e7bf841df3f045384c1f3b2f330e5431cf4535e11315a9b2c7301acea5fa0c86",
+      "noticeResolution": "original-embedded-notices",
+      "noticeFiles": [
+        "licenses/native/compose-skiko/runtime-saveable-desktop-1.13.0-alpha03/META-INF/androidx/compose/runtime/runtime-saveable/LICENSE.txt"
+      ],
+      "skiaNativeDependencyNoticesRequired": false
+    },
+    {
+      "artifact": "META-INF/jars/savedstate-compose-desktop-1.5.0.jar",
+      "sha256": "431d551e577ec12b23651c80616c1745171f6c2f9ff1195a093146e65a43e4a7",
+      "noticeResolution": "original-embedded-notices",
+      "noticeFiles": [
+        "licenses/native/compose-skiko/savedstate-compose-desktop-1.5.0/META-INF/androidx/savedstate/savedstate-compose/LICENSE.txt"
+      ],
+      "skiaNativeDependencyNoticesRequired": false
+    },
+    {
+      "artifact": "META-INF/jars/savedstate-desktop-1.5.0.jar",
+      "sha256": "9425ddf28ac100f315cb16bb32c25b7b014f32ac3df869a30734fd5707a39e57",
+      "noticeResolution": "original-embedded-notices",
+      "noticeFiles": [
+        "licenses/native/compose-skiko/savedstate-desktop-1.5.0/META-INF/androidx/savedstate/savedstate/LICENSE.txt"
+      ],
+      "skiaNativeDependencyNoticesRequired": false
+    },
+    {
+      "artifact": "META-INF/jars/skiko-awt-0.154.0.jar",
+      "sha256": "34fc5997bd31494c0c65ef0644aa73fcc4606ee2117b1682241316cba3995c0e",
+      "noticeResolution": "corroborated-original-source-notices",
+      "noticeFiles": [
+        "licenses/native/compose-skiko/source-evidence/skiko-LICENSE.txt",
+        "licenses/native/compose-skiko/source-evidence/skiko-NOTICE"
+      ],
+      "skiaNativeDependencyNoticesRequired": false
+    },
+    {
+      "artifact": "META-INF/jars/skiko-awt-runtime-linux-arm64-0.154.0.jar",
+      "sha256": "70d8b14ebf8db1401d19da28395aded6acb19661f9cde840af7b0b5205ff105b",
+      "noticeResolution": "corroborated-original-source-notices",
+      "noticeFiles": [
+        "licenses/native/compose-skiko/source-evidence/skiko-LICENSE.txt",
+        "licenses/native/compose-skiko/source-evidence/skiko-NOTICE"
+      ],
+      "skiaNativeDependencyNoticesRequired": true
+    },
+    {
+      "artifact": "META-INF/jars/skiko-awt-runtime-linux-x64-0.154.0.jar",
+      "sha256": "1756cd62bfe803e3813e09ca8447836e60df72cedd3b689331e21657273ea4e6",
+      "noticeResolution": "corroborated-original-source-notices",
+      "noticeFiles": [
+        "licenses/native/compose-skiko/source-evidence/skiko-LICENSE.txt",
+        "licenses/native/compose-skiko/source-evidence/skiko-NOTICE"
+      ],
+      "skiaNativeDependencyNoticesRequired": true
+    },
+    {
+      "artifact": "META-INF/jars/skiko-awt-runtime-macos-arm64-0.154.0.jar",
+      "sha256": "6107e17b189d811a0b773c569ddd8226251ef2afbb4b223e9142fdff5b101ac8",
+      "noticeResolution": "corroborated-original-source-notices",
+      "noticeFiles": [
+        "licenses/native/compose-skiko/source-evidence/skiko-LICENSE.txt",
+        "licenses/native/compose-skiko/source-evidence/skiko-NOTICE"
+      ],
+      "skiaNativeDependencyNoticesRequired": true
+    },
+    {
+      "artifact": "META-INF/jars/skiko-awt-runtime-macos-x64-0.154.0.jar",
+      "sha256": "cb4a03eef5080b2eef2bb1a36292a8db4065ddc45140e06b9da9abbd31df949e",
+      "noticeResolution": "corroborated-original-source-notices",
+      "noticeFiles": [
+        "licenses/native/compose-skiko/source-evidence/skiko-LICENSE.txt",
+        "licenses/native/compose-skiko/source-evidence/skiko-NOTICE"
+      ],
+      "skiaNativeDependencyNoticesRequired": true
+    },
+    {
+      "artifact": "META-INF/jars/skiko-awt-runtime-windows-arm64-0.154.0.jar",
+      "sha256": "01ff0ed9228fd0084afd2dc9d10eef75c4a55aa8dc7fbe694a451bde91dfd278",
+      "noticeResolution": "corroborated-original-source-notices",
+      "noticeFiles": [
+        "licenses/native/compose-skiko/source-evidence/skiko-LICENSE.txt",
+        "licenses/native/compose-skiko/source-evidence/skiko-NOTICE"
+      ],
+      "skiaNativeDependencyNoticesRequired": true
+    },
+    {
+      "artifact": "META-INF/jars/skiko-awt-runtime-windows-x64-0.154.0.jar",
+      "sha256": "c10eb0f9c82f6b702c6d3166cc3d5c136a95c174ddb81a9b57dc98b1ffd30ea2",
+      "noticeResolution": "corroborated-original-source-notices",
+      "noticeFiles": [
+        "licenses/native/compose-skiko/source-evidence/skiko-LICENSE.txt",
+        "licenses/native/compose-skiko/source-evidence/skiko-NOTICE"
+      ],
+      "skiaNativeDependencyNoticesRequired": true
+    },
+    {
+      "artifact": "META-INF/jars/ui-backhandler-desktop-1.13.0-alpha02.jar",
+      "sha256": "3e8b0a204427ca7d06a781aa3b84d91ab82380fcfe6f8645d92163668cc9100c",
+      "noticeResolution": "original-embedded-notices",
+      "noticeFiles": [
+        "licenses/native/compose-skiko/ui-backhandler-desktop-1.13.0-alpha02/META-INF/org/jetbrains/compose/ui/ui-backhandler/LICENSE.txt"
+      ],
+      "skiaNativeDependencyNoticesRequired": false
+    },
+    {
+      "artifact": "META-INF/jars/ui-desktop-1.13.0-alpha02.jar",
+      "sha256": "0bf8c7f64f8189041e23410585268fcd2160a3e0c6067b6494a4d715552d09e4",
+      "noticeResolution": "original-embedded-notices",
+      "noticeFiles": [
+        "licenses/native/compose-skiko/ui-desktop-1.13.0-alpha02/META-INF/org/jetbrains/compose/ui/ui/LICENSE.txt"
+      ],
+      "skiaNativeDependencyNoticesRequired": false
+    },
+    {
+      "artifact": "META-INF/jars/ui-geometry-desktop-1.13.0-alpha02.jar",
+      "sha256": "7b6dbd3406f3f63720a24ac7a9b2fc368e30f2f2ae1f678b2420b0227c3fba3b",
+      "noticeResolution": "original-embedded-notices",
+      "noticeFiles": [
+        "licenses/native/compose-skiko/ui-geometry-desktop-1.13.0-alpha02/META-INF/org/jetbrains/compose/ui/ui-geometry/LICENSE.txt"
+      ],
+      "skiaNativeDependencyNoticesRequired": false
+    },
+    {
+      "artifact": "META-INF/jars/ui-graphics-desktop-1.13.0-alpha02.jar",
+      "sha256": "9e9fd05aab48b07595eb59d945a58a8bf7a1f858612c7f9b413615fc6d16adda",
+      "noticeResolution": "original-embedded-notices",
+      "noticeFiles": [
+        "licenses/native/compose-skiko/ui-graphics-desktop-1.13.0-alpha02/META-INF/org/jetbrains/compose/ui/ui-graphics/LICENSE.txt"
+      ],
+      "skiaNativeDependencyNoticesRequired": false
+    },
+    {
+      "artifact": "META-INF/jars/ui-skiko-desktop-1.13.0-alpha02.jar",
+      "sha256": "b93aa87466ae0720fb42b6cf18676f141a38f0c42e05c3a077c0eb840a7a1655",
+      "noticeResolution": "original-embedded-notices",
+      "noticeFiles": [
+        "licenses/native/compose-skiko/ui-skiko-desktop-1.13.0-alpha02/META-INF/org/jetbrains/compose/ui/ui-skiko/LICENSE.txt"
+      ],
+      "skiaNativeDependencyNoticesRequired": false
+    },
+    {
+      "artifact": "META-INF/jars/ui-text-desktop-1.13.0-alpha02.jar",
+      "sha256": "502d4cc4add91c536e7f61fb1ceefc1e7e4ed7798121f043ead771567f6144bd",
+      "noticeResolution": "original-embedded-notices",
+      "noticeFiles": [
+        "licenses/native/compose-skiko/ui-text-desktop-1.13.0-alpha02/META-INF/org/jetbrains/compose/ui/ui-text/LICENSE.txt"
+      ],
+      "skiaNativeDependencyNoticesRequired": false
+    },
+    {
+      "artifact": "META-INF/jars/ui-tooling-preview-desktop-1.13.0-alpha02.jar",
+      "sha256": "c4a76015deb41cd3e5a9158574aac3365e2b8e6193aaa7ff9eb2674f86f2bc75",
+      "noticeResolution": "original-embedded-notices",
+      "noticeFiles": [
+        "licenses/native/compose-skiko/ui-tooling-preview-desktop-1.13.0-alpha02/META-INF/org/jetbrains/compose/ui/ui-tooling-preview/LICENSE.txt"
+      ],
+      "skiaNativeDependencyNoticesRequired": false
+    },
+    {
+      "artifact": "META-INF/jars/ui-unit-desktop-1.13.0-alpha02.jar",
+      "sha256": "9eb12f5e97fa0f9f14928df5ad195fea8dbb9cc778c0793ccef7667b7f5f6fd6",
+      "noticeResolution": "original-embedded-notices",
+      "noticeFiles": [
+        "licenses/native/compose-skiko/ui-unit-desktop-1.13.0-alpha02/META-INF/org/jetbrains/compose/ui/ui-unit/LICENSE.txt"
+      ],
+      "skiaNativeDependencyNoticesRequired": false
+    },
+    {
+      "artifact": "META-INF/jars/ui-util-desktop-1.13.0-alpha02.jar",
+      "sha256": "b8338b6436579b1e5a8ded48f37394ecbf94cb6ce8fef11d1035decee5790e36",
+      "noticeResolution": "original-embedded-notices",
+      "noticeFiles": [
+        "licenses/native/compose-skiko/ui-util-desktop-1.13.0-alpha02/META-INF/org/jetbrains/compose/ui/ui-util/LICENSE.txt"
+      ],
+      "skiaNativeDependencyNoticesRequired": false
+    }
+  ],
+  "nativeSourceBasis": "source-evidence/skiko-dependencies.toml, skiko-build.gradle.kts, skia-DEPS",
+  "nativeNoticesManifest": "skia-native-notice-provenance.json",
+  "nativeBinarySourceReproductionPerformed": false
+}

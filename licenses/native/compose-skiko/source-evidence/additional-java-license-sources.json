@@ -1,0 +1,24 @@
+[
+  {
+    "source": "https://www.apache.org/licenses/LICENSE-2.0.txt",
+    "file": "licenses/native/compose-skiko/source-evidence/Apache-2.0.txt",
+    "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+    "bytes": 11358
+  },
+  {
+    "source": "https://raw.githubusercontent.com/jspecify/jspecify/b2a10e14bb81c1b7cb6e488c112fe55cb2218d7d/LICENSE",
+    "file": "licenses/native/compose-skiko/source-evidence/jspecify-license.txt",
+    "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+    "bytes": 11358,
+    "releaseTag": "v1.0.0",
+    "sourceCommit": "b2a10e14bb81c1b7cb6e488c112fe55cb2218d7d"
+  },
+  {
+    "source": "https://raw.githubusercontent.com/JetBrains/JetBrainsRuntimeApi/bf95b3ebdadbb81c193fdf45b8947fb20163d5dc/LICENSE",
+    "file": "licenses/native/compose-skiko/source-evidence/jbr-api-LICENSE.txt",
+    "sha256": "58d1e17ffe5109a7ae296caafcadfdbe6a7d176f0bc4ab01e12a689b0499d8bd",
+    "bytes": 11357,
+    "releaseTag": "v1.9.0",
+    "sourceCommit": "bf95b3ebdadbb81c193fdf45b8947fb20163d5dc"
+  }
+]

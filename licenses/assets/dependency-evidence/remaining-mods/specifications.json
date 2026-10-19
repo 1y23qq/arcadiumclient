@@ -1,0 +1,32 @@
+[
+  [
+    "betterhurtcam",
+    "Polyfrost/betterhurtcam",
+    "1.15.1+mc1.8.9-ornithe"
+  ],
+  [
+    "blur",
+    "Polyfrost/Blur",
+    "legacy-gui-blur-6.3.4-mc1.8.9-fabric"
+  ],
+  [
+    "hybedwars",
+    "TomekoYT/HyBedWars",
+    "v0.0.0"
+  ],
+  [
+    "hybridge",
+    "TomekoYT/HyBridge",
+    "v0.0.0"
+  ],
+  [
+    "hylobby",
+    "TomekoYT/HyLobby",
+    "v0.0.0"
+  ],
+  [
+    "hychatter",
+    "TomekoYT/HyChatter",
+    "v0.1.1"
+  ]
+]

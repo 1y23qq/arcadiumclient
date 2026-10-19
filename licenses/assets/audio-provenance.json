@@ -1,0 +1,77 @@
+{
+  "upstreamCommit": "82b113fb2f5a5a604238d03675fbbf441047357b",
+  "files": [
+    {
+      "path": "client-ui/sounds/ambient/lullaby.ogg",
+      "sha256": "d75cff9a9506787af9e57d615a428ecc21bf5cbe8d56bb00aae3f447f462dc5a",
+      "source": "https://raw.githubusercontent.com/Polyfrost/OneConfig/82b113fb2f5a5a604238d03675fbbf441047357b/sounds/ambient/lullaby.ogg",
+      "exactSourceMatch": true,
+      "license": "client-ui/LICENSE",
+      "authorCredit": "Zetvue / Polyfrost contributors (upstream Credits)"
+    },
+    {
+      "path": "client-ui/sounds/ambient/moog_1.ogg",
+      "sha256": "adad4ff80d101dceec75ff583b4fc14611faae75dedc8b6d66535557d160d8d1",
+      "source": "https://raw.githubusercontent.com/Polyfrost/OneConfig/82b113fb2f5a5a604238d03675fbbf441047357b/sounds/ambient/moog_1.ogg",
+      "exactSourceMatch": true,
+      "license": "client-ui/LICENSE",
+      "authorCredit": "Zetvue / Polyfrost contributors (upstream Credits)"
+    },
+    {
+      "path": "client-ui/sounds/ambient/moog_2.ogg",
+      "sha256": "99fedc25752224de5649f40c8a697142ad582671bdc4236782181f154ea2575e",
+      "source": "https://raw.githubusercontent.com/Polyfrost/OneConfig/82b113fb2f5a5a604238d03675fbbf441047357b/sounds/ambient/moog_2.ogg",
+      "exactSourceMatch": true,
+      "license": "client-ui/LICENSE",
+      "authorCredit": "Zetvue / Polyfrost contributors (upstream Credits)"
+    },
+    {
+      "path": "client-ui/sounds/ambient/trees.ogg",
+      "sha256": "ac9e8c4b5d0f281778f8e4026b65ab82d43adcfc0c29aaa8bfe754ba724968c1",
+      "source": "https://raw.githubusercontent.com/Polyfrost/OneConfig/82b113fb2f5a5a604238d03675fbbf441047357b/sounds/ambient/trees.ogg",
+      "exactSourceMatch": true,
+      "license": "client-ui/LICENSE",
+      "authorCredit": "Zetvue / Polyfrost contributors (upstream Credits)"
+    },
+    {
+      "path": "client-ui/sounds/ui/pad_loop.ogg",
+      "sha256": "02c60b452675539ec163510850f909840d019a65fe8a18f69b1725d320622c5d",
+      "source": "https://raw.githubusercontent.com/Polyfrost/OneConfig/82b113fb2f5a5a604238d03675fbbf441047357b/sounds/ui/pad_loop.ogg",
+      "exactSourceMatch": true,
+      "license": "client-ui/LICENSE",
+      "authorCredit": "Zetvue / Polyfrost contributors (upstream Credits)"
+    },
+    {
+      "path": "client-ui/minecraft/src/main/resources/assets/oneconfig/sounds/ui/click.ogg",
+      "sha256": "4acb3d7d65bf62fc33209449f53bbc92cc37ed3e51248e88cb6cdb31357844ad",
+      "source": "https://raw.githubusercontent.com/Polyfrost/OneConfig/82b113fb2f5a5a604238d03675fbbf441047357b/minecraft/src/main/resources/assets/oneconfig/sounds/ui/click.ogg",
+      "exactSourceMatch": true,
+      "license": "client-ui/LICENSE",
+      "authorCredit": "Zetvue / Polyfrost contributors (upstream Credits)"
+    },
+    {
+      "path": "client-ui/minecraft/src/main/resources/assets/oneconfig/sounds/ui/close.ogg",
+      "sha256": "960fc6a173b919e05893fc5d2e71380f6feccdaaf92a517509d92eea570e8b35",
+      "source": "https://raw.githubusercontent.com/Polyfrost/OneConfig/82b113fb2f5a5a604238d03675fbbf441047357b/minecraft/src/main/resources/assets/oneconfig/sounds/ui/close.ogg",
+      "exactSourceMatch": true,
+      "license": "client-ui/LICENSE",
+      "authorCredit": "Zetvue / Polyfrost contributors (upstream Credits)"
+    },
+    {
+      "path": "client-ui/minecraft/src/main/resources/assets/oneconfig/sounds/ui/open.ogg",
+      "sha256": "0ea59c5106adba57f2874b66ab373ec375d39ddc96b4c0cc30bee74835718451",
+      "source": "https://raw.githubusercontent.com/Polyfrost/OneConfig/82b113fb2f5a5a604238d03675fbbf441047357b/minecraft/src/main/resources/assets/oneconfig/sounds/ui/open.ogg",
+      "exactSourceMatch": true,
+      "license": "client-ui/LICENSE",
+      "authorCredit": "Zetvue / Polyfrost contributors (upstream Credits)"
+    },
+    {
+      "path": "client-ui/minecraft/src/main/resources/assets/oneconfig/sounds/ui/slider.ogg",
+      "sha256": "a067f59c7dba9159a9a566e619c649d54211d8f5cf50b3b084b56654c7e6fbe3",
+      "source": "https://raw.githubusercontent.com/Polyfrost/OneConfig/82b113fb2f5a5a604238d03675fbbf441047357b/minecraft/src/main/resources/assets/oneconfig/sounds/ui/slider.ogg",
+      "exactSourceMatch": true,
+      "license": "client-ui/LICENSE",
+      "authorCredit": "Zetvue / Polyfrost contributors (upstream Credits)"
+    }
+  ]
+}

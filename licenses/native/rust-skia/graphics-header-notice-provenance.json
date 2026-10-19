@@ -1,0 +1,111 @@
+[
+  {
+    "component": "egl-registry",
+    "upstreamRepository": "https://skia.googlesource.com/external/github.com/KhronosGroup/EGL-Registry",
+    "upstreamRevision": "b055c9b483e70ecd57b3cf7204db21f5a06f9ffe",
+    "notices": [
+      {
+        "source": "https://raw.githubusercontent.com/KhronosGroup/EGL-Registry/b055c9b483e70ecd57b3cf7204db21f5a06f9ffe/api/KHR/khrplatform.h",
+        "file": "licenses/native/rust-skia/original-notices/egl-registry/api__KHR__khrplatform.h",
+        "sha256": "438187dca092de4032c1a16524aa4c34c71a0f985a71251a675aad54e77ed561",
+        "bytes": 1147,
+        "sourceFileSha256": "7b1e01aaa7ad8f6fc34b5c7bdf79ebf5189bb09e2c4d2e79fc5d350623d11e83",
+        "originalCopyrightLicenseHeaderOnly": true
+      }
+    ],
+    "missingCandidates": [
+      {
+        "source": "https://skia.googlesource.com/external/github.com/KhronosGroup/EGL-Registry/+/b055c9b483e70ecd57b3cf7204db21f5a06f9ffe/api/KHR/khrplatform.h?format=TEXT",
+        "error": "HTTP Error 401: Unauthorized"
+      }
+    ]
+  },
+  {
+    "component": "opengl-registry",
+    "upstreamRepository": "https://skia.googlesource.com/external/github.com/KhronosGroup/OpenGL-Registry",
+    "upstreamRevision": "14b80ebeab022b2c78f84a573f01028c96075553",
+    "notices": [
+      {
+        "source": "https://raw.githubusercontent.com/KhronosGroup/OpenGL-Registry/14b80ebeab022b2c78f84a573f01028c96075553/api/GL/glcorearb.h",
+        "file": "licenses/native/rust-skia/original-notices/opengl-registry/api__GL__glcorearb.h",
+        "sha256": "20000f61499498b335671bfd5ae74762fe4d88606cfab4884778c4c2be413d88",
+        "bytes": 1147,
+        "sourceFileSha256": "c81e4e321840d17dc27c3ecc192a2b8ff9fdfa1db4669ff5a1da2918ba564150",
+        "originalCopyrightLicenseHeaderOnly": true
+      }
+    ],
+    "missingCandidates": [
+      {
+        "source": "https://skia.googlesource.com/external/github.com/KhronosGroup/OpenGL-Registry/+/14b80ebeab022b2c78f84a573f01028c96075553/api/GL/glcorearb.h?format=TEXT",
+        "error": "HTTP Error 401: Unauthorized"
+      }
+    ]
+  },
+  {
+    "component": "spirv-headers",
+    "upstreamRepository": "https://skia.googlesource.com/external/github.com/KhronosGroup/SPIRV-Headers.git",
+    "upstreamRevision": "496543121ce6419f23d6fa5d7194ba66c36212d2",
+    "notices": [
+      {
+        "source": "https://raw.githubusercontent.com/KhronosGroup/SPIRV-Headers/496543121ce6419f23d6fa5d7194ba66c36212d2/LICENSE",
+        "file": "licenses/native/rust-skia/original-notices/spirv-headers/LICENSE",
+        "sha256": "ea43b1de38a6f90c488800d66dec1ed671e68cda530266bc96951fb5b6307613",
+        "bytes": 23503,
+        "sourceFileSha256": "ea43b1de38a6f90c488800d66dec1ed671e68cda530266bc96951fb5b6307613",
+        "originalCopyrightLicenseHeaderOnly": false
+      },
+      {
+        "source": "https://raw.githubusercontent.com/KhronosGroup/SPIRV-Headers/496543121ce6419f23d6fa5d7194ba66c36212d2/LICENSES/MIT.txt",
+        "file": "licenses/native/rust-skia/original-notices/spirv-headers/LICENSES__MIT.txt",
+        "sha256": "6d7c9e9d7d12c8d3753bdb24417b84819ba4d6c2f025c37948113d86dc81eef9",
+        "bytes": 1087,
+        "sourceFileSha256": "6d7c9e9d7d12c8d3753bdb24417b84819ba4d6c2f025c37948113d86dc81eef9",
+        "originalCopyrightLicenseHeaderOnly": false
+      }
+    ],
+    "missingCandidates": [
+      {
+        "source": "https://skia.googlesource.com/external/github.com/KhronosGroup/SPIRV-Headers.git/+/496543121ce6419f23d6fa5d7194ba66c36212d2/LICENSE?format=TEXT",
+        "error": "HTTP Error 401: Unauthorized"
+      },
+      {
+        "source": "https://skia.googlesource.com/external/github.com/KhronosGroup/SPIRV-Headers.git/+/496543121ce6419f23d6fa5d7194ba66c36212d2/LICENSES/Apache-2.0.txt?format=TEXT",
+        "error": "HTTP Error 401: Unauthorized"
+      },
+      {
+        "source": "https://skia.googlesource.com/external/github.com/KhronosGroup/SPIRV-Headers.git/+/496543121ce6419f23d6fa5d7194ba66c36212d2/LICENSES/MIT.txt?format=TEXT",
+        "error": "HTTP Error 401: Unauthorized"
+      },
+      {
+        "source": "https://raw.githubusercontent.com/KhronosGroup/SPIRV-Headers/496543121ce6419f23d6fa5d7194ba66c36212d2/LICENSES/Apache-2.0.txt",
+        "error": "HTTP Error 404: Not Found"
+      }
+    ]
+  },
+  {
+    "component": "vulkan-headers",
+    "upstreamRepository": "https://chromium.googlesource.com/external/github.com/KhronosGroup/Vulkan-Headers",
+    "upstreamRevision": "31386378257ac8653ce5b32c93baec385259ebbe",
+    "notices": [
+      {
+        "source": "https://chromium.googlesource.com/external/github.com/KhronosGroup/Vulkan-Headers/+/31386378257ac8653ce5b32c93baec385259ebbe/LICENSE.md?format=TEXT",
+        "file": "licenses/native/rust-skia/original-notices/vulkan-headers/LICENSE.md",
+        "sha256": "95ad366d23fadf701d355bc45fb8b82ae2d700239471d35d41286ac3b08ff903",
+        "bytes": 495
+      },
+      {
+        "source": "https://chromium.googlesource.com/external/github.com/KhronosGroup/Vulkan-Headers/+/31386378257ac8653ce5b32c93baec385259ebbe/LICENSES/Apache-2.0.txt?format=TEXT",
+        "file": "licenses/native/rust-skia/original-notices/vulkan-headers/LICENSES__Apache-2.0.txt",
+        "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+        "bytes": 11358
+      },
+      {
+        "source": "https://chromium.googlesource.com/external/github.com/KhronosGroup/Vulkan-Headers/+/31386378257ac8653ce5b32c93baec385259ebbe/LICENSES/MIT.txt?format=TEXT",
+        "file": "licenses/native/rust-skia/original-notices/vulkan-headers/LICENSES__MIT.txt",
+        "sha256": "1ca3502222d967f3be5751c55f6b7ee735b5383909c3b501495f54b216dbf227",
+        "bytes": 1084
+      }
+    ],
+    "missingCandidates": []
+  }
+]

@@ -1,0 +1,1017 @@
+{
+  "upstreamCommit": "82b113fb2f5a5a604238d03675fbbf441047357b",
+  "files": [
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/alert-circle.svg",
+      "sha256": "3b7c32a437a5353d41f6a7de49305d2ea6211090fbe7b0ec096e44037a5ea754",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/alert-circle.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/align-center.svg",
+      "sha256": "e45ad7d5ec3d94eee8ecf812013912df10b06e3810e4bc7c2a9284cb1ba17673",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/align-center.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/align-left.svg",
+      "sha256": "17589b9e4bb5e2aee904b9db74dadb10570d603cbafe596ed49b5098ff0fd4f3",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/align-left.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/align-right.svg",
+      "sha256": "00ea4c15d09472676dc7bf85678e32ee9a506832f410c55425d80e8c355894b0",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/align-right.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/align.svg",
+      "sha256": "5dadc79541829d8cd61ba704de1ece10e11e39c23583fb0c320e206bbb55ac2f",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/align.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/bell.svg",
+      "sha256": "11d60e5f5a2b817a44900e679ff0c8ec08556b06be94cd7c4f120b298b0c029a",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/bell.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/bold.svg",
+      "sha256": "6758b6ff5e82058b9fec8d94a07400a8dda42585cde8f71d3fc942b1c903323e",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/bold.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/capitalized.svg",
+      "sha256": "bc6a0e111bd6911415a43629dbe3056fead374d6edfc1f43ea3ee34ac5e1f9fd",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/capitalized.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/check-circle.svg",
+      "sha256": "872a2fbf44f1f8d95ff817482a4b7e2fadbb5c25f0988499a86dd8842c75be2b",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/check-circle.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/clipboard.svg",
+      "sha256": "23b1d340841af484efb4b46b7c606146aa3d51623687e04fced916badc6c8d0d",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/clipboard.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/close.svg",
+      "sha256": "c3df8b793d572f128f613e20e6fb01d65b62c7cb113973acc7f1ffbfa3f661f6",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/close.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/cloud.svg",
+      "sha256": "819ad1ba8e4a5f31b8977eb5360f7ce8cba174b3e860a961ced03719a1f3749f",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/cloud.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/cog.svg",
+      "sha256": "979f153645e268b95753ce4f886423c4316c98d5599a1cdf2d88c946310d6d0a",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/cog.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/combat.svg",
+      "sha256": "8303e4460f6c92878f79f965d93841819d9df61f179da0dbc9ba3e91c1a58ff1",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/combat.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/console.svg",
+      "sha256": "6960804b7196e80d742724309930861ee0c2f99be5b3196ac385a66cf13b3524",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/console.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/copy-plus.svg",
+      "sha256": "ce9600cdba478cb476e12fc845eb040a33383bcab513785a9801ccc1423c5f3c",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/copy-plus.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/copy.svg",
+      "sha256": "8e8cafd3b5bfd4866ac6f6713448a9eb4e713613ca6527b1f362c4f02b15fe2b",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/copy.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/dots-grid.svg",
+      "sha256": "f2d3c8beb20dec77d2a3b3053e82a7f8db747df6dcde0da091d289040c63c121",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/dots-grid.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/dots-vertical.svg",
+      "sha256": "21ed571a5ccfce3cc0e6d8616ec6a821c26449f126e8450a39cffee831e25abc",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/dots-vertical.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/down.svg",
+      "sha256": "988bc77620eee3a5190021d94e5bd64167d48a7b480abd47db5aff618d7bef2c",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/down.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/eye-off.svg",
+      "sha256": "0a5495bfa9579fb150a27f8d2154689c03c34b2480d358436f8adc2f7b3a15ea",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/eye-off.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/eye.svg",
+      "sha256": "dc4526129140d17a53e8442abbb74d1014086695a6b9c2c5413cf1f7b15edd95",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/eye.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/folder.svg",
+      "sha256": "9351795bfc703179809bf7cc9037657e3756067586a8f8fef6fa9b1a3cfffb14",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/folder.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/hud.svg",
+      "sha256": "bb449b1799e370cfa51c3eeaf1fc34d504f07e423601af00554db3cabcfa4907",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/hud.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/hypixel.svg",
+      "sha256": "db3ed2f1bfe9884de8358414473fb62ae3de2705e9facf478b947eccda9c933a",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/hypixel.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/info.svg",
+      "sha256": "adfe556de8b63bf941939709d2fb9d183bf65fd98efc57a4c6a9d9c8b570aa3f",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/info.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/italic.svg",
+      "sha256": "0fc66eb25bd21534c380b9b04275f3a62aec528496d80504449d2033f9410e49",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/italic.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/keyboard.svg",
+      "sha256": "e185d06234ce2dc8982b037dd45d47624fee48595d40f224235c0944d94c3d75",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/keyboard.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/layers.svg",
+      "sha256": "42fb05cdb867f66065806c8c5e40d1941b947304c0366b5fe7368d0bf0966b9f",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/layers.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/left-arrow.svg",
+      "sha256": "e9d736e5f4abd43b4d60eea0928913133aaa42e5cb189b82a506f638a0ea5967",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/left-arrow.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/lightning-01.svg",
+      "sha256": "35e55558690c22c0b753db003e2ba320ac44ebf101c8316c781619a04ff8f2f1",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/lightning-01.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/lock.svg",
+      "sha256": "67ca8107c2668775254ae437eee78568cb9cfe4eece946a7ba1871746895a134",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/lock.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/lowercase.svg",
+      "sha256": "2a6414834b78ea9d64419c6b88aff3741cf257c035695a89fc9c09ed9b851784",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/lowercase.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/maximise.svg",
+      "sha256": "8e5b14ead705814fe024beb45303e03298bcc16a47de9b52de341d4fc74da61f",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/maximise.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/alert-circle.svg",
+      "sha256": "31fbc99d7616ae9604439766745d761a80e65679142904dbf8e97ab75e30a27e",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/alert-circle.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/align-center.svg",
+      "sha256": "0b05de0ced6164da1451e9595e9e8936e8ba17feff3bf5500097c65b0f69a15f",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/align-center.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/align-left.svg",
+      "sha256": "6805bbb09fd70e1294f021705790fd771808e74ad42b611db2d5316bff4f720f",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/align-left.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/align-right.svg",
+      "sha256": "88a9c6fe2fcbffc62f65e813e290a4f80930a5dac3f44ce82e8769a6cfbd14ae",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/align-right.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/align.svg",
+      "sha256": "458a929d9a75d1b287df0f9357e08b6238fee630f3846f1f48cbbed956d09548",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/align.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/bell.svg",
+      "sha256": "09cb3682e89ced6889763b92b0c8f8d89bd2b6d5afcee9461fee2a129db34e40",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/bell.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/bold.svg",
+      "sha256": "daac19f8c867f403e24736c3f9c742bb266b1294090fad7d118af0f88425bb27",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/bold.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/capitalized.svg",
+      "sha256": "b5eafc99428e1ab328835e08ae96fa18ca477f5c53c10657206ecdc6cb6cb8fb",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/capitalized.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/check-circle.svg",
+      "sha256": "b816acbcf6928fe6671ea4daf99790f82ed73338ef12eaae42486483afad8624",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/check-circle.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/clipboard.svg",
+      "sha256": "bb952b024c6321255bd86978e2d2c02fb7b9f6f5db2995bbdbef10db0ea34d85",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/clipboard.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/close.svg",
+      "sha256": "a45583f5347f8dddd167cc8cb5f97a32953374dd632660ecd3e0169d7b3fd310",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/close.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/cloud.svg",
+      "sha256": "88dea2a55154090f7d4915582f99ca96e0309a6ed9f5fc270f54d48709847eee",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/cloud.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/cog.svg",
+      "sha256": "d275f990c0f1c119b9d21ba777ab729f9a143d4c8e9ba5b69436527256f2e84b",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/cog.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/combat.svg",
+      "sha256": "6fc790823b2821fed81cec3cfa5bee5650aed083e6f3eaac119ff33017e21d5c",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/combat.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/console.svg",
+      "sha256": "6fc790823b2821fed81cec3cfa5bee5650aed083e6f3eaac119ff33017e21d5c",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/console.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/copy-plus.svg",
+      "sha256": "660fa71032a13bb655134b534e1047bfb4e324139703745fb186bbfcaeb9831e",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/copy-plus.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/copy.svg",
+      "sha256": "f72e75875c20e6854d3f0b3c097a870f3fa40d512f456f13cbf372cab89c5890",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/copy.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/dots-grid.svg",
+      "sha256": "8ac6b97a94adecf974cebf9390bfc23bc2db3d33e6fd519d5dbbc20fab983abd",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/dots-grid.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/dots-vertical.svg",
+      "sha256": "21ed571a5ccfce3cc0e6d8616ec6a821c26449f126e8450a39cffee831e25abc",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/dots-vertical.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/down.svg",
+      "sha256": "5a3564fc0ac40c1a73f869532c671bbc469a3a81a138357b178fc5302278ed19",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/down.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/eye-off.svg",
+      "sha256": "914ded6764f1f2d627756b99e8c4d6b8cbea20f2c7dd1eb50093027d9b0aa34a",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/eye-off.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/eye.svg",
+      "sha256": "0606f948859e71999c90581a0383a6f5c66a54c80d11bcf106b612e3ef62013a",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/eye.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/hud.svg",
+      "sha256": "0ae7ed12a59e14dc894d587b09a3bc7e784645e0f80fdd3274c72ab9820e906f",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/hud.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/hypixel.svg",
+      "sha256": "14a776276eac5111d1375f04eb5bd1bbee6f40ce72938308fcd70bef180c211d",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/hypixel.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/info.svg",
+      "sha256": "680b5d5cf03576c00045548d65341c7064c763761b88b9c76fc893b41fe9688e",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/info.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/italic.svg",
+      "sha256": "7372ad95ace288c244698c9a4bead8300f70388e4fe8d0c3668b71b456de6641",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/italic.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/keyboard.svg",
+      "sha256": "3264a4631b871e7a9f6641711d650fbdb643fe472fd4d6b0f5c09b6a170006c2",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/keyboard.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/layers.svg",
+      "sha256": "f296b69b5f1dbdd573790528e0a34bf772bb00930d3ab280163fa62ba6c241a6",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/layers.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/left-arrow.svg",
+      "sha256": "ae3edb6f4f41b72cbafc10da32042c254c7bce5815077044aa581dea977519d9",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/left-arrow.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/lightning-01.svg",
+      "sha256": "f73c7e6d5d20da50e4e430047e5185c777566df22a580cb84f442edd3f81bf32",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/lightning-01.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/lock.svg",
+      "sha256": "960da252f64491a69726656d948e58fb7e0d4e0ae34ca362a892053cb5befdc6",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/lock.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/lowercase.svg",
+      "sha256": "3785cc79f55a76eff06703808f117dedd799cc52156646c7522e41de4a925834",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/lowercase.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/maximise.svg",
+      "sha256": "9167b8701304808b50243db1b935e01f03a237db5a05b947627d2b332eb6ab80",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/maximise.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/minus.svg",
+      "sha256": "49268fc5fbe7b61a1994ea3754566a65a1f57c039da2f5b761e8dfbff1a076d2",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/minus.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/moon.svg",
+      "sha256": "13c0a1a2a291d0a845b61e53b2215f794064352b20d81390e0a7fe7d8e121b63",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/moon.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/move.svg",
+      "sha256": "f296b69b5f1dbdd573790528e0a34bf772bb00930d3ab280163fa62ba6c241a6",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/move.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/paintbrush.svg",
+      "sha256": "7eb397e18580c940b9612a940822a92d843de9000287dc83d43769f69a619922",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/paintbrush.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/plus.svg",
+      "sha256": "a04d56a0976b76abc62d98ca161cffbb6342f83bc5109c69a0086ad7d999e618",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/plus.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/preferences.svg",
+      "sha256": "67e12f7202fe0ad8925afbcd7039f8f653936c78ffa01f1572f8e6c1a872c5b9",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/preferences.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/profiles.svg",
+      "sha256": "9343d99aa0de40ca0f22bf18e69e2fd90e3668735c8151d966e38290ecbefef5",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/profiles.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/qol.svg",
+      "sha256": "2494b808c86bc689c74e5d4a895b381892e3690b007ef048298491f2173d3d36",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/qol.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/refresh.svg",
+      "sha256": "5edf016b20c1bf769e3f90f80c0acf6a8c2ccf515785ef7266bfa5f73b9d8fcd",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/refresh.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/right-arrow.svg",
+      "sha256": "9edfde98c67283828a27a3f5a198d23c189428f03f2d31f988ea2d79e8f062cc",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/right-arrow.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/scissors.svg",
+      "sha256": "1243c45ca81cb5bf155d63f580f74e6578a6483a65dd1aaf018e73026f31f544",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/scissors.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/search.svg",
+      "sha256": "29aa80f8b1e62f1ad6da28a4d075fcea2eb983eab9175478dd1e7618169bcd47",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/search.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/select-all.svg",
+      "sha256": "f076f4ff8288092d5bd918ead866658f8ff1fb420eb47040b00c42e536895aa0",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/select-all.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/settings.svg",
+      "sha256": "3f0a85f6dd35091316b4fcdb969bc036bbe13a2dd2af465b9c3b887643e5cb20",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/settings.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/shuffle.svg",
+      "sha256": "6b6facbcfc93dfc7bc93d22fc1f5ae3ddfcab4a742d96ade484266988f240f72",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/shuffle.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/spanner.svg",
+      "sha256": "2494b808c86bc689c74e5d4a895b381892e3690b007ef048298491f2173d3d36",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/spanner.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/star-filled.svg",
+      "sha256": "f1de82741bdf040d85df4ee5fa90d38f38aa3d9c2cbd878395f52897e3f2ba4c",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/star-filled.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/star.svg",
+      "sha256": "5c95086ff867c4e63bbb7f7ba6c0f0f1e2edbf0754cd61348d0c502c16d0c934",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/star.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/strikethrough.svg",
+      "sha256": "9e213b106ed0bb1c417444965feea7465334ede832f73a91f41a62ff8e5a96a1",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/strikethrough.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/sun.svg",
+      "sha256": "9da9dad168df01aae575611969d06ca536b975b4d190b1a47954715338f8864e",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/sun.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/text-input.svg",
+      "sha256": "6560fedc01892368cb5334b47180c2f58d9e48cf7e9d10b656e9074f317e06b3",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/text-input.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/text.svg",
+      "sha256": "e0a3000044cdf531342d0311dddc2c6d828556dd3126a84442bf456da62a2190",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/text.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/tick.svg",
+      "sha256": "16676ddab36f19b49cdecf2bbcf31d37e75a9c81c08526362f9b84ab7ab0676a",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/tick.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/trash.svg",
+      "sha256": "9b2d1b5cc989b2c9104dc89c8eb4b76d04d0b62309620823efa82f5148d6172d",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/trash.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/underline.svg",
+      "sha256": "80b5b22acb57e2dd1aa2156b89ad53b2b3edb86dd17ef9454025b55c0acbfc4f",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/underline.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/unlock.svg",
+      "sha256": "fe310c6c2bd93cf41f5e35646a7e49c733090814f3303ccb204d979ace975cad",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/unlock.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/up.svg",
+      "sha256": "0d646a58c7ce1f559d9aedcca0269f82f180222412f273440462c75d504aa320",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/up.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/uppercase.svg",
+      "sha256": "2d08d069a63d3a52066f3a09c312b4bbedff0e92830a12f50c8b03e5199dd620",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/uppercase.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/x-circle.svg",
+      "sha256": "1e923d861cb88f44a9e65463a3ba1efde6730394d88c0e7aaace3505be907da7",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minecraft/x-circle.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/minus.svg",
+      "sha256": "e9a81a8878cbc40dad9b74ba09bd7fb1f57c9b997bc6c84392079a80e7e97818",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/minus.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/moon.svg",
+      "sha256": "3b754f86253b19552708cb53b4f1c61fc005c5b0dfc3775b8e2b5d8f078adaff",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/moon.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/move.svg",
+      "sha256": "42fb05cdb867f66065806c8c5e40d1941b947304c0366b5fe7368d0bf0966b9f",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/move.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/pad-bottom.svg",
+      "sha256": "423734a4417cffab59169aaeb19b86382df833648e915b0302e2ac889dd32e64",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/pad-bottom.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/pad-left.svg",
+      "sha256": "90c049e9c80958e9136ea288a97243dd323f28ab07f9aa31173b19453e1c76ca",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/pad-left.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/pad-right.svg",
+      "sha256": "52a7c91cbcbe9a922aa406ce8944e7c4f12592284e92ed306c49ea949ff0b57e",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/pad-right.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/pad-top.svg",
+      "sha256": "7726a8940810793ca826c6cca264ebabfff58fc76ba33ae955d06a20969fddf5",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/pad-top.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/paintbrush.svg",
+      "sha256": "514844124533832b28374b07498e22ff14fc744ede51f21e2d8aabf31a7a126b",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/paintbrush.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/plus.svg",
+      "sha256": "0118f8bef59352a54c3df7523747c44ba0cc42b03c8c1bc40d01cbd780582b16",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/plus.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/profiles.svg",
+      "sha256": "98f3b6bb9f8d113e3dc48e7d4ce3de94beabeeff0e0cc7adeea49ab36e3f84a2",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/profiles.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/qol.svg",
+      "sha256": "63a1367b17be2c0f52421b387b435eecd7fba9750f554d9a8456a9f8ce127f28",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/qol.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/redo.svg",
+      "sha256": "a8a310e9a2e76487ccd7f2888374f900b3cae49a7575a5775e8eb5cb17e70621",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/redo.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/refresh.svg",
+      "sha256": "3089c129ad3776400d12d8bebc5102939cf0924f50c7d66d22af829e36dda071",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/refresh.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/right-arrow.svg",
+      "sha256": "021a72d65ac97e603c4c864e815ee005a3838cf5e8461c3c2e594b657084ff03",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/right-arrow.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/scissors.svg",
+      "sha256": "ca70acf289c3ea59d3906cb99efe957882c8f767eabcb5a9a04f927ac3b07d6e",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/scissors.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/search.svg",
+      "sha256": "d47ee620516b334cc47cce824719f3dd5c460e27e8731c0fb7a9bc1fb8700fb2",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/search.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/select-all.svg",
+      "sha256": "9320de101c0facc04bc92d1a09871a037a50f9e4cbf6d2bc6fb1a25d1a974274",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/select-all.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/settings.svg",
+      "sha256": "5b8242673bbd0f92265ceddbc8bda868dd304cb2f6ec5b4d5c35486e35f1d6df",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/settings.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/shuffle.svg",
+      "sha256": "f94e0fc2e62c400389868307a802070b26c2034c414b86c7d0c703ebfbad8219",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/shuffle.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/spanner.svg",
+      "sha256": "2e498edb06eebc3752cd1e7ba988ad65f850232666a1a743297685505c7ed577",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/spanner.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/star-filled.svg",
+      "sha256": "8981e6736ce3033cbcf9119e35cd3cee034a4ee9b7d83a4912b2e73db80f5013",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/star-filled.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/star.svg",
+      "sha256": "a2445b02b5c6df7ee5a7b9e14234e0597788b42ea8e4751c48bb3778ac9164df",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/star.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/strikethrough.svg",
+      "sha256": "a4630fd04f08b411ec4850b7c7aa2c5cb0b1abb9b709b22e03934f7ac935a899",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/strikethrough.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/sun.svg",
+      "sha256": "5b7883861ca0ad357923ffeb10e17af32b4461a1d35e02d7fc70e70c999fd2f3",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/sun.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/text-input.svg",
+      "sha256": "634e286b73071f4a199b4642080644439f42d1d6db94eb3dcf758f4e36c6b893",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/text-input.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/text.svg",
+      "sha256": "dfc8944c70378b60d5a2c7b5ccd4d831231d38721377761ccefd44c2e817162c",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/text.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/tick.svg",
+      "sha256": "aebb0418843e22ee731c6039ca24b887e6285f4a4502f957007381a28543eb5f",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/tick.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/trash.svg",
+      "sha256": "734cf65e7193b43318d7870d1e62cfb8210125d4397775f3f6d443fc1850c7d0",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/trash.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/underline.svg",
+      "sha256": "bd5c029e7dcdb6633cd17710f15a28825314bbb521d2fd8acac5e862975b0260",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/underline.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/undo.svg",
+      "sha256": "b722c2df7773211f0d429a1b261f0cfeb3345333da39f61110115f7aa9980ee5",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/undo.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/unlock.svg",
+      "sha256": "00203c09614eff8ec0c1ff37d64f55687fb697477c5f8262f66d196e6084d202",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/unlock.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/up.svg",
+      "sha256": "18b97319aa32d1e984c687e59a0df76c4cc401f12e3a2d21201ac68d33dbcd52",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/up.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/uppercase.svg",
+      "sha256": "267445cff8d3b0e1d774cffb9ac908665dc0bb2455aabfd3b7ac6bc38186b31b",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/uppercase.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/ico/x-circle.svg",
+      "sha256": "e59d0427becb04b8e22e74c49edeefc2ee318d02978f73dcb7d1b2ab0686cc71",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/ico/x-circle.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/color/alpha.png",
+      "sha256": "7fea6d60925d6282ab3f1c4b5196ff7a23fb876eb3d0a37f31a9bd72ad7b5a0b",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/color/alpha.png",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/ui/src/main/resources/assets/oneconfig/color/hue.png",
+      "sha256": "af0a3ab0b549d1ca637e6bb8428f625c708cb33502737d52f63a3505122f37c4",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/ui/src/main/resources/assets/oneconfig/color/hue.png",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/hud/src/main/resources/assets/oneconfig/hud/align/background.svg",
+      "sha256": "c62fcec46f51a7d64b4193cefeea9cca86809f2609511f5ebcb21d0cf4289202",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/hud/src/main/resources/assets/oneconfig/hud/align/background.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/hud/src/main/resources/assets/oneconfig/hud/align/circle.svg",
+      "sha256": "fa81223dc1e5200766075acccd687a07b77b0ae7b3e2039fa9d5c351946d761f",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/hud/src/main/resources/assets/oneconfig/hud/align/circle.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/hud/src/main/resources/assets/oneconfig/hud/en_default.lang",
+      "sha256": "5cf4c30faf97844fdeadb2b4a2d2a7e9798fca2a5ec20005a4895dfd8067f9e9",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/hud/src/main/resources/assets/oneconfig/hud/en_default.lang",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/hud/src/main/resources/assets/oneconfig/hud/selector_curve.svg",
+      "sha256": "c3947903f7a3108ff6659a0a9ba393aed0f64e2ee6df04a23b44bb54aed6e2d0",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/hud/src/main/resources/assets/oneconfig/hud/selector_curve.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/internal/src/main/resources/assets/oneconfig/images/glass-dark.svg",
+      "sha256": "0496809640f5494c21f7b87e82f75c750394a6a1617eb26d0be49b21bc6c5b58",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/internal/src/main/resources/assets/oneconfig/images/glass-dark.svg",
+      "upstreamGitBlobMatch": false,
+      "license": "client-ui/LICENSE",
+      "notes": "Existing Arcadium modification of the upstream theme illustration, retained under the library license; the filename does not establish ownership."
+    },
+    {
+      "path": "client-ui/modules/internal/src/main/resources/assets/oneconfig/images/glass-light.svg",
+      "sha256": "df8b108342ad1e68a32c123c6d391dedd2d6ebb7d73672cb43f7040c941f2e98",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/internal/src/main/resources/assets/oneconfig/images/glass-light.svg",
+      "upstreamGitBlobMatch": false,
+      "license": "client-ui/LICENSE",
+      "notes": "Existing Arcadium modification of the upstream theme illustration, retained under the library license; the filename does not establish ownership."
+    },
+    {
+      "path": "client-ui/modules/internal/src/main/resources/assets/oneconfig/images/head.png",
+      "sha256": "043bab31829a736f1a6916ab948099045e3a619e0e202ed453f2ea572f1c648a",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/internal/src/main/resources/assets/oneconfig/images/head.png",
+      "upstreamGitBlobMatch": false,
+      "license": "GPL-3.0-only (Arcadium mark)",
+      "originalSha256": "3cc7b66ed3bb11ce5cc1f8f58f791db5d0db5c16ea235797e714647b72dc3ed1",
+      "replacement": "Owned Arcadium A fallback; see replacements.json"
+    },
+    {
+      "path": "client-ui/modules/internal/src/main/resources/assets/oneconfig/images/minecraft-dark.svg",
+      "sha256": "6bae3ce6704bb943be1c61e94079b99c0fa5767bda7682f652602b0aa0fbe5b1",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/internal/src/main/resources/assets/oneconfig/images/minecraft-dark.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/internal/src/main/resources/assets/oneconfig/images/minecraft-light.svg",
+      "sha256": "db5ef98af87d2eb034a5fdb435a9e6490230d5222aae0c01994801ab5c773a73",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/internal/src/main/resources/assets/oneconfig/images/minecraft-light.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/internal/src/main/resources/assets/oneconfig/images/polyglass-dark.svg",
+      "sha256": "0496809640f5494c21f7b87e82f75c750394a6a1617eb26d0be49b21bc6c5b58",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/internal/src/main/resources/assets/oneconfig/images/polyglass-dark.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/internal/src/main/resources/assets/oneconfig/images/polyglass-light.svg",
+      "sha256": "df8b108342ad1e68a32c123c6d391dedd2d6ebb7d73672cb43f7040c941f2e98",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/internal/src/main/resources/assets/oneconfig/images/polyglass-light.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    },
+    {
+      "path": "client-ui/modules/internal/src/main/resources/assets/oneconfig/ico/default_mod.svg",
+      "sha256": "8aa483fb9b96182e12c09a12f96f81e49b445540426717657c997a5219cef2cf",
+      "source": "https://github.com/Polyfrost/OneConfig/blob/82b113fb2f5a5a604238d03675fbbf441047357b/modules/internal/src/main/resources/assets/oneconfig/ico/default_mod.svg",
+      "upstreamGitBlobMatch": true,
+      "license": "client-ui/LICENSE"
+    }
+  ]
+}

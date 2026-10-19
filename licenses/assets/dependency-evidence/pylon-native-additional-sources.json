@@ -1,0 +1,34 @@
+[
+  {
+    "file": "openal-soft-1.25.2-tree.json",
+    "source": "https://api.github.com/repos/kcat/openal-soft/git/trees/1.25.2?recursive=1",
+    "sha256": "85fcdc827d7d12412b432a11de6b7eb160b6497384524786320ce56e63b772ec",
+    "bytes": 117550
+  },
+  {
+    "file": "openal-soft-1.25.2-COPYING.txt",
+    "source": "https://raw.githubusercontent.com/kcat/openal-soft/1.25.2/COPYING",
+    "sha256": "d808ce217e5b611854da622b57ec29fe545584c48bc5352fae72a4b6e5074a15",
+    "bytes": 23330
+  },
+  {
+    "file": "openal-soft-1.25.2-README.md",
+    "source": "https://raw.githubusercontent.com/kcat/openal-soft/1.25.2/README.md",
+    "sha256": "b7d8113e4cff86a1447b8fb514bc58f492e51797b6cb105d1f5e57c6b7ae9d39",
+    "bytes": 5358
+  },
+  {
+    "file": "openal-soft-1.25.2-COPYRIGHT.txt",
+    "source": "https://raw.githubusercontent.com/kcat/openal-soft/1.25.2/al/source.cpp",
+    "bytes": 889,
+    "originalSourceSha256": "ed2dabd064399ba3c9d81991763da451ad3c53ca3c256375edd9ba8c1047179b",
+    "scope": "Original copyright/license header extracted verbatim from al/source.cpp; implementation not copied.",
+    "sha256": "5521d2d1e25ece4111b9cdabebe159a880263544682a46475d194bd77f0ebd4c"
+  },
+  {
+    "file": "asm-9.10.1-LICENSE.txt",
+    "source": "https://gitlab.ow2.org/asm/asm/-/raw/ASM_9_10_1/LICENSE.txt",
+    "sha256": "293b6af371eee28b0ff16f0334ea19e20a3d5522143faa4b95b346855507879a",
+    "bytes": 1598
+  }
+]
