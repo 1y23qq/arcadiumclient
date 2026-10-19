@@ -36,7 +36,7 @@ jobs:
     timeout-minutes: 180
     env:
       SQLX_OFFLINE: 'true'
-      CARGO_TARGET_DIR: ${{ runner.temp }}/arcadium-target
+      CARGO_TARGET_DIR: target
       CARGO_BUILD_JOBS: ${{ matrix.jobs }}
       MACOSX_DEPLOYMENT_TARGET: ${{ matrix.minimum }}
     steps:
@@ -56,7 +56,7 @@ jobs:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
-            ${{ runner.temp }}/arcadium-target
+            target
           key: macos-source-v1-${{ matrix.platform }}-${{ hashFiles('Cargo.lock') }}-${{ github.sha }}-${{ inputs.mode }}
           restore-keys: macos-source-v1-${{ matrix.platform }}-
       - name: Warm native dependencies
