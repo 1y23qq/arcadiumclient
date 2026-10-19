@@ -1,6 +1,8 @@
 import io
 import json
+from pathlib import Path
 import unittest
+from unittest.mock import patch
 import zipfile
 
 import check_source_distribution as gate
@@ -37,6 +39,24 @@ class SourcePublicationTests(unittest.TestCase):
         for name, raw in [("client-runtime/src/main/java/Example.java", b"package example;"), ("packages/arcadium_app/assets/logo.png", b"\x89PNG\x00"), ("client-ui/sounds/ui/click.ogg", b"OggS\x00")]:
             with self.subTest(name=name):
                 self.assertEqual(gate.check_file(name, raw), [])
+
+    def test_native_log_module_sources_are_preserved(self):
+        self.assertEqual(len(gate.NATIVE_LOG_SOURCES), 5)
+        for name in gate.NATIVE_LOG_SOURCES:
+            with self.subTest(name=name):
+                self.assertEqual(gate.check_file(name, b"pub fn read_log() {}"), [])
+
+    def test_runtime_logs_cannot_use_the_native_source_exception(self):
+        for name in ["client-runtime/logs/latest.log", "packages/arcadium_cluster/src/logs/session.txt",
+                     "packages/arcadium_cluster/build/logs/mod.rs"]:
+            with self.subTest(name=name):
+                self.assertTrue(gate.check_file(name, b"runtime data"))
+
+    def test_missing_native_log_sources_fail_publication(self):
+        with patch.object(gate, "publication_files", return_value=[]):
+            report = gate.inspect(Path("unused"))
+        self.assertFalse(report["passed"])
+        self.assertEqual({entry["path"] for entry in report["failures"]}, gate.NATIVE_LOG_SOURCES)
 
     def test_credential_literals_are_rejected_without_rejecting_synthetic_home_examples(self):
         private_token = ("ghp_" + "x" * 36).encode()

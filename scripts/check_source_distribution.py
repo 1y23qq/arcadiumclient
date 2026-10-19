@@ -17,6 +17,7 @@ SOURCE_ROOT_FILES = {".editorconfig", ".gitattributes", ".gitignore", ".mailmap"
 WRAPPERS = {f"{project}/gradle/wrapper/gradle-wrapper.jar" for project in ["client-runtime", "client-ui", "game-branding"]}
 BUNDLES = {f"packages/arcadium_common/assets/distribution/{name}-1.8.9-ornithe.mrpack" for name in ["hud", "performance", "qol", "utility"]}
 GENERATED_PARTS = {".git", ".gradle", ".kotlin", "__pycache__", "node_modules", "build", "target", "run", "logs", "example-cookie", "forge-mod-test", "arcadium_polyplus", "client-features", "client-renderer"}
+NATIVE_LOG_SOURCES = {f"packages/arcadium_cluster/src/logs/{name}.rs" for name in ["error", "manage", "mclogs", "mod", "parse"]}
 BINARY_ASSETS = {".png", ".jpg", ".jpeg", ".webp", ".gif", ".ico", ".icns", ".tiff", ".ttf", ".otf", ".woff", ".woff2", ".ogg"}
 BINARY_OUTPUTS = {".jar", ".class", ".exe", ".dll", ".so", ".dylib", ".pdb", ".zip", ".gz", ".tar", ".xz", ".lzma", ".7z", ".rar", ".aar", ".dmg", ".enc", ".db", ".sqlite", ".sqlite3", ".pfx", ".p12", ".jks", ".keystore", ".onnx", ".pt"}
 CREDENTIAL_FILES = {"accounts.json", "cookies.txt", "cookies.json", "credentials.json", "usage-identity.json", ".env"}
@@ -30,7 +31,8 @@ def check_file(name: str, raw: bytes) -> list[str]:
     failures = []
     if path.is_absolute() or "\\" in name or any(part in {"", ".", ".."} for part in path.parts):
         return ["Invalid publication path"]
-    if any(part in GENERATED_PARTS for part in path.parts):
+    generated_parts = GENERATED_PARTS - ({"logs"} if name in NATIVE_LOG_SOURCES else set())
+    if any(part in generated_parts for part in path.parts):
         failures.append("Generated, private or excluded source directory")
     if (len(path.parts) == 1 and name not in SOURCE_ROOT_FILES) or (len(path.parts) > 1 and path.parts[0] not in SOURCE_DIRECTORIES):
         failures.append("Not in the source publication allowlist")
@@ -90,7 +92,10 @@ def publication_files(root: Path) -> list[str]:
 
 def inspect(root: Path = ROOT) -> dict:
     files, failures = [], []
-    for name in publication_files(root):
+    candidates = publication_files(root)
+    for name in sorted(NATIVE_LOG_SOURCES - set(candidates)):
+        failures.append({"path": name, "errors": ["Required native log module is missing from the source distribution"]})
+    for name in candidates:
         path = root / name
         if not path.exists():
             failures.append({"path": name, "errors": ["Tracked file is missing"]})

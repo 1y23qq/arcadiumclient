@@ -48,4 +48,6 @@ ArcadiumLauncher.iml
 /packages/arcadium_common/assets/distribution/*.jar
 **/.kotlin/
 **/logs/
+!/packages/arcadium_cluster/src/logs/
+!/packages/arcadium_cluster/src/logs/*.rs
 **/.pytest_cache/
