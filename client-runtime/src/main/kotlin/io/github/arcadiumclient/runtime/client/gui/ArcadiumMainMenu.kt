@@ -40,7 +40,6 @@ import org.polyfrost.oneconfig.internal.ui.compose.ComposeScreen
 import org.polyfrost.oneconfig.internal.ui.themes.*
 import io.github.arcadiumclient.runtime.ClientBuild
 import io.github.arcadiumclient.runtime.client.ClientPreferences
-import io.github.arcadiumclient.runtime.client.features.FirstRunSetup
 import io.github.arcadiumclient.runtime.client.launcher.AccountRepository
 import io.github.arcadiumclient.runtime.client.launcher.NativeAccountBridge
 import io.github.arcadiumclient.runtime.mixin.client.access.SessionAccess
@@ -49,8 +48,6 @@ class ArcadiumMainMenu : ComposeScreen(RenderMode.CONTINUOUS) {
     override val shadesPanorama: Boolean get() = false
     private var setup by mutableStateOf(!ClientPreferences.setupComplete)
     private var page by mutableIntStateOf(0)
-    private var sprint by mutableStateOf(true)
-    private var overlay by mutableStateOf(true)
 
     @Composable
     override fun compose() {
@@ -98,33 +95,7 @@ class ArcadiumMainMenu : ComposeScreen(RenderMode.CONTINUOUS) {
 
     @Composable
     private fun Setup() {
-        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            ModalPanel(450.dp) {
-                UiText(when (page) { 0 -> "Select a theme"; 1 -> "Toggle Sprint"; 2 -> "Block Overlay"; else -> "Ready to play" },
-                    22.sp, fontWeight = FontWeight.SemiBold)
-                when (page) {
-                    0 -> listOf(PolyGlassDark, PolyGlassLight, MinecraftDark, MinecraftLight).forEach { theme ->
-                        UiButton(theme.name.replace("PolyGlass", "Glass"), Modifier.fillMaxWidth(),
-                            filled = LocalTheme.current.name == theme.name) { ThemeRegistry.activate(theme) }
-                    }
-                    1 -> UiToggle("Toggle sprint with one press", sprint) { sprint = !sprint }
-                    2 -> UiToggle("Show the selected block outline", overlay) { overlay = !overlay }
-                    else -> UiText("You can change these settings in Arcadium Options.", color = UiTextSecondary)
-                }
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    if (page > 0) UiButton("Back", Modifier.weight(1f)) { page-- }
-                    UiButton(if (page == 3) "Done" else "Next", Modifier.weight(1f), filled = true) {
-                        if (page < 3) page++ else {
-                            FirstRunSetup.toggleSprint(sprint)
-                            FirstRunSetup.blockOverlay(overlay)
-                            ClientPreferences.setupComplete = true
-                            ClientPreferences.save()
-                            setup = false
-                        }
-                    }
-                }
-            }
-        }
+        OnboardingFlow(page, { page = it }) { setup = false }
     }
 }
 
