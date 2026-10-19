@@ -117,16 +117,13 @@ fn hero(report: &StorageReport, refresh: Element) -> impl IntoElement {
                         .font_weight(FontWeight::BOLD)
                         .color(colors::fg_primary()),
                 )
-                .child(
-                    label()
-                        .text(subtitle)
-                        .font_size(12.)
-                        .color(if reclaimable > 0 {
-                            colors::brand()
-                        } else {
-                            colors::fg_secondary()
-                        }),
-                ),
+                .child(label().text(subtitle).font_size(12.).color(
+                    crate::theme::accent::themed_fill(if reclaimable > 0 {
+                        colors::brand()
+                    } else {
+                        colors::fg_secondary()
+                    }),
+                )),
         )
         .child(refresh)
         .into_element()

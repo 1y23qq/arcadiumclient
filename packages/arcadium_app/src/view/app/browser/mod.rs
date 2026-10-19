@@ -300,7 +300,13 @@ pub(crate) fn activity_badge(active: bool) -> impl IntoElement {
         .padding(Gaps::new_symmetric(2., 8.))
         .corner_radius(CornerRadius::new_all(999.))
         .background(crate::theme::accent::themed_fill(color.with_a(38)))
-        .child(label().text(text).font_size(11.).max_lines(1).color(color))
+        .child(
+            label()
+                .text(text)
+                .font_size(11.)
+                .max_lines(1)
+                .color(crate::theme::accent::themed_fill(color)),
+        )
 }
 
 fn badge(
@@ -331,7 +337,7 @@ fn badge(
                 .text(installed.label())
                 .font_size(font_size)
                 .max_lines(1)
-                .color(color),
+                .color(crate::theme::accent::themed_fill(color)),
         )
 }
 

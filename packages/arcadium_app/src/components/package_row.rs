@@ -955,7 +955,7 @@ pub(crate) fn pill(icon: Option<Element>, text: String, accent: Color) -> Elemen
                 .text(text)
                 .font_size(10.)
                 .font_weight(FontWeight::MEDIUM)
-                .color(accent),
+                .color(crate::theme::accent::themed_fill(accent)),
         )
         .into_element()
 }

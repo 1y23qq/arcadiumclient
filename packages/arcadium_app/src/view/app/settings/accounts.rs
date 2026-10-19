@@ -621,7 +621,7 @@ fn badge(icon: impl IntoElement, text: String, border: Color, fg: Color) -> impl
                 .text(text)
                 .font_size(10.)
                 .font_weight(FontWeight::MEDIUM)
-                .color(fg),
+                .color(crate::theme::accent::themed_fill(fg)),
         )
         .into_element()
 }

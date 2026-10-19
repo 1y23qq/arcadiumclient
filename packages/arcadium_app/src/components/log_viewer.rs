@@ -287,11 +287,16 @@ fn auto_scroll_toggle(mut auto_scroll: State<bool>) -> impl IntoElement {
         } else {
             colors::fg_secondary()
         }))
-        .child(label().text("Auto-scroll").font_size(11.).color(if on {
-            colors::brand()
-        } else {
-            colors::fg_secondary()
-        }))
+        .child(
+            label()
+                .text("Auto-scroll")
+                .font_size(11.)
+                .color(crate::theme::accent::themed_fill(if on {
+                    colors::brand()
+                } else {
+                    colors::fg_secondary()
+                })),
+        )
         .into_element()
 }
 
