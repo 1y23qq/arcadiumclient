@@ -185,7 +185,7 @@ def verify_current_components(platforms):
 
 
 def update_site(version, stable, platforms):
-    website = ROOT / "sites/arcadium-official/dist"
+    website = ROOT / "sites/arcadium-official/public"
     metadata = {"version": version, "prerelease": not stable, "platforms": {}}
     redirects = []
     for platform, package in platforms.items():
@@ -242,6 +242,7 @@ def prepare(stable, advance_site=False):
         "# Arcadium Client\n\n"
         "Minecraft 1.8.9 client and launcher.\n\n"
         "[Official website and downloads](https://arcadiumclient.com/)\n\n"
+        "[Source code](https://github.com/0aurorq3/arcadiumclient)\n\n"
         "This repository hosts official installer releases.\n", encoding="utf-8")
     binaries = []
     manifests = []

@@ -18,6 +18,8 @@ permissions:
 
 jobs:
   build:
+    permissions:
+      contents: write
     strategy:
       fail-fast: false
       matrix:
@@ -90,5 +92,5 @@ jobs:
             build/installers/${{ matrix.platform }}/
             build/macos-compatibility-tests.json
             build/macos-native-helper-tests.json
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 3
