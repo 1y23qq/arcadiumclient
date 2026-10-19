@@ -92,5 +92,6 @@ jobs:
             build/installers/${{ matrix.platform }}/
             build/macos-compatibility-tests.json
             build/macos-native-helper-tests.json
+            build/theme-accent-evidence/
           if-no-files-found: warn
           retention-days: 3

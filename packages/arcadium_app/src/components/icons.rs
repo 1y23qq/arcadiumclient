@@ -100,7 +100,7 @@ impl Component for GradientIcon {
             .ceil()
             .max(1.) as i32;
         let cache = use_hook(|| Rc::new(RefCell::new(None::<(&'static str, i32, skia::Image)>)));
-        let mask = {
+        {
             let mut cache = cache.borrow_mut();
             if cache
                 .as_ref()
@@ -126,18 +126,21 @@ impl Component for GradientIcon {
                 });
                 *cache = image.map(|image| (self.path, pixels, image));
             }
-            cache.as_ref().map(|(_, _, image)| image.clone())
-        };
+        }
         let mut fill = use_state(|| self.fill.clone());
         fill.set_if_modified(self.fill.clone());
-        let rotation = self.rotation;
+        let mut rotation = use_state(|| self.rotation);
+        rotation.set_if_modified(self.rotation);
         canvas(RenderCallback::new(move |context| {
-            let Some(mask) = mask.as_ref() else { return };
+            let cache = cache.borrow();
+            let Some((_, _, mask)) = cache.as_ref() else {
+                return;
+            };
             let bounds = skia::Rect::from_wh(context.size.width, context.size.height);
             let saved = context
                 .canvas
                 .save_layer(&skia::canvas::SaveLayerRec::default().bounds(&bounds));
-            if let Some(degrees) = rotation {
+            if let Some(degrees) = *rotation.peek() {
                 context.canvas.rotate(degrees, Some(bounds.center()));
             }
             context

@@ -241,8 +241,8 @@ impl Component for GradientBorder {
         use skia_safe::{Paint, Rect as SkRect};
         let mut fill = use_state(|| themed_fill(self.border.fill));
         fill.set_if_modified(themed_fill(self.border.fill));
-        let border = self.border.clone();
-        let corners = self.corners;
+        let mut geometry = use_state(|| (self.border.clone(), self.corners));
+        geometry.set_if_modified((self.border.clone(), self.corners));
         let scale = *Platform::get().scale_factor.read() as f32;
         let horizontal = self.padding.horizontal() * scale;
         let vertical = self.padding.vertical() * scale;
@@ -252,7 +252,8 @@ impl Component for GradientBorder {
             paint.set_anti_alias(true);
             fill.peek()
                 .apply_to_paint(&mut paint, Area::new(Default::default(), context.size));
-            match RectElement::border_shape(bounds, &corners, &border) {
+            let geometry = geometry.peek();
+            match RectElement::border_shape(bounds, &geometry.1, &geometry.0) {
                 BorderShape::DRRect(outer, inner) => {
                     context.canvas.draw_drrect(&outer, &inner, &paint);
                 }
@@ -640,11 +641,14 @@ mod tests {
         use freya_testing::TestingRunner;
         use std::{cell::Cell, collections::HashMap, rc::Rc};
 
+        #[derive(Clone, Copy)]
+        struct DetailSignal(State<bool>);
         #[derive(PartialEq)]
         struct Detail;
         impl Component for Detail {
             fn render(&self) -> impl IntoElement {
                 let color = super::super::colors::brand();
+                let changed = *try_consume_root_context::<DetailSignal>().unwrap().0.read();
                 rect()
                     .horizontal()
                     .spacing(12.)
@@ -652,10 +656,23 @@ mod tests {
                     .width(Size::px(320.))
                     .height(Size::px(140.))
                     .padding(12.)
-                    .corner_radius(CornerRadius::new_all(12.))
+                    .corner_radius(CornerRadius::new_all(if changed { 8. } else { 12. }))
                     .background(themed_fill(color.with_a(38)))
-                    .themed_border(Border::new().fill(color).width(2.))
-                    .child(Icon::new(IconType::CheckCircle).size(24.).color(color))
+                    .themed_border(
+                        Border::new()
+                            .fill(color)
+                            .width(if changed { 4. } else { 2. }),
+                    )
+                    .child(
+                        Icon::new(if changed {
+                            IconType::ArrowRight
+                        } else {
+                            IconType::CheckCircle
+                        })
+                        .size(24.)
+                        .color(color)
+                        .rotate(if changed { 90. } else { 0. }),
+                    )
                     .child(label().text("Selected account").color(themed_fill(color)))
             }
         }
@@ -679,14 +696,16 @@ mod tests {
                         .background(themed_fill(Color::RED)),
                 )
         };
-        let (mut test, mut shared) = TestingRunner::new(
+        let (mut test, (mut shared, mut signal)) = TestingRunner::new(
             app,
             Size2D::new(360. * scale as f32, 220. * scale as f32),
             |runner| {
-                runner.provide_root_context(|| AccentContext {
+                let accent = runner.provide_root_context(|| AccentContext {
                     theme: State::create(Arc::new(SharedAccent::default())),
                     phase: State::create(0.),
-                })
+                });
+                let signal = runner.provide_root_context(|| DetailSignal(State::create(false)));
+                (accent, signal)
             },
             scale,
         );
@@ -749,6 +768,27 @@ mod tests {
             changed(20, 172, 340, 192),
             0,
             "The theme recolored a non-accent surface"
+        );
+        test.run_in(|| signal.0.set(true));
+        test.sync_and_update();
+        test.render_to_file(directory.join("details-properties.png"));
+        let properties = image::open(directory.join("details-properties.png"))
+            .unwrap()
+            .to_rgba8();
+        let property_changes = ((35. * scale) as u32..(150. * scale) as u32)
+            .flat_map(|y| ((32. * scale) as u32..(60. * scale) as u32).map(move |x| (x, y)))
+            .filter(|&(x, y)| second.get_pixel(x, y) != properties.get_pixel(x, y))
+            .count();
+        assert!(
+            property_changes > 20,
+            "The accent icon did not update its shape and rotation"
+        );
+        let wider_edge = properties
+            .get_pixel((100. * scale) as u32, (23. * scale) as u32)
+            .0;
+        assert!(
+            wider_edge[1] > 100 && wider_edge[2] > 100,
+            "The accent border did not update its width"
         );
         test.run_in(|| {
             let mut theme = SharedAccent::default();
