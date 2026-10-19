@@ -319,9 +319,9 @@ private fun WorldCard(world: WorldView, selected: Boolean, onSelect: () -> Unit,
 }
 
 @Composable
-internal fun ArcadiumMenuWindow(title: String, error: String?, onEscape: () -> Unit, onKey: (KeyEvent) -> Boolean = { false }, maxWidth: Dp = 1040.dp, maxHeight: Dp = Dp.Unspecified, content: @Composable ColumnScope.() -> Unit) {
+internal fun ArcadiumMenuWindow(title: String, error: String?, onEscape: () -> Unit, onKey: (KeyEvent) -> Boolean = { false }, maxWidth: Dp = 1040.dp, maxHeight: Dp = Dp.Unspecified, dimBackground: Boolean = true, content: @Composable ColumnScope.() -> Unit) {
     Box(
-        Modifier.fillMaxSize().background(UiScrim).onPreviewKeyEvent {
+        Modifier.fillMaxSize().then(if (dimBackground) Modifier.background(UiScrim) else Modifier).onPreviewKeyEvent {
             if (it.key == Key.Escape && it.type == KeyEventType.KeyDown) { onEscape(); true } else onKey(it)
         }.padding(20.dp), contentAlignment = Alignment.Center,
     ) {

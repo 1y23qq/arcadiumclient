@@ -578,6 +578,7 @@ abstract class ComposeScreen(
     //?}
 
     protected open val retainsScene: Boolean get() = false
+    protected open val shadesPanorama: Boolean get() = true
 
     private fun disposeScene() {
         SkiaCtx.clearComposeFrame()
@@ -625,8 +626,10 @@ abstract class ComposeScreen(
                     GlStateManager.disableAlphaTest()
                     it.drawBackground(mouseX, mouseY, tickDelta)
                     GlStateManager.enableAlphaTest()
-                    fillGradient(0, 0, width, height, -2130706433, 16777215)
-                    fillGradient(0, 0, width, height, 0, Int.MIN_VALUE)
+                    if (shadesPanorama) {
+                        fillGradient(0, 0, width, height, -2130706433, 16777215)
+                        fillGradient(0, 0, width, height, 0, Int.MIN_VALUE)
+                    }
                 } finally {
                     panoramaGlState.restore()
                 }

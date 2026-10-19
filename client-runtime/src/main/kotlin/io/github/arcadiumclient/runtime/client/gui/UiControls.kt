@@ -24,6 +24,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -119,7 +121,8 @@ internal fun UiButton(
 internal fun UiIconButton(icon: String, modifier: Modifier = Modifier, tooltip: String = "", onClick: () -> Unit) {
     val shape = LocalTheme.current.buttonShape
     Box(modifier.size(32.dp).clip(shape).background(UiControlBackground)
-        .border(1.dp, UiBorderColor, shape).clickable(onClick = onClick), contentAlignment = Alignment.Center) {
+        .border(1.dp, UiBorderColor, shape).semantics { if (tooltip.isNotEmpty()) contentDescription = tooltip }
+        .clickable(onClick = onClick), contentAlignment = Alignment.Center) {
         Icon(icon, UiTextPrimary, Modifier.size(17.dp))
     }
 }

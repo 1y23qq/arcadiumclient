@@ -21,7 +21,7 @@ def build_commands() -> list[list[str]]:
     return [
         gradle("client-ui", ":modules:internal:jar", ":modules:compose-bundle:jar", ":minecraft:1.8.9-ornithe:remapJar", ":bootstrap:1.8.9-ornithe:build"),
         gradle("client-ui", *(f":modules:{module}:publishToMavenLocal" for module in CORE_MODULES), ":minecraft:1.8.9-ornithe:publishToMavenLocal"),
-        gradle("client-runtime", "build", "exportTestClasspath"),
+        gradle("client-runtime", "--refresh-dependencies", "build", "exportTestClasspath"),
         gradle("forge-compat", "build"),
         gradle("game-branding", "build"),
         [sys.executable, str(ROOT / "scripts/package_client.py")],

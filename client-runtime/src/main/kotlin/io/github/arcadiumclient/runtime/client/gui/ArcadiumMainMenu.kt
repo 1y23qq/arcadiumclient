@@ -3,11 +3,25 @@
 
 package io.github.arcadiumclient.runtime.client.gui
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -32,6 +46,7 @@ import io.github.arcadiumclient.runtime.client.launcher.NativeAccountBridge
 import io.github.arcadiumclient.runtime.mixin.client.access.SessionAccess
 
 class ArcadiumMainMenu : ComposeScreen(RenderMode.CONTINUOUS) {
+    override val shadesPanorama: Boolean get() = false
     private var setup by mutableStateOf(!ClientPreferences.setupComplete)
     private var page by mutableIntStateOf(0)
     private var sprint by mutableStateOf(true)
@@ -40,51 +55,50 @@ class ArcadiumMainMenu : ComposeScreen(RenderMode.CONTINUOUS) {
     @Composable
     override fun compose() {
         Theme {
-            if (setup) {
-                Setup()
-                return@Theme
-            }
             val mc = Minecraft.getInstance()
             var legal by remember { mutableStateOf(false) }
-            Box(Modifier.fillMaxSize().background(UiWindowBackground)) {
-                AccountMenu(Modifier.align(Alignment.TopStart).padding(20.dp))
-                Column(Modifier.width(260.dp).align(Alignment.Center),
-                    verticalArrangement = Arrangement.spacedBy(9.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(UI_ASSETS + "logo.svg", UiTextPrimary, Modifier.size(54.dp))
-                    UiText("Arcadium", 28.sp, fontWeight = FontWeight.SemiBold)
-                    Spacer(Modifier.height(14.dp))
-                    UiButton("Singleplayer", Modifier.fillMaxWidth()) { mc.openScreen(ArcadiumWorldsScreen(this@ArcadiumMainMenu)) }
-                    UiButton("Multiplayer", Modifier.fillMaxWidth()) { mc.openScreen(ArcadiumServersScreen(this@ArcadiumMainMenu)) }
-                    UiButton("Arcadium Options", Modifier.fillMaxWidth(), filled = true) { OneConfigUI.open() }
-                    Row(horizontalArrangement = Arrangement.spacedBy(9.dp)) {
-                        UiButton("Options", Modifier.weight(1f)) { mc.openScreen(OptionsScreen(this@ArcadiumMainMenu, mc.options)) }
-                        UiButton("Skins", Modifier.weight(1f)) { mc.openScreen(SkinChangerScreen(this@ArcadiumMainMenu)) }
+            Box(Modifier.fillMaxSize()) {
+                if (setup) Setup() else {
+                    AccountMenu(Modifier.align(Alignment.TopStart).padding(16.dp)) {
+                        mc.openScreen(SkinChangerScreen(this@ArcadiumMainMenu))
                     }
-                    UiButton("Quit", Modifier.fillMaxWidth()) { mc.stop() }
-                }
-                Row(Modifier.align(Alignment.BottomStart).padding(16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    UiButton("Licenses") { legal = true }
-                    UiButton("Discord") { browse(ClientBuild.SUPPORT_URL) }
-                }
-                if (legal) UiModalScrim({ legal = false }) {
-                    ModalPanel(440.dp) {
-                        UiText("Licenses", 19.sp, fontWeight = FontWeight.SemiBold)
-                        UiText("Arcadium Client", 14.sp)
-                        UiText("Launcher and configuration interface derived from OneLauncher and OneConfig. Copyright Polyfrost and contributors. Arcadium modifications copyright 2026 0aurorq3 and contributors.", 12.sp)
-                        UiText("GPL version 3. This software comes with no warranty. You may redistribute and modify it under its license. Dependencies retain their own licenses.", 12.sp)
-                        UiButton("Source and license notices", Modifier.fillMaxWidth()) {
-                            browse("https://github.com/0aurorq3/arcadiumclient/blob/main/NOTICE.md")
+                    Column(Modifier.width(300.dp).align(Alignment.Center),
+                        verticalArrangement = Arrangement.spacedBy(9.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(UI_ASSETS + "logo.svg", UiTextPrimary, Modifier.size(54.dp))
+                        UiText("ARCADIUM", 26.sp, fontWeight = FontWeight.Medium)
+                        Spacer(Modifier.height(14.dp))
+                        UiButton("Singleplayer", Modifier.fillMaxWidth().height(38.dp), icon = UI_ASSETS + "icons/user.svg") { mc.openScreen(ArcadiumWorldsScreen(this@ArcadiumMainMenu)) }
+                        UiButton("Multiplayer", Modifier.fillMaxWidth().height(38.dp), icon = MENU_ICONS + "profiles.svg") { mc.openScreen(ArcadiumServersScreen(this@ArcadiumMainMenu)) }
+                        Row(horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+                            UiButton("Options", Modifier.weight(1f).height(38.dp), icon = MENU_ICONS + "cog.svg") { mc.openScreen(OptionsScreen(this@ArcadiumMainMenu, mc.options)) }
+                            UiButton("Arcadium Options", Modifier.weight(1f).height(38.dp)) { OneConfigUI.open() }
                         }
-                        UiButton("Done", Modifier.fillMaxWidth(), filled = true) { legal = false }
+                    }
+                    Row(Modifier.align(Alignment.BottomStart).padding(16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        UiButton("Licenses") { legal = true }
+                        UiButton("Discord") { browse(ClientBuild.SUPPORT_URL) }
+                    }
+                    if (legal) UiModalScrim({ legal = false }) {
+                        ModalPanel(440.dp) {
+                            UiText("Licenses", 19.sp, fontWeight = FontWeight.SemiBold)
+                            UiText("Arcadium Client", 14.sp)
+                            UiText("Launcher and configuration interface derived from OneLauncher and OneConfig. Copyright Polyfrost and contributors. Arcadium modifications copyright 2026 0aurorq3 and contributors.", 12.sp)
+                            UiText("GPL version 3. This software comes with no warranty. You may redistribute and modify it under its license. Dependencies retain their own licenses.", 12.sp)
+                            UiButton("Source and license notices", Modifier.fillMaxWidth()) {
+                                browse("https://github.com/0aurorq3/arcadiumclient/blob/main/NOTICE.md")
+                            }
+                            UiButton("Done", Modifier.fillMaxWidth(), filled = true) { legal = false }
+                        }
                     }
                 }
+                MainWindowActions(Modifier.align(Alignment.TopEnd).padding(16.dp))
             }
         }
     }
 
     @Composable
     private fun Setup() {
-        Box(Modifier.fillMaxSize().background(UiWindowBackground), contentAlignment = Alignment.Center) {
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             ModalPanel(450.dp) {
                 UiText(when (page) { 0 -> "Select a theme"; 1 -> "Toggle Sprint"; 2 -> "Block Overlay"; else -> "Ready to play" },
                     22.sp, fontWeight = FontWeight.SemiBold)
@@ -115,7 +129,7 @@ class ArcadiumMainMenu : ComposeScreen(RenderMode.CONTINUOUS) {
 }
 
 @Composable
-private fun AccountMenu(modifier: Modifier) {
+private fun AccountMenu(modifier: Modifier, onSkins: () -> Unit) {
     val scope = rememberCoroutineScope()
     var accounts by remember { mutableStateOf<List<AccountRepository.StoredAccount>>(emptyList()) }
     var expanded by remember { mutableStateOf(false) }
@@ -155,8 +169,22 @@ private fun AccountMenu(modifier: Modifier) {
     LaunchedEffect(Unit) { runCatching { refresh() }.onFailure { error = "Open the Arcadium launcher to manage accounts." } }
     DisposableEffect(Unit) { onDispose { if (busy) NativeAccountBridge.cancelLogin() } }
 
-    Column(modifier.widthIn(min = 220.dp, max = 300.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        UiButton(username, Modifier.fillMaxWidth(), enabled = !busy, icon = MENU_ICONS + "user.svg") { expanded = !expanded }
+    val (interaction, hovered) = rememberUiHover()
+    val arrow by animateFloatAsState(if (expanded) 180f else 0f, tween(150))
+    val headerBorder by animateColorAsState(if (hovered && !busy) Accent else UiBorderColor)
+    Column(modifier.width(232.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Row(Modifier.fillMaxWidth().height(38.dp).clip(UiFieldShape).background(UiControlBackground)
+            .border(1.dp, headerBorder, UiFieldShape).alpha(if (busy) .5f else 1f)
+            .hoverable(interaction).semantics {
+                contentDescription = "Account menu"
+                stateDescription = if (expanded) "Expanded" else "Collapsed"
+            }.clickable(interactionSource = interaction, indication = null, enabled = !busy, role = Role.Button) { expanded = !expanded }
+            .padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            Icon(UI_ASSETS + "icons/user.svg", UiTextPrimary, Modifier.size(18.dp))
+            UiText(username, 13.sp, Modifier.weight(1f), maxLines = 1)
+            Icon(MENU_ICONS + "down.svg", UiTextPrimary, Modifier.size(15.dp).rotate(arrow))
+        }
         if (expanded) {
             accounts.forEach { account ->
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -170,7 +198,7 @@ private fun AccountMenu(modifier: Modifier) {
             }
             UiButton("Add account", Modifier.fillMaxWidth(), enabled = !busy) { add = true; method = null }
         }
-        error?.let { UiText(it, 11.sp, color = UiDangerColor) }
+        if (expanded || add) error?.let { UiText(it, 11.sp, color = UiDangerColor, maxLines = 3) }
         if (busy) UiText(progress.ifBlank { "Working..." }, 12.sp, color = UiTextSecondary)
         if (add && method == null) {
             listOf("Microsoft", "Cookie", "Cracked", "Session").forEach { option ->
@@ -201,6 +229,36 @@ private fun AccountMenu(modifier: Modifier) {
             }
         }
         if (add) UiButton("Cancel", Modifier.fillMaxWidth()) { NativeAccountBridge.cancelLogin(); add = false; method = null; input = "" }
+        UiButton("Skins", Modifier.fillMaxWidth().height(34.dp), icon = UI_ASSETS + "icons/shirt.svg", onClick = onSkins)
+    }
+}
+
+@Composable
+private fun MainWindowActions(modifier: Modifier) {
+    val mc = Minecraft.getInstance()
+    var fullscreen by remember { mutableStateOf(mc.isFullscreen) }
+    Row(modifier, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        MainWindowButton(if (fullscreen) "Exit fullscreen" else "Enter fullscreen", "maximise.svg") {
+            mc.tell { mc.toggleFullscreen(); fullscreen = mc.isFullscreen }
+        }
+        MainWindowButton("Quit game", "close.svg", danger = true) { mc.stop() }
+    }
+}
+
+@Composable
+private fun MainWindowButton(label: String, icon: String, danger: Boolean = false, onClick: () -> Unit) {
+    val (interaction, hovered) = rememberUiHover()
+    val background by animateColorAsState(if (danger) {
+        if (hovered) Color(0xE6C65C70) else Color(0xB3B7677A)
+    } else {
+        if (hovered) Color(0xB34C6373) else Color(0x80506674)
+    }, tween(130))
+    Box(Modifier.size(32.dp).clip(uiShape(6.dp)).background(background)
+        .border(1.dp, Color.White.copy(alpha = if (hovered) .5f else .3f), uiShape(6.dp))
+        .hoverable(interaction).semantics { contentDescription = label }
+        .clickable(interactionSource = interaction, indication = null, role = Role.Button, onClick = onClick),
+        contentAlignment = Alignment.Center) {
+        Icon(MENU_ICONS + icon, Color.White, Modifier.size(16.dp))
     }
 }
 

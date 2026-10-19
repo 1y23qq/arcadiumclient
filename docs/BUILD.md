@@ -21,6 +21,9 @@ compatibility layer and game branding. It then generates the launcher's componen
 catalog and copies the exact built JARs into its distribution assets. Original
 third-party author, copyright and license metadata is preserved.
 
+The runtime build refreshes Loom's remapped dependencies after publishing the
+local configuration library, so changes to its API are picked up by cached builds.
+
 To compile the launcher without creating an installer:
 
 ```sh

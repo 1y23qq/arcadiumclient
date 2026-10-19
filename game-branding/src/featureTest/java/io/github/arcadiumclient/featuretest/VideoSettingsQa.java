@@ -31,6 +31,8 @@ final class VideoSettingsQa {
     private static Screen worldParent;
     private static float gamma;
     private static boolean fancy;
+    private static int menuStage, menuWidth, menuHeight;
+    private static boolean menuVerified, menuFullscreen;
     private static final boolean RELOAD = Boolean.getBoolean("arcadium.videoSettingsReloadQa");
     private static final boolean MENU_ONLY = Boolean.getBoolean("arcadium.videoSettingsMenuOnlyQa");
 
@@ -42,6 +44,11 @@ final class VideoSettingsQa {
         checks.put("videoSettings", CHECKS);
         CHECKS.put("menuOnly", MENU_ONLY);
         if (++ticks < 14) return false;
+        if (MENU_ONLY && !RELOAD && !menuVerified) {
+            menuProbe(mc);
+            ticks = 0;
+            return false;
+        }
         if (screen != null && mc.screen == screen) useScreen(mc.screen);
         if (stage == 0) {
             if (!RELOAD && Boolean.getBoolean("arcadium.videoImportedScaleQa")) mc.options.guiScale = 4;
@@ -70,6 +77,7 @@ final class VideoSettingsQa {
             case 1 -> {
                 capture(mc, "video-settings-main.png");
                 CHECKS.put("mainSemantics", semanticSummary());
+                require(Boolean.FALSE.equals(invoke(screen, "getShadesPanorama")), "Video settings still shade the panorama");
                 var inventory = new ArrayList<Map<String, Object>>();
                 for (Object option : options()) inventory.add(Map.of("key", invoke(option, "getKey"), "label", invoke(option, "getLabel"),
                     "page", invoke(option, "getPage").toString(), "control", invoke(option, "getControl").toString(), "available", invoke(option, "getAvailable")));
@@ -104,6 +112,7 @@ final class VideoSettingsQa {
                 Object left = invoke(textNode(label("graphics"), false), "getBoundsInRoot");
                 Object right = invoke(textNode(label("render_distance"), false), "getBoundsInRoot");
                 require(((Number) invoke(left, "getLeft")).floatValue() < ((Number) invoke(right, "getLeft")).floatValue(), "Graphics and render distance are in the wrong columns");
+                verifySettingRows();
                 progress("brightness", 75);
                 Object fov = option("dynamic_fov");
                 dynamicFovValue = invoke(fov, "getValue");
@@ -193,6 +202,7 @@ final class VideoSettingsQa {
             case 10 -> {
                 if (mc.width != 854 || mc.height != 480) return again();
                 verifyBounds(mc, List.of("Video settings", label("graphics"), label("render_distance"), "Details...", "Quality...", "Display...", "Other...", "Done"));
+                verifySettingRows();
                 capture(mc, "video-settings-small.png");
                 Display.setDisplayMode(new DisplayMode(width, height));
                 CHECKS.put("smallWindow", true);
@@ -259,10 +269,98 @@ final class VideoSettingsQa {
         throw new IllegalStateException("Missing video setting: " + key);
     }
     private static String label(String key) throws Exception {
-        Object setting = option(key);
-        String label = (String) invoke(setting, "getLabel");
-        return "CHOICE".equals(invoke(setting, "getControl").toString()) && Boolean.TRUE.equals(invoke(setting, "getAvailable"))
-                ? (label.isEmpty() ? "" : label + ": ") + invoke(setting, "getDisplayValue") : label;
+        return (String) invoke(option(key), "getLabel");
+    }
+
+    private static void menuProbe(Minecraft mc) throws Exception {
+        useScreen(mc.screen);
+        switch (menuStage) {
+            case 0 -> {
+                require(mc.screen.getClass().getSimpleName().equals("ArcadiumMainMenu"), "The chrome probe did not start on the main menu");
+                require(Boolean.FALSE.equals(invoke(mc.screen, "getShadesPanorama")), "The main menu still shades the panorama");
+                menuWidth = mc.width; menuHeight = mc.height; menuFullscreen = mc.isFullscreen();
+                Object account = invoke(described("Account menu"), "getBoundsInRoot");
+                Object skin = invoke(textNode("Skins", true), "getBoundsInRoot");
+                require(number(skin, "getTop") > number(account, "getBottom"), "Skins is not below the account menu");
+                require(number(skin, "getLeft") == number(account, "getLeft"), "Skins is not aligned with the account menu");
+                Object close = invoke(described("Quit game"), "getBoundsInRoot");
+                Object fullscreen = invoke(described(menuFullscreen ? "Exit fullscreen" : "Enter fullscreen"), "getBoundsInRoot");
+                require(number(close, "getRight") > mc.width - 50 && number(close, "getTop") < 40,
+                        "Quit is not in the upper-right corner");
+                require(number(fullscreen, "getRight") < number(close, "getLeft") && number(fullscreen, "getTop") == number(close, "getTop"),
+                        "Fullscreen is not beside Quit");
+                capture(mc, "video-settings-menu-controls.png");
+                clickDescription("Account menu");
+            }
+            case 1 -> {
+                require("Expanded".equals(properties(described("Account menu")).get("StateDescription")), "The account menu did not expand");
+                require(hasText("Add account"), "The account menu has no add-account action");
+                capture(mc, "video-settings-account-expanded.png");
+                clickDescription("Account menu");
+            }
+            case 2 -> {
+                require("Collapsed".equals(properties(described("Account menu")).get("StateDescription")), "The account menu did not collapse");
+                click("Skins");
+            }
+            case 3 -> {
+                require(mc.screen.getClass().getSimpleName().equals("SkinChangerScreen"), "Skins did not open the skin manager");
+                click("Done");
+            }
+            case 4 -> {
+                require(mc.screen.getClass().getSimpleName().equals("ArcadiumMainMenu"), "The skin manager did not return to the main menu");
+                clickDescription(menuFullscreen ? "Exit fullscreen" : "Enter fullscreen");
+            }
+            case 5 -> {
+                require(mc.isFullscreen() != menuFullscreen, "The fullscreen action did not change window mode");
+                clickDescription(menuFullscreen ? "Enter fullscreen" : "Exit fullscreen");
+            }
+            case 6 -> {
+                if (mc.width != menuWidth || mc.height != menuHeight) return;
+                require(mc.isFullscreen() == menuFullscreen, "The fullscreen action did not restore window mode");
+                CHECKS.put("mainMenuChromeAndSkins", true);
+                CHECKS.put("fullscreenButtonRoundtrip", true);
+                CHECKS.put("mainMenuNoPanoramaShade", true);
+                menuVerified = true;
+            }
+        }
+        menuStage++;
+    }
+
+    private static Object described(String label) throws Exception {
+        for (Object node : allNodes()) {
+            var values = properties(node);
+            if (values.get("ContentDescription") instanceof Collection<?> labels && labels.contains(label) && values.containsKey("OnClick")) return node;
+        }
+        throw new IllegalStateException("Menu action was not found: " + label);
+    }
+
+    private static void clickDescription(String label) throws Exception {
+        Object action = invoke(properties(described(label)).get("OnClick"), "getAction");
+        require(Boolean.TRUE.equals(invoke(action, "invoke")), "The menu action was rejected: " + label);
+    }
+
+    private static double number(Object target, String method) throws Exception {
+        return ((Number) invoke(target, method)).doubleValue();
+    }
+
+    private static Object control(String key) throws Exception {
+        String caption = label(key);
+        for (Object node : allNodes()) {
+            var values = properties(node);
+            if (values.get("ContentDescription") instanceof Collection<?> labels && labels.contains(caption)
+                    && (values.containsKey("OnClick") || values.containsKey("SetProgress"))) return node;
+        }
+        return textNode(caption, true);
+    }
+
+    private static void verifySettingRows() throws Exception {
+        for (String[] pair : List.of(new String[]{"graphics", "render_distance"}, new String[]{"smooth_lighting", "max_framerate"},
+                new String[]{"gui_scale", "entity_shadows"}, new String[]{"brightness", "view_bobbing"}, new String[]{"dynamic_lights", "dynamic_fov"})) {
+            Object first = invoke(control(pair[0]), "getBoundsInRoot"), second = invoke(control(pair[1]), "getBoundsInRoot");
+            require(Math.abs(number(first, "getHeight") - number(second, "getHeight")) < 1, "Video setting controls have different heights");
+            require(Math.abs(number(first, "getTop") - number(second, "getTop")) < 1, "Video setting controls are not aligned");
+        }
+        CHECKS.put("consistentControlRows", true);
     }
     private static List<Map<String, Object>> semanticSummary() throws Exception {
         ArrayList<Map<String, Object>> result = new ArrayList<>();

@@ -15,3 +15,5 @@ The two Jacob Debono Minecraft OTFs were excluded because their metadata states 
 Website Windows, Apple and Linux glyph paths exactly match Font Awesome Free 6.7.2. The Discord glyph is an unmodified copy from that same release. These SVGs are licensed under CC BY 4.0, copyright 2024 Fonticons, Inc. `platform-icon-provenance.json`, `Font-Awesome-Free-LICENSE.txt` and `Font-Awesome-CC-BY-4.0.txt` provide pinned sources and full notices. Copies and attribution are included in the deployed website assets. The symbols identify their respective platforms/services, without implying endorsement.
 
 The website comparison uses the project owner's original JPEG plus plain client names and the owned Arcadium A. Standalone competitor logo assets are excluded. The original image is unchanged, not repainted or cropped. See `sites/arcadium-official/ASSETS.md` and `site-source-restoration.json` for the stable source restoration.
+
+The account and skin controls use Arcadium's own user and shirt SVGs in `client-runtime/src/main/resources/assets/arcadium/icons/`, conveyed under the project GPL license.
