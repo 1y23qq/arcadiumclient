@@ -320,10 +320,39 @@ final class VideoSettingsQa {
                 CHECKS.put("mainMenuChromeAndSkins", true);
                 CHECKS.put("fullscreenButtonRoundtrip", true);
                 CHECKS.put("mainMenuNoPanoramaShade", true);
+                Display.setDisplayMode(new DisplayMode(1920, 1080));
+            }
+            case 7 -> {
+                if (mc.width != 1920 || mc.height != 1080) return;
+                verifyMenuSize(mc, 480, 50);
+                require(((Number) invoke(mc.screen, "getPanoramaBlurRadius")).floatValue() >= 20,
+                        "The main menu did not apply its soft panorama backdrop");
+                capture(mc, "main-menu-1080p.png");
+            }
+            case 8 -> Display.setDisplayMode(new DisplayMode(854, 480));
+            case 9 -> {
+                if (mc.width != 854 || mc.height != 480) return;
+                verifyMenuSize(mc, 292, 31);
+                capture(mc, "main-menu-small.png");
+            }
+            case 10 -> Display.setDisplayMode(new DisplayMode(menuWidth, menuHeight));
+            case 11 -> {
+                if (mc.width != menuWidth || mc.height != menuHeight) return;
+                CHECKS.put("responsiveMainMenu", true);
+                CHECKS.put("softPanoramaBackdrop", true);
                 menuVerified = true;
             }
         }
         menuStage++;
+    }
+
+    private static void verifyMenuSize(Minecraft mc, double width, double height) throws Exception {
+        Object bounds = invoke(textNode("Singleplayer", true), "getBoundsInRoot");
+        require(Math.abs(number(bounds, "getWidth") - width) <= 2, "The main menu width does not match its reference size");
+        require(Math.abs(number(bounds, "getHeight") - height) <= 2, "The main menu height does not match its reference size");
+        require(Math.abs((number(bounds, "getLeft") + number(bounds, "getRight")) / 2 - mc.width / 2.) <= 2,
+                "The main menu buttons are not centered");
+        verifyBounds(mc, List.of("Singleplayer", "Multiplayer", "Options", "Arcadium Options", "Skins"));
     }
 
     private static Object described(String label) throws Exception {

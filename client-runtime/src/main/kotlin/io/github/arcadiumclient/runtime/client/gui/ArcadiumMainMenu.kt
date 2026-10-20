@@ -18,12 +18,14 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.sp
 import java.awt.Desktop
 import java.net.URI
@@ -34,6 +36,7 @@ import net.minecraft.client.Minecraft
 import net.minecraft.client.Session
 import net.minecraft.client.gui.screen.menu.options.OptionsScreen
 import org.polyfrost.oneconfig.api.config.v1.ConfigManager
+import org.polyfrost.oneconfig.api.platform.v1.Platform
 import org.polyfrost.oneconfig.api.ui.v1.OneConfigUI
 import org.polyfrost.oneconfig.internal.ui.components.Icon
 import org.polyfrost.oneconfig.internal.ui.compose.ComposeScreen
@@ -46,6 +49,7 @@ import io.github.arcadiumclient.runtime.mixin.client.access.SessionAccess
 
 class ArcadiumMainMenu : ComposeScreen(RenderMode.CONTINUOUS) {
     override val shadesPanorama: Boolean get() = false
+    override val panoramaBlurRadius: Float get() = Platform.screen().viewportHeight() / 40f
     private var setup by mutableStateOf(!ClientPreferences.setupComplete)
     private var page by mutableIntStateOf(0)
 
@@ -54,21 +58,25 @@ class ArcadiumMainMenu : ComposeScreen(RenderMode.CONTINUOUS) {
         Theme {
             val mc = Minecraft.getInstance()
             var legal by remember { mutableStateOf(false) }
-            Box(Modifier.fillMaxSize()) {
+            BoxWithConstraints(Modifier.fillMaxSize()) {
                 if (setup) Setup() else {
                     AccountMenu(Modifier.align(Alignment.TopStart).padding(16.dp)) {
                         mc.openScreen(SkinChangerScreen(this@ArcadiumMainMenu))
                     }
-                    Column(Modifier.width(300.dp).align(Alignment.Center),
-                        verticalArrangement = Arrangement.spacedBy(9.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(UI_ASSETS + "logo.svg", UiTextPrimary, Modifier.size(54.dp))
-                        UiText("ARCADIUM", 26.sp, fontWeight = FontWeight.Medium)
-                        Spacer(Modifier.height(14.dp))
-                        UiButton("Singleplayer", Modifier.fillMaxWidth().height(38.dp), icon = UI_ASSETS + "icons/user.svg") { mc.openScreen(ArcadiumWorldsScreen(this@ArcadiumMainMenu)) }
-                        UiButton("Multiplayer", Modifier.fillMaxWidth().height(38.dp), icon = MENU_ICONS + "profiles.svg") { mc.openScreen(ArcadiumServersScreen(this@ArcadiumMainMenu)) }
-                        Row(horizontalArrangement = Arrangement.spacedBy(9.dp)) {
-                            UiButton("Options", Modifier.weight(1f).height(38.dp), icon = MENU_ICONS + "cog.svg") { mc.openScreen(OptionsScreen(this@ArcadiumMainMenu, mc.options)) }
-                            UiButton("Arcadium Options", Modifier.weight(1f).height(38.dp)) { OneConfigUI.open() }
+                    val density = LocalDensity.current
+                    val menuScale = minOf(maxWidth.value / 1280f, maxHeight.value / 720f).coerceIn(.73f, 1.2f)
+                    CompositionLocalProvider(LocalDensity provides Density(density.density * menuScale, density.fontScale)) {
+                        Column(Modifier.width(400.dp).align(Alignment.Center),
+                            verticalArrangement = Arrangement.spacedBy(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(UI_ASSETS + "logo.svg", UiTextPrimary, Modifier.size(72.dp))
+                            UiText("ARCADIUM", 40.sp, fontWeight = FontWeight.Medium)
+                            Spacer(Modifier.height(18.dp))
+                            UiButton("Singleplayer", Modifier.fillMaxWidth().height(42.dp), icon = UI_ASSETS + "icons/user.svg") { mc.openScreen(ArcadiumWorldsScreen(this@ArcadiumMainMenu)) }
+                            UiButton("Multiplayer", Modifier.fillMaxWidth().height(42.dp), icon = MENU_ICONS + "profiles.svg") { mc.openScreen(ArcadiumServersScreen(this@ArcadiumMainMenu)) }
+                            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                UiButton("Options", Modifier.weight(1f).height(42.dp), icon = MENU_ICONS + "cog.svg") { mc.openScreen(OptionsScreen(this@ArcadiumMainMenu, mc.options)) }
+                                UiButton("Arcadium Options", Modifier.weight(1f).height(42.dp)) { OneConfigUI.open() }
+                            }
                         }
                     }
                     Row(Modifier.align(Alignment.BottomStart).padding(16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {

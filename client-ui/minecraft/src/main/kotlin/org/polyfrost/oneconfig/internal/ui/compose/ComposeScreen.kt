@@ -579,6 +579,7 @@ abstract class ComposeScreen(
 
     protected open val retainsScene: Boolean get() = false
     protected open val shadesPanorama: Boolean get() = true
+    protected open val panoramaBlurRadius: Float get() = 0f
 
     private fun disposeScene() {
         SkiaCtx.clearComposeFrame()
@@ -633,6 +634,7 @@ abstract class ComposeScreen(
                 } finally {
                     panoramaGlState.restore()
                 }
+                BlurRenderer.drawBlur(panoramaBlurRadius)
             }
         }
         *///?}

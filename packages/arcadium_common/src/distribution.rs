@@ -34,11 +34,11 @@ pub const BRANDING_SHA1: &str = "381f046c24b05160fa2b08ad0f5793a976188512";
 pub const COMPONENTS: &[(&str, &str)] = &[
     (
         "ArcadiumCore-1.8.9.jar",
-        "e404e28b1ed686c023c6af5c91cb238a6481c9b2",
+        "6bb29e96a4c7da54ae976b7a0bb9aed5bd457b36",
     ),
     (
         "ArcadiumFeatures-1.8.9.jar",
-        "77358bc3637ba579fe6ab99ec1fab3857051d697",
+        "8ec04b5879466233eabd47d239b48ae20331bf1f",
     ),
     (
         "ArcadiumRenderer-1.8.9.jar",
