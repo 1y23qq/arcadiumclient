@@ -9,6 +9,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -44,10 +45,12 @@ import io.github.arcadiumclient.runtime.client.RuntimeServices
 import io.github.arcadiumclient.runtime.client.skins.SkinChanger
 import io.github.arcadiumclient.runtime.client.skins.SkinLibrary
 import io.github.arcadiumclient.runtime.client.skins.SkinUploadClient
+import io.github.arcadiumclient.runtime.client.skins.CapeClient
 import java.util.UUID
 
 class SkinChangerScreen(private val parent: Screen?) : ComposeScreen(RenderMode.CONTINUOUS) {
     private data class Saved(val entry: SkinLibrary.Entry, val image: ImageBitmap?)
+    private data class SavedCape(val cape: CapeClient.Cape, val png: ByteArray?, val image: ImageBitmap?)
     private val targetId = Minecraft.getInstance().session.profile.id
     private val targetName = Minecraft.getInstance().session.profile.name
     private var entries by mutableStateOf<List<Saved>>(emptyList())
@@ -57,6 +60,11 @@ class SkinChangerScreen(private val parent: Screen?) : ComposeScreen(RenderMode.
     private var busy by mutableStateOf<String?>("Loading skins...")
     private var error by mutableStateOf<String?>(null)
     private var message by mutableStateOf<String?>(null)
+    private var capeTab by mutableStateOf(false)
+    private var capes by mutableStateOf<List<SavedCape>>(emptyList())
+    private var capesLoaded by mutableStateOf(false)
+    private var selectedCape by mutableStateOf<String?>(null)
+    private var activeCape by mutableStateOf<String?>(null)
 
     init { reload() }
 
@@ -181,14 +189,147 @@ class SkinChangerScreen(private val parent: Screen?) : ComposeScreen(RenderMode.
 
     private fun close() { client.tell { client.openScreen(parent) } }
 
+    private fun capeToken(): String? {
+        val session = Minecraft.getInstance().session
+        if (targetId == null || session.profile.id != targetId) {
+            error = "Your active account changed. Open Skins again."
+            return null
+        }
+        val offline = UUID.nameUUIDFromBytes("OfflinePlayer:$targetName".toByteArray(Charsets.UTF_8))
+        if (targetId == offline || session.accessToken.isBlank() || session.accessToken == "0" || session.accessToken == "null") {
+            error = "Sign in to your Minecraft account to manage your capes."
+            return null
+        }
+        return session.accessToken
+    }
+
+    private fun loadCapes() {
+        if (busy != null) return
+        val token = capeToken() ?: return
+        val uuid = targetId ?: return
+        busy = "Loading capes..."
+        error = null
+        message = null
+        val mc = Minecraft.getInstance()
+        RuntimeServices.SCOPE.launch {
+            runCatching {
+                withContext(Dispatchers.IO) {
+                    val service = CapeClient()
+                    val profile = service.load(token, uuid) { sameAccount(uuid, token) }
+                    var previewsAvailable = true
+                    val loaded = profile.capes().map { cape ->
+                        val png = if (previewsAvailable) runCatching { service.texture(cape) }.getOrNull() else null
+                        if (png == null) previewsAvailable = false
+                        SavedCape(cape, png, png?.let { runCatching { menuImage(it) }.getOrNull() })
+                    }
+                    profile to loaded
+                }
+            }.onSuccess { (profile, loaded) -> mc.tell {
+                busy = null
+                if (!sameAccount(uuid, token)) {
+                    error = "Your active account changed. Open Skins again."
+                    return@tell
+                }
+                capes = loaded
+                activeCape = profile.activeId()
+                selectedCape = activeCape
+                capesLoaded = true
+                val active = loaded.firstOrNull { it.cape.id() == activeCape }
+                runCatching {
+                    if (activeCape == null || active?.png != null) SkinChanger.refreshCape(uuid, active?.png)
+                    else SkinChanger.clearCapePreview(uuid)
+                }.onFailure { SkinChanger.clearCapePreview(uuid) }
+            } }.onFailure { failure -> mc.tell { busy = null; error = failure.message ?: "Could not load your capes. Try again." } }
+        }
+    }
+
+    private fun applyCape() {
+        if (busy != null || !capesLoaded) return
+        val token = capeToken() ?: return
+        val uuid = targetId ?: return
+        val chosen = selectedCape
+        if (!SkinChanger.beginUpload()) { error = "An appearance change is already in progress."; return }
+        busy = "Applying cape to $targetName..."
+        error = null
+        message = null
+        val mc = Minecraft.getInstance()
+        RuntimeServices.SCOPE.launch {
+            try {
+                runCatching {
+                    withContext(Dispatchers.IO) { CapeClient().select(token, uuid, chosen) { sameAccount(uuid, token) } }
+                }.onSuccess { profile -> mc.tell {
+                    busy = null
+                    if (!sameAccount(uuid, token)) {
+                        message = "Cape updated for $targetName. Your active account changed, so its local preview was kept."
+                        return@tell
+                    }
+                    activeCape = profile.activeId()
+                    selectedCape = activeCape
+                    capes = capes.map { saved ->
+                        val updated = profile.capes().firstOrNull { it.id() == saved.cape.id() } ?: saved.cape
+                        saved.copy(cape = updated)
+                    }
+                    val png = capes.firstOrNull { it.cape.id() == chosen }?.png
+                    val refreshed = runCatching {
+                        if (chosen == null || png != null) { SkinChanger.refreshCape(uuid, png); true }
+                        else { SkinChanger.clearCapePreview(uuid); false }
+                    }.getOrElse { SkinChanger.clearCapePreview(uuid); false }
+                    message = if (refreshed) "Cape updated for $targetName. Rejoin if other players still see your previous cape."
+                        else "Cape updated for $targetName. Rejoin to refresh the preview."
+                } }.onFailure { failure -> mc.tell { busy = null; error = failure.message ?: "Could not change your cape. Try again." } }
+            } finally { SkinChanger.finishUpload() }
+        }
+    }
+
+    @Composable
+    private fun ColumnScope.CapeBrowser() {
+        val selected = capes.firstOrNull { it.cape.id() == selectedCape }
+        Row(Modifier.weight(1f).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(18.dp)) {
+            Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (capesLoaded) {
+                    UiButton("No cape", Modifier.fillMaxWidth(), filled = selectedCape == null, enabled = busy == null) { selectedCape = null; message = null }
+                    if (capes.isEmpty()) UiText("This Minecraft account does not own any capes.", 13.sp, color = UiTextSecondary, maxLines = 3)
+                } else if (busy == null && error == null) {
+                    UiText("Sign in to your Minecraft account, then refresh to load your capes.", 13.sp, color = UiTextSecondary, maxLines = 3)
+                }
+                capes.forEach { saved ->
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+                        CapePreview(saved.image, Modifier.size(52.dp, 78.dp))
+                        UiButton(saved.cape.name(), Modifier.weight(1f), filled = saved.cape.id() == selectedCape, enabled = busy == null) {
+                            selectedCape = saved.cape.id(); message = null
+                        }
+                    }
+                }
+            }
+            Column(Modifier.width(310.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Box(Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
+                    CapePreview(selected?.image, Modifier.fillMaxSize())
+                    if (selected?.image == null) UiText(if (!capesLoaded) "Choose a cape" else if (selectedCape == null) "No cape" else "Preview unavailable", 14.sp)
+                }
+                selected?.let { UiText(it.cape.name(), 14.sp) }
+                UiButton("Apply cape", Modifier.fillMaxWidth(), filled = true,
+                    enabled = capesLoaded && busy == null && selectedCape != activeCape, onClick = ::applyCape)
+            }
+        }
+    }
+
     @Composable
     override fun compose() {
         Theme {
             ArcadiumMenuWindow("Skins", error, ::close, maxWidth = 880.dp) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
                     UiText(targetName, 14.sp, Modifier.weight(1f))
-                    UiButton("Import PNG", enabled = busy == null, onClick = ::importSkin)
+                    if (capeTab) UiButton("Refresh capes", enabled = busy == null, onClick = ::loadCapes)
+                    else UiButton("Import PNG", enabled = busy == null, onClick = ::importSkin)
                 }
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    UiButton("Skins", Modifier.weight(1f), filled = !capeTab, enabled = busy == null) { capeTab = false; error = null; message = null }
+                    UiButton("Capes", Modifier.weight(1f), filled = capeTab, enabled = busy == null) {
+                        capeTab = true; error = null; message = null
+                        if (!capesLoaded) loadCapes()
+                    }
+                }
+                if (capeTab) CapeBrowser() else {
                 Row(Modifier.weight(1f).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(18.dp)) {
                     Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         if (entries.isEmpty() && busy == null) UiText("Import a Minecraft skin PNG to add it to your saved skins.", 13.sp,
@@ -221,11 +362,24 @@ class SkinChangerScreen(private val parent: Screen?) : ComposeScreen(RenderMode.
                             modifier = Modifier.fillMaxWidth(), onClick = ::applySkin)
                     }
                 }
+                }
                 busy?.let { UiText(it, 12.sp, color = UiTextSecondary) }
                 message?.let { UiText(it, 12.sp, color = UiTextSecondary, maxLines = 3) }
                 UiButton("Done", modifier = Modifier.fillMaxWidth(), onClick = ::close)
             }
         }
+    }
+}
+
+@Composable
+private fun CapePreview(image: ImageBitmap?, modifier: Modifier) {
+    Canvas(modifier.background(UiControlBackground).border(1.dp, UiBorderColor)) {
+        if (image == null) return@Canvas
+        val factor = image.width / 64
+        val unit = minOf(size.width / 14f, size.height / 20f)
+        drawImage(image, srcOffset = IntOffset(factor, factor), srcSize = IntSize(10 * factor, 16 * factor),
+            dstOffset = IntOffset(((size.width - 10 * unit) / 2).toInt(), ((size.height - 16 * unit) / 2).toInt()),
+            dstSize = IntSize((10 * unit).toInt().coerceAtLeast(1), (16 * unit).toInt().coerceAtLeast(1)), filterQuality = FilterQuality.None)
     }
 }
 

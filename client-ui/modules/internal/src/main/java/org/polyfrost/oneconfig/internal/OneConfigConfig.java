@@ -22,6 +22,11 @@ import org.polyfrost.oneconfig.internal.ui.shell.ShellState;
 import org.polyfrost.oneconfig.internal.ui.sound.UiSounds;
 
 public class OneConfigConfig extends Config {
+    @Dropdown(title = "GUI Mode", description = "Choose the layout for the client menu.",
+        subcategory = "oneconfig.preferences.category.gui", subcategoryTranslation = true,
+        options = {"Modern", "Simple"})
+    public static int guiMode = 0;
+
     @Switch(title = "Raw Mouse Input", description = "Use unscaled mouse movement for camera control.",
         subcategory = "oneconfig.preferences.category.gui", subcategoryTranslation = true)
     public static volatile boolean rawMouseInput = true;
@@ -667,6 +672,11 @@ public class OneConfigConfig extends Config {
         if (tree == null) {
             return;
         }
+        ShellState.INSTANCE.setSimpleMode(guiMode == 1);
+        addCallback("guiMode", (Integer value) -> {
+            ShellState.INSTANCE.setSimpleMode(value == 1);
+            return false;
+        });
         if (useInterInGame) getProperty("useVanillaFontInGame").setAs(Boolean.FALSE);
         if (useInterForModText) getProperty("useVanillaFontForModText").setAs(Boolean.FALSE);
         addCallback("useInterInGame", (Boolean enabled) -> {

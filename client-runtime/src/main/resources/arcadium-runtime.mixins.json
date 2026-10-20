@@ -99,6 +99,9 @@
     "compat.forge.MixinNoRenderForgeOverlays",
     "compat.fullbright.MixinFullBrightLight",
     "compat.fullbright.MixinPhysicalLightUpdates",
+    "compat.hybedwars.MixinMinemenHeightConfig",
+    "compat.hybedwars.MixinMinemenHeightRenderer",
+    "compat.polyhitbox.MixinHitboxBounds",
     "compat.vanillahud.MixinTabListBackground"
   ],
   "injectors": {

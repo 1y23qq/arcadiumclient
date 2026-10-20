@@ -31,17 +31,21 @@ import org.polyfrost.oneconfig.internal.ui.search.SearchScope
 import org.polyfrost.oneconfig.internal.ui.search.SettingNode
 import org.polyfrost.oneconfig.internal.ui.search.searchNode
 import org.polyfrost.oneconfig.internal.ui.shell.rememberRestorableLazyListState
+import org.polyfrost.oneconfig.internal.ui.shell.ShellState
 import org.polyfrost.oneconfig.internal.ui.themes.LocalTheme
 
 private const val MOD_GRID_COLUMNS = 4
 private val MOD_GRID_GAP = 19.dp
 private val LIST_GAP = 8.dp
 
-private val MOD_ROW_EXTRA_GAP = MOD_GRID_GAP - LIST_GAP
-
 @Composable
 fun SearchResultsScreen(query: String) {
     val theme = LocalTheme.current
+
+    DisposableEffect(Unit) {
+        ShellState.title = "Mods"
+        onDispose { }
+    }
 
     var searchedQuery by remember { mutableStateOf<String?>(null) }
     var results by remember { mutableStateOf<Map<SearchRow?, List<SearchDocument<*>>>>(emptyMap()) }
@@ -69,7 +73,10 @@ fun SearchResultsScreen(query: String) {
         byGroup
     }
 
-    val modRows = remember(matchingMods) { matchingMods.chunked(MOD_GRID_COLUMNS) }
+    val simpleMode = ShellState.simpleMode
+    val columns = if (simpleMode) 3 else MOD_GRID_COLUMNS
+    val gap = if (simpleMode) 12.dp else MOD_GRID_GAP
+    val modRows = remember(matchingMods, columns) { matchingMods.chunked(columns) }
 
     val listState = rememberRestorableLazyListState("global-search", query, searchedQuery)
 
@@ -103,13 +110,13 @@ fun SearchResultsScreen(query: String) {
                     BoxWithConstraints(
                         Modifier
                             .fillMaxWidth()
-                            .padding(bottom = if (index == modRows.lastIndex) 0.dp else MOD_ROW_EXTRA_GAP)
+                            .padding(bottom = if (index == modRows.lastIndex) 0.dp else gap - LIST_GAP)
                     ) {
                         val cellWidth = with(LocalDensity.current) {
-                            val gap = MOD_GRID_GAP.roundToPx()
-                            ((maxWidth.roundToPx() - gap * (MOD_GRID_COLUMNS - 1)) / MOD_GRID_COLUMNS).toDp()
+                            val gapPx = gap.roundToPx()
+                            ((maxWidth.roundToPx() - gapPx * (columns - 1)) / columns).toDp()
                         }
-                        Row(horizontalArrangement = Arrangement.spacedBy(MOD_GRID_GAP)) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(gap)) {
                             modRows[index].forEach { mod ->
                                 Box(Modifier.width(cellWidth)) { ModCard(mod) }
                             }

@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -81,6 +82,7 @@ import org.polyfrost.oneconfig.internal.ui.api.modCardOrder
 import org.polyfrost.oneconfig.internal.ui.api.modFavoriteAt
 import org.polyfrost.oneconfig.internal.ui.api.modGroupBounds
 import org.polyfrost.oneconfig.internal.ui.components.Chip
+import org.polyfrost.oneconfig.internal.ui.components.GridReorderState
 import org.polyfrost.oneconfig.internal.ui.components.Icon
 import org.polyfrost.oneconfig.internal.ui.components.Text
 import org.polyfrost.oneconfig.internal.ui.components.asRenderText
@@ -132,33 +134,30 @@ fun Mods() {
     }
 
     Column(verticalArrangement = Arrangement.spacedBy(19.dp)) {
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            val cards = ConfigRegistry.modCardConfigs
-            ModCategory.entries.forEach {
-                val shown = when {
-                    it.favoritesOnly || activeCategory == it -> true
-                    it.hiddenOnly -> cards.any { configData -> ModHidden.isHidden(configData.id) }
-                    else -> cards.any { configData ->
-                        configData.category == it.configCategory && !ModHidden.isHidden(configData.id)
-                    }
-                }
-                if (shown) {
-                    Chip(
-                        label = it.title,
-                        selected = activeCategory == it,
-                        icon = it.icon,
-                        onClick = {
-                            activeCategory = if (activeCategory != it) {
-                                it
-                            } else {
-                                ModCategory.All;
-                            }
-                        }
-                    )
-                }
+        val chips = @Composable {
+            ModCategoryChips(activeCategory) { activeCategory = if (activeCategory != it) it else ModCategory.All }
+        }
+        if (ShellState.simpleMode) {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                chips()
             }
+        } else {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) { chips() }
         }
         ModsGrid(activeCategory)
+    }
+}
+
+@Composable
+private fun ModCategoryChips(activeCategory: ModCategory, onSelect: (ModCategory) -> Unit) {
+    val cards = ConfigRegistry.modCardConfigs
+    ModCategory.entries.forEach {
+        val shown = when {
+            it.favoritesOnly || activeCategory == it -> true
+            it.hiddenOnly -> cards.any { config -> ModHidden.isHidden(config.id) }
+            else -> cards.any { config -> config.category == it.configCategory && !ModHidden.isHidden(config.id) }
+        }
+        if (shown) Chip(it.title, selected = activeCategory == it, icon = it.icon, onClick = { onSelect(it) })
     }
 }
 
@@ -204,7 +203,8 @@ fun ColumnScope.ModsGrid(category: ModCategory) {
     }
     val entries = remember(flat) { flat.toMutableStateList() }
 
-    val gridState = rememberRestorableLazyGridState("mods")
+    val simpleMode = ShellState.simpleMode
+    val gridState = rememberRestorableLazyGridState(if (simpleMode) "mods-simple" else "mods")
     val density = LocalDensity.current
     val windowSize = LocalWindowInfo.current.containerSize
     // Only enable placement animations after the grid has been laid out for the current size
@@ -247,9 +247,9 @@ fun ColumnScope.ModsGrid(category: ModCategory) {
     ) {
         LazyVerticalGrid(
             state = gridState,
-            columns = GridCells.Fixed(4),
-            verticalArrangement = Arrangement.spacedBy(19.dp),
-            horizontalArrangement = Arrangement.spacedBy(19.dp),
+            columns = GridCells.Fixed(if (simpleMode) 3 else 4),
+            verticalArrangement = Arrangement.spacedBy(if (simpleMode) 12.dp else 19.dp),
+            horizontalArrangement = Arrangement.spacedBy(if (simpleMode) 12.dp else 19.dp),
             modifier = Modifier.fillMaxSize().padding(end = 16.dp).onGloballyPositioned {
                 animateItems = true
             },
@@ -287,6 +287,7 @@ fun ColumnScope.ModsGrid(category: ModCategory) {
                                 .dropSlotOutline(favoriteSlot) { outlineAlpha.value }
                                 .reorderableItem(reorderState, mod.id),
                             hoverHint = reorderState.overlayKey == null,
+                            reorderState = reorderState,
                         )
                     }
                 }
@@ -306,6 +307,7 @@ fun ColumnScope.ModsGrid(category: ModCategory) {
                 modifier = Modifier.reorderOverlay(reorderState),
                 favorite = dropFavorite ?: ModFavorites.isFavorite(dragged.id),
                 interactive = false,
+                reorderState = reorderState,
             )
         }
     }
@@ -361,7 +363,7 @@ private val ModCardPlacementSpec = spring(
 private fun List<ModGridEntry>.cardData(key: Any): ConfigData? =
     firstNotNullOfOrNull { (it as? ModGridEntry.Card)?.data?.takeIf { mod -> mod.id == key } }
 
-private fun openModCard(mod: ConfigData) {
+internal fun openModCard(mod: ConfigData) {
     ShellState.searchFieldFocused = false
     val onOpen = mod.onOpen
     when {
@@ -420,7 +422,12 @@ fun ModCard(
     favorite: Boolean = ModFavorites.isFavorite(mod.id),
     hoverHint: Boolean = true,
     interactive: Boolean = true,
+    reorderState: GridReorderState? = null,
 ) {
+    if (ShellState.simpleMode) {
+        SimpleModCard(mod, modifier, favorite, hoverHint, interactive, reorderState)
+        return
+    }
     val interactionSource = rememberInteractionSource()
     val theme = LocalTheme.current
 
@@ -533,7 +540,7 @@ fun ModCard(
 }
 
 @Composable
-private fun FavoriteStar(
+internal fun FavoriteStar(
     mod: ConfigData,
     favorite: Boolean,
     cardInteractions: InteractionSource,
@@ -578,7 +585,7 @@ private fun FavoriteStar(
 }
 
 @Composable
-private fun HideToggle(
+internal fun HideToggle(
     mod: ConfigData,
     cardInteractions: InteractionSource,
     modifier: Modifier = Modifier,

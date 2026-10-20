@@ -15,7 +15,7 @@ import java.util.UUID;
 import java.util.function.BooleanSupplier;
 
 public final class SkinUploadClient {
-    private static final URI OFFICIAL = URI.create("https://api.minecraftservices.com/minecraft/profile");
+    static final URI OFFICIAL = URI.create("https://api.minecraftservices.com/minecraft/profile");
     private final URI profile;
     private static final java.util.concurrent.atomic.AtomicInteger REQUESTS = new java.util.concurrent.atomic.AtomicInteger();
 
@@ -24,14 +24,23 @@ public final class SkinUploadClient {
     public SkinUploadClient() { this(OFFICIAL); }
 
     SkinUploadClient(URI profile) {
+        this.profile = validateEndpoint(profile);
+    }
+
+    static URI validateEndpoint(URI profile) {
         if (!profile.equals(OFFICIAL) && !("http".equals(profile.getScheme()) && "127.0.0.1".equals(profile.getHost())))
             throw new IllegalArgumentException("Unsupported skin service");
-        this.profile = profile;
+        return profile;
+    }
+
+    static void validateToken(String token) throws IOException {
+        if (token == null || token.isBlank() || token.equals("0") || token.equalsIgnoreCase("null")
+            || token.length() > 16_384 || token.chars().anyMatch(character -> character < 33 || character > 126))
+            throw new IOException("Sign in to your Minecraft account before changing its appearance.");
     }
 
     public void upload(String accessToken, UUID account, byte[] png, String variant, BooleanSupplier sameAccount) throws IOException {
-        if (accessToken == null || accessToken.isBlank() || accessToken.length() > 16_384 || accessToken.indexOf('\r') >= 0 || accessToken.indexOf('\n') >= 0)
-            throw new IOException("Sign in to your Minecraft account before changing skins.");
+        validateToken(accessToken);
         if (!"classic".equals(variant) && !"slim".equals(variant)) throw new IOException("Choose Classic or Slim.");
         SkinLibrary.Image image = SkinLibrary.canonicalize(png);
         if (image.height() == 32 && "slim".equals(variant)) throw new IOException("A 64 by 32 skin uses the Classic model.");
@@ -54,6 +63,10 @@ public final class SkinUploadClient {
     }
 
     private static byte[] request(URI uri, String method, String token, String contentType, byte[] body) throws IOException {
+        return request(uri, method, token, contentType, body, "skin");
+    }
+
+    static byte[] request(URI uri, String method, String token, String contentType, byte[] body, String appearance) throws IOException {
         REQUESTS.incrementAndGet();
         HttpURLConnection connection = (HttpURLConnection) uri.toURL().openConnection();
         connection.setInstanceFollowRedirects(false);
@@ -71,9 +84,11 @@ public final class SkinUploadClient {
             }
             int status = connection.getResponseCode();
             if (status == 401) throw new IOException("Your Minecraft session expired. Sign in again.");
-            if (status == 403) throw new IOException("This account could not change skins. Check that it owns Minecraft Java Edition.");
-            if (status == 429) throw new IOException("Too many skin changes. Try again later.");
-            if (status < 200 || status >= 300) throw new IOException(status >= 500 ? "Minecraft is unavailable. Try again later." : "Minecraft could not accept the skin. Check the PNG and try again.");
+            if (status == 403) throw new IOException("This account could not change " + appearance + "s. Check that it owns Minecraft Java Edition.");
+            if (status == 429) throw new IOException("Too many " + appearance + " changes. Try again later.");
+            if (status < 200 || status >= 300) throw new IOException(status >= 500 ? "Minecraft is unavailable. Try again later."
+                : "skin".equals(appearance) ? "Minecraft could not accept the skin. Check the PNG and try again."
+                : "Minecraft could not accept the cape change. Refresh your capes and try again.");
             try (InputStream input = connection.getInputStream()) {
                 byte[] result = input.readNBytes(65_537);
                 if (result.length > 65_536) throw new IOException("Minecraft returned an oversized response. Try again later.");

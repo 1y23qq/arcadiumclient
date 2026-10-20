@@ -50,13 +50,13 @@ class HeightLimitHud : TextHud("arcadium-height-limit-hud.json", "Height Limit H
         if (style == 1 && !showYLimit && !showCurrentY && !showDistanceToLimit) return false
         if (Minecraft.getInstance().world == null) return false
         val value = HeightLimitSource.snapshot()
-        return value.inBedwars && (value.maximum != null || showUnknown)
+        return value.supported && (value.maximum != null || showUnknown)
     }
 
     override fun getText(): String {
         val mc = Minecraft.getInstance()
         val value = HeightLimitSource.snapshot()
-        if (HudManager.isEditing && (!value.inBedwars || mc.player == null)) {
+        if (HudManager.isEditing && (!value.supported || mc.player == null)) {
             return HeightLimitText.format(style, if (style == 1) 67 else 64, if (style == 1) 256 else 113,
                 showYLimit, showCurrentY, showDistanceToLimit)
         }
@@ -66,7 +66,8 @@ class HeightLimitHud : TextHud("arcadium-height-limit-hud.json", "Height Limit H
 }
 
 object HeightLimitSource {
-    data class Snapshot(val inBedwars: Boolean = false, val map: String? = null, val maximum: Int? = null)
+    data class Snapshot(val inBedwars: Boolean = false, val map: String? = null, val maximum: Int? = null,
+                        val supported: Boolean = inBedwars)
     private class Access {
         val packetType = Class.forName("tomeko.hybedwars.location.HypixelPackets")
         val packets = packetType.getField("INSTANCE").get(null)
@@ -78,23 +79,62 @@ object HeightLimitSource {
         val maximum: Method = limits.returnType.getMethod("getMaxBuild")
     }
     private val access by lazy { runCatching { Access() }.getOrNull() }
+    private val overlaySettings by lazy {
+        runCatching {
+            Class.forName("tomeko.hybedwars.config.HyBedWarsConfig").getField("INSTANCE").get(null) as? HeightOverlaySettings
+        }.getOrNull()
+    }
     private var sampledAt = Long.MIN_VALUE / 2
     private var limitAt = Long.MIN_VALUE / 2
     private var value = Snapshot()
     private var lastWorld: Any? = null
+    private var lastServer: String? = null
+    private var lastMinemenEnabled = true
+    private var matchedAddress: String? = null
+    private var addressIsMinemen = false
+
+    private fun matchesMinemen(server: String?): Boolean {
+        if (server != matchedAddress) {
+            matchedAddress = server
+            addressIsMinemen = MinemenHeightLimit.matches(server)
+        }
+        return addressIsMinemen
+    }
+
+    @JvmStatic
+    fun minemenLimitActive(): Boolean {
+        val mc = Minecraft.getInstance()
+        return mc.world != null && !mc.isSingleplayer &&
+            overlaySettings?.`arcadium$minemenHeightLimitEnabled`() != false &&
+            matchesMinemen(mc.currentServerEntry?.ip)
+    }
+
+    @JvmStatic
+    fun minemenOverlayActive(): Boolean = minemenLimitActive() &&
+        overlaySettings?.`arcadium$heightOverlayEnabled`() == true
 
     @JvmStatic
     fun snapshot(): Snapshot {
-        val world = Minecraft.getInstance().world
+        val mc = Minecraft.getInstance()
+        val world = mc.world
+        val server = if (mc.isSingleplayer) null else mc.currentServerEntry?.ip
+        val minemenEnabled = overlaySettings?.`arcadium$minemenHeightLimitEnabled`() != false
         val now = System.nanoTime()
-        if (world === lastWorld && now - sampledAt < 100_000_000L) return value
-        if (world !== lastWorld) {
+        val sameContext = world === lastWorld && server == lastServer && minemenEnabled == lastMinemenEnabled
+        if (sameContext && now - sampledAt < 100_000_000L) return value
+        if (!sameContext) {
             value = Snapshot()
             limitAt = Long.MIN_VALUE / 2
             lastWorld = world
+            lastServer = server
+            lastMinemenEnabled = minemenEnabled
         }
         sampledAt = now
         if (world == null) return Snapshot().also { value = it }
+        if (matchesMinemen(server)) {
+            value = if (minemenEnabled) Snapshot(false, "Minemen Club", MinemenHeightLimit.LIMIT, true) else Snapshot()
+            return value
+        }
         val api = access ?: return Snapshot().also { value = it }
         value = runCatching {
             if (api.inBedwars.invoke(api.packets) != true) return@runCatching Snapshot()

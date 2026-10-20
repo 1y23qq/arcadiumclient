@@ -14,7 +14,7 @@ license = "GPL-3.0-only"
 readme = "README.md"
 repository = "https://github.com/0aurorq3/arcadiumclient"
 rust-version = "1.97"
-version = "0.3.7"
+version = "0.3.8"
 
 [workspace.dependencies]
 # core

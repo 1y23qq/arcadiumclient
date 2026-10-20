@@ -30,6 +30,7 @@ object OCViewModelStoreOwner: ViewModelStoreOwner {
     override val viewModelStore: ViewModelStore = ViewModelStore()
 }
 object ShellState {
+    var simpleMode by mutableStateOf(false)
     var title by mutableStateOf<String?>(null)
     var titleInfoForTitle by mutableStateOf<String?>(null)
     var titleAuthors by mutableStateOf<String?>(null)

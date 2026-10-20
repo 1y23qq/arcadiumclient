@@ -13,6 +13,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(ClientPlayerEntity.class)
 public abstract class MixinSkinChangerPlayer {
+    @Inject(method = "getCapeTextureLocation", at = @At("HEAD"), cancellable = true)
+    private void arcadium$selectedCape(CallbackInfoReturnable<Identifier> cir) {
+        var uuid = ((ClientPlayerEntity) (Object) this).getUuid();
+        if (SkinChanger.hasCapeOverride(uuid)) cir.setReturnValue(SkinChanger.capeTextureFor(uuid));
+    }
+
     @Inject(method = "getSkinTextureLocation()Lnet/minecraft/resource/Identifier;", at = @At("HEAD"), cancellable = true)
     private void arcadium$uploadedSkin(CallbackInfoReturnable<Identifier> cir) {
         Identifier texture = SkinChanger.textureFor(((ClientPlayerEntity) (Object) this).getUuid());

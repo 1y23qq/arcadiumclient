@@ -18,6 +18,9 @@ object SkinChanger {
     private var texture: Identifier? = null
     private var account: UUID? = null
     private var slim = false
+    private var cape: Identifier? = null
+    private var capeOwner: UUID? = null
+    private var capeOverride = false
     private val uploading = AtomicBoolean(false)
 
     fun beginUpload(): Boolean = uploading.compareAndSet(false, true)
@@ -31,6 +34,34 @@ object SkinChanger {
     }
 
     @JvmStatic fun modelFor(uuid: UUID?): String? = if (textureFor(uuid) == null) null else if (slim) "slim" else "default"
+
+    @JvmStatic fun hasCapeOverride(uuid: UUID?): Boolean = capeOverride && uuid != null && uuid == capeOwner &&
+        Minecraft.getInstance().session.profile.id == capeOwner
+
+    @JvmStatic fun capeTextureFor(uuid: UUID?): Identifier? = if (hasCapeOverride(uuid)) cape else null
+
+    fun refreshCape(uuid: UUID, png: ByteArray?) {
+        val mc = Minecraft.getInstance()
+        if (mc.session.profile.id != uuid) return
+        val next = png?.let {
+            val id = Identifier("arcadium", "capes/" + UUID.randomUUID())
+            check(mc.textureManager.register(id, UploadedSkinTexture(CapeClient.decodeTexture(it)))) { "Could not refresh the local cape texture." }
+            id
+        }
+        val previous = cape
+        cape = next
+        capeOwner = uuid
+        capeOverride = true
+        if (previous != null) mc.textureManager.close(previous)
+    }
+
+    fun clearCapePreview(uuid: UUID) {
+        if (capeOwner != uuid) return
+        cape?.let { Minecraft.getInstance().textureManager.close(it) }
+        cape = null
+        capeOwner = null
+        capeOverride = false
+    }
 
     fun refresh(uuid: UUID, png: ByteArray, variant: String) {
         val mc = Minecraft.getInstance()

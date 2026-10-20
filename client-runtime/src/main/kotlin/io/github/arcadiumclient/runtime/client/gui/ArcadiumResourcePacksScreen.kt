@@ -71,6 +71,7 @@ import org.polyfrost.oneconfig.internal.ui.themes.Accent
 import org.polyfrost.oneconfig.internal.ui.themes.Theme
 import org.polyfrost.oneconfig.utils.v1.Multithreading
 import io.github.arcadiumclient.runtime.mixin.client.access.ResourcePackEntryAccessor
+import io.github.arcadiumclient.runtime.client.resourcepack.ResourcePackSearch
 
 private const val PACK_ICONS = "assets/oneconfig/ico/"
 private val PACK_FORMATTING = Regex("§[0-9a-fk-or]", RegexOption.IGNORE_CASE)
@@ -187,6 +188,10 @@ class ArcadiumResourcePacksScreen(private val parent: Screen?) : ComposeScreen(R
             val tree = remember(packs, active, expanded, query, sort) {
                 packRows(packs.filter { it.id !in active }, expanded, query, sort)
             }
+            val activeResults = remember(packs, active, query) {
+                val terms = ResourcePackSearch.terms(query)
+                active.filter { id -> byId[id]?.let { ResourcePackSearch.matches(terms, it.searchText) } == true }
+            }
             Box(
                 Modifier.fillMaxSize().background(UiScrim).onPreviewKeyEvent {
                     if (it.key == Key.Escape && it.type == KeyEventType.KeyDown) {
@@ -217,7 +222,7 @@ class ArcadiumResourcePacksScreen(private val parent: Screen?) : ComposeScreen(R
                                 UiTextField(query, { query = it }, Modifier.weight(1f), "Search packs", PACK_ICONS + "search.svg", 160)
                                 UiDropdown("", PackSort.entries, sort, { it.label }, Modifier.width(112.dp)) { sort = it }
                             }
-                            PackScrollList(tree, { it.key }) { row ->
+                            PackScrollList(tree, { it.key }, query) { row ->
                                 when (row) {
                                     is PackRow.Folder -> FolderRow(row, row.id in expanded || query.isNotBlank()) {
                                         expanded = if (row.id in expanded) expanded - row.id else expanded + row.id
@@ -232,7 +237,7 @@ class ArcadiumResourcePacksScreen(private val parent: Screen?) : ComposeScreen(R
                             }
                         }
                         PackPane(Modifier.weight(1f), "Active") {
-                            PackScrollList(active, { it }) { id ->
+                            PackScrollList(activeResults, { it }, query) { id ->
                                 byId[id]?.let { pack ->
                                     PackCard(pack, 0) {
                                         Column {
@@ -314,6 +319,7 @@ private class PackView(val entry: ResourcePacks.UnopenedPack) {
     val formattedTitle: String = file.name
     val formattedDescription: String = entry.description
     val description: String = formattedDescription.replace(PACK_FORMATTING, "")
+    val searchText: String = ResourcePackSearch.text(id, title, description)
     val modified: Long = file.lastModified()
     val format: Int = runCatching { entry.format }.getOrDefault(-1)
     val icon: ImageBitmap? by lazy { runCatching { access.`arcadium$icon`().toPackBitmap() }.getOrNull() }
@@ -335,7 +341,8 @@ private sealed interface PackRow {
 }
 
 private fun packRows(packs: List<PackView>, expanded: Set<String>, query: String, sort: PackSort): List<PackRow> {
-    val matching = packs.filter { query.isBlank() || it.id.contains(query, true) || it.description.contains(query, true) }
+    val terms = ResourcePackSearch.terms(query)
+    val matching = packs.filter { ResourcePackSearch.matches(terms, it.searchText) }
     val result = mutableListOf<PackRow>()
     fun append(prefix: String, depth: Int, contents: List<PackView>) {
         val grouped = contents.groupBy { it.id.removePrefix(prefix).substringBefore('/') }
@@ -374,8 +381,9 @@ private fun PackPane(modifier: Modifier, title: String, content: @Composable Col
 }
 
 @Composable
-private fun <T> ColumnScope.PackScrollList(rows: List<T>, key: (T) -> Any, content: @Composable (T) -> Unit) {
+private fun <T> ColumnScope.PackScrollList(rows: List<T>, key: (T) -> Any, query: String, content: @Composable (T) -> Unit) {
     val state = rememberLazyListState()
+    LaunchedEffect(query) { state.scrollToItem(0) }
     Box(Modifier.weight(1f).fillMaxWidth()) {
         LazyColumn(state = state, modifier = Modifier.fillMaxSize().padding(end = 9.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             items(rows, key = key) { content(it) }
