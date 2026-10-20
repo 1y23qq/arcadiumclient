@@ -219,6 +219,15 @@ def update_site(version, stable, platforms):
         page.write_text(content, encoding="utf-8")
 
 
+def write_update_manifest(version, platform, package, directory):
+    manifest = {"product": "Arcadium Client", "launcherVersion": version,
+                "platform": platform, "installerSha256": package["update"]["sha256"]}
+    directory.mkdir(parents=True, exist_ok=True)
+    target = directory / Path(package["manifest"]).name
+    target.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+    return target
+
+
 def prepare(stable, advance_site=False):
     version = tomllib.loads((ROOT / "Cargo.toml").read_text(encoding="utf-8"))["workspace"]["package"]["version"]
     installers = ROOT / "build/installers"
@@ -246,15 +255,15 @@ def prepare(stable, advance_site=False):
         "This repository hosts official installer releases.\n", encoding="utf-8")
     binaries = []
     manifests = []
-    for package in platforms.values():
+    notes_dir = ROOT / "build/public-releases"
+    notes_dir.mkdir(exist_ok=True)
+    for platform, package in platforms.items():
         binaries.append(package["download"])
         if package["update"]["path"] != package["download"]["path"]:
             binaries.append(package["update"])
-        manifests.append(Path(package["manifest"]))
+        manifests.append(write_update_manifest(version, platform, package, notes_dir / f"v{version}-updates"))
     checksums = installers / "SHA256SUMS.txt"
     checksums.write_text("".join(f"{item['sha256']}  {item['file']}\n" for item in binaries), encoding="utf-8")
-    notes_dir = ROOT / "build/public-releases"
-    notes_dir.mkdir(exist_ok=True)
     notes = notes_dir / f"v{version}-notes.md"
     notes.write_text(section.group(1).strip() + "\n", encoding="utf-8")
     inventory = {"version": version, "prerelease": not stable, "platforms": platforms,

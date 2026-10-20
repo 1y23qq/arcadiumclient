@@ -13,6 +13,25 @@ import prepare_public_release as release
 
 
 class PublicReleaseTests(unittest.TestCase):
+    def test_public_update_manifest_stays_below_client_limit_with_full_audit_retained(self):
+        with tempfile.TemporaryDirectory(prefix="arcadium-release-") as temporary:
+            root = Path(temporary)
+            for platform in release.PLATFORMS:
+                name = "package-manifest.json" if platform == "windows-x64" else f"package-manifest-{platform}.json"
+                audit = root / name
+                original = json.dumps({"files": [{"path": f"resource-{i}", "sha256": "a" * 64} for i in range(2000)]})
+                audit.write_text(original, encoding="utf-8")
+                self.assertGreater(audit.stat().st_size, 65536)
+                package = {"manifest": str(audit), "update": {"sha256": "b" * 64},
+                           "download": {"sha256": "c" * 64}}
+                published = release.write_update_manifest("0.3.7", platform, package, root / "updates")
+                self.assertEqual(published.name, name)
+                self.assertLess(published.stat().st_size, 65536)
+                self.assertEqual(json.loads(published.read_text(encoding="utf-8")), {
+                    "product": "Arcadium Client", "launcherVersion": "0.3.7",
+                    "platform": platform, "installerSha256": "b" * 64})
+                self.assertEqual(audit.read_text(encoding="utf-8"), original)
+
     def fixture(self, root, platform="macos-arm64", extra=None, binary_cpu=None, binary_minimum=None, plist_minimum=None):
         directory = root / platform
         directory.mkdir()
