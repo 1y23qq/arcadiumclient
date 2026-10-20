@@ -277,7 +277,7 @@ final class VideoSettingsQa {
         switch (menuStage) {
             case 0 -> {
                 require(mc.screen.getClass().getSimpleName().equals("ArcadiumMainMenu"), "The chrome probe did not start on the main menu");
-                require(Boolean.FALSE.equals(invoke(mc.screen, "getShadesPanorama")), "The main menu still shades the panorama");
+                require(Boolean.TRUE.equals(invoke(mc.screen, "getShadesPanorama")), "The main menu does not match the Options panorama shading");
                 menuWidth = mc.width; menuHeight = mc.height; menuFullscreen = mc.isFullscreen();
                 Object account = invoke(described("Account menu"), "getBoundsInRoot");
                 Object skin = invoke(textNode("Skins", true), "getBoundsInRoot");
@@ -319,14 +319,14 @@ final class VideoSettingsQa {
                 require(mc.isFullscreen() == menuFullscreen, "The fullscreen action did not restore window mode");
                 CHECKS.put("mainMenuChromeAndSkins", true);
                 CHECKS.put("fullscreenButtonRoundtrip", true);
-                CHECKS.put("mainMenuNoPanoramaShade", true);
+                CHECKS.put("mainMenuOptionsPanoramaShade", true);
                 Display.setDisplayMode(new DisplayMode(1920, 1080));
             }
             case 7 -> {
                 if (mc.width != 1920 || mc.height != 1080) return;
                 verifyMenuSize(mc, 480, 50);
-                require(((Number) invoke(mc.screen, "getPanoramaBlurRadius")).floatValue() >= 20,
-                        "The main menu did not apply its soft panorama backdrop");
+                require(((Number) invoke(mc.screen, "getPanoramaBlurRadius")).floatValue() == 8f,
+                        "The main menu does not match the Options panorama blur");
                 capture(mc, "main-menu-1080p.png");
             }
             case 8 -> Display.setDisplayMode(new DisplayMode(854, 480));

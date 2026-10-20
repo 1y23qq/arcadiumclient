@@ -62,8 +62,8 @@ public final class SimpleMode038Qa {
             enabled = call(module, "getProp", "enabled");
             require(mode != null && enabled != null, "Simple mode controls were not registered");
             Object defaultMode = call(mode, "getMetadata", "default");
-            require(defaultMode instanceof Number && ((Number) defaultMode).intValue() == 0,
-                "Modern is no longer the default GUI mode");
+            require(defaultMode instanceof Number && ((Number) defaultMode).intValue() == 1,
+                "Simple is not the default GUI mode for new users");
             shell = object(SHELL);
             originalMode = call(mode, "get"); originalEnabled = call(enabled, "get");
             originalQuery = (String) call(shell, "getSearchQuery");

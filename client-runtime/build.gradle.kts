@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "io.github.arcadiumclient"
-version = "0.3.8"
+version = "0.3.9"
 base.archivesName = "ArcadiumRuntime"
 
 repositories {

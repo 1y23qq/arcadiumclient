@@ -8,7 +8,7 @@ import org.polyfrost.oneconfig.api.config.v1.annotations.Switch
 
 object ArcadiumPlayersConfig : Config(
     "arcadium-players.json",
-    "Arcadium Players",
+    "Arcadium Badge",
     Category.VISUALS,
 ) {
     @JvmStatic

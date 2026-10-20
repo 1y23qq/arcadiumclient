@@ -88,7 +88,6 @@ class OneConfigUIScreen @JvmOverloads constructor(
             it.resumeNext = true
         }
 
-        private const val FULLSCREEN_BLUR_RADIUS = 8f
         private const val OPEN_ANIMATION_MS = 250L
 
         /** Serialized so two closes in quick succession cannot write the same files at once */
@@ -489,7 +488,7 @@ class OneConfigUIScreen @JvmOverloads constructor(
         } else {
             (now - openedAt).toFloat() / OPEN_ANIMATION_MS
         }
-        return FULLSCREEN_BLUR_RADIUS * progress.coerceIn(0f, 1f)
+        return BlurRenderer.FULLSCREEN_RADIUS * progress.coerceIn(0f, 1f)
     }
 
     private fun easeOutExpo(progress: Float): Float {

@@ -10,6 +10,8 @@ import org.polyfrost.oneconfig.internal.ui.RenderTargetFbo
 //?}
 
 object BlurRenderer {
+    const val FULLSCREEN_RADIUS = 8f
+
     private const val RADIUS_QUANTUM = 0.5f
 
     private const val DOWNSAMPLE = 4
@@ -50,7 +52,7 @@ object BlurRenderer {
     private var cachedVkWidth = -1
     private var cachedVkHeight = -1
 
-    fun drawBlur(radius: Float = 8f) {
+    fun drawBlur(radius: Float = FULLSCREEN_RADIUS) {
         if (radius < 0.5f) return
         SkiaCtx.queueDraw {
             val target = client.gameRenderer.mainRenderTarget()

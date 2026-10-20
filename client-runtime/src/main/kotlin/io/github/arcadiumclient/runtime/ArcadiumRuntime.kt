@@ -39,7 +39,7 @@ class ArcadiumRuntime : ClientModInitializer {
             "Height Limit HUD" to { HudManager.register(HeightLimitHud(), "hybedwars.json", "/assets/arcadium/logo.svg") },
             "Bedwars Overlay" to { BedwarsOverlay.initialize() },
             "Animations" to { AnimationsConfig.initialize() },
-            "Arcadium Players" to { ArcadiumPlayersConfig.preload(); ArcadiumPresence.initialize() },
+            "Arcadium Badge" to { ArcadiumPlayersConfig.preload(); ArcadiumPresence.initialize() },
             "Online Count" to { OnlineUsage.initialize() },
         )
         components.forEach { (name, start) ->

@@ -21,6 +21,7 @@ object ConfigRegistry {
 
     private val hiddenModCardIds = setOf(
         "oneconfig.json",
+        "arcadium-client.json",
         "polyplus-cosmetics.json",
         "overflowanimations.json",
         "themes.json",

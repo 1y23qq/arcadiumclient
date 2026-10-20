@@ -1,10 +1,14 @@
 package org.polyfrost.oneconfig.internal;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import kotlin.jvm.functions.Function1;
 import org.polyfrost.oneconfig.api.config.v1.Config;
+import org.polyfrost.oneconfig.api.config.v1.ConfigManager;
 import org.polyfrost.oneconfig.api.config.v1.Property;
+import org.polyfrost.oneconfig.api.config.v1.Tree;
 import org.polyfrost.oneconfig.api.config.v1.annotations.Dropdown;
 import org.polyfrost.oneconfig.api.config.v1.annotations.Include;
 import org.polyfrost.oneconfig.api.config.v1.annotations.Keybind;
@@ -25,7 +29,7 @@ public class OneConfigConfig extends Config {
     @Dropdown(title = "GUI Mode", description = "Choose the layout for the client menu.",
         subcategory = "oneconfig.preferences.category.gui", subcategoryTranslation = true,
         options = {"Modern", "Simple"})
-    public static int guiMode = 0;
+    public static int guiMode = 1;
 
     @Switch(title = "Raw Mouse Input", description = "Use unscaled mouse movement for camera control.",
         subcategory = "oneconfig.preferences.category.gui", subcategoryTranslation = true)
@@ -668,9 +672,14 @@ public class OneConfigConfig extends Config {
 
     @Override
     protected void initialize(boolean byConfigManager) {
+        boolean legacyGuiMode = tree == null && hasLegacyGuiMode();
         super.initialize(byConfigManager);
         if (tree == null) {
             return;
+        }
+        if (legacyGuiMode) {
+            getProperty("guiMode").setAs(0);
+            save();
         }
         ShellState.INSTANCE.setSimpleMode(guiMode == 1);
         addCallback("guiMode", (Integer value) -> {
@@ -848,6 +857,20 @@ public class OneConfigConfig extends Config {
     }
 
     private static final int REMEMBER_NEVER = 0;
+    private boolean hasLegacyGuiMode() {
+        ConfigManager manager = ConfigManager.active();
+        Path file = manager.getFolder().resolve(id);
+        if (!Files.exists(file)) return false;
+        try {
+            Tree stored = manager.getNoRegister(file);
+            return stored == null || stored.getProp("guiMode") == null;
+        } catch (Exception failure) {
+            org.apache.logging.log4j.LogManager.getLogger("Arcadium Options")
+                .warn("Could not read the stored GUI mode; preserving Modern", failure);
+            return true;
+        }
+    }
+
     private static final int REMEMBER_ALWAYS = 4;
     private static final long[] REMEMBER_LAST_PAGE_SECONDS = {15L, 60L, 300L};
 
