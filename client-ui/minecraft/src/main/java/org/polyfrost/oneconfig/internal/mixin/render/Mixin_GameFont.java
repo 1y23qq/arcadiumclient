@@ -1,6 +1,6 @@
 package org.polyfrost.oneconfig.internal.mixin.render;
 
-//? if = 1.8.9 {
+//? if <= 1.8.9 {
 /*import net.minecraft.client.render.TextRenderer;
 import net.minecraft.resource.Identifier;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
@@ -38,6 +38,7 @@ public abstract class Mixin_GameFont {
     }
 
     @Inject(method = "drawGlyph", at = @At("HEAD"), cancellable = true)
+    //~ if = 1.7.10 '(char character, boolean italic' -> '(int glyphIndex, char character, boolean italic'
     private void arcadium$drawFont(char character, boolean italic, CallbackInfoReturnable<Float> callback) {
         if (arcadium$defaultFont() && LegacyGameFont.handles(character)) {
             float correction = arcadium$shadow ? LegacyGameFont.shadowCorrection(character, unicode) : 0f;

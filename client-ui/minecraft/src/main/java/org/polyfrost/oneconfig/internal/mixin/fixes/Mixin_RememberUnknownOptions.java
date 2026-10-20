@@ -1,6 +1,6 @@
 package org.polyfrost.oneconfig.internal.mixin.fixes;
 
-//? if = 1.8.9 {
+//? if <= 1.8.9 {
 /*import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import net.minecraft.client.KeyMapping;

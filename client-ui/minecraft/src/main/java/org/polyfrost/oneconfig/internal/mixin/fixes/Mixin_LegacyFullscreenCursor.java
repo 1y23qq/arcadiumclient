@@ -1,4 +1,4 @@
-//? if = 1.8.9 {
+//? if <= 1.8.9 {
 /*package org.polyfrost.oneconfig.internal.mixin.fixes;
 
 import net.minecraft.client.Minecraft;

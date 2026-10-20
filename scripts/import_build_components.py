@@ -5,15 +5,19 @@ from pathlib import Path
 import re
 import zipfile
 
-from package_client import ASSET_PATH, inspect_component
+from package_client import ASSET_PATH, distribution_locks, inspect_component
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 def entries(root=ROOT):
-    catalog = json.loads((root / "distribution/oneclient-1.8.9.lock.json").read_text(encoding="utf-8"))
-    components = [*catalog["arcadiumComponents"], catalog["arcadiumBranding"]]
-    return {entry["file"]: entry for entry in components}
+    components = {}
+    for catalog in distribution_locks(root).values():
+        for entry in [*catalog["arcadiumComponents"], catalog["arcadiumBranding"]]:
+            if entry["file"] in components and entry["sha256"] != components[entry["file"]]["sha256"]:
+                raise RuntimeError("Conflicting source component: " + entry["file"])
+            components[entry["file"]] = entry
+    return components
 
 
 def validate(raw, entry):

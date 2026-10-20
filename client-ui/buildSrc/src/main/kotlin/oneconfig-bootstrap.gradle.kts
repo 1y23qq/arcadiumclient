@@ -92,7 +92,7 @@ afterEvaluate {
     }
 
     fun isHypixelProvidedElsewhere(group: String?, name: String) =
-        (group == "net.hypixel" && name == "mod-api") ||
+        (group == "net.hypixel" && name == "mod-api" && versionedCatalog.versions["minecraft"].requiredVersion != "1.7.10") ||
             (group == "maven.modrinth" && name == "hypixel-mod-api")
 
     fun includeExternal(dep: ExternalModuleDependency) {
@@ -134,7 +134,9 @@ afterEvaluate {
     } else {
         "org.polyfrost:mod-api-fabric:1.0.2+build.3+mc1.8.9"
     }
-    (dependencies.add("include", hypixelFabricMod) as ExternalModuleDependency).isTransitive = false
+    if (versionedCatalog.versions["minecraft"].requiredVersion != "1.7.10") {
+        (dependencies.add("include", hypixelFabricMod) as ExternalModuleDependency).isTransitive = false
+    }
 }
 
 base.archivesName.set("OneConfig-${project.name}")

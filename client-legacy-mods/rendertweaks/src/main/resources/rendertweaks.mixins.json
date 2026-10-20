@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "package": "dev.microcontrollers.rendertweaks.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "client": [
+    "legacy.FishingHookRendererMixin",
+    "legacy.LightningBoltRendererMixin",
+    "FishingHookRendererMixin",
+    "LightningBoltRendererMixin",
+    "WorldBorderRendererMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

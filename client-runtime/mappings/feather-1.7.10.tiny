@@ -1,0 +1,140 @@
+tiny	2	0	intermediary	named
+c	net/minecraft/unmapped/C_49122968	net/minecraft/text/Formatting
+	m	()Ljava/lang/String;	m_85650466	getName
+c	net/minecraft/unmapped/C_98888256	net/minecraft/item/Item
+	m	()Ljava/lang/String;	m_27822537	getTranslationKey
+c	net/minecraft/unmapped/C_88708284	net/minecraft/item/ItemStack
+	f	I	f_60602012	size
+c	net/minecraft/unmapped/C_64041439	net/minecraft/world/World
+	f	Z	f_50876584	isClient
+	m	(Ljava/util/UUID;)Lnet/minecraft/unmapped/C_40996800;	m_25677377	getPlayer
+c	net/minecraft/unmapped/C_63102660	net/minecraft/block/entity/DispenserBlockEntity
+	f	Ljava/util/Random;	f_09247027	RANDOM
+c	net/minecraft/unmapped/C_44755940	net/minecraft/block/entity/SkullBlockEntity
+	f	Lcom/mojang/authlib/GameProfile;	f_00412644	profile
+	m	()Lcom/mojang/authlib/GameProfile;	m_62884837	getProfile
+	m	(Lcom/mojang/authlib/GameProfile;)V	m_01903638	setProfile
+	m	()V	m_07391678	updateProfile
+c	net/minecraft/unmapped/C_64070979	net/minecraft/world/gen/noise/ImprovedNoise
+	f	[D	f_56556676	SEED_POOL_0
+	f	[D	f_44859570	SEED_POOL_1
+	f	[D	f_78261736	SEED_POOL_2
+	f	[D	f_57766507	SEED_POOL_3
+	f	[D	f_05584602	SEED_POOL_4
+c	net/minecraft/unmapped/C_99202435	net/minecraft/world/biome/IntCache
+	f	I	f_80840783	num
+	m	()V	m_03476834	pop
+	m	(I)[I	m_27640913	push
+c	net/minecraft/unmapped/C_31065883	net/minecraft/world/map/MapDecoration
+	f	B	f_05511063	y
+c	net/minecraft/unmapped/C_30593188	net/minecraft/scoreboard/ScoreboardObjective
+c	net/minecraft/unmapped/C_97595263	net/minecraft/scoreboard/team/Team
+c	net/minecraft/unmapped/C_73166169	net/minecraft/scoreboard/Scoreboard
+	m	(Lnet/minecraft/unmapped/C_97595263;)V	m_18544454	removeTeam
+c	net/minecraft/unmapped/C_23708450	net/minecraft/client/options/KeyBinding
+	m	()Z	m_70603120	isPressed
+c	net/minecraft/client/Minecraft	net/minecraft/client/Minecraft
+	f	Lnet/minecraft/unmapped/C_34399650;	f_26407825	world
+	f	Lnet/minecraft/unmapped/C_23014920;	f_21497584	textRenderer
+	f	Lnet/minecraft/unmapped/C_24654288;	f_81460813	crosshairTarget
+	m	()Lnet/minecraft/unmapped/C_06196994;	m_17688331	getRenderTarget
+	m	(Lnet/minecraft/unmapped/C_85740840;)V	m_52715402	openScreen
+	m	(Z)V	m_77225877	handleMouseDown
+	m	()Z	m_33616981	isOnSameThread
+	m	()V	m_61857590	doUse
+	m	()I	m_53086118	getMaxFramerate
+c	net/minecraft/unmapped/C_76792751	net/minecraft/client/options/GameOptions
+	f	Lnet/minecraft/unmapped/C_23708450;	f_34423269	playerListKey
+	f	[Lnet/minecraft/unmapped/C_23708450;	f_41636781	keyBindings
+c	net/minecraft/unmapped/C_23014920	net/minecraft/client/render/TextRenderer
+	m	(Ljava/lang/String;)I	m_09235706	getWidth
+c	net/minecraft/unmapped/C_03142757	net/minecraft/client/gui/screen/ConfirmationListener
+c	net/minecraft/unmapped/C_82860087	net/minecraft/client/gui/screen/menu/multiplayer/AddServerScreen
+	f	Lnet/minecraft/unmapped/C_85125467;	f_23717276	resourcePackButton
+c	net/minecraft/unmapped/C_67960412	net/minecraft/client/gui/screen/menu/multiplayer/DownloadingTerrainScreen
+c	net/minecraft/unmapped/C_85740840	net/minecraft/client/gui/screen/Screen
+	m	()Z	m_94022149	shouldPauseGame
+c	net/minecraft/unmapped/C_43588014	net/minecraft/client/gui/screen/menu/world/SelectWorldScreen
+	m	(Lnet/minecraft/unmapped/C_03142757;Ljava/lang/String;I)Lnet/minecraft/unmapped/C_22481487;	m_82026011	getDeleteWarningPrompt
+c	net/minecraft/unmapped/C_36550219	net/minecraft/client/gui/screen/menu/options/ControlsListWidget
+c	net/minecraft/unmapped/C_67645866	net/minecraft/client/gui/screen/menu/options/ControlsOptionsScreen
+	f	Lnet/minecraft/unmapped/C_23708450;	f_46607866	selectedKeyBinding
+c	net/minecraft/unmapped/C_88014908	net/minecraft/client/network/handler/ClientPlayNetworkHandler
+	f	Ljava/util/Map;	f_62094986	onlinePlayers
+c	net/minecraft/unmapped/C_34399650	net/minecraft/client/world/ClientWorld
+c	net/minecraft/unmapped/C_91543234	net/minecraft/client/options/ServerListEntry
+	f	Z	f_19255880	local
+	m	(Lnet/minecraft/unmapped/C_91543234;)V	m_27590981	set
+	m	()Z	m_73763716	isLocal
+c	net/minecraft/unmapped/C_23527099	net/minecraft/client/entity/living/player/ClientPlayerEntity
+	m	()Z	m_86683302	hasSkinTexture
+c	net/minecraft/unmapped/C_57778754	net/minecraft/client/entity/living/player/BaseLocalClientPlayerEntity
+c	net/minecraft/unmapped/C_96603444	net/minecraft/client/render/vertex/LegacyTesselatorBackend
+c	net/minecraft/unmapped/C_63022874	net/minecraft/client/render/texture/HttpTexture
+	f	Ljava/io/File;	f_34993787	file
+	m	()V	m_23881427	download
+c	net/minecraft/unmapped/C_82920792	net/minecraft/client/render/texture/TextureManager
+	m	(Lnet/minecraft/unmapped/C_22168528;)Lnet/minecraft/unmapped/C_65241354;	m_17123242	get
+c	net/minecraft/unmapped/C_22168528	net/minecraft/resource/Identifier
+c	net/minecraft/unmapped/C_95503740	net/minecraft/client/sound/system/SoundManager
+	m	(Lnet/minecraft/unmapped/C_28706180;F)V	m_88002341	setVolume
+	m	(Lnet/minecraft/unmapped/C_53396390;)Z	m_92956382	isPlaying
+c	net/minecraft/unmapped/C_07353186	net/minecraft/nbt/NbtUtils
+	m	(Lnet/minecraft/unmapped/C_74087615;)Lcom/mojang/authlib/GameProfile;	m_90160820	readProfile
+c	net/minecraft/unmapped/C_05587068	net/minecraft/network/Connection
+	f	Z	f_51676404	encrypted
+c	net/minecraft/unmapped/C_27739481	net/minecraft/server/dedicated/DedicatedPlayerManager
+	m	()V	m_01481693	saveIpBans
+	m	()V	m_29097679	savePlayerBans
+	m	()V	m_88306063	loadIpBans
+	m	()V	m_89784201	loadPlayerBans
+c	net/minecraft/unmapped/C_06377171	net/minecraft/server/dedicated/DedicatedServer
+	m	()Z	m_23113616	convertUsers
+	m	()V	m_18252756	sleep
+c	net/minecraft/unmapped/C_70668269	net/minecraft/server/world/ServerWorld
+	m	()Z	m_33616981	isOnSameThread
+c	net/minecraft/realms/DisconnectedOnlineScreen	net/minecraft/realms/DisconnectedOnlineScreen
+	f	Ljava/util/List;	f_68270794	message
+	f	Lnet/minecraft/realms/RealmsScreen;	f_42016232	parent
+	f	Lnet/minecraft/unmapped/C_95231345;	f_70135574	rawMessage
+	f	Ljava/lang/String;	f_63505135	title
+c	net/minecraft/realms/RealmsButton	net/minecraft/realms/RealmsButton
+	m	()I	m_28570376	getWidth
+c	net/minecraft/realms/RealmsScreen	net/minecraft/realms/RealmsScreen
+	m	(IIIIII)V	m_66359748	drawTexture
+	m	(ZI)V	m_05721067	confirmResult
+	m	(IIIIII)V	m_58083806	fillGradient
+	m	()V	m_41805697	init
+	m	()Z	m_94022149	shouldPauseGame
+	m	(CI)V	m_29116903	keyPressed
+	m	()V	m_81260096	handleKeyboard
+	m	(III)V	m_23755539	mouseClicked
+	m	(IIIJ)V	m_52921597	mouseDragged
+	m	()V	m_29921564	handleMouse
+	m	(III)V	m_47537840	mouseReleased
+	m	(IIF)V	m_93956703	render
+	m	()V	m_34695786	renderBackground
+	m	(I)V	m_35226578	renderBackground
+	m	(Lnet/minecraft/unmapped/C_88708284;II)V	m_71793591	renderTooltip
+	m	(Ljava/lang/String;II)V	m_56774112	renderTooltip
+	m	(Ljava/util/List;II)V	m_27390762	renderTooltip
+	m	()V	m_53520780	tick
+c	net/minecraft/realms/RealmsScrolledSelectionList	net/minecraft/realms/RealmsScrolledSelectionList
+	m	(IIIIII)V	m_41486279	renderEntry
+c	net/minecraft/realms/RealmsServerStatusPinger	net/minecraft/realms/RealmsServerStatusPinger
+	f	Lorg/apache/logging/log4j/Logger;	f_53146313	LOGGER
+c	net/minecraft/server/MinecraftServer	net/minecraft/server/MinecraftServer
+	m	()Z	m_33616981	isOnSameThread
+c	net/minecraft/unmapped/C_58873528	net/minecraft/server/network/handler/ServerLoginNetworkHandler
+	m	(Lcom/mojang/authlib/GameProfile;)Lcom/mojang/authlib/GameProfile;	m_32322765	createFakeProfile
+c	net/minecraft/unmapped/C_49799313	net/minecraft/server/UserConverter
+c	net/minecraft/unmapped/C_56226565	net/minecraft/entity/living/mob/passive/animal/tameable/TameableEntity
+	m	(Lnet/minecraft/unmapped/C_74425583;)Z	m_61268391	isOwner
+c	net/minecraft/unmapped/C_11429682	net/minecraft/util/Utils
+	m	()Lnet/minecraft/unmapped/C_11429682$C_09602128;	m_28752873	getOS
+c	net/minecraft/unmapped/C_05113611	net/minecraft/util/BlockableEventLoop
+	m	()Z	m_33616981	isOnSameThread
+c	net/minecraft/unmapped/C_36550219$C_66337664	net/minecraft/client/gui/screen/menu/options/ControlsListWidget$KeyBindingEntry
+c	net/minecraft/unmapped/C_11429682$C_09602128	net/minecraft/util/Utils$OS
+	f	Lnet/minecraft/unmapped/C_11429682$C_09602128;	f_35327376	MACOS
+c	net/minecraft/unmapped/C_97929192	net/minecraft/client/entity/living/player/LocalClientPlayerEntity

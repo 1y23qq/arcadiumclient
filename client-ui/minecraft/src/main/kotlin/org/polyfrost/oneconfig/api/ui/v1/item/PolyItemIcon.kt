@@ -83,7 +83,7 @@ fun PolyItemIcon(
 /** Draws the default icon for [item]. */
 @Composable
 fun PolyItemIcon(item: Item, size: Float = 16f, modifier: PolyModifier = PolyModifier) {
-    //~ if = 1.8.9 'BuiltInRegistries.ITEM' -> 'Item.REGISTRY'
+    //~ if <= 1.8.9 'BuiltInRegistries.ITEM' -> 'Item.REGISTRY'
     val id = remember(item) { BuiltInRegistries.ITEM.getKey(item).toString() }
     PolyItemIcon(id, size, modifier)
 }

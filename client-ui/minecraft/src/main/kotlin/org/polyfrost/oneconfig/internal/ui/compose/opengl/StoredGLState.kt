@@ -13,7 +13,7 @@ import org.lwjgl.opengl.GL45.*
 /*import com.mojang.blaze3d.platform.GlStateManager
 *///?}
 
-//? if = 1.8.9 {
+//? if <= 1.8.9 {
 /*import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL13
 import org.lwjgl.opengl.GL20

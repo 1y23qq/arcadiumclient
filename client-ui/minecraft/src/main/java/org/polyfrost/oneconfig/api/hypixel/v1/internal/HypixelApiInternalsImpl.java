@@ -34,6 +34,17 @@ import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.ApiStatus;
 import org.polyfrost.oneconfig.api.event.v1.EventManager;
 import org.polyfrost.oneconfig.api.event.v1.events.HypixelLocationEvent;
+//? if = 1.7.10 {
+/*import net.hypixel.modapi.HypixelModAPIImplementation;
+import net.hypixel.modapi.packet.HypixelPacket;
+import net.hypixel.modapi.serializer.PacketSerializer;
+import net.ornithemc.osl.core.api.util.NamespacedIdentifier;
+import net.ornithemc.osl.core.api.util.NamespacedIdentifiers;
+import net.ornithemc.osl.networking.api.ChannelRegistry;
+import net.ornithemc.osl.networking.api.client.ClientPlayNetworking;
+import java.util.HashMap;
+import java.util.Map;
+*///?}
 
 @ApiStatus.Internal
 public final class HypixelApiInternalsImpl implements HypixelApiInternals {
@@ -44,11 +55,53 @@ public final class HypixelApiInternalsImpl implements HypixelApiInternals {
     public HypixelApiInternalsImpl() {
         LOGGER.info("Registering Hypixel API hello/disconnect handlers");
         HypixelModAPI.getInstance().createHandler(ClientboundHelloPacket.class, p -> onHypixel = true);
+        //? if = 1.7.10
+        //initLegacyTransport();
         //? if > 1.8.9 {
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> onHypixel = false);
         //?} else
         //ClientConnectionEvents.DISCONNECT.register(context -> onHypixel = false);
     }
+
+    //? if = 1.7.10 {
+    /*private void initLegacyTransport() {
+        HypixelModAPI api = HypixelModAPI.getInstance();
+        Map<String, NamespacedIdentifier> channels = new HashMap<>();
+        for (String channel : api.getRegistry().getIdentifiers()) {
+            channels.put(channel, ChannelRegistry.register(NamespacedIdentifiers.parse(channel),
+                api.getRegistry().getClientboundIdentifiers().contains(channel),
+                api.getRegistry().getServerboundIdentifiers().contains(channel)));
+        }
+        api.setModImplementation(new HypixelModAPIImplementation() {
+            @Override
+            public void onInit() {
+                for (String channel : api.getRegistry().getClientboundIdentifiers()) {
+                    ClientPlayNetworking.registerListener(channels.get(channel), (context, buffer) -> {
+                        context.ensureOnMainThread();
+                        try {
+                            api.handle(channel, new PacketSerializer(buffer));
+                        } catch (RuntimeException error) {
+                            LOGGER.warn("Invalid Hypixel payload on {}", channel, error);
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public boolean sendPacket(HypixelPacket packet) {
+                NamespacedIdentifier channel = channels.get(packet.getIdentifier());
+                if (!onHypixel || channel == null || !ClientPlayNetworking.isPlayReady()) return false;
+                ClientPlayNetworking.sendNoCheck(channel, buffer -> packet.write(new PacketSerializer(buffer)));
+                return true;
+            }
+
+            @Override
+            public boolean isConnectedToHypixel() {
+                return onHypixel;
+            }
+        });
+    }
+    *///?}
 
     @Override
     public boolean isOnHypixel() {

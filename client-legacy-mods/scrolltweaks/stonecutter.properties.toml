@@ -1,0 +1,24 @@
+publish.modrinth = "8MEn1Qsz"
+publish.curseforge = ""
+
+mod.name = "Scroll Tweaks"
+mod.id = "scrolltweaks"
+mod.group = "dev.microcontrollers.scrolltweaks"
+mod.description = "Customizable hotbar scrolling."
+mod.source = "https://codeberg.org/MicrocontrollersDev/Scroll-Tweaks"
+mod.issues = "https://discord.gg/QbNfaCHjUz"
+mod.license = "LGPL-3.0"
+mod.modrinth = "https://modrinth.com/mod/scrolltweaks"
+mod.curseforge = "https://www.curseforge.com/minecraft/mc-mods/scroll-tweaks"
+mod.kofi = "https://ko-fi.com/microcontrollers"
+mod.discord = "https://discord.gg/QbNfaCHjUz"
+
+mod.version = "1.0.7-arcadium"
+
+deps.oneconfig_version = "1.1.12"
+deps.osl_version = "0.21.0"
+deps.lenis_version = "0.1.4"
+
+["1.8.9"]
+deps.oneconfig_mc_version = "1.8.9"
+mod.mc_dep = "1.8.9"

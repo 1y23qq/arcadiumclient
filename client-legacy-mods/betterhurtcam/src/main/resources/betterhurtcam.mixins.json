@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "net.uku3lig.betterhurtcam.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "client": [
+    "GameGuiMixin",
+    "GameRendererMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

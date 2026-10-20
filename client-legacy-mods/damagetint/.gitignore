@@ -1,0 +1,30 @@
+# vscode
+.vscode/
+
+# fleet
+.fleet/
+
+# Gradle
+.gradle
+**/build/
+gradle-app.setting
+!gradle-wrapper.jar
+.gradletasknamecache
+
+# Eclipse
+.project
+.classpath
+.settings/
+
+# IntelliJ
+/.idea/
+/output/
+*.iml
+*.ipr
+*.iws
+
+# Minecraft
+**/run/
+**/.fabric/
+versions/*/bin/
+versions/*/logs/

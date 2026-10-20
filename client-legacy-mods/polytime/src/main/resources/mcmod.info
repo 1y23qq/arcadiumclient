@@ -1,0 +1,19 @@
+[
+  {
+    "modid": "${mod_id}",
+    "name": "${mod_name}",
+    "description": "",
+    "version": "${mod_version}",
+    "mcversion": "1.8.9",
+    "url": "https://github.com/Polyfrost/PolyTime",
+    "updateUrl": "https://github.com/Polyfrost/PolyTime",
+    "authorList": [
+      "Polyfrost",
+      "DeDiamondPro"
+    ],
+    "credits": "Fyu for the original TimeChanger mod.",
+    "logoFile": "",
+    "screenshots": [],
+    "dependencies": []
+  }
+]

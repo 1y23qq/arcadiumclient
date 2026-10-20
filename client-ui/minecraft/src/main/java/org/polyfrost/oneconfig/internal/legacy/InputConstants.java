@@ -1,6 +1,6 @@
 package org.polyfrost.oneconfig.internal.legacy;
 
-//? if = 1.8.9 {
+//? if <= 1.8.9 {
 /*import com.google.common.collect.Maps;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;

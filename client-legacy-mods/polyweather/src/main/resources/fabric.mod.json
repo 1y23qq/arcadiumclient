@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "id": "${mod_id}",
+  "name": "${mod_name}",
+  "version": "${mod_version}",
+  "description": "",
+  "authors": [
+    "PolyFrost",
+    "DeDiamondPro"
+  ],
+  "contact": {
+    "homepage": "https://github.com/Polyfrost/PolyWeather",
+    "sources": "https://github.com/Polyfrost/PolyWeather",
+    "issues": "https://discord.gg/QbNfaCHjUz"
+  },
+  "entrypoints": {
+    "client": [
+      {
+        "value": "org.polyfrost.polyweather.PolyWeatherEntrypoint"
+      }
+    ]
+  },
+  "mixins": [
+    "mixins.${mod_id}.json"
+  ],
+  "license": "GPL 3.0",
+  "environment": "client",
+  "depends": {
+    "minecraft": "${minecraft_version_range}",
+    "fabricloader": ">=${loader_version}",
+    "fabric-language-kotlin": "*",
+    "oneconfigv1": ">=1.2.23-arcadium",
+    "java": ">=25"
+  }
+}

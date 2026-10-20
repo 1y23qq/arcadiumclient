@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "betternightvision",
+  "version": "${version}",
+  "name": "Better Night Vision",
+  "description": "Customize the night vision effect",
+  "authors": [
+    "Microcontrollers"
+  ],
+  "contact": {
+    "sources": "https://codeberg.org/MicrocontrollersDev/BetterNightVision",
+    "issues": "https://discord.gg/QbNfaCHjUz"
+  },
+  "license": "LGPL-3.0",
+  "environment": "client",
+  "icon": "assets/betternightvision/icon.png",
+  "entrypoints": {
+    "main": [
+      "dev.microcontrollers.betternightvision.BetterNightVision"
+    ]
+  },
+  "mixins": [
+    "betternightvision.mixins.json"
+  ],
+  "depends": {
+    "minecraft": "${minecraft}",
+    "fabricloader": ">=0.19.5",
+    "oneconfigv1": ">=1.2.23-arcadium",
+    "java": ">=25"
+  }
+}

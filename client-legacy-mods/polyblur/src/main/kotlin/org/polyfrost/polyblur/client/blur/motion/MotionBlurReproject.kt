@@ -1,0 +1,153 @@
+package org.polyfrost.polyblur.client.blur.motion
+
+//? if >1.21.5 {
+/*import net.minecraft.client.render.pipeline.RenderTarget
+import com.mojang.blaze3d.systems.RenderSystem
+import com.mojang.blaze3d.pipeline.RenderPipeline
+import com.mojang.blaze3d.shaders.UniformType
+import org.polyfrost.polyblur.PolyBlurConstants
+import org.polyfrost.polyblur.client.PolyBlurConfig
+import org.polyfrost.polyblur.client.blur.BlurPrewarm
+// import org.polyfrost.polyblur.client.blur.BlurProfiler
+import org.polyfrost.polyblur.client.blur.phosphor.FullscreenPass
+import org.polyfrost.polyblur.client.blur.phosphor.InternalTargetTracker
+import org.polyfrost.polyblur.client.blur.phosphor.RenderTargetTracker
+import org.polyfrost.polyblur.client.blur.phosphor.location
+
+//? if >=26.2 {
+/*import com.mojang.blaze3d.pipeline.BindGroupLayout
+import com.mojang.blaze3d.PrimitiveTopology
+import java.util.Optional
+*///?} else {
+import com.mojang.blaze3d.vertex.DefaultVertexFormat
+import com.mojang.blaze3d.vertex.VertexFormat
+import java.util.OptionalInt
+//?}
+
+//? if >=26.1 {
+/*import com.mojang.blaze3d.pipeline.ColorTargetState
+import com.mojang.blaze3d.platform.CompareOp
+import com.mojang.blaze3d.pipeline.DepthStencilState
+*///?} else
+import com.mojang.blaze3d.platform.DepthTestFunction
+
+//? if >=1.21.11
+//import org.polyfrost.polyblur.client.blur.phosphor.BlurSampler
+
+/** pass 2 runs after the hand and before the GUI */
+object MotionBlurReproject {
+    private const val MAX_BLUR = 0.15f
+
+    private val pipeline by lazy {
+        RenderPipeline.builder()
+            .withLocation(location(PolyBlurConstants.ID, "unity_motion_blur_reproject_pipeline"))
+            //? if >=1.21.10 {
+            /*.withVertexShader("core/screenquad")
+            *///?}
+            //? if <1.21.10 {
+            .withVertexShader(location(PolyBlurConstants.ID, "core/fullscreen_quad"))
+            //?}
+            .withFragmentShader(location(PolyBlurConstants.ID, "post/unity_motion_blur_reproject"))
+            //? if >=26.2 {
+            /*.withPrimitiveTopology(PrimitiveTopology.TRIANGLES)
+            .withDepthStencilState(Optional.empty())
+            .withColorTargetState(ColorTargetState.DEFAULT)
+            .withBindGroupLayout(
+                BindGroupLayout.builder()
+                    //? if >=26.3 {
+                    /*.withUniform("DiffuseSampler", UniformType.COMBINED_IMAGE_SAMPLER)
+                    .withUniform("VelocitySampler", UniformType.COMBINED_IMAGE_SAMPLER)
+                    *///?} else {
+                    .withSampler("DiffuseSampler")
+                    .withSampler("VelocitySampler")
+                    //?}
+                    .withUniform("BlurConfig", UniformType.UNIFORM_BUFFER)
+                    .build()
+            )
+            *///?}
+            //? if >=1.21.10 && <26.2 {
+            /*.withVertexFormat(DefaultVertexFormat.EMPTY, VertexFormat.Mode.TRIANGLES)
+            *///?}
+            //? if <1.21.10 {
+            .withVertexFormat(DefaultVertexFormat.POSITION, VertexFormat.Mode.QUADS)
+            //?}
+            //? if >=26.1 && <26.2 {
+            /*.withDepthStencilState(DepthStencilState(CompareOp.ALWAYS_PASS, false))
+            .withColorTargetState(ColorTargetState.DEFAULT)
+            *///?}
+            //? if <26.1 {
+            .withDepthWrite(false)
+            .withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
+            .withColorWrite(true, true)
+            //?}
+            //? if <26.2 {
+            .withUniform("BlurConfig", UniformType.UNIFORM_BUFFER)
+            .withSampler("DiffuseSampler")
+            .withSampler("VelocitySampler")
+            //?}
+            .build()
+    }
+
+    internal fun prewarm() = BlurPrewarm.compile(pipeline)
+
+    @JvmStatic
+    @JvmOverloads
+    fun render(renderTarget: RenderTarget, outTarget: RenderTarget? = null): Boolean =
+        // BlurProfiler.section("motion.reproject") { renderInner(renderTarget, outTarget) }
+        renderInner(renderTarget, outTarget)
+
+    private fun renderInner(renderTarget: RenderTarget, outTarget: RenderTarget?): Boolean {
+        if (BlurPrewarm.failed) return false
+        val velTarget = VelocityTarget.current ?: return false
+        if (!WorldCamera.hasPrev) return false
+
+        if (!RenderTargetTracker.isAttachmentInSync(renderTarget)) return false
+
+        val tempTarget = outTarget ?: run {
+            InternalTargetTracker.updateSize(renderTarget.width, renderTarget.height)
+            InternalTargetTracker.target ?: return false
+        }
+
+        val intensity = (PolyBlurConfig.strength / 10f) * MAX_BLUR
+        MotionReprojectUniforms.upload(
+            intensity,
+            PolyBlurConfig.motionBlurSamples,
+            1f,
+            MotionVelocityPass.MAX_VEL,
+            renderTarget.width,
+            renderTarget.height
+        )
+
+        RenderSystem.getDevice().createCommandEncoder().createRenderPass(
+            { "PolyBlur/MotionReproject" },
+            tempTarget.getColorTextureView()!!,
+            //? if >=26.2 {
+            /*Optional.empty()
+            *///?}
+            //? if <26.2 {
+            OptionalInt.empty()
+            //?}
+        ).use { renderPass ->
+            //? if >=26.3 {
+            /*renderPass.setPipeline(RenderSystem.getCompiledPipeline(pipeline))
+            *///?} else {
+            renderPass.setPipeline(pipeline)
+            //?}
+            //? if >=26.3 {
+            /*renderPass.setUniform("DiffuseSampler", renderTarget.getColorTextureView()!!, BlurSampler.linearClamp)
+            renderPass.setUniform("VelocitySampler", velTarget.getColorTextureView()!!, BlurSampler.linearClamp)
+            *///?} elif >=1.21.11 {
+            /*renderPass.bindTexture("DiffuseSampler", renderTarget.getColorTextureView()!!, BlurSampler.linearClamp)
+            renderPass.bindTexture("VelocitySampler", velTarget.getColorTextureView()!!, BlurSampler.linearClamp)
+            *///?} else {
+            renderPass.bindSampler("DiffuseSampler", renderTarget.getColorTextureView()!!)
+            renderPass.bindSampler("VelocitySampler", velTarget.getColorTextureView()!!)
+            //?}
+            renderPass.setUniform("BlurConfig", MotionReprojectUniforms.buffer)
+            FullscreenPass.draw(renderPass)
+        }
+
+        return RenderTargetTracker.blit(tempTarget, renderTarget)
+    }
+}
+*///?}

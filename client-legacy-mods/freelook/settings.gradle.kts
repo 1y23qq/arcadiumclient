@@ -1,0 +1,26 @@
+pluginManagement {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        gradlePluginPortal()
+        maven("https://maven.fabricmc.net/")
+        maven("https://maven.ornithemc.net/releases")
+        maven("https://maven.kikugie.dev/releases") { name = "KikuGie Releases" }
+        maven("https://maven.kikugie.dev/snapshots") { name = "KikuGie Snapshots" }
+    }
+}
+
+plugins {
+    id("dev.kikugie.stonecutter") version "0.9.7"
+    id("dev.kikugie.loom-back-compat") version "0.4.2"
+    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
+}
+
+stonecutter {
+    create(rootProject) {
+        version("1.7.10")
+        vcsVersion = "1.7.10"
+    }
+}
+
+rootProject.name = "Freelook"

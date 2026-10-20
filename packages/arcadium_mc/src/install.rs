@@ -739,7 +739,8 @@ pub async fn download_version_info(
         cached
     };
 
-    if let Some(cached) = cached {
+    if let Some(mut cached) = cached {
+        apply_distribution_java(&mut cached, &version.id, game_loader);
         if loader.is_some()
             && arcadium_net::status::current().online
             && VERSION_INFO_REFRESHED.lock().unwrap().insert(path.clone())
@@ -750,9 +751,10 @@ pub async fn download_version_info(
             let installed = processor_inputs(&cached);
             tokio::spawn(async move {
                 let refresh = async {
-                    let info =
+                    let mut info =
                         fetch_version_info(&ctx, None, &version, loader.as_ref(), &version_id)
                             .await?;
+                    apply_distribution_java(&mut info, &version.id, game_loader);
                     if processor_inputs(&info) != installed {
                         tracing::warn!(
                             version_id = %version_id,
@@ -774,12 +776,24 @@ pub async fn download_version_info(
         return Ok(cached);
     }
 
-    let info = fetch_version_info(ctx, progress, version, loader, &version_id).await?;
+    let mut info = fetch_version_info(ctx, progress, version, loader, &version_id).await?;
+    apply_distribution_java(&mut info, &version.id, game_loader);
     arcadium_io::write_json_atomic(&path, &info).await?;
     if loader.is_some() {
         VERSION_INFO_REFRESHED.lock().unwrap().insert(path);
     }
     Ok(info)
+}
+
+fn apply_distribution_java(info: &mut VersionInfo, version: &str, loader: GameLoader) {
+    if version == "1.7.10" && loader == GameLoader::Ornithe {
+        info.java_version = Some(
+            serde_json::from_value(serde_json::json!({
+                "component": "java-runtime-epsilon", "majorVersion": 25
+            }))
+            .expect("Arcadium Java requirement must be valid"),
+        );
+    }
 }
 
 async fn fetch_version_info(
@@ -1360,7 +1374,7 @@ pub async fn get_loader_versions(
     mc_version: &str,
     loader: GameLoader,
 ) -> McResult<Vec<String>> {
-    if loader == GameLoader::Vanilla {
+    if loader == GameLoader::Vanilla || (mc_version == "1.7.10" && loader != GameLoader::Ornithe) {
         return Ok(Vec::new());
     }
 
@@ -1430,6 +1444,7 @@ pub fn get_loader_version_cached(
         return Ok(None);
     }
 
+    let loader_version = requested_loader_version(mc_version, loader, loader_version);
     let manifest = metadata.get_modded(loader)?;
     Ok(resolve_loader_from_manifest(manifest, mc_version, loader_version).1)
 }
@@ -1446,6 +1461,7 @@ pub async fn get_loader_version(
         return Ok(None);
     }
 
+    let loader_version = requested_loader_version(mc_version, loader, loader_version);
     let resolve_from_manifest = |manifest: &interfrost::api::modded::Manifest| {
         resolve_loader_from_manifest(manifest, mc_version, loader_version)
     };
@@ -1484,6 +1500,18 @@ pub async fn get_loader_version(
     } else {
         Err(no_matching_version())
     }
+}
+
+fn requested_loader_version<'a>(
+    mc_version: &str,
+    loader: GameLoader,
+    requested: Option<&'a str>,
+) -> Option<&'a str> {
+    requested.or_else(|| {
+        (loader == GameLoader::Ornithe)
+            .then(|| arcadium_common::distribution::default_ornithe_loader(mc_version))
+            .flatten()
+    })
 }
 
 #[tracing::instrument(skip(metadata, ctx), level = "debug")]
@@ -1563,7 +1591,7 @@ pub async fn get_version_ids(
     Ok(get_game_versions(metadata, ctx)
         .await?
         .into_iter()
-        .filter(|version| version.id == arcadium_common::distribution::MINECRAFT_VERSION)
+        .filter(|version| arcadium_common::distribution::supports_version(&version.id))
         .map(|version| GameVersionInfo {
             id: version.id,
             kind: match version.type_ {
@@ -1583,10 +1611,14 @@ pub async fn get_loaders_for_version(
     ctx: &McCtx,
     mc_version: &str,
 ) -> McResult<Vec<GameLoader>> {
-    if mc_version != arcadium_common::distribution::MINECRAFT_VERSION {
+    if !arcadium_common::distribution::supports_version(mc_version) {
         return Ok(Vec::new());
     }
-    metadata.get_loaders_for_version(ctx, mc_version).await
+    let mut loaders = metadata.get_loaders_for_version(ctx, mc_version).await?;
+    if mc_version == "1.7.10" {
+        loaders.retain(|loader| *loader == GameLoader::Ornithe);
+    }
+    Ok(loaders)
 }
 
 #[tracing::instrument(skip(metadata, ctx), level = "debug")]
@@ -1601,7 +1633,10 @@ pub async fn get_versions_for_loader(
         .map(|versions| {
             versions
                 .into_iter()
-                .filter(|version| version == arcadium_common::distribution::MINECRAFT_VERSION)
+                .filter(|version| {
+                    arcadium_common::distribution::supports_version(version)
+                        && (version != "1.7.10" || loader == GameLoader::Ornithe)
+                })
                 .collect()
         }))
 }
@@ -1676,6 +1711,50 @@ fn version_info_file_name(stem: &str, format_version: usize) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn legacy_loader_pin_does_not_affect_forge_or_explicit_choices() {
+        assert_eq!(
+            requested_loader_version("1.7.10", GameLoader::Ornithe, None),
+            Some("0.19.5")
+        );
+        assert_eq!(
+            requested_loader_version("1.7.10", GameLoader::Ornithe, Some("0.20.1")),
+            Some("0.20.1")
+        );
+        assert_eq!(
+            requested_loader_version("1.7.10", GameLoader::Forge, None),
+            None
+        );
+        assert_eq!(
+            requested_loader_version("1.8.9", GameLoader::Ornithe, None),
+            None
+        );
+    }
+
+    #[test]
+    fn legacy_ornithe_uses_java25_even_with_old_cached_java8_metadata() {
+        let make_info = || {
+            serde_json::from_value::<VersionInfo>(serde_json::json!({
+            "assetIndex": {"id":"1.7.10","sha1":"","size":0,"totalSize":0,"url":""},
+            "assets":"1.7.10", "downloads":{}, "id":"1.7.10-0.19.5", "libraries":[],
+            "mainClass":"net.fabricmc.loader.impl.launch.knot.KnotClient", "minimumLauncherVersion":0,
+            "releaseTime":"2014-06-26T00:00:00Z", "time":"2014-06-26T00:00:00Z", "type":"release",
+            "javaVersion":{"component":"jre-legacy","majorVersion":8}
+        })).unwrap()
+        };
+        let mut legacy = make_info();
+        apply_distribution_java(&mut legacy, "1.7.10", GameLoader::Ornithe);
+        assert_eq!(legacy.java_version.unwrap().major_version, 25);
+        for (version, loader) in [
+            ("1.7.10", GameLoader::Forge),
+            ("1.8.9", GameLoader::Ornithe),
+        ] {
+            let mut info = make_info();
+            apply_distribution_java(&mut info, version, loader);
+            assert_eq!(info.java_version.unwrap().major_version, 8);
+        }
+    }
 
     #[test]
     fn a_format_bump_moves_the_cached_version_info() {

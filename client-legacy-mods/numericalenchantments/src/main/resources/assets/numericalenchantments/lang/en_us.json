@@ -1,0 +1,6 @@
+{
+  "modmenu.descriptionTranslation.numericalenchantments": "${description}",
+  "numerical-enchantments.numerical-enchantments": "Numerical Enchantments",
+  "numerical-enchantments.use-arabic-numbers": "Use Arabic Numbers",
+  "numerical-enchantments.use-arabic-numbers.description": "Switches roman numerals to typical arabic numbers in enchantment tooltips, making it easier to read at a glance."
+}

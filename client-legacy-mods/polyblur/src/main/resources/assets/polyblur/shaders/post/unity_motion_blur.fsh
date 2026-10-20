@@ -1,0 +1,46 @@
+#version 150
+//? if >=26.3
+//#extension GL_ARB_separate_shader_objects : require
+
+uniform sampler2D DiffuseSampler;
+
+//? if >=26.3 {
+//layout(location = 0) in vec2 texCoord;
+//
+//layout(location = 0) out vec4 fragColor;
+//?}
+//? if <26.3 {
+in vec2 texCoord;
+
+out vec4 fragColor;
+//?}
+
+layout(std140) uniform MotionBlurConfig {
+    vec2 Velocity;
+    float Samples;
+    float Jitter;
+};
+
+float gnoise(vec2 p) {
+    return fract(52.9829189 * fract(dot(p, vec2(0.06711056, 0.00583715))));
+}
+
+void main() {
+    int n = int(Samples);
+    if (n < 2 || dot(Velocity, Velocity) < 1e-9) {
+        fragColor = textureLod(DiffuseSampler, texCoord, 0.0);
+        return;
+    }
+
+    float j = (gnoise(gl_FragCoord.xy) - 0.5) * Jitter;
+    vec3 acc = vec3(0.0);
+    float total = 0.0;
+    for (int i = 0; i < n; i++) {
+        float t = (float(i) + 0.5 + j) / float(n) - 0.5;
+        float w = 1.0 - abs(t) * 2.0;
+        acc += textureLod(DiffuseSampler, texCoord + Velocity * t, 0.0).rgb * w;
+        total += w;
+    }
+
+    fragColor = total > 0.0 ? vec4(acc / total, 1.0) : textureLod(DiffuseSampler, texCoord, 0.0);
+}

@@ -1,6 +1,6 @@
 package org.polyfrost.oneconfig.internal.legacy.chat;
 
-//? if = 1.8.9 {
+//? if <= 1.8.9 {
 /*import java.util.Objects;
 
 public class Style extends net.minecraft.text.Style {
@@ -273,7 +273,6 @@ public class Style extends net.minecraft.text.Style {
         return this.withObfuscated(obfuscated);
     }
 
-    @Override
     public Style setInsertion(final String insertion) {
         return this.withInsertion(insertion);
     }
@@ -379,7 +378,6 @@ public class Style extends net.minecraft.text.Style {
         return this.parent != null && this.parent.isObfuscated();
     }
 
-    @Override
     public String getInsertion() {
         if (this.insertion != null) {
             return this.insertion;
@@ -404,6 +402,7 @@ public class Style extends net.minecraft.text.Style {
                 .withUnderlined(style.isUnderlined() ? true : null)
                 .withStrikethrough(style.isStrikethrough() ? true : null)
                 .withObfuscated(style.isObfuscated() ? true : null)
+                //~ if = 1.7.10 'style.getInsertion()' -> 'null'
                 .withInsertion(style.getInsertion());
     }
 

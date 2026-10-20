@@ -1,0 +1,45 @@
+{
+    "schemaVersion": 1,
+    "id": "${mod_id}",
+    "name": "${mod_name}",
+    "version": "${mod_version}",
+    "description": "Highly customizable entity hitbox visualization for PvP.",
+    "authors": [
+        "Polyfrost"
+    ],
+    "contact": {
+        "homepage": "https://polyfrost.org",
+        "sources": "https://github.com/Polyfrost/PolyHitbox",
+        "issues": "https://discord.gg/QbNfaCHjUz"
+    },
+    "license": "GPL-3.0-only",
+    "icon": "assets/${mod_id}/polyhitbox.svg",
+    "environment": "client",
+    "accessWidener": "polyhitbox.classtweaker",
+    "entrypoints": {
+        "client": [
+            {
+                "value": "org.polyfrost.polyhitbox.PolyHitboxClient",
+                "adapter": "kotlin"
+            }
+        ],
+        "modmenu": [
+            {
+                "value": "org.polyfrost.polyhitbox.integration.PolyHitboxModMenuIntegration",
+                "adapter": "kotlin"
+            }
+        ]
+    },
+    "mixins": [
+        "mixins.${mod_id}.json"
+    ],
+    "depends": {
+        "minecraft": "${minecraft_version_range}",
+        "fabricloader": ">=${loader_version}",
+        "oneconfigv1": ">=1.0.0-beta.6",
+        "fabric-language-kotlin": "*"
+    },
+    "breaks": {
+        "combat-hitboxes": "*"
+    }
+}

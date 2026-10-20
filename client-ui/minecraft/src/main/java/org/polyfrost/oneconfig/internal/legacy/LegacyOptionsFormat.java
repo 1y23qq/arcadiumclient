@@ -1,6 +1,6 @@
 package org.polyfrost.oneconfig.internal.legacy;
 
-//? if = 1.8.9 {
+//? if <= 1.8.9 {
 /*import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;

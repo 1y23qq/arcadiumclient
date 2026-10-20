@@ -21,7 +21,7 @@ impl Component for OnboardingWelcome {
             .child(step_heading("Arcadium", ""))
             .child(
                 label()
-                    .text("Choose a folder, sign in, and set up Minecraft 1.8.9.")
+                    .text("Choose a folder, sign in, and set up Minecraft 1.8.9 or 1.7.10.")
                     .font_size(15.)
                     .color(colors::fg_secondary()),
             )

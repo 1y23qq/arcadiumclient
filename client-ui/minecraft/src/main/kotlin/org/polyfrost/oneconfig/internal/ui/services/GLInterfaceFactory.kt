@@ -69,7 +69,7 @@ internal object GLInterfaceFactory {
 private fun interface GrGLGetProc : CallbackI {
     fun invoke(ctx: Long, name: Long): Long
 
-    //? if >=26.1 || =1.8.9 {
+    //? if >=26.1 || <= 1.8.9 {
     override fun getDescriptor() = DESCRIPTOR
     //?} else {
     /*override fun getCallInterface() = CIF
@@ -84,7 +84,7 @@ private fun interface GrGLGetProc : CallbackI {
     companion object {
         val CIF = APIUtil.apiCreateCIF(LibFFI.FFI_DEFAULT_ABI, LibFFI.ffi_type_pointer, LibFFI.ffi_type_pointer, LibFFI.ffi_type_pointer)
 
-        //? if >=26.3 || =1.8.9 {
+        //? if >=26.3 || <= 1.8.9 {
         val DESCRIPTOR = Callback.Descriptor(GrGLGetProc::class.java, MethodHandles.lookup(), CIF)
         //?} elif >=26.1
         /*val DESCRIPTOR = Callback.Descriptor(MethodHandles.lookup(), CIF)*/

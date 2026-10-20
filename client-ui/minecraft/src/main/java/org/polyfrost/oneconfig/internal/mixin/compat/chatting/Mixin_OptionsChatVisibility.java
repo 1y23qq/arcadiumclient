@@ -1,6 +1,6 @@
 package org.polyfrost.oneconfig.internal.mixin.compat.chatting;
 
-//? if = 1.8.9 {
+//? if <= 1.8.9 {
 /*import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import org.polyfrost.oneconfig.internal.ui.compose.OptionsChatOverlay;
 import org.spongepowered.asm.mixin.Mixin;

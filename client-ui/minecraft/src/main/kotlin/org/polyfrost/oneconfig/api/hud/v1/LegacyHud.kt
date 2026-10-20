@@ -13,7 +13,7 @@ abstract class LegacyHud(id: String, title: String, category: Category) : Hud(id
     abstract val width: Float
     abstract val height: Float
 
-    //~ if = 1.8.9 '(mcCtx: GuiGraphicsExtractor)' -> '()'
+    //~ if <= 1.8.9 '(mcCtx: GuiGraphicsExtractor)' -> '()'
     abstract fun render(mcCtx: GuiGraphicsExtractor)
 
     // legacy HUDs are fixed-size and render through GuiGraphics rather than a Compose tree so

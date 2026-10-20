@@ -1,0 +1,380 @@
+package org.polyfrost.polyblur.client.blur.phosphor
+
+//? if =1.21.5 {
+/*import net.minecraft.client.render.pipeline.RenderTarget
+import com.mojang.blaze3d.platform.DepthTestFunction
+import com.mojang.blaze3d.resource.RenderTargetDescriptor
+import com.mojang.blaze3d.systems.RenderSystem
+import com.mojang.blaze3d.vertex.DefaultVertexFormat
+import com.mojang.blaze3d.pipeline.RenderPipeline
+import com.mojang.blaze3d.vertex.VertexFormat
+import java.util.OptionalInt
+
+object RenderTargetTracker {
+    private val pipeline = RenderPipeline.builder()
+        .withLocation("polyblur_previous_frame_tracker")
+        .withVertexShader("core/blit_screen")
+        .withFragmentShader("core/blit_screen")
+        .withSampler("InSampler")
+        .withDepthWrite(false)
+        .withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
+        .withColorWrite(true, true)
+        .withVertexFormat(DefaultVertexFormat.POSITION, VertexFormat.Mode.QUADS)
+        .build()
+
+    private var framebufferFactory: RenderTargetDescriptor? = null
+    private var prevWidth = -1
+    private var prevHeight = -1
+    private var internalPrevTarget: RenderTarget? = null
+
+    val prevTarget: RenderTarget?
+        get() = internalPrevTarget?.takeIf { it.viewWidth == prevWidth && it.viewHeight == prevHeight }
+
+    fun captureIntoPrevious(sourceTarget: RenderTarget) {
+        RenderSystem.assertOnRenderThread()
+
+        updateSize(sourceTarget.viewWidth, sourceTarget.viewHeight)
+        val currentTarget = prevTarget ?: return
+        blit(sourceTarget, currentTarget)
+    }
+
+    fun isAttachmentInSync(target: RenderTarget): Boolean {
+        val texture = target.getColorTexture() ?: return false
+        return !texture.isClosed() &&
+            texture.getWidth(0) == target.width &&
+            texture.getHeight(0) == target.height
+    }
+
+    private fun updateSize(width: Int, height: Int) {
+        if (width == prevWidth && height == prevHeight && internalPrevTarget != null) {
+            return
+        }
+
+        if (framebufferFactory == null || framebufferFactory?.width != width || framebufferFactory?.height != height) {
+            framebufferFactory = RenderTargetDescriptor(width, height, false, 0)
+        }
+
+        free()
+        internalPrevTarget = framebufferFactory?.allocate()
+        prevWidth = width
+        prevHeight = height
+    }
+
+    private fun free() {
+        internalPrevTarget?.let { framebufferFactory?.free(it) }
+        internalPrevTarget = null
+        prevWidth = -1
+        prevHeight = -1
+    }
+
+    fun blit(srcTarget: RenderTarget, dstTarget: RenderTarget): Boolean {
+        RenderSystem.assertOnRenderThread()
+
+        val srcTexture = srcTarget.getColorTexture()
+        val dstTexture = dstTarget.getColorTexture()
+
+        if (srcTexture == null || dstTexture == null || srcTexture.isClosed() || dstTexture.isClosed()) {
+            return false
+        }
+
+        val plan = planBlit(
+            srcWidth = srcTarget.width,
+            srcHeight = srcTarget.height,
+            srcTextureWidth = srcTexture.getWidth(0),
+            srcTextureHeight = srcTexture.getHeight(0),
+            dstWidth = dstTarget.width,
+            dstHeight = dstTarget.height,
+            dstTextureWidth = dstTexture.getWidth(0),
+            dstTextureHeight = dstTexture.getHeight(0),
+        )
+
+        if (plan == BlitPlan.SKIP) {
+            return false
+        }
+
+        val autoStorageIndexBuffer = RenderSystem.getSequentialBuffer(VertexFormat.Mode.QUADS)
+        val indexBuffer = autoStorageIndexBuffer.getBuffer(6)
+        val vertexBuffer = FullscreenQuad.vertexBuffer
+
+        RenderSystem.getDevice().createCommandEncoder().createRenderPass(
+            dstTexture,
+            OptionalInt.empty()
+        ).use { renderPass ->
+            renderPass.setPipeline(pipeline)
+            renderPass.setVertexBuffer(0, vertexBuffer)
+            renderPass.setIndexBuffer(indexBuffer, autoStorageIndexBuffer.type())
+            renderPass.bindSampler("InSampler", srcTexture)
+            renderPass.drawIndexed(0, 6)
+        }
+        return true
+    }
+}
+*///?}
+
+//? if >1.21.5 {
+/*import net.minecraft.client.render.pipeline.RenderTarget
+import com.mojang.blaze3d.resource.RenderTargetDescriptor
+import com.mojang.blaze3d.systems.RenderSystem
+import com.mojang.blaze3d.pipeline.RenderPipeline
+import org.apache.logging.log4j.LogManager
+import org.polyfrost.polyblur.client.blur.BlurPrewarm
+// import org.polyfrost.polyblur.client.blur.BlurProfiler
+
+//? if >=26.3
+//import com.mojang.blaze3d.shaders.UniformType
+
+//? if >=26.2 {
+/*import com.mojang.blaze3d.pipeline.BindGroupLayout
+import com.mojang.blaze3d.PrimitiveTopology
+import java.util.Optional
+*///?} else {
+import com.mojang.blaze3d.vertex.DefaultVertexFormat
+import com.mojang.blaze3d.vertex.VertexFormat
+import java.util.OptionalInt
+//?}
+
+//? if >=26.1 {
+/*import com.mojang.blaze3d.pipeline.ColorTargetState
+import com.mojang.blaze3d.pipeline.DepthStencilState
+import com.mojang.blaze3d.platform.CompareOp
+*///?} else
+import com.mojang.blaze3d.platform.DepthTestFunction
+
+object RenderTargetTracker {
+    private val pipeline = RenderPipeline.builder()
+        .withLocation(location("polyblur", "previous_frame_tracker"))
+        //? if >=1.21.10 {
+        /*.withVertexShader("core/screenquad")
+        *///?}
+        //? if <1.21.10 {
+        .withVertexShader(location("polyblur", "core/fullscreen_quad"))
+        //?}
+        .withFragmentShader("core/blit_screen")
+        //? if >=26.2 {
+        /*.withPrimitiveTopology(PrimitiveTopology.TRIANGLES)
+        .withDepthStencilState(Optional.empty())
+        .withColorTargetState(ColorTargetState.DEFAULT)
+        .withBindGroupLayout(
+            BindGroupLayout.builder()
+                //? if >=26.3 {
+                /*.withUniform("InSampler", UniformType.COMBINED_IMAGE_SAMPLER)
+                *///?} else {
+                .withSampler("InSampler")
+                //?}
+                .build()
+        )
+        *///?}
+        //? if >=1.21.10 && <26.2 {
+        /*.withVertexFormat(DefaultVertexFormat.EMPTY, VertexFormat.Mode.TRIANGLES)
+        *///?}
+        //? if <1.21.10 {
+        .withVertexFormat(DefaultVertexFormat.POSITION, VertexFormat.Mode.QUADS)
+        //?}
+        //? if >=26.1 && <26.2 {
+        /*.withDepthStencilState(DepthStencilState(CompareOp.ALWAYS_PASS, false))
+        .withColorTargetState(ColorTargetState.DEFAULT)
+        *///?}
+        //? if <26.1 {
+        .withDepthWrite(false)
+        .withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
+        .withColorWrite(true, true)
+        //?}
+        //? if <26.2 {
+        .withSampler("InSampler")
+        //?}
+        .build()
+
+    private val logger = LogManager.getLogger(RenderTargetTracker::class.java)
+
+    private var framebufferFactory: RenderTargetDescriptor? = null
+    private var prevWidth = -1
+    private var prevHeight = -1
+    private var targetA: RenderTarget? = null
+    private var targetB: RenderTarget? = null
+    private var parity = false
+    private var bootstrap = true
+
+    private var skipLogged = false
+    private var skipWarned = false
+
+    private const val DESYNC_HINT =
+        "; expected while the window is minimised or the swapchain is being recreated"
+
+    private fun sized(target: RenderTarget?): RenderTarget? =
+        target?.takeIf { it.width == prevWidth && it.height == prevHeight }
+
+    val prevTarget: RenderTarget?
+        get() = sized(if (parity) targetB else targetA)
+
+    val writeTarget: RenderTarget?
+        get() = sized(if (parity) targetA else targetB)
+
+    fun swap() {
+        parity = !parity
+    }
+
+    val needsBootstrap: Boolean
+        get() = bootstrap
+
+    fun requireBootstrap() {
+        bootstrap = true
+    }
+
+    internal fun prewarm() = BlurPrewarm.compile(pipeline)
+
+    fun ensureSize(width: Int, height: Int) = updateSize(width, height)
+
+    fun captureIntoPrevious(sourceTarget: RenderTarget) {
+        RenderSystem.assertOnRenderThread()
+
+        updateSize(sourceTarget.width, sourceTarget.height)
+        val currentTarget = prevTarget ?: return
+        if (blit(sourceTarget, currentTarget)) {
+            bootstrap = false
+        }
+    }
+
+    private fun updateSize(width: Int, height: Int) {
+        if (width == prevWidth && height == prevHeight && targetA != null && targetB != null) {
+            return
+        }
+
+        if (framebufferFactory == null || framebufferFactory?.width != width || framebufferFactory?.height != height) {
+            framebufferFactory = createTargetDescriptor(width, height)
+        }
+
+        free()
+        targetA = framebufferFactory?.allocate()
+        targetB = framebufferFactory?.allocate()
+        prevWidth = width
+        prevHeight = height
+        bootstrap = true
+    }
+
+    private fun free() {
+        targetA?.let { framebufferFactory?.free(it) }
+        targetB?.let { framebufferFactory?.free(it) }
+        targetA = null
+        targetB = null
+        prevWidth = -1
+        prevHeight = -1
+    }
+
+    fun isAttachmentInSync(target: RenderTarget): Boolean {
+        val texture = target.getColorTexture()
+        val view = target.getColorTextureView()
+
+        if (texture == null || view == null || texture.isClosed() || view.isClosed()) {
+            return skipBlit { "colour attachment missing or closed (${target.width}x${target.height})" }
+        }
+
+        val textureWidth = texture.getWidth(0)
+        val textureHeight = texture.getHeight(0)
+
+        if (textureWidth <= 0 || textureHeight <= 0 ||
+            textureWidth != target.width || textureHeight != target.height
+        ) {
+            return skipBlit {
+                "attachment is out of sync with its render target " +
+                    "(${target.width}x${target.height} backed by ${textureWidth}x$textureHeight)$DESYNC_HINT"
+            }
+        }
+
+        skipLogged = false
+        return true
+    }
+
+    fun blit(srcTarget: RenderTarget, dstTarget: RenderTarget): Boolean {
+        if (BlurPrewarm.failed) return false
+        RenderSystem.assertOnRenderThread()
+        // BlurProfiler.countBlit()
+
+        val srcTexture = srcTarget.getColorTexture()
+        val dstTexture = dstTarget.getColorTexture()
+        val srcView = srcTarget.getColorTextureView()
+        val dstView = dstTarget.getColorTextureView()
+
+        if (srcTexture == null || dstTexture == null || srcView == null || dstView == null ||
+            srcTexture.isClosed() || dstTexture.isClosed() || srcView.isClosed() || dstView.isClosed()
+        ) {
+            return skipBlit {
+                "colour attachment missing or closed " +
+                    "(src ${srcTarget.width}x${srcTarget.height}, dst ${dstTarget.width}x${dstTarget.height})"
+            }
+        }
+
+        val srcTextureWidth = srcTexture.getWidth(0)
+        val srcTextureHeight = srcTexture.getHeight(0)
+        val dstTextureWidth = dstTexture.getWidth(0)
+        val dstTextureHeight = dstTexture.getHeight(0)
+
+        val plan = planBlit(
+            srcWidth = srcTarget.width,
+            srcHeight = srcTarget.height,
+            srcTextureWidth = srcTextureWidth,
+            srcTextureHeight = srcTextureHeight,
+            dstWidth = dstTarget.width,
+            dstHeight = dstTarget.height,
+            dstTextureWidth = dstTextureWidth,
+            dstTextureHeight = dstTextureHeight,
+        )
+
+        if (plan == BlitPlan.SKIP) {
+            return skipBlit {
+                "attachments are out of sync with their render targets (src " +
+                    "${srcTarget.width}x${srcTarget.height} backed by ${srcTextureWidth}x$srcTextureHeight, dst " +
+                    "${dstTarget.width}x${dstTarget.height} backed by ${dstTextureWidth}x$dstTextureHeight)$DESYNC_HINT"
+            }
+        }
+
+        skipLogged = false
+
+        if (plan == BlitPlan.COPY) {
+            RenderSystem.getDevice().createCommandEncoder().copyTextureToTexture(
+                srcTexture, dstTexture,
+                0, 0, 0, 0, 0, srcTextureWidth, srcTextureHeight
+            )
+            return true
+        }
+
+        RenderSystem.getDevice().createCommandEncoder().createRenderPass(
+            { "PolyBlur/Previous Frame Tracker Blit" },
+            dstView,
+            //? if >=26.2 {
+            /*Optional.empty()
+            *///?}
+            //? if <26.2 {
+            OptionalInt.empty()
+            //?}
+        ).use { renderPass ->
+            //? if >=26.3 {
+            /*renderPass.setPipeline(RenderSystem.getCompiledPipeline(pipeline))
+            *///?} else {
+            renderPass.setPipeline(pipeline)
+            //?}
+            //? if >=26.3 {
+            /*renderPass.setUniform("InSampler", srcView, BlurSampler.linearClamp)
+            *///?} elif >=1.21.11 {
+            /*renderPass.bindTexture("InSampler", srcView, BlurSampler.linearClamp)
+            *///?} else {
+            renderPass.bindSampler("InSampler", srcView)
+            //?}
+            FullscreenPass.draw(renderPass)
+        }
+        return true
+    }
+
+    private inline fun skipBlit(reason: () -> String): Boolean {
+        if (!skipLogged) {
+            skipLogged = true
+            if (skipWarned) {
+                logger.debug("Skipping blit: {}", reason())
+            } else {
+                skipWarned = true
+                logger.warn("Skipping blit: {}. Further occurrences are logged at debug level.", reason())
+            }
+        }
+        return false
+    }
+}
+*///?}

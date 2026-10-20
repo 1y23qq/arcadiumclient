@@ -8,6 +8,7 @@ import net.minecraft.client.Minecraft
 import org.apache.logging.log4j.LogManager
 import org.polyfrost.oneconfig.api.config.v1.Config
 import org.polyfrost.oneconfig.api.config.v1.Properties
+import org.polyfrost.oneconfig.api.config.v1.Property
 import org.polyfrost.oneconfig.api.config.v1.Tree
 import org.polyfrost.oneconfig.api.config.v1.Visualizer
 import org.polyfrost.oneconfig.api.event.v1.eventHandler
@@ -18,6 +19,7 @@ import java.nio.file.Path
 import java.nio.file.StandardCopyOption
 import java.util.function.Consumer
 import java.util.function.Supplier
+import org.polyfrost.oneconfig.internal.ui.api.ConfigRegistry
 
 object CustomCrosshair {
     private class Document {
@@ -58,6 +60,18 @@ object CustomCrosshair {
             if (config.tree == null) config.preload()
             val tree = config.tree ?: return
             if (attached === tree) return
+            tree.getProp("hideCrosshairInPerspective")?.let { hidden ->
+                val thirdPerson = Properties.functional(Supplier { hidden.get() != true }, Consumer { value: Boolean ->
+                    hidden.setAs(!value)
+                }, "arcadiumThirdPersonCrosshair", "Show Crosshair in Third Person",
+                    "Show the crosshair in both front and rear third-person views.", Boolean::class.javaObjectType)
+                thirdPerson.addMetadata("visualizer", Visualizer.SwitchVisualizer::class.java)
+                thirdPerson.addMetadata("category", "General")
+                thirdPerson.addMetadata("subcategory", "Visibility")
+                thirdPerson.addMetadata("default", hidden.getMetadata<Boolean?>("default") != true)
+                hidden.addDisplayCondition { Property.Display.HIDDEN }
+                tree.put(thirdPerson)
+            }
             val enabled = Properties.functional(Supplier { data.enabled }, Consumer { value: Boolean -> setEnabled(value) },
                 "arcadiumCustomCrosshair", "Custom Crosshair", "Use your selected shape or pixel canvas.", Boolean::class.javaObjectType)
             enabled.addMetadata("visualizer", Visualizer.SwitchVisualizer::class.java)
@@ -76,6 +90,7 @@ object CustomCrosshair {
             })
             tree.put(editor)
             attached = tree
+            ConfigRegistry.invalidate()
         }.onFailure {
             if (!warned) logger.warn("Could not add the custom crosshair controls to Crosshair Tweaks", it)
             warned = true

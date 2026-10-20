@@ -179,11 +179,13 @@ impl BundlesManager {
         mc_version: &str,
         loader: GameLoader,
     ) -> ContentResult<Vec<Bundle>> {
-        if mc_version == arcadium_common::distribution::MINECRAFT_VERSION {
+        if arcadium_common::distribution::supports_version(mc_version) {
             if loader != GameLoader::Ornithe {
                 return Ok(Vec::new());
             }
-            return self.list_pinned(ctx, &paths::bundles_dir()?).await;
+            return self
+                .list_pinned_version(ctx, &paths::bundles_dir()?, mc_version)
+                .await;
         }
         let rows =
             bundle_dao::list_visible_for_version_loader(&ctx.db, mc_version, loader as i64).await?;
@@ -193,19 +195,21 @@ impl BundlesManager {
             .collect::<Result<Vec<_>, _>>()
     }
 
-    async fn list_pinned(
+    async fn list_pinned_version(
         &self,
         ctx: &ContentCtx,
         bundles_root: &Path,
+        mc_version: &str,
     ) -> ContentResult<Vec<Bundle>> {
         let manifest: RemoteBundleManifest =
             serde_json::from_slice(arcadium_common::distribution::BUNDLES)?;
         arcadium_io::create_dir_all(&bundles_root.join("bundles")).await?;
         let mut bundles = Vec::new();
-        for entry in manifest.remote_paths().into_iter().filter(|entry| {
-            entry.mc_version == arcadium_common::distribution::MINECRAFT_VERSION
-                && entry.loader == "ornithe"
-        }) {
+        for entry in manifest
+            .remote_paths()
+            .into_iter()
+            .filter(|entry| entry.mc_version == mc_version && entry.loader == "ornithe")
+        {
             self.sync_bundle(&entry, ctx, bundles_root).await?;
             let row = bundle_dao::get_by_remote_path(&ctx.db, &entry.remote_path)
                 .await?
@@ -218,6 +222,20 @@ impl BundlesManager {
             (&left.name, &left.file_name).cmp(&(&right.name, &right.file_name))
         });
         Ok(bundles)
+    }
+
+    #[cfg(test)]
+    async fn list_pinned(
+        &self,
+        ctx: &ContentCtx,
+        bundles_root: &Path,
+    ) -> ContentResult<Vec<Bundle>> {
+        self.list_pinned_version(
+            ctx,
+            bundles_root,
+            arcadium_common::distribution::MINECRAFT_VERSION,
+        )
+        .await
     }
 
     #[tracing::instrument(level = "debug", skip(self, entry, ctx, bundles_root), fields(remote_path = %entry.remote_path))]
@@ -252,7 +270,7 @@ impl BundlesManager {
             }
         } else {
             return Err(ContentError::InvalidData {
-                reason: "Bundle is not part of Arcadium 1.8.9".into(),
+                reason: "Bundle is not part of this Arcadium build.".into(),
             });
         }
 
@@ -387,6 +405,48 @@ mod tests {
         )
         .await
         .unwrap();
+    }
+
+    #[tokio::test]
+    async fn legacy_catalog_is_pinned_and_never_loads_primary_game_mods() {
+        let temp = ScratchDir::new("legacy-pinned-bundle");
+        let ctx = context(Default::default()).await;
+        seed_old_catalog(&ctx, GameLoader::Ornithe).await;
+        let manager = BundlesManager::new();
+        let bundles = manager
+            .list_pinned_version(&ctx, temp.path(), "1.7.10")
+            .await
+            .unwrap();
+        assert_eq!(bundles.len(), 1);
+        let manifest = manager
+            .manifest_for_archive(&ctx, &bundles[0].path)
+            .await
+            .unwrap();
+        assert_eq!(manifest.mc_version, "1.7.10");
+        assert_eq!(manifest.loader, GameLoader::Ornithe);
+        assert_eq!(manifest.loader_version, "0.19.5");
+        assert_eq!(manifest.java_version_override, Some(25));
+        assert_eq!(manifest.files.len(), 5);
+        for file in manifest.files {
+            let path = file.path.to_ascii_lowercase();
+            assert!(
+                ![
+                    "polyplus",
+                    "polysprint",
+                    "crashpatch",
+                    "chattweaks",
+                    "argentum",
+                    "forgecompat"
+                ]
+                .iter()
+                .any(|excluded| path.contains(excluded)),
+                "{path}"
+            );
+        }
+        assert_eq!(
+            manager.list_pinned(&ctx, temp.path()).await.unwrap().len(),
+            4
+        );
     }
 
     #[tokio::test]

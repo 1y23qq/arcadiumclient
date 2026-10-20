@@ -15,7 +15,9 @@ use super::paths::artifact_absolute_path;
 const STAGING_SUFFIX: &str = ".arcadium-tmp";
 
 pub(crate) fn shares_content(cluster: &ClusterRow, content_type: ContentType) -> bool {
-    content_type.is_global() && !cluster.is_isolated()
+    content_type.is_global()
+        && !cluster.is_isolated()
+        && !arcadium_common::distribution::requires_separate_game_dir(&cluster.mc_version)
 }
 
 /// What a live add actually did, so a caller can say so instead of promising
@@ -136,13 +138,21 @@ async fn materialized_root(
         return Some((dir, manifest::MODS_MANIFEST_NAME));
     }
 
-    paths::cluster_game_dir(&cluster.folder_name, cluster.is_isolated())
-        .ok()
-        .map(|dir| (dir, manifest::MANIFEST_NAME))
+    paths::cluster_game_dir(
+        &cluster.folder_name,
+        cluster.is_isolated(),
+        &cluster.mc_version,
+    )
+    .ok()
+    .map(|dir| (dir, manifest::MANIFEST_NAME))
 }
 
 async fn session_owns(cluster: &ClusterRow, db: &DbPool) -> bool {
-    let Ok(game_dir) = paths::cluster_game_dir(&cluster.folder_name, cluster.is_isolated()) else {
+    let Ok(game_dir) = paths::cluster_game_dir(
+        &cluster.folder_name,
+        cluster.is_isolated(),
+        &cluster.mc_version,
+    ) else {
         return false;
     };
 

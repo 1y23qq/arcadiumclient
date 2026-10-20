@@ -1,0 +1,16 @@
+{
+  "compatibilityLevel": "JAVA_25",
+  "minVersion": "0.8",
+  "package": "org.polyfrost.glintcolorizer.mixin",
+  "mixins": [
+    "LayerArmorBaseMixin",
+    "RenderItemMixin_GlintCustomizer",
+    "RenderItemMixin_ShinyEffect",
+    "accessor.RenderItemAccessor"
+  ],
+  "verbose": true,
+  "client": [
+    "ItemEntityRendererMixin_HandleCameraTransforms",
+    "ItemRendererMixin_HandleCameraTransforms"
+  ]
+}

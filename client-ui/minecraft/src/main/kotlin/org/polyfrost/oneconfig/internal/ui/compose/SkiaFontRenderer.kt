@@ -27,12 +27,12 @@ import net.minecraft.resources.Identifier
 /*import net.minecraft.util.profiling.ProfilerFiller
 *///?}
 
-//? if = 1.8.9 {
+//? if <= 1.8.9 {
 /*import net.ornithemc.osl.core.api.util.NamespacedIdentifier as Identifier
 import net.ornithemc.osl.core.api.util.NamespacedIdentifiers
 *///?}
 
-//~ if = 1.8.9 'PreparableReloadListener' -> 'ResourceReloadListener'
+//~ if <= 1.8.9 'PreparableReloadListener' -> 'ResourceReloadListener'
 object SkiaFontRenderer : PreparableReloadListener {
     private val LOGGER = LoggerFactory.getLogger("Arcadium Options/SkiaFontRenderer")
 
@@ -86,7 +86,7 @@ object SkiaFontRenderer : PreparableReloadListener {
     private var lastAttemptOptions = Int.MIN_VALUE
     private const val RETRY_INTERVAL_MS = 200L
 
-    //~ if = 1.8.9 'minecraft:default' -> 'oneconfig:legacy_default'
+    //~ if <= 1.8.9 'minecraft:default' -> 'oneconfig:legacy_default'
     private const val ROOT_FONT = "minecraft:default"
 
     private val textPaint = Paint().apply { isAntiAlias = false }
@@ -218,7 +218,7 @@ object SkiaFontRenderer : PreparableReloadListener {
         if (lastAttemptOptions == options && now - lastLoadAttempt < RETRY_INTERVAL_MS) return
         lastLoadAttempt = now
         lastAttemptOptions = options
-        //~ if = 1.8.9 'Minecraft.getInstance().resourceManager' -> 'ResourceManager.client()'
+        //~ if <= 1.8.9 'Minecraft.getInstance().resourceManager' -> 'ResourceManager.client()'
         prepare(Minecraft.getInstance().resourceManager, options)?.let(::applyPrepared)
     }
 
@@ -481,7 +481,7 @@ object SkiaFontRenderer : PreparableReloadListener {
 
 
     private fun read(rm: ResourceManager, id: Identifier, options: Int): ByteArray? {
-        //? if = 1.8.9 {
+        //? if <= 1.8.9 {
         /*if (options and OPTION_VANILLA != 0) return runCatching {
             val input = if (id.namespace() == "oneconfig") {
                 SkiaFontRenderer::class.java.getResourceAsStream("/assets/oneconfig/" + id.identifier())
@@ -510,9 +510,14 @@ object SkiaFontRenderer : PreparableReloadListener {
 
     private fun fontOptionsMask(): Int {
         val options = Minecraft.getInstance().options
+        //? if = 1.7.10 {
+        /*return (if (options.forceUnicodeFont) OPTION_UNIFORM else 0) or
+            (if (FontPreferences.modSource() == FontPreferences.Source.VANILLA) OPTION_VANILLA else 0)
+        *///? } else {
         return (if (options.forceUnicodeFont().get()) OPTION_UNIFORM else 0) or
             (if (options.japaneseGlyphVariants().get()) OPTION_JP else 0) or
             (if (FontPreferences.modSource() == FontPreferences.Source.VANILLA) OPTION_VANILLA else 0)
+        //? }
     }
 
     private fun filterPasses(provider: JsonObject, options: Int): Boolean {
@@ -525,7 +530,7 @@ object SkiaFontRenderer : PreparableReloadListener {
     private fun collectProviders(rm: ResourceManager, id: String, out: MutableList<JsonObject>, visited: MutableSet<String>, options: Int) {
         if (!visited.add(id)) return
         val (ns, path) = splitId(id)
-        //~ if = 1.8.9 'Identifier.fromNamespaceAndPath' -> 'NamespacedIdentifiers.from'
+        //~ if <= 1.8.9 'Identifier.fromNamespaceAndPath' -> 'NamespacedIdentifiers.from'
         for (bytes in readStack(rm, Identifier.fromNamespaceAndPath(ns, "font/$path.json"), options)) {
             val root = runCatching { JsonParser.parseString(String(bytes, Charsets.UTF_8)).asJsonObject }.getOrNull() ?: continue
             val providers = root.getAsJsonArray("providers") ?: continue
@@ -576,7 +581,7 @@ object SkiaFontRenderer : PreparableReloadListener {
                         }
                     }
                     "bitmap" -> runCatching {
-                        //? if = 1.8.9
+                        //? if <= 1.8.9
                         //if (options and OPTION_UNIFORM == 0)
                         loadBitmap(rm, provider, newGlyphs, newAtlases, claimed, options)
                     }
@@ -686,7 +691,7 @@ object SkiaFontRenderer : PreparableReloadListener {
     private fun loadUnihex(rm: ResourceManager, provider: JsonObject, hex: HexAccumulator, claimed: MutableSet<Int>, options: Int) {
         val hexRef = provider.get("hex_file")?.asString ?: return
         val (ns, path) = splitId(hexRef)
-        //~ if = 1.8.9 'Identifier.fromNamespaceAndPath' -> 'NamespacedIdentifiers.from'
+        //~ if <= 1.8.9 'Identifier.fromNamespaceAndPath' -> 'NamespacedIdentifiers.from'
         val zipBytes = read(rm, Identifier.fromNamespaceAndPath(ns, path), options) ?: run {
             LOGGER.warn("unihex font provider references missing file {}", hexRef)
             return
@@ -795,7 +800,7 @@ object SkiaFontRenderer : PreparableReloadListener {
         val sizesRef = provider.get("sizes")?.asString ?: return
         val template = provider.get("template")?.asString ?: return
         val (sizesNamespace, sizesPath) = splitId(sizesRef)
-        //~ if = 1.8.9 'Identifier.fromNamespaceAndPath' -> 'NamespacedIdentifiers.from'
+        //~ if <= 1.8.9 'Identifier.fromNamespaceAndPath' -> 'NamespacedIdentifiers.from'
         val sizes = read(rm, Identifier.fromNamespaceAndPath(sizesNamespace, sizesPath), options) ?: return
         for (page in 0 until 256) {
             val start = page * 256
@@ -803,7 +808,7 @@ object SkiaFontRenderer : PreparableReloadListener {
             if ((start until end).none { sizes[it].toInt() != 0 && it !in claimed }) continue
             val file = String.format(java.util.Locale.ROOT, template, page.toString(16).padStart(2, '0'))
             val (namespace, path) = splitId(file)
-            //~ if = 1.8.9 'Identifier.fromNamespaceAndPath' -> 'NamespacedIdentifiers.from'
+            //~ if <= 1.8.9 'Identifier.fromNamespaceAndPath' -> 'NamespacedIdentifiers.from'
             val bytes = read(rm, Identifier.fromNamespaceAndPath(namespace, "textures/$path"), options) ?: continue
             if (!isPng(bytes)) continue
             val image = Image.makeFromEncoded(bytes)
@@ -824,7 +829,7 @@ object SkiaFontRenderer : PreparableReloadListener {
     private fun loadBitmap(rm: ResourceManager, provider: JsonObject, out: MutableMap<Int, Glyph>, atlasesOut: MutableList<Image>, claimed: MutableSet<Int>, options: Int) {
         val fileRef = provider.get("file")?.asString ?: return
         val (ns, filePath) = splitId(fileRef)
-        //~ if = 1.8.9 'Identifier.fromNamespaceAndPath' -> 'NamespacedIdentifiers.from'
+        //~ if <= 1.8.9 'Identifier.fromNamespaceAndPath' -> 'NamespacedIdentifiers.from'
         val bytes = read(rm, Identifier.fromNamespaceAndPath(ns, "textures/$filePath"), options) ?: return
         if (!isPng(bytes)) return
         val image = Image.makeFromEncoded(bytes)

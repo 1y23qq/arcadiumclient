@@ -1,0 +1,101 @@
+package net.uku3lig.betterhurtcam;
+
+import java.util.Locale;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.options.KeyBinding;
+import net.ornithemc.osl.entrypoints.api.client.ClientModInitializer;
+import net.ornithemc.osl.keybinds.api.KeybindEvents;
+import net.ornithemc.osl.keybinds.api.KeybindRegistry;
+import net.ornithemc.osl.lifecycle.api.client.MinecraftClientEvents;
+import org.lwjgl.input.Keyboard;
+
+public final class BetterHurtCam implements ClientModInitializer {
+	public static final String MOD_ID = "betterhurtcam";
+	private static final BetterHurtCamConfig CONFIG = BetterHurtCamConfig.INSTANCE;
+	private static final KeyBinding TOGGLE = new KeyBinding(
+		"key.betterhurtcam.toggle", Keyboard.KEY_F8, "category.betterhurtcam");
+	private static final KeyBinding INCREASE = new KeyBinding(
+		"key.betterhurtcam.plus", Keyboard.KEY_F7, "category.betterhurtcam");
+	private static final KeyBinding DECREASE = new KeyBinding(
+		"key.betterhurtcam.minus", Keyboard.KEY_F6, "category.betterhurtcam");
+
+	private static boolean keysRegistered;
+
+	private static void registerKeys() {
+		if (keysRegistered) return;
+		KeybindRegistry.register(TOGGLE);
+		KeybindRegistry.register(INCREASE);
+		KeybindRegistry.register(DECREASE);
+		keysRegistered = true;
+	}
+
+	@Override
+	public void initClient() {
+		// OneConfig's main initializer can run before this mod is discovered. Preload
+		// explicitly so a late-registered config still joins its active tree and
+		// preserves BetterHurtCam's original first-launch TOML behavior.
+		CONFIG.preload();
+		KeybindEvents.REGISTER_KEYBINDS.register(BetterHurtCam::registerKeys);
+		Minecraft current = Minecraft.getInstance();
+		if (current != null && current.options != null) registerKeys();
+		MinecraftClientEvents.TICK_END.register(BetterHurtCam::handleKeybinds);
+		MinecraftClientEvents.TICK_END.register(minecraft -> CONFIG.refreshHeartBlinkOverride());
+	}
+
+	private static void handleKeybinds(Minecraft minecraft) {
+		if (!keysRegistered && minecraft.options != null) registerKeys();
+		while (TOGGLE.consumeClick()) {
+			CONFIG.setEnabled(!CONFIG.enabled);
+			showStatus(minecraft, "HurtCam " + (CONFIG.enabled ? "enabled" : "disabled"));
+		}
+		while (INCREASE.consumeClick()) {
+			changeMultiplier(minecraft, 0.1D);
+		}
+		while (DECREASE.consumeClick()) {
+			changeMultiplier(minecraft, -0.1D);
+		}
+	}
+
+	private static void changeMultiplier(Minecraft minecraft, double delta) {
+		CONFIG.setMultiplier(CONFIG.multiplier + delta);
+		showStatus(minecraft, "HurtCam multiplier: " + String.format(Locale.ROOT, "%.2f", CONFIG.multiplier));
+	}
+
+	private static void showStatus(Minecraft minecraft, String message) {
+		if (minecraft.player != null) {
+			minecraft.gui.setOverlayMessage(message, false);
+		}
+	}
+
+	public static boolean isEnabled() {
+		return CONFIG.enabled;
+	}
+
+	public static void setEnabled(boolean enabled) {
+		CONFIG.setEnabled(enabled);
+	}
+
+	public static double getMultiplier() {
+		return CONFIG.multiplier;
+	}
+
+	public static void setMultiplier(double multiplier) {
+		CONFIG.setMultiplier(multiplier);
+	}
+
+	public static boolean isHeartBlinkEnabled() {
+		return CONFIG.heartBlink || CONFIG.isHeartBlinkOverridden();
+	}
+
+	public static void setHeartBlinkEnabled(boolean heartBlink) {
+		CONFIG.setHeartBlink(heartBlink);
+	}
+
+	public static HurtCamType getType() {
+		return CONFIG.getType();
+	}
+
+	public static void setType(HurtCamType type) {
+		CONFIG.setType(type);
+	}
+}

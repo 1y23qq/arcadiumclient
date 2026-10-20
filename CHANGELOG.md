@@ -1,3 +1,12 @@
+## 0.4.0
+
+- Added Minecraft 1.7.10 support.
+- Added item scale options to Badlion Animations.
+- Added resource pack drag and drop and larger action buttons.
+- Added line limits for Compact Chat.
+- Added third-person crosshair options.
+- Fixed HUD text alignment.
+
 ## 0.3.9
 
 - Set Simple GUI as the default for new users.

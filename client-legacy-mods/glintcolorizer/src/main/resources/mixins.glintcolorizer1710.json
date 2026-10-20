@@ -1,0 +1,13 @@
+{
+  "compatibilityLevel": "JAVA_25",
+  "minVersion": "0.8",
+  "package": "org.polyfrost.glintcolorizer.mixin.native1710",
+  "client": [
+    "NativeGuiGlintMixin",
+    "NativeHeldGlintMixin",
+    "NativeArmorGlintMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

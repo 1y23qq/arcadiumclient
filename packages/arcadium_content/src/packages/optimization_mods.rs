@@ -61,7 +61,7 @@ pub async fn check_mod_directories(roots: &[PathBuf]) -> ContentResult<()> {
     let mut directories = HashSet::new();
     let mut files = HashSet::new();
     for root in roots {
-        for directory in [root.clone(), root.join("1.8.9")] {
+        for directory in [root.clone(), root.join("1.8.9"), root.join("1.7.10")] {
             let mut entries = match tokio::fs::read_dir(&directory).await {
                 Ok(entries) => entries,
                 Err(error) if error.kind() == std::io::ErrorKind::NotFound => continue,
@@ -273,10 +273,29 @@ fn load_managed_hashes() -> ContentResult<HashSet<String>> {
         .map(|&(_, hash)| hash.to_ascii_lowercase())
         .collect();
     hashes.insert(distribution::BRANDING_SHA1.to_ascii_lowercase());
+    let components: std::collections::HashMap<String, Vec<distribution::ClientComponent>> =
+        serde_json::from_slice(distribution::CLIENT_COMPONENTS)?;
+    hashes.extend(
+        components
+            .values()
+            .flatten()
+            .map(|component| component.sha1.to_ascii_lowercase()),
+    );
     let catalog: Value = serde_json::from_slice(distribution::BUNDLES)?;
-    let bundles = catalog["versions"][distribution::MINECRAFT_VERSION]["ornithe"]
-        .as_array()
+    let versions = catalog["versions"]
+        .as_object()
         .ok_or_else(invalid_distribution)?;
+    let bundles: Vec<_> = versions
+        .values()
+        .map(|version| {
+            version["ornithe"]
+                .as_array()
+                .ok_or_else(invalid_distribution)
+        })
+        .collect::<ContentResult<Vec<_>>>()?
+        .into_iter()
+        .flatten()
+        .collect();
     for bundle in bundles {
         let path = bundle["path"].as_str().ok_or_else(invalid_distribution)?;
         let bytes = distribution::bundle(path).ok_or_else(invalid_distribution)?;

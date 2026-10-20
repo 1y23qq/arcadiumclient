@@ -1,15 +1,14 @@
 package org.polyfrost.oneconfig.internal.legacy;
 
-//? if = 1.8.9 {
+//? if <= 1.8.9 {
 /*import java.util.Map;
-import net.minecraft.util.Util;
-import net.minecraft.util.Util.OS;
+import org.lwjgl.system.Platform;
 import org.lwjgl.sdl.SDLKeyboard;
 
 public class InputQuirks {
-    private static final OS PLATFORM = Util.getPlatform();
-    private static final boolean ON_WINDOWS = PLATFORM == OS.WINDOWS;
-    private static final boolean ON_OSX = PLATFORM == OS.OSX;
+    private static final Platform PLATFORM = Platform.get();
+    private static final boolean ON_WINDOWS = PLATFORM == Platform.WINDOWS;
+    private static final boolean ON_OSX = PLATFORM == Platform.MACOSX;
     public static final boolean REPLACE_CTRL_KEY_WITH_CMD_KEY = ON_OSX;
     public static final int EDIT_SHORTCUT_KEY_MODIFIER = REPLACE_CTRL_KEY_WITH_CMD_KEY ? 3072 : 192;
     public static final boolean SHIFT_INVERTS_SCROLL_AXIS = ON_OSX;
@@ -28,7 +27,7 @@ public class InputQuirks {
 
     static {
         KEYBOARD_DISPLAY_OVERRIDES = switch (PLATFORM) {
-            case OSX -> Map.of(
+            case MACOSX -> Map.of(
                     "key.keyboard.left.alt",
                     "key.keyboard.left.option",
                     "key.keyboard.right.alt",

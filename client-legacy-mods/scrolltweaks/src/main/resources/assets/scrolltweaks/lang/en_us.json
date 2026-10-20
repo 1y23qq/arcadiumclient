@@ -1,0 +1,10 @@
+{
+  "modmenu.descriptionTranslation.scrolltweaks": "${description}",
+  "scroll-tweaks.scroll-tweaks": "Scroll Tweaks",
+  "scroll-tweaks.disable-scrolling": "Disable Scrolling",
+  "scroll-tweaks.disable-scrolling.description": "Disable scrolling altogether.",
+  "scroll-tweaks.reverse-scroll-direction": "Reverse Scroll Direction",
+  "scroll-tweaks.reverse-scroll-direction.description": "Reverse the scrolling direction, effectively switching forwards and backwards.",
+  "scroll-tweaks.prevent-overflow-scrolling": "Prevent Overflow Scrolling",
+  "scroll-tweaks.prevent-overflow-scrolling.description": "Prevents you from scrolling directly between the 1st and 9th slot."
+}

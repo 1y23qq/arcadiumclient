@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "minVersion": "0.7",
+  "package": "me.wolfii.smoothscrollingrefurbished.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "client": [
+    "ListWidgetMixin"
+  ]
+}

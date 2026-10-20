@@ -12,7 +12,7 @@ import org.polyfrost.oneconfig.internal.FontPreferences
 import net.minecraft.client.gui.GuiGraphicsExtractor
 //?}
 
-//? if = 1.8.9 {
+//? if <= 1.8.9 {
 /*import com.mojang.blaze3d.platform.GlStateManager
 *///?}
 
@@ -43,20 +43,20 @@ object LegacyHudRenderer {
         )
     }
 
-    //~ if = 1.8.9 '(graphics: GuiGraphicsExtractor)' -> '()'
+    //~ if <= 1.8.9 '(graphics: GuiGraphicsExtractor)' -> '()'
     fun renderLive(graphics: GuiGraphicsExtractor) {
         val previousFontScope = FontPreferences.beginModText()
         try {
-            //~ if = 1.8.9 'renderLiveHuds(graphics)' -> 'renderLiveHuds()'
+            //~ if <= 1.8.9 'renderLiveHuds(graphics)' -> 'renderLiveHuds()'
             renderLiveHuds(graphics)
-            //~ if = 1.8.9 '.render(graphics)' -> '.render()'
+            //~ if <= 1.8.9 '.render(graphics)' -> '.render()'
             if (CompatOverlayRenderer.oneConfigScreenOpen()) CompatOverlayRenderer.render(graphics)
         } finally {
             FontPreferences.endModText(previousFontScope)
         }
     }
 
-    //~ if = 1.8.9 '(graphics: GuiGraphicsExtractor)' -> '()'
+    //~ if <= 1.8.9 '(graphics: GuiGraphicsExtractor)' -> '()'
     private fun renderLiveHuds(graphics: GuiGraphicsExtractor) {
         frame.clear()
         for (hud in HudManager.activeInstances) {

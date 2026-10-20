@@ -1,0 +1,30 @@
+publish.modrinth = "ranjG9Zq"
+publish.curseforge = ""
+
+mod.name = "Mount Opacity"
+mod.id = "mountopacity"
+mod.group = "dev.microcontrollers.mountopacity"
+mod.description = "Opacity for entities you can ride."
+mod.source = "https://codeberg.org/MicrocontrollersDev/MountOpacity"
+mod.issues = "https://discord.gg/QbNfaCHjUz"
+mod.license = "LGPL-3.0"
+mod.modrinth = "https://modrinth.com/mod/mountopacity"
+mod.curseforge = "https://www.curseforge.com/minecraft/mc-mods/mount-opacity"
+mod.kofi = "https://ko-fi.com/microcontrollers"
+mod.discord = "https://discord.gg/QbNfaCHjUz"
+
+mod.version = "1.2.3-arcadium"
+
+deps.oneconfig_version = "1.2.23-arcadium"
+deps.osl_version = "0.22.0"
+deps.lenis_version = "0.1.4"
+
+["1.8.9"]
+deps.oneconfig_mc_version = "1.8.9"
+mod.mc_dep = "1.8.9"
+
+["1.7.10"]
+deps.oneconfig_mc_version = "1.7.10"
+mod.mc_dep = "1.7.10"
+
+feather_build = 2

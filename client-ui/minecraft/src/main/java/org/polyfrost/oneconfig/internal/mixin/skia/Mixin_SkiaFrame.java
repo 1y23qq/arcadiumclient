@@ -11,12 +11,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import com.mojang.blaze3d.platform.Window;
 //?}
 
-//? if = 1.8.9 {
+//? if <= 1.8.9 {
 /*import net.minecraft.client.Minecraft;
 import org.polyfrost.oneconfig.internal.ui.hud.DebugOverlayOffscreen;
 *///?}
 
-//~ if = 1.8.9 'Window' -> 'Minecraft'
+//~ if <= 1.8.9 'Window' -> 'Minecraft'
 @Mixin(Window.class)
 public class Mixin_SkiaFrame {
     //? if > 1.8.9 {
@@ -48,7 +48,7 @@ public class Mixin_SkiaFrame {
         if (!SkiaCtx.INSTANCE.isVulkanMode()) {
             SkiaCtx.INSTANCE.draw();
         }
-        //? if = 1.8.9
+        //? if <= 1.8.9
         //DebugOverlayOffscreen.INSTANCE.render();
     }
     *///? }

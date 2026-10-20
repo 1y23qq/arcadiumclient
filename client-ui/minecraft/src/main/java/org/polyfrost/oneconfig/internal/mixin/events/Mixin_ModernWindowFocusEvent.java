@@ -41,7 +41,7 @@ import com.mojang.blaze3d.platform.Window;
 /*import net.minecraft.client.Minecraft;
 *///?}
 
-//? if = 1.8.9 {
+//? if <= 1.8.9 {
 /*import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Shadow;
 *///?}

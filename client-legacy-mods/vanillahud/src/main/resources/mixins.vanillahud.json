@@ -1,0 +1,43 @@
+{
+    "required": true,
+    "minVersion": "0.8",
+    "package": "org.polyfrost.vanillahud.mixin",
+    "compatibilityLevel": "${java}",
+    "injectors": {
+        "defaultRequire": 1,
+        "maxShiftBy": 5
+    },
+    "client": [
+        "GuiFrameMixin",
+        "UprightIconMixin",
+        "PlayerFaceRendererMixin",
+        "ScoreboardRevisionMixin",
+        "access.IBossHealthOverlay",
+        "access.IGui",
+        "access.IPlayerTabOverlay",
+        "access.ISubtitle",
+        "access.ISubtitleOverlay",
+        "editor.GuiEditorMixin",
+        "editor.PlayerTabOverlayMixin",
+        "editor.SubtitleOverlayMixin",
+        "elements.BossHealthOverlayMixin",
+        "elements.GuiMixinActionBar",
+        "elements.GuiMixinAir",
+        "elements.GuiMixinArmor",
+        "elements.GuiMixinExperienceBar",
+        "elements.GuiMixinExperienceLevel",
+        "elements.GuiMixinHealth",
+        "elements.GuiMixinHeldItemTooltip",
+        "elements.GuiMixinHotbar",
+        "elements.GuiMixinHunger",
+        "elements.GuiMixinLocatorBar",
+        "elements.GuiMixinMountHealth",
+        "elements.GuiMixinScoreboard",
+        "elements.GuiMixinClosedCaptions",
+        "elements.GuiMixinStatusEffects",
+        "elements.PlayerTabOverlayMixin",
+        "elements.TextShadowMixin",
+        "elements.GuiMixinTabList",
+        "elements.GuiMixinTitle"
+    ]
+}

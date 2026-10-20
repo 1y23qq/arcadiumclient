@@ -18,10 +18,10 @@ import com.mojang.blaze3d.platform.InputConstants
 import net.minecraft.client.Minecraft
 import org.polyfrost.oneconfig.api.platform.v1.Platform
 
-//? if = 1.8.9
+//? if <= 1.8.9
 //import org.polyfrost.oneconfig.internal.legacy.FullscreenCursor
 
-//? if >= 26.1 || = 1.8.9 {
+//? if >= 26.1 || <= 1.8.9 {
 import androidx.compose.ui.platform.PlatformTextInputMethodRequest
 import kotlinx.coroutines.awaitCancellation
 //?}
@@ -102,7 +102,7 @@ private class PlatformImpl : PlatformContext by PlatformContext.Empty() {
     }
 
     fun resetPointerIcon() {
-        //? if = 1.8.9
+        //? if <= 1.8.9
         //FullscreenCursor.setIcon(0)
         //? if sdl {
         SDL_SetCursor(SDL_GetDefaultCursor())
@@ -112,7 +112,7 @@ private class PlatformImpl : PlatformContext by PlatformContext.Empty() {
     }
 
     private fun applyPointerIcon(pointerIcon: PointerIcon) {
-        //? if = 1.8.9 {
+        //? if <= 1.8.9 {
         /*FullscreenCursor.setIcon(when (pointerIcon) {
             PointerIcon.Hand -> 1
             PointerIcon.Text -> 2
@@ -164,7 +164,7 @@ private class PlatformImpl : PlatformContext by PlatformContext.Empty() {
 internal class SceneContext(
     private val isShowing: () -> Boolean,
 ) : PlatformContext by ComposeSceneContextImpl.platformContext {
-    //? if >= 26.1 || = 1.8.9 {
+    //? if >= 26.1 || <= 1.8.9 {
     private var sessions = 0
     private var inputActive = false
     private var closed = false

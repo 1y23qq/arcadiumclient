@@ -1,0 +1,28 @@
+<a href="https://modrinth.com/mod/screenshotmessageenhancer" target="_blank" rel="nofollow">
+  <img alt="modrinth" height="56" src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/available/modrinth_vector.svg">
+</a>
+
+<a href="https://discord.gg/QbNfaCHjUz" target="_blank" rel="nofollow">
+  <img alt="discord" height="56" src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/social/discord-singular_vector.svg">
+</a>
+
+<a href="https://www.youtube.com/@TomekoYT" target="_blank" rel="nofollow">
+  <img alt="youtube" height="56" src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/social/youtube-singular_vector.svg">
+</a>
+
+# Screenshot Message Enhancer
+Enhance screenshot messages with COPY, OPEN, OPEN FOLDER, DELETE, UPLOAD buttons
+
+## Features
+
+### Screenshot Message
+- Show screenshot name
+- COPY, OPEN, OPEN FOLDER, DELETE buttons
+- UPLOAD button, allowing to upload screenshot to [Catbox](https://catbox.moe/)
+
+### Misc
+- Automatically copy screenshot to clipboard
+- Compress screenshots without any quality loss
+
+## Special Thanks
+- [harmvdhorst](https://github.com/harmvdhorst) - [Catbox](https://catbox.moe/) screenshot uploading

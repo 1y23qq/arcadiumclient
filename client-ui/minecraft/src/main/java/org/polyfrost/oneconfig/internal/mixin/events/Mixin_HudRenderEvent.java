@@ -20,7 +20,7 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 /*import net.minecraft.client.gui.Gui;
 *///?}
 
-//? if = 1.8.9 {
+//? if <= 1.8.9 {
 /*import net.minecraft.client.gui.GameGui;
 *///?}
 
@@ -35,8 +35,9 @@ public class Mixin_HudRenderEvent {
     //~ if >= 26.1 'render' -> 'extractRenderState'
     @Inject(method = "extractRenderState", at = @At("TAIL"))
     //~ if = 1.8.9 '(GuiGraphicsExtractor ctx, DeltaTracker deltaTracker' -> '(float partialTicks'
+    //~ if = 1.7.10 '(GuiGraphicsExtractor ctx, DeltaTracker deltaTracker' -> '(float partialTicks, boolean mouseGrabbed, int mouseX, int mouseY'
     private void renderHudCallback(GuiGraphicsExtractor ctx, DeltaTracker deltaTracker, CallbackInfo ci) {
-        //~ if = 1.8.9 'submitHud(ctx)' -> 'render()'
+        //~ if <= 1.8.9 'submitHud(ctx)' -> 'render()'
         OneConfig.submitHud(ctx);
     }
 

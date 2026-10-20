@@ -78,9 +78,19 @@ impl SourceInstance {
 pub enum ImportTarget {
     /// Copy into the shared `<launcher_dir>/.minecraft`
     Shared,
-    /// Copy into the new cluster's own folder and mark it dedicated so
-    /// `Cluster::game_dir()` resolves there instead of the shared dir
+    /// Copy into the cluster's resolved game directory. Legacy worlds require manual import.
     Dedicated { new_cluster_id: i64 },
+}
+
+pub(crate) fn import_exclusions<'a>(
+    base: &[&'a str],
+    minecraft_version: Option<&str>,
+) -> Vec<&'a str> {
+    let mut excluded = base.to_vec();
+    if minecraft_version.is_some_and(arcadium_common::distribution::requires_separate_game_dir) {
+        excluded.extend(["saves", "backups"]);
+    }
+    excluded
 }
 
 #[tracing::instrument]
@@ -118,6 +128,57 @@ pub async fn import_game_dir(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[tokio::test]
+    async fn legacy_import_copies_packs_without_copying_or_changing_unknown_worlds() {
+        let source = arcadium_io::tempdir().await.unwrap();
+        let target = arcadium_io::tempdir().await.unwrap();
+        let source = source.dir_path();
+        let target = target.dir_path();
+        for path in [
+            "saves/unknown/level.dat",
+            "backups/unknown.zip",
+            "resourcepacks/folder/pack.mcmeta",
+        ] {
+            let file = source.join(path);
+            arcadium_io::create_dir_all(file.parent().unwrap())
+                .await
+                .unwrap();
+            arcadium_io::write(file, b"original user data".to_vec())
+                .await
+                .unwrap();
+        }
+        let excluded = import_exclusions(&["mods"], Some("1.7.10"));
+        arcadium_io::copy_dir(source, target, &excluded)
+            .await
+            .unwrap();
+        assert!(!target.join("saves").exists());
+        assert!(!target.join("backups").exists());
+        assert!(target.join("resourcepacks/folder/pack.mcmeta").exists());
+        assert_eq!(
+            arcadium_io::read(source.join("saves/unknown/level.dat"))
+                .await
+                .unwrap(),
+            b"original user data"
+        );
+        assert_eq!(
+            arcadium_io::read(source.join("backups/unknown.zip"))
+                .await
+                .unwrap(),
+            b"original user data"
+        );
+    }
+
+    #[test]
+    fn legacy_convenience_import_preserves_unknown_worlds_at_the_source() {
+        let excluded = import_exclusions(&["mods", "versions"], Some("1.7.10"));
+        assert!(excluded.contains(&"saves"));
+        assert!(excluded.contains(&"backups"));
+        assert!(!excluded.contains(&"resourcepacks"));
+        assert!(!excluded.contains(&"screenshots"));
+        assert!(!import_exclusions(&["mods"], Some("1.8.9")).contains(&"saves"));
+        assert!(!import_exclusions(&["mods"], None).contains(&"saves"));
+    }
 
     #[test]
     fn vanilla_is_the_last_resort() {

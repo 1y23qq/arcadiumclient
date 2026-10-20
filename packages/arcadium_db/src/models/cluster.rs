@@ -63,7 +63,7 @@ impl ClusterRow {
     }
 
     pub fn is_isolated(&self) -> bool {
-        self.kind().is_isolated()
+        self.kind().is_isolated() || self.mc_version == "1.7.10"
     }
 
     pub fn uses_bundles(&self) -> bool {

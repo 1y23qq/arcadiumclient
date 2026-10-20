@@ -1,6 +1,6 @@
 package org.polyfrost.oneconfig.internal.mixin.render;
 
-//? if = 1.8.9 {
+//? if <= 1.8.9 {
 /*import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.resource.Identifier;

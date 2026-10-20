@@ -1,0 +1,59 @@
+plugins {
+    id("net.fabricmc.fabric-loom-remap") version("1.17.21")
+    id("ploceus") version("1.17.7")
+}
+
+group = "org.polyfrost"
+version = "mod_version"()
+
+ploceus {
+    setIntermediaryGeneration(2)
+}
+
+java.toolchain {
+    languageVersion = JavaLanguageVersion.of(25)
+}
+
+configurations.configureEach {
+    exclude(group = "org.lwjgl.lwjgl")
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    maven("https://redirector.kotlinlang.org/maven/compose-dev")
+    maven("https://repo.polyfrost.org/releases")
+    maven("https://maven.cloverclient.com/releases")
+    google()
+}
+
+dependencies {
+    minecraft("com.mojang:minecraft:${"minecraft_version"()}")
+
+    // ploceus.featherMappings() is itself a layered dependency - nesting it in loom.layered fails on a cold cache
+    // since Loom doesn't order the generation of nested layered mappings
+    mappings(ploceus.layeredMappings {
+        mappings("net.ornithemc:feather-gen2:${"minecraft_version"()}+build.${"feather_version"()}:v2")
+        mappings(rootProject.file("gradle/feather-1.7.10.tiny"))
+    })
+
+    modImplementation("net.fabricmc:fabric-loader:${"fabric_version"()}")
+    ploceus.dependOsl("osl_version"())
+
+    modImplementation("org.polyfrost.oneconfig:${"minecraft_version"()}-ornithe:${"oneconfig_version"()}")
+    for (module in arrayOf("commands", "config", "config-impl", "events", "internal", "ui", "utils", "hud")) {
+        implementation("org.polyfrost.oneconfig:$module:${"oneconfig_version"()}")
+    }
+}
+
+tasks.processResources {
+    val v = project.version
+    inputs.property("version", v)
+
+    filesMatching("fabric.mod.json") {
+        expand("version" to v)
+    }
+}
+
+operator fun String.invoke() = rootProject.providers.gradleProperty(this).orNull
+    ?: error("Property $this not found")

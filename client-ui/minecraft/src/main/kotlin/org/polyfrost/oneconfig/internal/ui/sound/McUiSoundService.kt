@@ -6,7 +6,14 @@ import net.minecraft.client.Minecraft
 import net.minecraft.client.resources.sounds.AbstractTickableSoundInstance
 import net.minecraft.client.resources.sounds.SimpleSoundInstance
 import net.minecraft.client.resources.sounds.SoundInstance
+//? if <= 1.8.9 {
+/*import net.minecraft.resource.Identifier
+*///? } else {
 import net.minecraft.resources.Identifier
+//? }
+//? if = 1.7.10 {
+/*import net.minecraft.client.sound.instance.SoundInstance__Attenuation
+*///? }
 import net.minecraft.sounds.SoundEvents
 import net.minecraft.sounds.SoundSource
 
@@ -80,7 +87,7 @@ class McUiSoundService : UiSoundService {
         }
     }
 
-    //~ if = 1.8.9 'SoundEvent' -> 'Identifier'
+    //~ if <= 1.8.9 'SoundEvent' -> 'Identifier'
     private fun playVanilla(event: SoundEvent, pitch: Float, volume: Float) {
         mc.soundManager.play(SimpleSoundInstance.forUI(event, pitch, volume.coerceIn(0f, 1f)))
     }
@@ -153,7 +160,7 @@ class McUiSoundService : UiSoundService {
         //?} elif > 1.8.9 {
         /*val source = SoundSource.MASTER
         *///? }
-        //~ if = 1.8.9 '(event, source,' -> '(event,'
+        //~ if <= 1.8.9 '(event, source,' -> '(event,'
         val instance = FadingLoopSoundInstance(event, source, targetVolume, theme, soundIds.size == 1)
         ambience = instance
         mc.soundManager.play(instance)
@@ -227,7 +234,7 @@ class McUiSoundService : UiSoundService {
                             //? } else if >= 1.21.10 {
                             /*mc.soundManager.updateSourceVolume(SoundSource.MUSIC)
                             *///? } else {
-                            /*//~ if = 1.8.9 'SoundSource' -> 'SoundCategory'
+                            /*//~ if <= 1.8.9 'SoundSource' -> 'SoundCategory'
                             mc.soundManager.updateSourceVolume(SoundSource.MUSIC, mc.options.getSoundSourceVolume(SoundSource.MUSIC))
                             *///? }
                         } catch (_: Throwable) {
@@ -245,14 +252,14 @@ class McUiSoundService : UiSoundService {
     }
 
     private inner class FadingLoopSoundInstance(
-        //~ if = 1.8.9 'SoundEvent' -> 'Identifier'
+        //~ if <= 1.8.9 'SoundEvent' -> 'Identifier'
         event: SoundEvent,
         //? if > 1.8.9
         source: SoundSource,
         @Volatile var targetVolume: Float,
         val theme: UiSoundTheme,
         private val nativeLoop: Boolean,
-        //~ if = 1.8.9 '(event, source, RandomSource.create())' -> '(event)'
+        //~ if <= 1.8.9 '(event, source, RandomSource.create())' -> '(event)'
     ) : AbstractTickableSoundInstance(event, source, RandomSource.create()) {
 
         @Volatile
@@ -267,7 +274,11 @@ class McUiSoundService : UiSoundService {
             delay = 0
             //?} else
             //period = 0
+            //? if = 1.7.10 {
+            /*attenuation = SoundInstance__Attenuation.NONE
+            *///? } else {
             attenuation = SoundInstance.Attenuation.NONE
+            //? }
             //? if > 1.8.9
             relative = true
             volume = targetVolume

@@ -19,7 +19,7 @@ stonecutter {
             )
             val catalogue = rootProject.getForwardingVersionCatalog(current)
 
-            this["sdl"] = eval(current.version, ">= 26.3") || eval(current.version, "= 1.8.9")
+            this["sdl"] = eval(current.version, ">= 26.3") || eval(current.version, "<= 1.8.9")
 
             this["moul_compat"] = current.project.endsWith("-fabric") &&
                 eval(current.version, "> 1.21.10") &&
@@ -76,7 +76,7 @@ stonecutter {
                     "import net.minecraft.resources.ResourceLocation as Identifier\n",
                 )
             }
-            string(eval(current.version, "= 1.8.9")) {
+            string(eval(current.version, "<= 1.8.9")) {
                 replace(
                     "import net.minecraft.resources.Identifier\n",
                     "import net.minecraft.resource.Identifier\n",
@@ -87,7 +87,19 @@ stonecutter {
                 replace("Minecraft.getInstance().schedule(", "Minecraft.getInstance().tell(")
             }
 
-            string(eval(current.version, "= 1.8.9")) {
+            if (eval(current.version, "= 1.7.10")) {
+                string(true) {
+                    replace("Packet<?>", "Packet")
+                    replace("\"updateDisplay\"", "\"updateWindow\"")
+                    replace("\"updateDisplay()V\"", "\"updateWindow()V\"")
+                    replace("Text.Serializer", "net.minecraft.text.Text__Serializer")
+                    replace("HitResult.Type", "net.minecraft.world.HitResult__Type")
+                    replace("SoundInstance.Attenuation", "net.minecraft.client.sound.instance.SoundInstance__Attenuation")
+                    replace("net.minecraft.client.gui.screens.options.controls.KeyBindsList\$KeyEntry", "net.minecraft.client.gui.screen.menu.options.ControlsListWidget__KeyBindingEntry")
+                    replace("net/minecraft/client/gui/screens/options/controls/KeyBindsList\$KeyEntry", "net/minecraft/client/gui/screen/menu/options/ControlsListWidget__KeyBindingEntry")
+                }
+            }
+            string(eval(current.version, "<= 1.8.9")) {
                 replace(
                     "com.mojang.blaze3d.platform.InputConstants",
                     "org.polyfrost.oneconfig.internal.legacy.InputConstants"
@@ -174,7 +186,8 @@ stonecutter {
                 )
                 replace(
                     "com.mojang.blaze3d.platform.GlStateManager",
-                    "net.minecraft.client.render.platform.GlStateManager"
+                    if (eval(current.version, "= 1.7.10")) "org.polyfrost.oneconfig.internal.legacy.GlStateManager"
+                    else "net.minecraft.client.render.platform.GlStateManager"
                 )
                 replace(
                     "net.minecraft.server.packs.repository.RepositorySource",

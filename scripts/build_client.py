@@ -6,24 +6,35 @@ from pathlib import Path
 import subprocess
 import sys
 
+from package_client import legacy_ports
+
 ROOT = Path(__file__).resolve().parents[1]
 CORE_MODULES = ("config", "config-impl", "commands", "hud", "events", "notifications", "ui", "internal", "utils", "relocator", "poly-compose", "compose-bundle")
 
 
 def gradle(project: str, *tasks: str) -> list[str]:
-    wrapper_project = "game-branding" if project == "forge-compat" else project
+    wrapper_project = "game-branding" if project in {"forge-compat", "client-legacy-performance"} or project.startswith("client-legacy-mods/") else project
     wrapper = ROOT / wrapper_project / ("gradlew.bat" if os.name == "nt" else "gradlew")
     prefix = [str(wrapper)] if os.name == "nt" else ["sh", str(wrapper)]
-    return prefix + ["-p", str(ROOT / project), "--max-workers=2", "--no-configuration-cache", *tasks]
+    legacy = project.startswith("client-legacy-mods/")
+    arguments = ["--configure-on-demand", "-Dorg.gradle.jvmargs=-Xmx1536m -Dfile.encoding=UTF-8", "-Dorg.gradle.parallel=false"] if legacy else []
+    return prefix + ["-p", str(ROOT / project), f"--max-workers={1 if legacy else 2}", "--no-configuration-cache", *arguments, *tasks]
 
 
 def build_commands() -> list[list[str]]:
     return [
-        gradle("client-ui", ":modules:internal:jar", ":modules:compose-bundle:jar", ":minecraft:1.8.9-ornithe:remapJar", ":bootstrap:1.8.9-ornithe:build"),
-        gradle("client-ui", *(f":modules:{module}:publishToMavenLocal" for module in CORE_MODULES), ":minecraft:1.8.9-ornithe:publishToMavenLocal"),
+        gradle("client-ui", ":modules:internal:jar", ":modules:compose-bundle:jar",
+               ":minecraft:1.8.9-ornithe:remapJar", ":bootstrap:1.8.9-ornithe:build",
+               ":minecraft:1.7.10-ornithe:remapJar", ":bootstrap:1.7.10-ornithe:build"),
+        gradle("client-ui", *(f":modules:{module}:publishToMavenLocal" for module in CORE_MODULES),
+               ":minecraft:1.8.9-ornithe:publishToMavenLocal", ":minecraft:1.7.10-ornithe:publishToMavenLocal"),
         gradle("client-runtime", "--refresh-dependencies", "build", "exportTestClasspath"),
+        gradle("client-runtime", "-PminecraftVersion=1.7.10", "build", "exportTestClasspath"),
         gradle("forge-compat", "build"),
         gradle("game-branding", "build"),
+        gradle("game-branding", "-PminecraftVersion=1.7.10", "build"),
+        gradle("client-legacy-performance", "build"),
+        *(gradle("client-legacy-mods/" + port["directory"], port["task"]) for port in legacy_ports(ROOT)),
         [sys.executable, str(ROOT / "scripts/package_client.py")],
     ]
 

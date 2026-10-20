@@ -3,7 +3,7 @@ package org.polyfrost.oneconfig.internal.mixin;
 import net.minecraft.client.Minecraft;
 import org.polyfrost.oneconfig.internal.MainMenuFpsSampler;
 import org.polyfrost.oneconfig.internal.ui.compose.ComposeScreen;
-//? if = 1.8.9
+//? if <= 1.8.9
 //import org.lwjgl.opengl.Display;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -39,7 +39,7 @@ public class Mixin_MainMenuFpsUncap {
         Object screen = minecraft.gui.screen();
         //?} else
         //Object screen = minecraft.screen;
-        //? if = 1.8.9 {
+        //? if <= 1.8.9 {
         /*boolean fullscreenPointer = System.getProperty("os.name", "").startsWith("Windows") && Display.isFullscreen();
         if (minecraft.level == null && screen != null && (screen instanceof ComposeScreen || fullscreenPointer)) {
         *///?} else
@@ -50,7 +50,7 @@ public class Mixin_MainMenuFpsUncap {
             //?} else
             //int refreshRate = minecraft.getWindow().getRefreshRate();
             if (refreshRate <= 0) refreshRate = FALLBACK_MONITOR_REFRESH_RATE;
-            //? if = 1.8.9 {
+            //? if <= 1.8.9 {
             /*cir.setReturnValue(fullscreenPointer ? refreshRate : refreshRate + MAIN_MENU_FPS_HEADROOM);
             *///?} else
             cir.setReturnValue(refreshRate + MAIN_MENU_FPS_HEADROOM);

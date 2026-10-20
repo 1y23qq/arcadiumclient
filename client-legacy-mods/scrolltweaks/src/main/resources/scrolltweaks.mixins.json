@@ -1,0 +1,11 @@
+{
+  "required": true,
+  "package": "dev.microcontrollers.scrolltweaks.mixin",
+  "mixinextras": {"minVersion": "0.5.0"},
+  "compatibilityLevel": "JAVA_25",
+  "client": [
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

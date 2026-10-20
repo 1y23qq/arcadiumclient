@@ -1,6 +1,6 @@
 package org.polyfrost.oneconfig.internal.legacy.chat;
 
-//? if = 1.8.9 {
+//? if <= 1.8.9 {
 /*import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
 import java.util.Arrays;

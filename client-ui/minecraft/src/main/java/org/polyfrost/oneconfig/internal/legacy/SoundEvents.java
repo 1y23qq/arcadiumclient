@@ -1,6 +1,6 @@
 package org.polyfrost.oneconfig.internal.legacy;
 
-//? if = 1.8.9 {
+//? if <= 1.8.9 {
 /*import net.minecraft.resource.Identifier;
 
 public final class SoundEvents {

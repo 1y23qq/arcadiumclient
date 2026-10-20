@@ -1,0 +1,12 @@
+{
+  "modmenu.descriptionTranslation.sciophobia": "Customize text shadows.",
+  "sciophobia.sciophobia": "Sciophobia",
+  "sciophobia.hide-shadow": "Hide Text Shadow",
+  "sciophobia.hide-shadow.description": "Hides text shadow globally.",
+  "sciophobia.force-shadow": "Force Text Shadow",
+  "sciophobia.force-shadow.description": "Forces shadow on all text globally. Does nothing if Hide Text Shadow is enabled.",
+  "sciophobia.alternate-shadow": "Alternate Text Shadow",
+  "sciophobia.alternate-shadow.description": "Only translates text shadow down instead of down and to the right.",
+  "sciophobia.full-shadow": "Full Text Shadow",
+  "sciophobia.full-shadow.description": "Duplicates the text to simulate the glow outlined text for all text. This will affect performance."
+}

@@ -1,0 +1,23 @@
+{
+    "required": true,
+    "package": "org.codeberg.chromatic.freelook.mixin",
+    "compatibilityLevel": "${java}",
+    "client": [
+        "legacy1710.MixinGameRenderer",
+        "legacy1710.MixinEntityRenderDispatcher",
+        "legacy.MixinEntityRenderDispatcher",
+        "legacy.MixinGameRenderer",
+        "legacy.MixinWorldRenderer",
+        "modern.MixinMouseHandler",
+        "MixinCamera",
+        "MixinEntity",
+        "MixinLocalPlayer",
+        "MixinMinecraft"
+    ],
+    "injectors": {
+        "defaultRequire": 1
+    },
+    "overwrites": {
+        "requireAnnotations": true
+    }
+}

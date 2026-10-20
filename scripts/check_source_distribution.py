@@ -12,10 +12,12 @@ import tarfile
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE_DIRECTORIES = {".cargo", ".github", ".sqlx", "ci", "client-runtime", "client-ui", "distribution", "docs", "forge-compat", "game-branding", "licenses", "packages", "scripts", "services", "sites"}
+SOURCE_DIRECTORIES = {".cargo", ".github", ".sqlx", "ci", "client-runtime", "client-legacy-performance", "client-legacy-mods", "client-ui", "distribution", "docs", "forge-compat", "game-branding", "licenses", "packages", "scripts", "services", "sites"}
 SOURCE_ROOT_FILES = {".editorconfig", ".gitattributes", ".gitignore", ".mailmap", "ATTRIBUTION.md", "CHANGELOG.md", "CODE_OF_CONDUCT.md", "CONTRIBUTING.md", "Cargo.lock", "Cargo.toml", "LICENSE", "NOTICE.md", "README.md", "clippy.toml", "rust-toolchain.toml", "rustfmt.toml"}
-WRAPPERS = {f"{project}/gradle/wrapper/gradle-wrapper.jar" for project in ["client-runtime", "client-ui", "game-branding"]}
+WRAPPERS = {f"{project}/gradle/wrapper/gradle-wrapper.jar" for project in ["client-runtime", "client-legacy-performance", "client-ui", "game-branding"]}
+WRAPPERS.add("client-legacy-mods/guiblur/gradle/wrapper/gradle-wrapper.jar")
 BUNDLES = {f"packages/arcadium_common/assets/distribution/{name}-1.8.9-ornithe.mrpack" for name in ["hud", "performance", "qol", "utility"]}
+BUNDLES.add("packages/arcadium_common/assets/distribution/core-1.7.10-ornithe.mrpack")
 GENERATED_PARTS = {".git", ".gradle", ".kotlin", "__pycache__", "node_modules", "build", "target", "run", "logs", "example-cookie", "forge-mod-test", "arcadium_polyplus", "client-features", "client-renderer"}
 NATIVE_LOG_SOURCES = {f"packages/arcadium_cluster/src/logs/{name}.rs" for name in ["error", "manage", "mclogs", "mod", "parse"]}
 BINARY_ASSETS = {".png", ".jpg", ".jpeg", ".webp", ".gif", ".ico", ".icns", ".tiff", ".ttf", ".otf", ".woff", ".woff2", ".ogg"}
@@ -49,7 +51,8 @@ def check_file(name: str, raw: bytes) -> list[str]:
                     if stat.S_ISLNK(entry.external_attr >> 16):
                         failures.append("MRPACK metadata is a link")
                 index = json.loads(archive.read("modrinth.index.json"))
-                if index.get("dependencies", {}).get("minecraft") != "1.8.9":
+                expected_version = "1.7.10" if name.endswith("-1.7.10-ornithe.mrpack") else "1.8.9"
+                if index.get("dependencies", {}).get("minecraft") != expected_version:
                     failures.append("Unexpected Minecraft version in source bundle index")
                 if metadata_override in archive.namelist():
                     override = json.loads(archive.read(metadata_override))

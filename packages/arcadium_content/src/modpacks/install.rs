@@ -58,7 +58,11 @@ pub async fn install_modpack(
 ) -> ContentResult<ModpackInstallReport> {
     let contents = &manifest.contents;
     let cluster = PackageStore::get_cluster(cluster_id, ctx).await?;
-    let root = paths::cluster_game_dir(&cluster.folder_name, cluster.is_isolated())?;
+    let root = paths::cluster_game_dir(
+        &cluster.folder_name,
+        cluster.is_isolated(),
+        &cluster.mc_version,
+    )?;
 
     let overrides = bundle_dao::list_overrides(&ctx.db, cluster_id).await?;
     let present = PresentContent::load(cluster_id, ctx).await?;

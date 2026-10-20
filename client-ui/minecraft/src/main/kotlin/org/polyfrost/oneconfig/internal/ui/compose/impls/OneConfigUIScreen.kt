@@ -447,7 +447,7 @@ class OneConfigUIScreen @JvmOverloads constructor(
             //?} else {
             /*if (closeAnimationMs <= 0L) {
                 SkiaCtx.discardComposeFrame()
-                //~ if = 1.8.9 '(ctx)' -> '()'
+                //~ if <= 1.8.9 '(ctx)' -> '()'
                 OneConfig.render(ctx)
             }
             *///?}

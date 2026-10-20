@@ -81,6 +81,36 @@ public final class ForgeQa {
             phaseTicks++;
             if (mc.world != null && mc.player != null) worldTicks++;
             if (capture != null || !PENDING.isEmpty()) return;
+            if (Boolean.getBoolean("arcadium.registry040Qa") && phase == 3) {
+                Registry040Qa.capture(CHECKS);
+                RESULT.put("passed", true);
+                RESULT.put("registry040", true);
+                write(mc);
+                done = true;
+                if (Boolean.getBoolean("arcadium.featureTest.exit")) mc.stop();
+                return;
+            }
+            if (Boolean.getBoolean("arcadium.textAlign040Qa") && phase == 3) {
+                if (!TextAlign040Qa.tick(mc, CHECKS, ticks)) return;
+                RESULT.put("passed", true);
+                RESULT.put("textAlign040", true);
+                write(mc);
+                done = true;
+                if (Boolean.getBoolean("arcadium.featureTest.exit")) mc.stop();
+                return;
+            }
+            if (Boolean.getBoolean("arcadium.release040Qa") && !Boolean.getBoolean("arcadium.release040SkipPacks") && phase == 0) {
+                if (ticks < 60 || completeFreshOnboarding(mc) || !ResourceDrag040Qa.tick(mc, CHECKS)) return;
+            }
+            if (Boolean.getBoolean("arcadium.release040Qa") && phase == 3) {
+                if (!Release040WorldQa.tick(mc, CHECKS)) return;
+                RESULT.put("passed", true);
+                RESULT.put("release040", true);
+                write(mc);
+                done = true;
+                if (Boolean.getBoolean("arcadium.featureTest.exit")) mc.stop();
+                return;
+            }
             if (Boolean.getBoolean("arcadium.release039OnlyQa")) {
                 if (ticks < 60 || completeFreshOnboarding(mc) || !Release039Qa.tick(mc, CHECKS)) return;
                 RESULT.put("passed", true);
@@ -226,9 +256,11 @@ public final class ForgeQa {
                     pin(mc);
                     if (worldTicks >= 60 && fpsHud == null && FabricLoader.getInstance().isModLoaded("evergreenhud")) setupFpsHud();
                     if (WORLD_READY.get() && worldTicks >= 120) {
-                        if (!ReplacementModulesQa.verify(mc, CHECKS)) return;
-                        if (!ForgeRenderQa.tick(mc, CHECKS)) return;
-                        NoRenderQa.verify(mc, CHECKS);
+                        if (!Boolean.getBoolean("arcadium.release040Qa") && !Boolean.getBoolean("arcadium.textAlign040Qa") && !Boolean.getBoolean("arcadium.registry040Qa")) {
+                            if (!ReplacementModulesQa.verify(mc, CHECKS)) return;
+                            if (!ForgeRenderQa.tick(mc, CHECKS)) return;
+                            NoRenderQa.verify(mc, CHECKS);
+                        }
                         require(mc.player.abilities.creativeMode, "The singleplayer fixture is not creative mode");
                         require(mc.world.getBlockState(new BlockPos(8, 3, 8)).getBlock() == Blocks.STONE,
                             "The flat fixture surface did not reach the client");
@@ -807,6 +839,7 @@ public final class ForgeQa {
     public static void afterFrame() {
         if (!enabled() || done) return;
         try {
+            if (Boolean.getBoolean("arcadium.textAlign040Qa")) TextAlign040Qa.afterFrame();
             if (Boolean.getBoolean("arcadium.crosshair034Qa")) Crosshair034Qa.afterFrame();
             if (Boolean.getBoolean("arcadium.autoText034Qa")) Messaging033Qa.afterFrame();
             if (Boolean.getBoolean("arcadium.release035Qa")) {
@@ -853,6 +886,7 @@ public final class ForgeQa {
     public static void endItem() { ForgeRenderQa.endItem(); }
     public static void recordItem(ItemStack stack, net.minecraft.client.resource.model.BakedModel model) { ForgeRenderQa.recordItem(stack, model); }
     public static void recordHeldBlock(ItemStack stack, net.minecraft.client.resource.model.BakedModel model, net.minecraft.client.render.model.block.ModelTransformations.Type transform) {
+        Release040WorldQa.heldDraw(stack, model, transform);
         HeldBlockQa.record(stack, model, transform);
         Animations035Qa.recordHeldItem(stack, model, transform);
     }

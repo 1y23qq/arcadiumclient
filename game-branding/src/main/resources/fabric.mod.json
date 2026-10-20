@@ -3,7 +3,7 @@
   "id": "arcadiumclient",
   "version": "${version}",
   "name": "Arcadium Client",
-  "description": "Arcadium Client 1.8.9 branding.",
+  "description": "Arcadium Client ${minecraftVersion} branding.",
   "authors": [
     "0aurorq3"
   ],
@@ -21,7 +21,7 @@
   "depends": {
     "fabricloader": ">=0.19.5",
     "arcadium_forge_compat": ">=0.3.0",
-    "minecraft": "1.8.9",
+    "minecraft": "${minecraftVersion}",
     "java": ">=25"
   }
 }

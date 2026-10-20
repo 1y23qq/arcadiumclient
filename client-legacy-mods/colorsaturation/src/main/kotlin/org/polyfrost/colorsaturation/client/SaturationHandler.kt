@@ -1,0 +1,395 @@
+package org.polyfrost.colorsaturation.client
+
+//? if =1.21.1 || <=1.8.9 {
+import com.google.gson.JsonSyntaxException
+import net.minecraft.client.render.pipeline.RenderTarget
+import net.minecraft.client.Minecraft
+import net.minecraft.client.render.PostChain
+import net.minecraft.client.render.shaders.ProgramManager
+import net.minecraft.client.render.platform.GLX
+import org.apache.logging.log4j.LogManager
+import org.lwjgl.BufferUtils
+import org.lwjgl.opengl.GL11
+import org.lwjgl.opengl.GL13
+import org.lwjgl.opengl.GL20
+import org.lwjgl.opengl.GL30
+import java.io.IOException
+//? if <=1.8.9
+import org.polyfrost.colorsaturation.mixin.client.PostChainAccessor
+
+object SaturationHandler {
+    private val logger = LogManager.getLogger(SaturationHandler::class.java)
+    private val shaderLocation = location("minecraft", "shaders/post/color_saturation.json")
+
+    private var postChain: PostChain? = null
+    private var prevWidth = -1
+    private var prevHeight = -1
+    private val textureMatrix = BufferUtils.createFloatBuffer(16)
+
+    @JvmStatic
+    val isActive: Boolean
+        get() = ColorSaturationConfig.isEnabled && !ColorSaturationConfig.isIdentity
+
+    @JvmStatic
+    fun updateShaderUniforms() {
+        val chain = postChain ?: return
+        chain.setUniform("Saturation", ColorSaturationConfig.strength)
+        chain.setUniform("Contrast", ColorSaturationConfig.contrast)
+        chain.setUniform("Brightness", ColorSaturationConfig.brightness)
+        chain.setUniform("Hue", ColorSaturationConfig.hue)
+    }
+
+    //? if <=1.8.9 {
+    private fun PostChain.setUniform(name: String, value: Float) {
+        for (pass in (this as PostChainAccessor).passes) {
+            pass.effect.getUniform(name)?.set(value)
+        }
+    }
+    //?}
+
+    @JvmStatic
+    fun free() {
+        val chain = postChain
+        postChain = null
+        prevWidth = -1
+        prevHeight = -1
+        if (chain != null) {
+            try {
+                chain.close()
+            } finally {
+                Minecraft.getInstance().mainRenderTarget?.bindWrite(true)
+            }
+        }
+    }
+
+    @JvmStatic
+    fun update() {
+        val minecraft = Minecraft.getInstance()
+        val renderTarget = minecraft.mainRenderTarget ?: return
+        getPostChain(renderTarget)
+    }
+
+    @JvmStatic
+    fun render(tickDelta: Float) {
+        if (!isActive) {
+            return
+        }
+
+        updateShaderUniforms()
+        val chain = postChain ?: return
+        val matrix = GL11.glGetInteger(GL11.GL_MATRIX_MODE)
+        val activeTexture = GL11.glGetInteger(GL13.GL_ACTIVE_TEXTURE)
+        val program = GL11.glGetInteger(GL20.GL_CURRENT_PROGRAM)
+        val framebuffer = GL11.glGetInteger(GL30.GL_FRAMEBUFFER_BINDING)
+        GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
+        GL13.glActiveTexture(GL13.GL_TEXTURE0)
+        textureMatrix.clear()
+        GL11.glGetFloat(GL11.GL_TEXTURE_MATRIX, textureMatrix)
+        GL11.glMatrixMode(GL11.GL_TEXTURE)
+        GL11.glLoadIdentity()
+        GL11.glMatrixMode(GL11.GL_PROJECTION)
+        GL11.glPushMatrix()
+        GL11.glMatrixMode(GL11.GL_MODELVIEW)
+        GL11.glPushMatrix()
+        try {
+            chain.process(tickDelta)
+        } finally {
+            GL11.glMatrixMode(GL11.GL_MODELVIEW)
+            GL11.glPopMatrix()
+            GL11.glMatrixMode(GL11.GL_PROJECTION)
+            GL11.glPopMatrix()
+            GL13.glActiveTexture(GL13.GL_TEXTURE0)
+            GL11.glMatrixMode(GL11.GL_TEXTURE)
+            textureMatrix.rewind()
+            GL11.glLoadMatrix(textureMatrix)
+            GLX.bindFramebuffer(GL30.GL_FRAMEBUFFER, framebuffer)
+            GL11.glPopAttrib()
+            GL20.glUseProgram(program)
+            GL13.glActiveTexture(activeTexture)
+            GL11.glMatrixMode(matrix)
+            Minecraft.getInstance().mainRenderTarget.bindWrite(true)
+        }
+    }
+
+    private fun getPostChain(renderTarget: RenderTarget): PostChain? {
+        if (postChain != null && renderTarget.viewWidth == prevWidth && renderTarget.viewHeight == prevHeight) {
+            return postChain
+        }
+
+        postChain?.close()
+        postChain = null
+
+        return try {
+            val minecraft = Minecraft.getInstance()
+            if (ProgramManager.getInstance() == null) ProgramManager.createInstance()
+            PostChain(minecraft.textureManager, minecraft.resourceManager, renderTarget, shaderLocation).also {
+                it.resize(renderTarget.viewWidth, renderTarget.viewHeight)
+                postChain = it
+                prevWidth = renderTarget.viewWidth
+                prevHeight = renderTarget.viewHeight
+                updateShaderUniforms()
+            }
+        } catch (e: IOException) {
+            logger.error("Could not load color saturation shader", e)
+            null
+        } catch (e: JsonSyntaxException) {
+            logger.error("Could not parse color saturation shader", e)
+            null
+        } finally {
+            renderTarget.bindWrite(true)
+        }
+    }
+}
+//?}
+
+//? if >=1.21.4 && <1.21.8 {
+/*import com.google.gson.JsonSyntaxException
+import com.mojang.blaze3d.framegraph.FrameGraphBuilder
+import net.minecraft.client.render.pipeline.RenderTarget
+import com.mojang.blaze3d.resource.CrossFrameResourcePool
+import net.minecraft.client.Minecraft
+import net.minecraft.client.renderer.LevelTargetBundle
+import net.minecraft.client.render.PostChain
+import org.apache.logging.log4j.LogManager
+import org.polyfrost.colorsaturation.ColorSaturationConstants
+*///?}
+
+//? if =1.21.5
+/*import java.util.function.Consumer*/
+
+//? if >=1.21.4 && <1.21.8 {
+/*object SaturationHandler {
+    private val logger = LogManager.getLogger(SaturationHandler::class.java)
+    private val shaderLocation by lazy { location(ColorSaturationConstants.ID, "color_saturation") }
+
+    @JvmStatic
+    val isActive: Boolean
+        get() = ColorSaturationConfig.isEnabled && !ColorSaturationConfig.isIdentity
+
+    @JvmStatic
+    fun updateShaderUniforms() {
+    }
+
+    @JvmStatic
+    fun free() {
+    }
+
+    @JvmStatic
+    fun render(renderTarget: RenderTarget, resourcePool: CrossFrameResourcePool) {
+        if (!isActive) {
+            return
+        }
+
+        val shader = try {
+            Minecraft.getInstance().shaderManager.getPostChain(shaderLocation, LevelTargetBundle.MAIN_TARGETS)
+        } catch (e: JsonSyntaxException) {
+            logger.error("Could not load color saturation shader", e)
+            null
+        }
+
+        val builder = FrameGraphBuilder()
+        val targetBundle = PostChain.TargetBundle.of(
+            LevelTargetBundle.MAIN_TARGET_ID,
+            builder.importExternal("main", renderTarget),
+        )
+
+        //? if =1.21.5 {
+        shader?.addToFrame(
+            builder,
+            renderTarget.viewWidth,
+            renderTarget.viewHeight,
+            targetBundle,
+            Consumer { renderPass: com.mojang.blaze3d.systems.RenderPass ->
+                renderPass.setUniform("Saturation", ColorSaturationConfig.strength)
+                renderPass.setUniform("Contrast", ColorSaturationConfig.contrast)
+                renderPass.setUniform("Brightness", ColorSaturationConfig.brightness)
+                renderPass.setUniform("Hue", ColorSaturationConfig.hue)
+            }
+        )
+        //?} else {
+        /*shader?.setUniform("Saturation", ColorSaturationConfig.strength)
+        shader?.setUniform("Contrast", ColorSaturationConfig.contrast)
+        shader?.setUniform("Brightness", ColorSaturationConfig.brightness)
+        shader?.setUniform("Hue", ColorSaturationConfig.hue)
+        shader?.addToFrame(
+            builder,
+            renderTarget.viewWidth,
+            renderTarget.viewHeight,
+            targetBundle
+        )
+        *///?}
+
+        builder.execute(resourcePool)
+    }
+}
+*///?}
+
+//? if >1.21.5 {
+/*import net.minecraft.client.render.pipeline.RenderTarget
+import com.mojang.blaze3d.pipeline.RenderPipeline
+//? if >=26.2 {
+/*import com.mojang.blaze3d.pipeline.BindGroupLayout
+import com.mojang.blaze3d.PrimitiveTopology
+*///?} else {
+import java.util.OptionalInt
+//?}
+//? if >=26.1 {
+/*import com.mojang.blaze3d.pipeline.ColorTargetState
+import com.mojang.blaze3d.platform.CompareOp
+import com.mojang.blaze3d.pipeline.DepthStencilState
+import java.util.Optional
+*///?} else {
+import com.mojang.blaze3d.platform.DepthTestFunction
+//?}
+import com.mojang.blaze3d.resource.CrossFrameResourcePool
+import com.mojang.blaze3d.systems.RenderSystem
+import com.mojang.blaze3d.vertex.DefaultVertexFormat
+import com.mojang.blaze3d.shaders.UniformType
+//? if >=1.21.11
+//import com.mojang.blaze3d.textures.FilterMode
+import com.mojang.blaze3d.vertex.VertexFormat
+import org.polyfrost.colorsaturation.ColorSaturationConstants
+
+object SaturationHandler {
+    private val saturationPipeline by lazy {
+        createPipeline("saturation_pipeline", "post/color_saturation", true)
+    }
+
+    private val blitPipeline by lazy {
+        createPipeline("blit_pipeline", "post/blit", false)
+    }
+
+    private fun createPipeline(name: String, fragmentShader: String, hasUniforms: Boolean): RenderPipeline {
+        val builder = RenderPipeline.builder()
+            .withLocation(location(ColorSaturationConstants.ID, name))
+            .withVertexShader(location(ColorSaturationConstants.ID, "core/fullscreen_triangle"))
+            .withFragmentShader(location(ColorSaturationConstants.ID, fragmentShader))
+
+        //? if >=26.2 {
+        /*builder.withVertexBinding(0, DefaultVertexFormat.POSITION)
+            .withPrimitiveTopology(PrimitiveTopology.TRIANGLES)
+            .withDepthStencilState(Optional.empty())
+            .withColorTargetState(ColorTargetState.DEFAULT)
+
+        //? if >=26.3 {
+        /*val bindGroupLayout = BindGroupLayout.builder()
+            .withUniform("DiffuseSampler", UniformType.COMBINED_IMAGE_SAMPLER)
+        *///?} else {
+        val bindGroupLayout = BindGroupLayout.builder().withSampler("DiffuseSampler")
+        //?}
+        if (hasUniforms) {
+            bindGroupLayout.withUniform("SaturationConfig", UniformType.UNIFORM_BUFFER)
+        }
+        builder.withBindGroupLayout(bindGroupLayout.build())
+        *///?}
+        //? if <26.2 {
+        builder.withVertexFormat(DefaultVertexFormat.POSITION, VertexFormat.Mode.TRIANGLES)
+        //?}
+        //? if =26.1 {
+        /*builder.withDepthStencilState(Optional.empty())
+            .withColorTargetState(ColorTargetState.DEFAULT)
+        *///?}
+        //? if <26.1 {
+        builder.withDepthWrite(false)
+            .withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
+            .withColorWrite(true, true)
+        //?}
+        //? if <26.2 {
+        if (hasUniforms) {
+            builder.withUniform("SaturationConfig", UniformType.UNIFORM_BUFFER)
+        }
+        builder.withSampler("DiffuseSampler")
+        //?}
+
+        return builder.build()
+    }
+
+    @JvmStatic
+    val isActive: Boolean
+        get() = ColorSaturationConfig.isEnabled && !ColorSaturationConfig.isIdentity
+
+    @JvmStatic
+    fun updateShaderUniforms() {
+    }
+
+    @JvmStatic
+    fun free() {
+        InternalTargetTracker.free()
+    }
+
+    @JvmStatic
+    fun render(renderTarget: RenderTarget, resourcePool: CrossFrameResourcePool) {
+        if (!isActive) {
+            InternalTargetTracker.free()
+            return
+        }
+
+        InternalTargetTracker.updateSize(renderTarget)
+        SaturationUniforms.upload(
+            ColorSaturationConfig.strength,
+            ColorSaturationConfig.contrast,
+            ColorSaturationConfig.brightness,
+            ColorSaturationConfig.hue,
+        )
+
+        val tempTarget = InternalTargetTracker.target ?: return
+        drawPass("ColorSaturation/Saturation", tempTarget, renderTarget, saturationPipeline, true)
+        drawPass("ColorSaturation/Blit", renderTarget, tempTarget, blitPipeline, false)
+    }
+
+    private fun drawPass(
+        label: String,
+        output: RenderTarget,
+        input: RenderTarget,
+        pipeline: RenderPipeline,
+        hasUniforms: Boolean,
+    ) {
+        val commandEncoder = RenderSystem.getDevice().createCommandEncoder()
+        val vertexBuffer = FullscreenTriangle.vertexBuffer
+
+        commandEncoder.createRenderPass(
+            { label },
+            output.getColorTextureView()!!,
+            //? if >=26.2 {
+            /*Optional.empty()
+            *///?} else {
+            OptionalInt.empty()
+            //?}
+        ).use { renderPass ->
+            //? if >=26.3 {
+            /*renderPass.setPipeline(RenderSystem.getCompiledPipeline(pipeline))
+            *///?} else {
+            renderPass.setPipeline(pipeline)
+            //?}
+            //? if >=26.2 {
+            /*renderPass.setVertexBuffer(0, vertexBuffer.slice())
+            *///?} else {
+            renderPass.setVertexBuffer(0, vertexBuffer)
+            //?}
+            //? if >=26.3 {
+            /*renderPass.setUniform(
+                "DiffuseSampler",
+                input.getColorTextureView()!!,
+                RenderSystem.getSamplerCache().getClampToEdge(FilterMode.NEAREST)
+            )
+            *///?} elif >=1.21.11 {
+            /*renderPass.bindTexture(
+                "DiffuseSampler",
+                input.getColorTextureView()!!,
+                RenderSystem.getSamplerCache().getClampToEdge(FilterMode.NEAREST)
+            )
+            *///?} else {
+            renderPass.bindSampler("DiffuseSampler", input.getColorTextureView()!!)
+            //?}
+            if (hasUniforms) {
+                renderPass.setUniform("SaturationConfig", SaturationUniforms.buffer)
+            }
+            //? if >=26.2 {
+            /*renderPass.draw(FullscreenTriangle.VERTEX_COUNT, 1, 0, 0)
+            *///?} else {
+            renderPass.draw(0, FullscreenTriangle.VERTEX_COUNT)
+            //?}
+        }
+    }
+}
+*///?}

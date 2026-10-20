@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "numericalenchantments",
+  "version": "${version}",
+  "name": "Numerical Enchantments",
+  "description": "Converts roman numerals to arabic numbers.",
+  "authors": [
+    "Microcontrollers"
+  ],
+  "contact": {
+    "sources": "https://codeberg.org/MicrocontrollersDev/Numerical-Enchantments",
+    "issues": "https://discord.gg/QbNfaCHjUz"
+  },
+  "license": "LGPL-3.0",
+  "environment": "client",
+  "icon": "assets/numericalenchantments/icon.png",
+  "entrypoints": {
+    "main": [
+      "dev.microcontrollers.numericalenchantments.NumericalEnchantments"
+    ]
+  },
+  "mixins": [
+    "numericalenchantments.mixins.json"
+  ],
+  "depends": {
+    "minecraft": "${minecraft}",
+    "fabricloader": ">=0.19.5",
+    "oneconfigv1": ">=1.2.23-arcadium",
+    "java": ">=25"
+  }
+}

@@ -56,9 +56,21 @@ try {
     Copy-Item -LiteralPath $binary -Destination (Join-Path $stage 'Arcadium.exe')
     $componentsDirectory = Join-Path $stage 'components'
     New-Item -ItemType Directory -Force -Path $componentsDirectory | Out-Null
-    $componentCatalog = Get-Content -LiteralPath (Join-Path $projectRoot 'distribution/oneclient-1.8.9.lock.json') -Raw | ConvertFrom-Json
-    foreach ($component in $componentCatalog.arcadiumComponents.file) {
-        Copy-Item -LiteralPath (Join-Path $projectRoot "packages/arcadium_common/assets/distribution/$component") -Destination $componentsDirectory
+    & python (Join-Path $projectRoot 'scripts/package_client.py') --verify-components
+    if ($LASTEXITCODE -ne 0) { throw 'The source component catalogs failed verification.' }
+    $distributionLocks = @('distribution/oneclient-1.8.9.lock.json', 'distribution/arcadium-1.7.10.lock.json')
+    $minecraftVersions = @()
+    foreach ($lockPath in $distributionLocks) {
+        $componentCatalog = Get-Content -LiteralPath (Join-Path $projectRoot $lockPath) -Raw | ConvertFrom-Json
+        $minecraftVersions += $componentCatalog.minecraftVersion
+        if (!$componentCatalog.arcadiumComponents.Count) { throw "Client components are missing: $lockPath" }
+        foreach ($component in $componentCatalog.arcadiumComponents) {
+            $componentPath = Join-Path $projectRoot "packages/arcadium_common/assets/distribution/$($component.file)"
+            if ((Get-FileHash -LiteralPath $componentPath -Algorithm SHA256).Hash.ToLowerInvariant() -ne $component.sha256) {
+                throw "Client component hash mismatch: $($component.file)"
+            }
+            Copy-Item -LiteralPath $componentPath -Destination $componentsDirectory
+        }
     }
     foreach ($file in @('LICENSE', 'NOTICE.md', 'README.md')) {
         Copy-Item -LiteralPath (Join-Path $projectRoot $file) -Destination $stage
@@ -67,6 +79,8 @@ try {
     New-Item -ItemType Directory -Force -Path $licenseDirectory | Out-Null
     Get-ChildItem -LiteralPath (Join-Path $projectRoot 'licenses') |
         Copy-Item -Recurse -Destination $licenseDirectory
+    & python (Join-Path $projectRoot 'scripts/package_client.py') --prepare-legacy-notices (Join-Path $licenseDirectory 'legacy-mods')
+    if ($LASTEXITCODE -ne 0) { throw 'Legacy mod license notices could not be prepared.' }
     Copy-Item -LiteralPath 'packages/arcadium_app/assets/fonts/JetBrainsMono/OFL.txt' -Destination (Join-Path $licenseDirectory 'JetBrainsMono-OFL.txt')
     Copy-Item -LiteralPath 'packages/arcadium_app/assets/fonts/Poppins/OFL.txt' -Destination (Join-Path $licenseDirectory 'Poppins-OFL.txt')
     $nsisLicense = Join-Path (Split-Path -Parent $Makensis) 'COPYING'
@@ -114,6 +128,7 @@ try {
     [void]$notices.AppendLine('https://learn.microsoft.com/cpp/windows/redistributing-visual-cpp-files')
     [IO.File]::WriteAllText((Join-Path $licenseDirectory 'Rust-dependencies.txt'), $notices.ToString(), [Text.UTF8Encoding]::new($false))
     Copy-Item -LiteralPath 'distribution/oneclient-1.8.9.lock.json' -Destination (Join-Path $stage 'distribution-lock.json')
+    Copy-Item -LiteralPath 'distribution/arcadium-1.7.10.lock.json' -Destination (Join-Path $stage 'distribution-lock-1.7.10.json')
 
     $installerDirectory = Join-Path $buildDirectory 'installers'
     New-Item -ItemType Directory -Force -Path $installerDirectory | Out-Null
@@ -144,6 +159,7 @@ try {
     [ordered]@{
         product = 'Arcadium Client'
         minecraftVersion = '1.8.9'
+        minecraftVersions = @($minecraftVersions)
         launcherVersion = $launcherVersion
         platform = 'windows-x64'
         installerSha256 = (Get-FileHash -LiteralPath $output -Algorithm SHA256).Hash.ToLowerInvariant()

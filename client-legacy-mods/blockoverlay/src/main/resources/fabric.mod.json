@@ -1,0 +1,39 @@
+{
+	"schemaVersion": 1,
+	"id": "${id}",
+	"version": "${version}",
+	"name": "${name}",
+	"description": "Revitalize the block outline.",
+	"authors": ["Tektonikal"],
+    "contributors": ["kr1v", "awruff"],
+	"contact": {
+		"homepage": "https://modrinth.com/mod/custom-block-highlight",
+		"sources": "https://github.com/Tektonikal/CustomBlockHighlight",
+		"issues": "https://discord.gg/QbNfaCHjUz"
+	},
+	"license": "GPL-3.0",
+	"icon": "assets/icon.png",
+	"environment": "client",
+	"entrypoints": {
+		"modmenu": [
+			"tektonikal.customblockhighlight.config.ModMenuIntegration"
+		],
+		"main": [
+          "tektonikal.customblockhighlight.CustomBlockHighlight"
+		]
+	},
+  "mixins": ["customblockhighlight.mixins.json"],
+  "depends": {
+		"fabricloader": ">=${loader}",
+		"fabric-api": "*",
+		"minecraft": "${minecraft}",
+		"yet_another_config_lib_v3": "*"
+	},
+	"custom": {
+		"modmenu": {
+			"links": {
+				"Discord": "https://discord.gg/QbNfaCHjUz"
+			}
+		}
+	}
+}

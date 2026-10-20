@@ -1,6 +1,6 @@
 package org.polyfrost.oneconfig.internal.legacy.compat;
 
-//? if = 1.8.9 {
+//? if <= 1.8.9 {
 /*import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.KeyMapping;
 import org.polyfrost.oneconfig.internal.legacy.KeyCodes;

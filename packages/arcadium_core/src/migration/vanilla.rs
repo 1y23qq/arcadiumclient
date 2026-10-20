@@ -108,11 +108,14 @@ pub async fn import_game_dir(
         return Ok(());
     };
 
+    let mut target_version = None;
     let dest = match &target {
         ImportTarget::Shared => paths::shared_minecraft_dir()?,
         ImportTarget::Dedicated { new_cluster_id } => {
             let cluster = state.clusters.get(*new_cluster_id).await?;
-            let dir = cluster.dir()?;
+            target_version = Some(cluster.mc_version.clone());
+            state.clusters.ensure_dedicated_marker(&cluster).await?;
+            let dir = cluster.game_dir()?;
             arcadium_io::create_dir_all(&dir).await?;
             arcadium_io::write(cluster.dedicated_marker()?, Vec::new()).await?;
             dir
@@ -120,7 +123,8 @@ pub async fn import_game_dir(
     };
 
     arcadium_io::create_dir_all(&dest).await?;
-    arcadium_io::copy_dir(&src, &dest, IMPORT_EXCLUDE_TOP).await?;
+    let excluded = super::import_exclusions(IMPORT_EXCLUDE_TOP, target_version.as_deref());
+    arcadium_io::copy_dir(&src, &dest, &excluded).await?;
 
     Ok(())
 }

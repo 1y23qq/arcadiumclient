@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "itemphysiclite",
+  "name": "ItemPhysicLite",
+  "version": "${version}",
+  "environment": "client",
+  "license": "GPL-3.0-only",
+  "description": "Adds physics to dropped items client-side.",
+  "authors": ["Tryfle"],
+  "entrypoints": {
+    "client-init": ["xyz.tryfle.oitemphysic.ItemPhysic"]
+  },
+  "mixins": [
+    "itemphysic.mixins.json"
+  ],
+  "depends": {
+    "minecraft": "1.7.10",
+    "java": ">=25",
+    "osl": ">=0.20.3"
+  }
+}

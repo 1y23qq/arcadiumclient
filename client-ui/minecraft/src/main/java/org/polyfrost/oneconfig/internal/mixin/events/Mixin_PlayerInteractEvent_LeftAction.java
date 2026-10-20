@@ -1,7 +1,11 @@
 package org.polyfrost.oneconfig.internal.mixin.events;
 
 import net.minecraft.client.Minecraft;
+//? if = 1.7.10 {
+import net.minecraft.client.entity.living.player.LocalClientPlayerEntity;
+//?} else {
 import net.minecraft.client.player.LocalPlayer;
+//?}
 import net.minecraft.world.phys.HitResult;
 import org.polyfrost.oneconfig.api.event.v1.EventManager;
 import org.polyfrost.oneconfig.api.event.v1.events.PlayerInteractEvent;
@@ -18,17 +22,21 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class Mixin_PlayerInteractEvent_LeftAction {
 
     @Shadow public HitResult hitResult;
+    //? if = 1.7.10 {
+    @Shadow public LocalClientPlayerEntity player;
+    //?} else {
     @Shadow public LocalPlayer player;
+    //?}
 
     @Unique private PlayerInteractEvent ocfg$lastAttackEvent;
 
     @Inject(
-            //~ if = 1.8.9 'startAttack' -> 'doAttack'
+            //~ if <= 1.8.9 'startAttack' -> 'doAttack'
             method = "startAttack",
             at = @At("HEAD"),
             cancellable = true
     )
-    //~ if = 1.8.9 'CallbackInfoReturnable<Boolean> cir' -> 'CallbackInfo ci'
+    //~ if <= 1.8.9 'CallbackInfoReturnable<Boolean> cir' -> 'CallbackInfo ci'
     private void onPlayerAttackCallback(CallbackInfoReturnable<Boolean> cir) {
         HitResult rayCastedObject = this.hitResult;
         PlayerInteractEvent.Type type = PlayerInteractEvent.Type.AIR;

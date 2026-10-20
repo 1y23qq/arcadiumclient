@@ -1,0 +1,23 @@
+publish.modrinth = "PBbfPJZN"
+publish.curseforge = ""
+
+mod.name = "Better Screens"
+mod.id = "betterscreens"
+mod.group = "dev.microcontrollers.betterscreens"
+mod.description = "Improvements to some screen mechanics!"
+mod.source = "https://codeberg.org/MicrocontrollersDev/Better-Screens"
+mod.issues = "https://discord.gg/QbNfaCHjUz"
+mod.license = "GPL-3.0"
+mod.modrinth = "https://modrinth.com/mod/better-screens"
+mod.kofi = "https://ko-fi.com/microcontrollers"
+mod.discord = "https://discord.gg/QbNfaCHjUz"
+
+mod.version = "2.1.1-arcadium"
+
+deps.oneconfig_version = "1.1.12"
+deps.osl_version = "0.21.0"
+deps.lenis_version = "0.1.4"
+
+["1.8.9"]
+deps.oneconfig_mc_version = "1.8.9"
+mod.mc_dep = "1.8.9"

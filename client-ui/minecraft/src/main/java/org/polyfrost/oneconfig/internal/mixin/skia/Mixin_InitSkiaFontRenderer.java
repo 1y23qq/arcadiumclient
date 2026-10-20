@@ -23,11 +23,11 @@ public class Mixin_InitSkiaFontRenderer {
     }
     //?}
 
-    //~ if = 1.8.9 '<init>' -> 'init'
+    //~ if <= 1.8.9 '<init>' -> 'init'
     @Inject(method = "<init>", at = @At("TAIL"))
     void impl$__init__(CallbackInfo ci) {
         SkiaFontRenderer.INSTANCE.init();
-        //? if = 1.8.9
+        //? if <= 1.8.9
         //org.polyfrost.oneconfig.internal.ui.compose.LegacyGameFont.initialize();
     }
 }

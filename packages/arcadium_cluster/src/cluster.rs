@@ -118,11 +118,14 @@ impl Cluster {
     }
 
     pub fn uses_dedicated_dir(&self) -> bool {
-        self.is_isolated() || paths::cluster_uses_dedicated_dir(&self.folder_name)
+        self.is_isolated()
+            || arcadium_common::distribution::requires_separate_game_dir(&self.mc_version)
+            || paths::cluster_uses_dedicated_dir(&self.folder_name)
     }
 
     pub fn is_isolated(&self) -> bool {
         self.kind.is_isolated()
+            || arcadium_common::distribution::requires_separate_game_dir(&self.mc_version)
     }
 
     pub fn uses_bundles(&self) -> bool {
@@ -158,6 +161,7 @@ impl Cluster {
         Ok(paths::cluster_game_dir(
             &self.folder_name,
             self.is_isolated(),
+            &self.mc_version,
         )?)
     }
 

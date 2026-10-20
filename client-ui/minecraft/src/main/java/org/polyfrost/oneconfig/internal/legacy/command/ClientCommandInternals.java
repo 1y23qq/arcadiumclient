@@ -16,7 +16,7 @@
 
 package org.polyfrost.oneconfig.internal.legacy.command;
 
-//? if = 1.8.9 {
+//? if <= 1.8.9 {
 /*import com.mojang.brigadier.AmbiguityConsumer;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.exceptions.BuiltInExceptionProvider;

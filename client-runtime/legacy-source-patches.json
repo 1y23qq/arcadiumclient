@@ -1,0 +1,340 @@
+{
+  "*": [
+    {
+      "from": "net.minecraft.client.render.platform.GlStateManager",
+      "to": "io.github.arcadiumclient.runtime.legacy.GlStateManager"
+    },
+    {
+      "from": "net.minecraft.client.render.vertex.BufferBuilder",
+      "to": "io.github.arcadiumclient.runtime.legacy.BufferBuilder"
+    },
+    {
+      "from": "net.minecraft.client.render.vertex.DefaultVertexFormat",
+      "to": "io.github.arcadiumclient.runtime.legacy.DefaultVertexFormat"
+    },
+    {
+      "from": "net.minecraft.client.render.vertex.Tesselator",
+      "to": "io.github.arcadiumclient.runtime.legacy.Tesselator"
+    },
+    {
+      "from": "ResourcePacks.UnopenedPack",
+      "to": "net.minecraft.client.resource.pack.ResourcePacks__UnopenedPack"
+    },
+    {
+      "from": "ServerListEntry.ResourcePackStatus",
+      "to": "net.minecraft.client.options.ServerListEntry__ResourcePackStatus"
+    },
+    {
+      "from": "LanServerQueryManager.LanServerList",
+      "to": "net.minecraft.client.network.LanServerQueryManager__LanServerList"
+    },
+    {
+      "from": "LanServerQueryManager.LanServerDetector",
+      "to": "net.minecraft.client.network.LanServerQueryManager__LanServerDetector"
+    },
+    {
+      "from": "GameOptions.Option",
+      "to": "net.minecraft.client.options.GameOptions__Option"
+    },
+    {
+      "from": "Window(Minecraft.getInstance())",
+      "to": "Window(Minecraft.getInstance(), Minecraft.getInstance().width, Minecraft.getInstance().height)"
+    },
+    {
+      "from": "Window(minecraft)",
+      "to": "Window(minecraft, minecraft.width, minecraft.height)"
+    },
+    {
+      "from": "new Window(mc)",
+      "to": "new Window(mc, mc.width, mc.height)"
+    },
+    {
+      "from": "getScaledWidth()",
+      "to": "getWidth()"
+    },
+    {
+      "from": "getScaledHeight()",
+      "to": "getHeight()"
+    },
+    {
+      "from": "import net.minecraft.util.math.BlockPos;",
+      "to": "import io.github.arcadiumclient.runtime.legacy.BlockPos;"
+    },
+    {
+      "from": "import net.minecraft.block.state.BlockState;",
+      "to": "import io.github.arcadiumclient.runtime.legacy.BlockState;"
+    },
+    {
+      "from": "minecraft.getCamera()",
+      "to": "minecraft.camera"
+    },
+    {
+      "from": "mc.getCamera()",
+      "to": "mc.camera"
+    },
+    {
+      "from": "minecraft.getEntityRenderDispatcher()",
+      "to": "net.minecraft.client.render.entity.EntityRenderDispatcher.INSTANCE"
+    },
+    {
+      "from": "mc.getEntityRenderDispatcher()",
+      "to": "net.minecraft.client.render.entity.EntityRenderDispatcher.INSTANCE"
+    },
+    {
+      "from": "Text.Serializer",
+      "to": "net.minecraft.text.Text__Serializer"
+    },
+    {
+      "from": "ClickEvent.Action",
+      "to": "net.minecraft.text.ClickEvent__Action"
+    },
+    {
+      "from": "HoverEvent.Action",
+      "to": "net.minecraft.text.HoverEvent__Action"
+    },
+    {
+      "from": "for (Text sibling : text.getSiblings())",
+      "to": "for (Text sibling : (java.util.List<Text>) text.getSiblings())"
+    },
+    {
+      "from": "for (Text sibling : getSiblings())",
+      "to": "for (Text sibling : (java.util.List<Text>) getSiblings())"
+    },
+    {
+      "from": "Text sibling = iterator.next();",
+      "to": "Text sibling = (Text) iterator.next();"
+    },
+    {
+      "from": "for (Text component : text)",
+      "to": "for (Text component : (Iterable<Text>) text)"
+    },
+    {
+      "from": "TextRenderer.isolateFormatting(",
+      "to": "io.github.arcadiumclient.runtime.legacy.LegacyFormatting.last("
+    },
+    {
+      "from": "mc.interactionManager.isSpectator()",
+      "to": "io.github.arcadiumclient.runtime.legacy.LegacyGameModes.isSpectator()"
+    },
+    {
+      "from": "dev.microcontrollers.crosshairtweaks.config.CrosshairTweaksConfig",
+      "to": "io.github.arcadiumclient.runtime.legacy.LegacyCrosshairConfig"
+    }
+  ],
+  "kotlin/io/github/arcadiumclient/runtime/client/features/AnimationsConfig.kt": [
+    {
+      "from": "            val noHit = Properties.functional(Supplier { NoHitDelayConfig.enabled }, Consumer { value: Boolean ->\n                val shared = NoHitDelayConfig.tree?.getProp(\"enabled\")\n                if (shared != null) shared.setAs(value) else NoHitDelayConfig.enabled = value\n                NoHitDelayConfig.save()\n            }, \"removeHitDelay\", \"Remove Hit Delay\", \"Uses the shared NoHitDelay setting.\", Boolean::class.javaObjectType)\n            noHit.addMetadata(\"visualizer\", Visualizer.SwitchVisualizer::class.java)\n            noHit.addMetadata(\"category\", \"Badlion Animations\")\n            noHit.addMetadata(\"subcategory\", \"Player\")\n            noHit.addMetadata(\"default\", true)\n            shown.put(noHit)\n",
+      "to": ""
+    }
+  ],
+  "kotlin/io/github/arcadiumclient/runtime/client/gui/ArcadiumResourcePacksScreen.kt": [
+    {
+      "from": "repository.selectedPacks.asReversed()",
+      "to": "(repository.selectedPacks as List<net.minecraft.client.resource.pack.ResourcePacks__UnopenedPack>).asReversed()"
+    },
+    {
+      "from": "repository.availablePacks.map",
+      "to": "(repository.availablePacks as List<net.minecraft.client.resource.pack.ResourcePacks__UnopenedPack>).map"
+    },
+    {
+      "from": "client.options.incompatibleResourcePacks",
+      "to": "io.github.arcadiumclient.runtime.legacy.LegacyResourcePacks.incompatible()"
+    },
+    {
+      "from": "entry.format",
+      "to": "io.github.arcadiumclient.runtime.legacy.LegacyResourcePacks.format(entry)"
+    }
+  ],
+  "kotlin/io/github/arcadiumclient/runtime/client/gui/VanillaVideoSettingsModel.kt": [
+    {
+      "from": "choice(\"clouds\", \"Clouds\", details, net.minecraft.client.options.GameOptions__Option.RENDER_CLOUDS, listOf(\"Off\", \"Fast\", \"Fancy\")) { native.cloudRenderMode }",
+      "to": "toggle(\"clouds\", \"Clouds\", details, net.minecraft.client.options.GameOptions__Option.RENDER_CLOUDS) { native.renderClouds }"
+    },
+    {
+      "from": "        toggle(\"vbo\", \"Vertex buffer objects\", VideoPage.PERFORMANCE, net.minecraft.client.options.GameOptions__Option.USE_VBO) { native.useVbo }\n",
+      "to": "        toggle(\"advanced_opengl\", \"Advanced OpenGL\", VideoPage.PERFORMANCE, net.minecraft.client.options.GameOptions__Option.ADVANCED_OPENGL) { native.advancedOpengl }\n"
+    },
+    {
+      "from": "        toggle(\"alternate_blocks\", \"Alternate block models\", quality, net.minecraft.client.options.GameOptions__Option.BLOCK_ALTERNATIVES) { native.allowBlockAlternatives }\n",
+      "to": ""
+    },
+    {
+      "from": "        toggle(\"entity_shadows\", \"Entity shadows\", details, net.minecraft.client.options.GameOptions__Option.ENTITY_SHADOWS) { native.entityShadows }\n",
+      "to": ""
+    }
+  ],
+  "kotlin/io/github/arcadiumclient/runtime/client/presence/ArcadiumPresence.kt": [
+    {
+      "from": "client.world?.players?.asSequence()?.map { it.uuid }.orEmpty()",
+      "to": "(client.world?.players as? List<net.minecraft.entity.living.player.PlayerEntity>)?.asSequence()?.map { it.uuid }.orEmpty()"
+    },
+    {
+      "from": "client.networkHandler?.onlinePlayers?.asSequence()?.mapNotNull { it.profile.id }.orEmpty()",
+      "to": "io.github.arcadiumclient.runtime.legacy.LegacyPlayerDirectory.tabIds().asSequence()"
+    },
+    {
+      "from": "        synchronized(lock) {\n            val changed =",
+      "to": "        io.github.arcadiumclient.runtime.legacy.LegacyPlayerDirectory.observe(client, current != null)\n        synchronized(lock) {\n            val changed ="
+    }
+  ],
+  "kotlin/io/github/arcadiumclient/runtime/client/gui/ArcadiumServersScreen.kt": [
+    {
+      "from": "lan.servers",
+      "to": "(lan.servers as List<net.minecraft.client.network.LanServerQueryManager__LanServer>)"
+    }
+  ],
+  "kotlin/io/github/arcadiumclient/runtime/client/gui/ArcadiumWatermarkOverlays.kt": [
+    {
+      "from": "search.x",
+      "to": "(search as io.github.arcadiumclient.runtime.mixin.client.access.TextFieldBounds).arcadiumX()"
+    },
+    {
+      "from": "search.y",
+      "to": "(search as io.github.arcadiumclient.runtime.mixin.client.access.TextFieldBounds).arcadiumY()"
+    }
+  ],
+  "java/io/github/arcadiumclient/runtime/client/features/CuteVisuals.java": [
+    {
+      "from": "case START_DESTROY_BLOCK",
+      "to": "case 0"
+    },
+    {
+      "from": "case STOP_DESTROY_BLOCK",
+      "to": "case 2"
+    },
+    {
+      "from": "case ABORT_DESTROY_BLOCK",
+      "to": "case 1"
+    },
+    {
+      "from": "action.getPos()",
+      "to": "new BlockPos(action.getX(), action.getY(), action.getZ())"
+    },
+    {
+      "from": "minecraft.world.getBlockState(position).getBlock()",
+      "to": "minecraft.world.getBlock(position.x, position.y, position.z)"
+    },
+    {
+      "from": "STATE.tick(now(), minecraft.player.x, minecraft.player.y, minecraft.player.z, options);",
+      "to": "STATE.tick(now(), minecraft.player.x, minecraft.player.shape.minY, minecraft.player.z, options);"
+    }
+  ],
+  "java/io/github/arcadiumclient/runtime/mixin/compat/evergreenhud/MixinBiomeHud.java": [
+    {
+      "from": "mc.world.getBiome(mc.player.getCommandSourceBlockPos())",
+      "to": "mc.world.getBiome((int) Math.floor(mc.player.x), (int) Math.floor(mc.player.z))"
+    }
+  ],
+  "java/io/github/arcadiumclient/runtime/client/branding/PlayerBadgeRenderer.java": [
+    {
+      "from": "player.getProfile() != null\n                && player.getProfile().getId() != null && ArcadiumPresence.isOnline(player.getProfile().getId())",
+      "to": "io.github.arcadiumclient.runtime.legacy.LegacyPlayerDirectory.isOnline(player.name)"
+    }
+  ],
+  "java/io/github/arcadiumclient/runtime/mixin/client/MixinBadlionCameraAnimations.java": [
+    {
+      "from": "Lnet/minecraft/client/render/platform/GlStateManager;rotatef(FFFF)V",
+      "to": "Lorg/lwjgl/opengl/GL11;glRotatef(FFFF)V"
+    }
+  ],
+  "java/io/github/arcadiumclient/runtime/mixin/client/MixinLightLevelOverlay.java": [
+    {
+      "from": "render(IFJ)V",
+      "to": "renderWorld(FJ)V"
+    },
+    {
+      "from": "int eye, float tickDelta, long timeLimit",
+      "to": "float tickDelta, long timeLimit"
+    },
+    {
+      "from": "LightLevelOverlay.render(tickDelta);",
+      "to": "LightLevelOverlay.render(tickDelta);\n        io.github.arcadiumclient.runtime.legacy.LegacyHeightOverlay.render(tickDelta);"
+    }
+  ],
+  "java/io/github/arcadiumclient/runtime/mixin/client/MixinKillEffectsRender.java": [
+    {
+      "from": "render(IFJ)V",
+      "to": "renderWorld(FJ)V"
+    },
+    {
+      "from": "int eye, float tickDelta, long timeLimit",
+      "to": "float tickDelta, long timeLimit"
+    }
+  ],
+  "java/io/github/arcadiumclient/runtime/mixin/client/MixinCuteVisualsRender.java": [
+    {
+      "from": "render(IFJ)V",
+      "to": "renderWorld(FJ)V"
+    },
+    {
+      "from": "int eye, float tickDelta, long timeLimit",
+      "to": "float tickDelta, long timeLimit"
+    }
+  ],
+  "java/io/github/arcadiumclient/runtime/mixin/client/MixinGuiScaleGameRenderer.java": [
+    {
+      "from": "render(FJ)V",
+      "to": "render(F)V"
+    }
+  ],
+  "java/io/github/arcadiumclient/runtime/mixin/client/MixinNoRenderHand.java": [
+    {
+      "from": "renderInFirstPerson",
+      "to": "renderHand"
+    }
+  ],
+  "java/io/github/arcadiumclient/runtime/mixin/client/MixinNoRenderOverlays.java": [
+    {
+      "from": "renderNauseaOverlay",
+      "to": "renderPortalOverlay"
+    }
+  ],
+  "java/io/github/arcadiumclient/runtime/mixin/client/ToggleSprintMixin.java": [
+    {
+      "from": "LocalClientPlayerEntity",
+      "to": "BaseLocalClientPlayerEntity"
+    }
+  ],
+  "java/io/github/arcadiumclient/runtime/mixin/client/ChatDecorationColorsMixin.java": [
+    {
+      "from": "draw(Ljava/lang/String;FFIZ)I",
+      "to": "draw(Ljava/lang/String;IIIZ)I"
+    },
+    {
+      "from": "String text, float x, float y",
+      "to": "String text, int x, int y"
+    },
+    {
+      "from": "float cursor = x;",
+      "to": "int cursor = x;"
+    }
+  ],
+  "kotlin/io/github/arcadiumclient/runtime/ClientBuild.kt": [
+    {
+      "from": "const val MINECRAFT_VERSION = \"1.8.9\"",
+      "to": "const val MINECRAFT_VERSION = \"1.7.10\""
+    }
+  ],
+  "test:kotlin/io/github/arcadiumclient/runtime/test/LegacyNickHiderTextTest.kt": [
+    {
+      "from": "masked.first {",
+      "to": "(masked as Iterable<net.minecraft.text.Text>).first {"
+    }
+  ],
+  "test:kotlin/io/github/arcadiumclient/runtime/test/LegacyResourcePackDiscoveryTest.kt": [
+    {
+      "from": "pack.getMetadataSection<ResourcePackMetadata>(serializers, \"pack\").format",
+      "to": "(pack.getMetadataSection(serializers, \"pack\") as ResourcePackMetadata).format"
+    }
+  ],
+  "kotlin/io/github/arcadiumclient/runtime/client/gui/VideoSettingsLayout.kt": [
+    {
+      "from": "\"gui_scale\" to \"entity_shadows\",",
+      "to": "\"gui_scale\" to \"particles\","
+    },
+    {
+      "from": "\"dynamic_lights\" to \"dynamic_fov\",",
+      "to": "\"clouds\" to \"dynamic_fov\","
+    }
+  ]
+}

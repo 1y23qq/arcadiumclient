@@ -1,0 +1,65 @@
+package org.polyfrost.soundtweaks.config
+
+import org.polyfrost.oneconfig.api.config.v1.Config
+import org.polyfrost.oneconfig.api.config.v1.Properties
+import org.polyfrost.oneconfig.api.config.v1.Tree
+import org.polyfrost.oneconfig.api.config.v1.Visualizer
+import org.polyfrost.oneconfig.api.config.v1.annotations.Switch
+import org.polyfrost.oneconfig.api.config.v1.dsl.subcategory
+import org.polyfrost.oneconfig.api.config.v1.dsl.visualizer
+import org.polyfrost.soundtweaks.SoundTweaks
+import org.polyfrost.soundtweaks.SoundTweaks.getSounds
+import org.polyfrost.soundtweaks.SoundTweaks.volumes
+
+class SoundTweaksConfig : Config("${SoundTweaks.ID}.json", SoundTweaks.NAME, Category.QOL) {
+
+    // TODO: Debug the below (does it still happen?)
+    // This shit does not safe/load correctly and idfk how
+    // might have something to do with @JvmField
+    @Switch(
+        title = "Remove Volume Cap",
+        description = "Allows sounds to bypass Minecraft's 100% volume limit.\nAlready played sounds require a restart to become louder.",
+        subcategory = "General"
+    )
+    @JvmField
+    var removeVolumeCap: Boolean = false
+
+    @Suppress("UnstableApiUsage")
+    override fun makeTree(): Tree {
+        return super.makeTree().apply {
+            getSounds().forEach { (location, _) ->
+                val pathParts = location.path.split('.')
+                val groupName = pathParts.firstOrNull()?.toTitleCase() ?: "General"
+
+                val optionTitle = if (pathParts.size > 1) {
+                    pathParts.drop(1).joinToString(" ").toTitleCase()
+                } else {
+                    location.path.toTitleCase()
+                }
+
+                put(
+                    Properties.functional(
+                        { volumes[location] ?: 100.0f },
+                        { volumes[location] = it },
+                        location.toString().replace(":", "_").replace(".", "_"),
+                        optionTitle,
+                        description = "Internal ID: $location",
+                        type = Float::class.javaObjectType
+                    ).apply {
+                        visualizer = Visualizer.SliderVisualizer::class.java
+                        subcategory = groupName
+                        addMetadata("min", 0f)
+                        addMetadata("max", 200f)
+                        addMetadata("step", 0f)
+                    }
+                )
+            }
+        }
+    }
+
+    private fun String.toTitleCase() = replace("_", " ")
+        .split(" ")
+        .joinToString(" ") { word ->
+            word.lowercase().replaceFirstChar { it.titlecase() }
+        }
+}

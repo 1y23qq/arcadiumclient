@@ -37,7 +37,7 @@ import org.polyfrost.oneconfig.api.platform.v1.ScreenPlatform;
 import org.polyfrost.oneconfig.internal.ui.compose.ComposeScreen;
 import org.polyfrost.oneconfig.internal.ui.compose.ComposeSupport;
 import org.polyfrost.oneconfig.internal.ui.compose.SkiaCtx;
-//? if = 1.8.9
+//? if <= 1.8.9
 //import org.polyfrost.oneconfig.internal.legacy.LegacyPanoramaTracker;
 
 public class ScreenPlatformImpl implements ScreenPlatform {

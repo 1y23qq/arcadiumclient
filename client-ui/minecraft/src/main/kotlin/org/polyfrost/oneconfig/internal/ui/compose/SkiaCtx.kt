@@ -124,6 +124,10 @@ object SkiaCtx {
     private val gl = StoredGLState(330)
 
     private var hudTarget: RenderTarget? = null
+    //? if = 1.7.10 {
+    /*@JvmStatic
+    fun isLegacyHudTarget(target: Any): Boolean = target === hudTarget
+    *///?}
     private var hudSurface: Surface? = null
     private var hudBrt: BackendRenderTarget? = null
 
@@ -375,7 +379,7 @@ object SkiaCtx {
         if (isVulkanMode || !this::directContext.isInitialized) return block()
         gl.capture()
         directContext.resetGLAll()
-        //? if = 1.8.9
+        //? if <= 1.8.9
         //GL11.glDisable(GL11.GL_ALPHA_TEST)
         try {
             return block()
@@ -396,7 +400,7 @@ object SkiaCtx {
             } else {
                 gl.capture()
                 directContext.resetGLAll()
-                //? if = 1.8.9
+                //? if <= 1.8.9
                 //GL11.glDisable(GL11.GL_ALPHA_TEST)
             }
 
@@ -709,7 +713,11 @@ object SkiaCtx {
             GlStateManager.matrixMode(GL11.GL_MODELVIEW)
             GlStateManager.pushMatrix()
             try {
+                //? if = 1.7.10 {
+                rt.draw(w, h)
+                //?} else {
                 rt.draw(w, h, false)
+                //?}
             } finally {
                 GlStateManager.matrixMode(GL11.GL_PROJECTION)
                 GlStateManager.popMatrix()
@@ -757,7 +765,7 @@ object SkiaCtx {
             } else {
                 gl.capture()
                 directContext.resetGLAll()
-                //? if = 1.8.9
+                //? if <= 1.8.9
                 //GL11.glDisable(GL11.GL_ALPHA_TEST)
                 GL11.glViewport(0, 0, mainSurface.width, mainSurface.height)
                 GL11.glDisable(GL11.GL_SCISSOR_TEST)
@@ -808,7 +816,7 @@ object SkiaCtx {
             }
         } finally {
             currentSurface = null
-            //? if = 1.8.9
+            //? if <= 1.8.9
             //OptionsChatOverlay.render()
             //? if < 1.21.8 {
             /*if (clearComposeAfterDraw) finishComposeClear()
@@ -837,7 +845,7 @@ object SkiaCtx {
             } else {
                 gl.capture()
                 directContext.resetGLAll()
-                //? if = 1.8.9
+                //? if <= 1.8.9
                 //GL11.glDisable(GL11.GL_ALPHA_TEST)
                 GL11.glViewport(0, 0, surface.width, surface.height)
                 GL11.glDisable(GL11.GL_SCISSOR_TEST)
@@ -977,7 +985,7 @@ object SkiaCtx {
             hudBrt = brt
             hudSurface = Surface.makeFromBackendRenderTarget(
                 directContext, brt,
-                //~ if = 1.8.9 'SurfaceOrigin.TOP_LEFT' -> 'SurfaceOrigin.BOTTOM_LEFT'
+                //~ if <= 1.8.9 'SurfaceOrigin.TOP_LEFT' -> 'SurfaceOrigin.BOTTOM_LEFT'
                 SurfaceOrigin.TOP_LEFT,
                 colorFmt,
                 ColorSpace.sRGB,
@@ -1126,7 +1134,7 @@ object SkiaCtx {
         if (existing != null && existing.width == w && existing.height == h) return existing
 
         glSurface?.close(); glBrt?.close()
-        //? if >= 26.1 || = 1.8.9 {
+        //? if >= 26.1 || <= 1.8.9 {
         //? if >= 26.2 {
         val target = client.gameRenderer.mainRenderTarget()
         //? } else {

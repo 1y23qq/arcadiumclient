@@ -143,8 +143,14 @@ pub fn cluster_uses_dedicated_dir(folder_name: &str) -> bool {
 
 /// Lives here not on `Cluster` so the content layer can resolve it from a bare
 /// `ClusterRow` without duplicating the marker-file rule
-pub fn cluster_game_dir(folder_name: &str, isolated: bool) -> PathsResult<PathBuf> {
-    if isolated || cluster_uses_dedicated_dir(folder_name) {
+pub fn cluster_game_dir(
+    folder_name: &str,
+    isolated: bool,
+    mc_version: &str,
+) -> PathsResult<PathBuf> {
+    if crate::distribution::requires_separate_game_dir(mc_version) {
+        Ok(cluster_dir(folder_name)?.join(format!("minecraft-{mc_version}")))
+    } else if isolated || cluster_uses_dedicated_dir(folder_name) {
         cluster_dir(folder_name)
     } else {
         shared_minecraft_dir()
@@ -153,6 +159,31 @@ pub fn cluster_game_dir(folder_name: &str, isolated: bool) -> PathsResult<PathBu
 
 pub fn cluster_mods_dir(folder_name: &str) -> PathsResult<PathBuf> {
     Ok(cluster_dir(folder_name)?.join(ContentType::Mod.folder_name()))
+}
+
+#[cfg(test)]
+mod minecraft_version_paths_tests {
+    #[test]
+    fn legacy_options_and_worlds_do_not_share_the_primary_game_directory() {
+        let name = "arcadium-version-isolation-test";
+        let primary = super::cluster_game_dir(name, false, "1.8.9").unwrap();
+        let legacy = super::cluster_game_dir(name, false, "1.7.10").unwrap();
+        assert_eq!(
+            legacy,
+            super::cluster_dir(name).unwrap().join("minecraft-1.7.10")
+        );
+        assert_ne!(primary.join("options.txt"), legacy.join("options.txt"));
+        assert_ne!(primary.join("config"), legacy.join("config"));
+        assert_ne!(primary.join("saves"), legacy.join("saves"));
+        let isolated_primary = super::cluster_game_dir(name, true, "1.8.9").unwrap();
+        assert_eq!(isolated_primary, super::cluster_dir(name).unwrap());
+        assert_ne!(isolated_primary.join("saves"), legacy.join("saves"));
+        assert_ne!(isolated_primary.join("config"), legacy.join("config"));
+        assert_eq!(
+            super::cluster_game_dir(name, true, "1.7.10").unwrap(),
+            legacy
+        );
+    }
 }
 
 pub fn shared_mods_dir() -> PathsResult<PathBuf> {

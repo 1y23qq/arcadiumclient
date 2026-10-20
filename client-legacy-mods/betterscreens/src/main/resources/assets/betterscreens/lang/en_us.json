@@ -1,0 +1,58 @@
+{
+  "modmenu.descriptionTranslation.${id}": "${description}",
+  "${id}": {
+    "${id}": "${name}",
+    "functionality": "Functionality",
+    "container-scale": {
+      "name": "Container GUI Scale",
+      "description": "This feature has several issues and is not finished! Some screens may be slightly broken, and other mods may have issues pop up!\n\nAllows setting a different GUI scale for containers, such as your inventory or chests."
+    },
+    "prevent-closing-screens": {
+      "name": "Prevent Closing Screens",
+      "description": "Prevents the server from forcefully closing your screens. For example, your chat screen when a Hypixel SkyWars game starts.\n\nCreated by Moulberry in MoulberrysTweaks."
+    },
+    "dont-reset-cursor": {
+      "name": "Don't Reset Cursor",
+      "description": "Keeps your cursor in the same spot when opening a new screen immediately after the last. For example, backpack slots in Hypixel SkyBlock.\n\nCreated by nea89o in Firmament.\n\nAutomatically disabled when Firmament is installed."
+    },
+    "cursor-reset-timer": {
+      "name": "Cursor Reset Timer",
+      "description": "The amount of time needed between screen opens for the timer to reset. Set to 0 to have the cursor never reset."
+    },
+    "remove-status-effect-shift": {
+      "name": "Remove Status Effect Shift",
+      "description": "Prevents status effects from shifting the inventory position. This makes no attempt to fit the status effect in your screen if your GUI scale is too large."
+    },
+    "click-out-of-containers": {
+      "name": "Click out of Containers",
+      "description": "Lets you click outside the bounds of a container to close it."
+    },
+    "replace-open-to-lan": {
+      "name": "Replace Open to Lan",
+      "description": "Replaces the Open to Lan button in Multiplayer with a Server List button."
+    },
+    "server-list": "Server List",
+    "show-server-preview": {
+      "name": "Direct Connect Server Preview",
+      "description": "Show a server preview for your set IP in the direct connect screen."
+    },
+    "server-preview": "Server Preview",
+    "visual": "Visual",
+    "container-background-opacity": {
+      "name": "Container Background Opacity",
+      "description": "Set the transparency of container backgrounds."
+    },
+    "container-texture-opacity": {
+      "name": "Container Texture Opacity",
+      "description": "Set the transparency of container textures."
+    },
+    "container-label-color": {
+      "name": "Container Label Color",
+      "description": "Set the color of the container name text."
+    },
+    "player-inventory-label-color": {
+      "name": "Player Inventory Label Color",
+      "description": "Set the color of the player inventory text when inside a container."
+    },
+  }
+}

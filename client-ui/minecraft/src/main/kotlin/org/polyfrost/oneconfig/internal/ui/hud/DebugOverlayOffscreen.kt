@@ -37,6 +37,10 @@ import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.render.Window
 *///?}
 
+//? if = 1.7.10 {
+/*import net.minecraft.client.render.TextRenderer
+*///?}
+
 //? if > 1.8.9 {
 /**
  * Minecraft draws the F3 debug overlay into the GUI while the OneConfig screen is open which puts it
@@ -176,7 +180,7 @@ object DebugOverlayOffscreen {
         }
     }
 }
-//?} else {
+//?} else if = 1.8.9 {
 /*/**
  * Minecraft draws the F3 debug overlay into the GUI while the OneConfig screen is open which puts it
  * *underneath* the Compose UI and inside the blur backdrop
@@ -221,6 +225,47 @@ object DebugOverlayOffscreen {
             LOG.warn("Debug overlay replay failed; disabling", t)
             failed = true
         } finally {
+            if (bound) rt.unbindWrite()
+            capturing = false
+        }
+    }
+}
+*///?} else {
+/*object DebugOverlayOffscreen {
+    private val LOG = LoggerFactory.getLogger("Arcadium Options/DebugOverlayOffscreen")
+    private val client get() = Minecraft.getInstance()
+    private data class DebugLine(val font: TextRenderer, val text: String, val x: Int, val y: Int, val color: Int)
+    private val deferredLines = ArrayList<DebugLine>(24)
+    private var capturing = false
+    private var failed = false
+
+    private fun active(): Boolean =
+        !failed && SkiaCtx.isReady && Platform.screen().current<Any?>() is ComposeScreen
+
+    fun beginLegacyDebugFrame() {
+        deferredLines.clear()
+    }
+
+    fun captureLegacyDebugText(font: TextRenderer, text: String, x: Int, y: Int, color: Int): Boolean {
+        if (capturing || !active()) return false
+        deferredLines.add(DebugLine(font, text, x, y, color))
+        return true
+    }
+
+    fun render() {
+        if (deferredLines.isEmpty()) return
+        val rt = client.mainRenderTarget
+        capturing = true
+        var bound = false
+        try {
+            rt.bindWrite(true)
+            bound = true
+            for (line in deferredLines) line.font.drawWithShadow(line.text, line.x, line.y, line.color)
+        } catch (t: Throwable) {
+            LOG.warn("Debug overlay replay failed; disabling", t)
+            failed = true
+        } finally {
+            deferredLines.clear()
             if (bound) rt.unbindWrite()
             capturing = false
         }

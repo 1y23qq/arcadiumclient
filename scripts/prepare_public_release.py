@@ -165,19 +165,21 @@ def verify_macos(version, installers, platform):
 
 
 def verify_current_components(platforms):
-    lock_path = ROOT / "distribution/oneclient-1.8.9.lock.json"
-    lock = json.loads(lock_path.read_text(encoding="utf-8"))
-    catalog = lock_path.read_bytes().replace(b"\r\n", b"\n")
-    lock_digests = {hashlib.sha256(value).hexdigest()
-                    for value in [catalog, catalog.replace(b"\n", b"\r\n")]}
+    from package_client import LOCK_PATHS, distribution_locks
+    locks = distribution_locks(ROOT)
     for platform, package in platforms.items():
         manifest = json.loads(Path(package["manifest"]).read_text(encoding="utf-8-sig"))
         files = payload_files(manifest)
         prefix = "" if platform == "windows-x64" else "Contents/Resources/"
-        if files.get(prefix + "distribution-lock.json") not in lock_digests:
-            raise RuntimeError(f"Package was built with an outdated client catalog: {platform}")
+        for minecraft, lock in locks.items():
+            catalog = (ROOT / LOCK_PATHS[minecraft]).read_bytes().replace(b"\r\n", b"\n")
+            lock_digests = {hashlib.sha256(value).hexdigest()
+                            for value in [catalog, catalog.replace(b"\n", b"\r\n")]}
+            name = "distribution-lock.json" if minecraft == "1.8.9" else f"distribution-lock-{minecraft}.json"
+            if files.get(prefix + name) not in lock_digests:
+                raise RuntimeError(f"Package was built with an outdated client catalog (Minecraft {minecraft}): {platform}")
         expected_components = {prefix + "components/" + component["file"]: component["sha256"]
-                               for component in lock["arcadiumComponents"]}
+                               for lock in locks.values() for component in lock["arcadiumComponents"]}
         actual_components = {name: digest for name, digest in files.items()
                              if name.startswith(prefix + "components/")}
         if actual_components != expected_components:
@@ -249,7 +251,7 @@ def prepare(stable, advance_site=False):
         raise RuntimeError("Add the release's changes to CHANGELOG.md before preparing notes.")
     (checkout / "README.md").write_text(
         "# Arcadium Client\n\n"
-        "Minecraft 1.8.9 client and launcher.\n\n"
+        "Minecraft 1.7.10 and 1.8.9 client and launcher.\n\n"
         "[Official website and downloads](https://arcadiumclient.com/)\n\n"
         "[Source code](https://github.com/0aurorq3/arcadiumclient)\n\n"
         "This repository hosts official installer releases.\n", encoding="utf-8")

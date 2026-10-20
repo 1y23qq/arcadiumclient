@@ -1,6 +1,6 @@
 package org.polyfrost.oneconfig.internal.legacy.compat;
 
-//? if = 1.8.9 {
+//? if <= 1.8.9 {
 /*import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import com.mojang.blaze3d.platform.TextInputManager;
@@ -47,7 +47,11 @@ public interface MinecraftCompat {
     }
 
     default int getFps() {
+        //? if = 1.7.10 {
+        return Minecraft.currentFps;
+        //?} else {
         return Minecraft.getCurrentFps();
+        //?}
     }
 
     default CompletableFuture<Void> reloadResourcePacks() {

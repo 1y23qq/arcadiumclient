@@ -1,6 +1,7 @@
 package org.polyfrost.compose.mc
 
 class MinecraftTextStyle(private val baseColor: Int) {
+    private var colorCode: Char? = null
     var color = baseColor
         private set
     var bold = false
@@ -29,9 +30,19 @@ class MinecraftTextStyle(private val baseColor: Int) {
                 strikethrough = false
                 obfuscated = false
                 val index = "0123456789abcdef".indexOf(code)
+                colorCode = if (code == 'r') null else if (index < 0) 'f' else code
                 color = if (code == 'r') baseColor else (baseColor and -0x1000000) or palette(if (index < 0) 15 else index)
             }
         }
+    }
+
+    fun formatPrefix(): String = buildString {
+        colorCode?.let { append('§').append(it) }
+        if (obfuscated) append("§k")
+        if (bold) append("§l")
+        if (strikethrough) append("§m")
+        if (underline) append("§n")
+        if (italic) append("§o")
     }
 
     private fun palette(index: Int): Int {

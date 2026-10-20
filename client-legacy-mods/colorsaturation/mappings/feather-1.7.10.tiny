@@ -1,0 +1,4 @@
+tiny	2	0	intermediary	named
+c	net/minecraft/client/Minecraft	net/minecraft/client/Minecraft
+	m	()Lnet/minecraft/unmapped/C_06196994;	m_17688331	getMainRenderTarget
+c	net/minecraft/unmapped/C_22168528	net/minecraft/resource/Identifier

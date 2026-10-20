@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "id": "${id}",
+  "version": "${version}",
+  "name": "${name}",
+  "description": "${description}",
+  "authors": [
+    "Microcontrollers"
+  ],
+  "contributors": [
+    "Wyvest",
+    "Mixces",
+    "Ownwn",
+    "Squagward",
+    "nextdayy"
+  ],
+  "contact": {
+    "homepage": "${modrinth}",
+    "sources": "${source}",
+    "issues": "${issues}"
+  },
+  "license": "${license}",
+  "icon": "assets/${id}/icon.png",
+  "environment": "client",
+  "depends": {
+    "fabricloader": ">=${fabric_loader_version}",
+    "minecraft": "${mcdep}",
+    "java": ">=25",
+    "oneconfigv1": "*"
+  },
+  "breaks": {
+  },
+  "custom": {
+    "modmenu": {
+      "links": {
+        "modmenu.kofi": "${kofi}",
+        "modmenu.discord": "${discord}",
+        "modmenu.modrinth": "${modrinth}"
+      },
+      "update_checker": true
+    },
+    "firmament:hide_from_modlist": true
+  }
+}

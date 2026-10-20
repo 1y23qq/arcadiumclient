@@ -103,6 +103,11 @@ public final class CustomCrosshairRenderer {
         return vanilla || (mc.interactionManager != null && mc.interactionManager.isSpectator() && flag(showSpectator));
     }
 
+    public static boolean showInThirdPerson() {
+        lookup();
+        return !flag(hidePerspective);
+    }
+
     private static boolean flag(Field field) {
         try { return field != null && field.getBoolean(null); }
         catch (IllegalAccessException ignored) { return false; }

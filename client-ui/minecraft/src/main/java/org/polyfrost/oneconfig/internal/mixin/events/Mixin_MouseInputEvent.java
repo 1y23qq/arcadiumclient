@@ -18,7 +18,7 @@ import net.minecraft.client.input.MouseButtonInfo;
 import net.minecraft.client.MouseHandler;
 //?}
 
-//? if = 1.8.9 {
+//? if <= 1.8.9 {
 /*import org.lwjgl.input.Mouse;
 import org.polyfrost.oneconfig.internal.legacy.KeyCodes;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;

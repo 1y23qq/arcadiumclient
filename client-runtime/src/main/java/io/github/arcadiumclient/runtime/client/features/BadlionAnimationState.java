@@ -12,7 +12,8 @@ public record BadlionAnimationState(
         boolean eatAnimation, boolean thrownItems, boolean fishingRod, boolean swordSwing,
         boolean bowAnimation, boolean alwaysSwing, boolean removeTitles, boolean oldEnchantGlint,
         boolean leftHanded, boolean noSmallArms, boolean noShake, boolean fixLiquidPlace,
-        boolean movableTitles, float shakeIntensity, float titleX, float titleY) {
+        boolean movableTitles, float shakeIntensity, float titleX, float titleY,
+        float itemScaleX, float itemScaleY, float itemScaleZ) {
 
     public boolean swingWhileUsing(String action) {
         return switch (action) {
@@ -37,6 +38,10 @@ public record BadlionAnimationState(
 
     public Map<String, Object> overflowValues() {
         Map<String, Object> out = new LinkedHashMap<>();
+        out.put("items.itemScaleX", itemScale(itemScaleX));
+        out.put("items.itemScaleY", itemScale(itemScaleY));
+        out.put("items.itemScaleZ", itemScale(itemScaleZ));
+        out.put("items.applyCustomizationToBlockItems", true);
         out.put("items.itemPositions", itemHeld);
         out.put("items.itemPositionsInThirdPerson", itemHeld);
         out.put("items.equipAnimationVersion", itemSwitch ? "V1_7" : "VANILLA");
@@ -60,5 +65,9 @@ public record BadlionAnimationState(
         out.put("other.thirdPersonSwordBlockingPosition", blockHit);
         out.put("other.lockBlockingArmRotation", blockHit);
         return out;
+    }
+
+    private static float itemScale(float value) {
+        return Float.isFinite(value) ? Math.max(0.1f, Math.min(3f, value)) : 1f;
     }
 }

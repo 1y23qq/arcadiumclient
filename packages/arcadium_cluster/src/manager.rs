@@ -136,9 +136,16 @@ impl ClusterManager {
         global: &GameSettingsProfile,
         options: CreateClusterOptions,
     ) -> ClusterResult<Cluster> {
-        if options.mc_version != arcadium_common::distribution::MINECRAFT_VERSION {
+        if !arcadium_common::distribution::supports_version(&options.mc_version) {
             return Err(ClusterError::InvalidVersion(
-                "Arcadium supports Minecraft 1.8.9 only".into(),
+                "Arcadium supports Minecraft 1.8.9 and 1.7.10.".into(),
+            ));
+        }
+        if options.mc_version == "1.7.10"
+            && options.mc_loader != arcadium_common::GameLoader::Ornithe
+        {
+            return Err(ClusterError::InvalidVersion(
+                "Arcadium 1.7.10 uses Ornithe. Forge mod compatibility is only available for Minecraft 1.8.9.".into(),
             ));
         }
         if options.user_created {
@@ -251,7 +258,9 @@ impl ClusterManager {
     }
 
     pub async fn ensure_dedicated_marker(&self, cluster: &Cluster) -> ClusterResult<()> {
-        if !cluster.is_isolated() {
+        if !cluster.is_isolated()
+            && !arcadium_common::distribution::requires_separate_game_dir(&cluster.mc_version)
+        {
             return Ok(());
         }
 
@@ -570,7 +579,9 @@ async fn create_inner(
     arcadium_io::create_dir_all(cluster_path).await?;
     ensure_content_dirs(cluster_path).await?;
 
-    if options.kind.is_isolated() {
+    if options.kind.is_isolated()
+        || arcadium_common::distribution::requires_separate_game_dir(&options.mc_version)
+    {
         arcadium_io::write(
             cluster_path.join(arcadium_common::paths::DEDICATED_MARKER),
             b"",

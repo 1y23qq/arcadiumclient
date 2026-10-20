@@ -1,6 +1,6 @@
 package org.polyfrost.oneconfig.internal.legacy;
 
-//? if = 1.8.9 {
+//? if <= 1.8.9 {
 /*import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;

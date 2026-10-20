@@ -2,12 +2,31 @@ plugins {
  id("net.fabricmc.fabric-loom-remap") version "1.17.21"
  id("ploceus") version "1.17.7"
 }
-version = "0.3.9"
+version = "0.4.0"
 group = "io.github.arcadiumclient"
 base.archivesName = "ArcadiumBrand"
+val minecraftVersion = providers.gradleProperty("minecraftVersion").getOrElse("1.8.9")
+require(minecraftVersion in setOf("1.7.10", "1.8.9")) { "Unsupported Minecraft version: $minecraftVersion" }
+if (minecraftVersion == "1.7.10") {
+    layout.buildDirectory.set(layout.projectDirectory.dir("build/1.7.10"))
+    val generateLegacySources by tasks.registering(Sync::class) {
+        from("src/main/java") { exclude("**/branding/MinecraftMixin.java", "**/branding/TitleScreenMixin.java") }
+        into(layout.buildDirectory.dir("generated/java"))
+    }
+    sourceSets.main { java.setSrcDirs(listOf(layout.buildDirectory.dir("generated/java"), "src/minecraft/1.7.10/java")) }
+    tasks.withType<JavaCompile>().configureEach { dependsOn(generateLegacySources) }
+    tasks.jar { archiveClassifier = "1.7.10-dev" }
+    tasks.named<net.fabricmc.loom.task.RemapJarTask>("remapJar") { archiveClassifier = "1.7.10" }
+}
 tasks.processResources {
     inputs.property("version", project.version)
-    filesMatching("fabric.mod.json") { expand("version" to project.version) }
+    inputs.property("minecraftVersion", minecraftVersion)
+    filesMatching(listOf("fabric.mod.json", "arcadium-game.properties")) {
+        expand("version" to project.version, "minecraftVersion" to minecraftVersion)
+    }
+    if (minecraftVersion == "1.7.10") filesMatching("fabric.mod.json") {
+        filter { line -> if (line.contains("\"arcadium_forge_compat\"")) "" else line }
+    }
 }
 repositories {
  mavenCentral()
@@ -16,8 +35,8 @@ repositories {
 }
 ploceus { setIntermediaryGeneration(2) }
 dependencies {
- minecraft("com.mojang:minecraft:1.8.9")
- mappings(ploceus.featherMappings("1"))
+ minecraft("com.mojang:minecraft:$minecraftVersion")
+ mappings(ploceus.featherMappings(if (minecraftVersion == "1.7.10") "2" else "1"))
  modImplementation("net.fabricmc:fabric-loader:0.19.5")
  compileOnly("org.lwjgl.lwjgl:lwjgl:2.9.3")
  compileOnly("org.lwjgl:lwjgl:3.4.3")
@@ -36,18 +55,22 @@ val captureProbe by sourceSets.creating {
 tasks.check { dependsOn(captureProbe.compileJavaTaskName) }
 
 val featureTest by sourceSets.creating {
+    if (minecraftVersion == "1.7.10") {
+        java.setSrcDirs(listOf("src/featureTest1710/java"))
+        resources.setSrcDirs(listOf("src/featureTest1710/resources"))
+    }
     compileClasspath += sourceSets.main.get().compileClasspath
     runtimeClasspath += sourceSets.main.get().runtimeClasspath
 }
 val featureTestJar by tasks.registering(Jar::class) {
     archiveBaseName = "ArcadiumFeatureTest"
-    archiveClassifier = "dev"
+    archiveClassifier = if (minecraftVersion == "1.7.10") "1.7.10-dev" else "dev"
     from(featureTest.output)
 }
 tasks.register<net.fabricmc.loom.task.RemapJarTask>("remapFeatureTestJar") {
     inputFile = featureTestJar.flatMap { it.archiveFile }
     archiveBaseName = "ArcadiumFeatureTest"
-    archiveClassifier = ""
+    archiveClassifier = if (minecraftVersion == "1.7.10") "1.7.10" else ""
     dependsOn(featureTestJar)
 }
 

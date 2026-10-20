@@ -1,0 +1,22 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "io.github.arcadiumclient.featuretest.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "client": [
+    "LegacyFeature040Mixin",
+    "LegacyScreenInput",
+    "LegacyCrosshairProbe",
+    "LegacyOverlayItemProbe",
+    "LegacyOverlayHudProbe",
+    "LegacyOverlayHandProbe",
+    "LegacyGlint040Probe",
+    "LegacyHurtCam040Probe",
+    "LegacyWholeClientPerformance040Mixin",
+    "LegacyPerformance040ServerMixin",
+    "LegacyPerformance040SkinsMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

@@ -1,0 +1,1391 @@
+{
+  "minecraftVersion": "1.7.10",
+  "excluded": [
+    "polyplus",
+    "crashpatch",
+    "chattweaks",
+    "polysprint"
+  ],
+  "ports": [
+    {
+      "directory": "behindyou",
+      "file": "ArcadiumLegacy-behindyou-1.7.10.jar",
+      "modId": "behindyouv3",
+      "task": ":1.7.10:assemble",
+      "outputDirectory": "versions/1.7.10/build/libs",
+      "upstream": {
+        "name": "behindyou",
+        "repository": "Polyfrost/BehindYouV3",
+        "commit": "5f36a0a770befd4600b3616af39f3f7f77f2e7ff",
+        "sourceArchiveSha256": "2622307bb2b4a5da546f7d0aba979aaf4fbb0e7bb570cf836283130be426cd29",
+        "sourceArchiveBytes": 205563
+      },
+      "licenseFile": "LICENSE",
+      "licenseSha256": "445deae17b55808beb8a0851bf0fa595f32c460ec2eb956b234160209bba5ad2",
+      "sourceFiles": 33,
+      "license": "GPL-3.0-only",
+      "upstreamMetadataLicense": "LGPL-3.0",
+      "licenseNote": "The original LICENSE is GPL-3.0. Upstream Fabric metadata declared LGPL-3.0; the port follows the included GPL-3.0 license. Original license files and source notices are retained."
+    },
+    {
+      "directory": "betterhurtcam",
+      "file": "ArcadiumLegacy-betterhurtcam-1.7.10.jar",
+      "modId": "betterhurtcam",
+      "task": "assemble",
+      "outputDirectory": "build/libs",
+      "upstream": {
+        "name": "betterhurtcam",
+        "repository": "Polyfrost/betterhurtcam",
+        "host": "github.com",
+        "commit": "94eb8b594cedb65fa0cf2727c6b252c65424ddad",
+        "sourceArchiveUrl": "https://codeload.github.com/Polyfrost/betterhurtcam/zip/94eb8b594cedb65fa0cf2727c6b252c65424ddad",
+        "sourceArchiveSha256": "eae4191432c5a270d2f8af335a3e92ea1083ad3bdae1dccc8b17f7dccc3f7201",
+        "sourceArchiveBytes": 143375
+      },
+      "licenseFile": "LICENSE",
+      "licenseSha256": "645090137e12ef9bc0bfff3efd20bc186a10df316171dc01235f4a57e9407990",
+      "sourceFiles": 16
+    },
+    {
+      "directory": "betternightvision",
+      "file": "ArcadiumLegacy-betternightvision-1.7.10.jar",
+      "modId": "betternightvision",
+      "task": ":1.7.10:assemble",
+      "outputDirectory": "versions/1.7.10/build/libs",
+      "upstream": {
+        "name": "betternightvision",
+        "file": "betternightvision-1.0.5+1.8.9-fabric.jar",
+        "sha1": "4e585c417e42cc8ed4dd77f1808825e7d076c5d5",
+        "version": "1.0.5",
+        "published": "2026-10-03T03:07:35.222032Z",
+        "source": "https://codeberg.org/MicrocontrollersDev/BetterNightVision",
+        "license": {
+          "id": "LGPL-3.0-only",
+          "name": "GNU Lesser General Public License v3.0 only",
+          "url": null
+        },
+        "repository": "MicrocontrollersDev/BetterNightVision",
+        "upstreamHost": "codeberg.org",
+        "commit": "a1f520987634378c953d099b9d1b753b9f722aa2",
+        "branch": "1.8.9",
+        "sourceArchiveSha256": "169f7e7afcc9ee76b3d26cd84ba482bfd199758f6da1d71ae6554d3a319e1cc0",
+        "sourceArchiveBytes": 63470,
+        "sourceFiles": 21,
+        "sourceArchiveUrl": "https://codeberg.org/MicrocontrollersDev/BetterNightVision/archive/a1f520987634378c953d099b9d1b753b9f722aa2.zip",
+        "commitMessage": "fix publishing\n"
+      },
+      "licenseFile": "LICENSE",
+      "licenseSha256": "a5681bf9b05db14d86776930017c647ad9e6e56ff6bbcfdf21e5848288dfaf1b",
+      "sourceFiles": 17
+    },
+    {
+      "directory": "betterscreens",
+      "file": "ArcadiumLegacy-betterscreens-1.7.10.jar",
+      "modId": "betterscreens",
+      "task": "assemble",
+      "outputDirectory": "build/libs",
+      "upstream": {
+        "name": "betterscreens",
+        "repository": "MicrocontrollersDev/Better-Screens",
+        "branch": "1.8.9",
+        "commit": "bd6dc41661b2f3cb9dcfc5f6403e23a5ef2bb748",
+        "sourceArchiveSha256": "164e1aafa8d5bb97547e7afae7ff9e0bd63364c817630cfadb7238235999efce",
+        "sourceArchiveBytes": 100127,
+        "sourceFiles": 49,
+        "upstreamHost": "codeberg.org"
+      },
+      "licenseFile": "LICENSE",
+      "licenseSha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
+      "sourceFiles": 46
+    },
+    {
+      "directory": "blockoverlay",
+      "file": "ArcadiumLegacy-blockoverlay-1.7.10.jar",
+      "modId": "custom-block-highlight",
+      "task": ":1.7.10:assemble",
+      "outputDirectory": "versions/1.7.10/build/libs",
+      "upstream": {
+        "name": "blockoverlay",
+        "repository": "Tektonikal/CustomBlockHighlight",
+        "branch": "legacy",
+        "commit": "92174dd96c1ecebcef935a51e48721fcf67f10f3",
+        "sourceArchiveSha256": "4f0bc3d87368676e1cd65711b36b5ac1710b9dbf00cc6a40ae816694e105d08d",
+        "sourceArchiveBytes": 201351,
+        "sourceFiles": 74
+      },
+      "licenseFile": "LICENSE",
+      "licenseSha256": "f8101500194411a59f9a3e6f4877c73bf176f9129279fca7c54238a2a8d2d82c",
+      "sourceFiles": 77
+    },
+    {
+      "directory": "chatting",
+      "file": "ArcadiumLegacy-chatting-1.7.10.jar",
+      "modId": "chatting",
+      "task": ":1.7.10:assemble",
+      "outputDirectory": "versions/1.7.10/build/libs",
+      "upstream": {
+        "name": "chatting",
+        "repository": "Polyfrost/Chatting",
+        "branch": "main",
+        "commit": "0145e4b96ffe8972559af424f96a5b1be523d838",
+        "sourceArchiveSha256": "9297d7ab012293a3f89c1c8ed9c2551197cbab91053dfdf58fdafcc355e32cf5",
+        "sourceArchiveBytes": 185247,
+        "sourceFiles": 85,
+        "upstreamHost": "github.com"
+      },
+      "licenseFile": "LICENSE",
+      "licenseSha256": "f8101500194411a59f9a3e6f4877c73bf176f9129279fca7c54238a2a8d2d82c",
+      "sourceFiles": 81,
+      "license": "GPL-3.0-only",
+      "upstreamMetadataLicense": "LGPL-3.0-or-later",
+      "licenseNote": "The original LICENSE is GPL-3.0. Upstream Fabric metadata declared LGPL-3.0-or-later; the port follows the included GPL-3.0 license. Original license files and source notices are retained."
+    },
+    {
+      "directory": "colorsaturation",
+      "file": "ArcadiumLegacy-colorsaturation-1.7.10.jar",
+      "modId": "colorsaturation",
+      "task": ":1.7.10:assemble",
+      "outputDirectory": "versions/1.7.10/build/libs",
+      "upstream": {
+        "name": "colorsaturation",
+        "file": "colorsaturation-1.3.0+1.8.9.jar",
+        "sha1": "57b62543de7994d3ede8ecb331762afdfe17c0ad",
+        "version": "v1.3.0",
+        "published": "2026-10-01T20:36:49.236615Z",
+        "source": "https://github.com/Polyfrost/ColorSaturation",
+        "license": {
+          "id": "LicenseRef-GPL-3.0-with-Minecraft-Linking-Exception",
+          "name": "",
+          "url": "https://raw.githubusercontent.com/Polyfrost/ColorSaturation/main/LICENSE"
+        },
+        "repository": "Polyfrost/ColorSaturation",
+        "upstreamHost": "github.com",
+        "commit": "29378db76259f5410e434c938a35ae60635c6c7f",
+        "branch": "default",
+        "sourceArchiveSha256": "e8c2e260b9ce1a0f61fedd2447962e2b31339d0a5ad0d5fad949689fa3416502",
+        "sourceArchiveBytes": 10435158,
+        "sourceFiles": 50,
+        "sourceArchiveUrl": "https://codeload.github.com/Polyfrost/ColorSaturation/zip/29378db76259f5410e434c938a35ae60635c6c7f",
+        "commitMessage": "ci: don't build modern"
+      },
+      "licenseFile": "LICENSE",
+      "licenseSha256": "f8101500194411a59f9a3e6f4877c73bf176f9129279fca7c54238a2a8d2d82c",
+      "sourceFiles": 34
+    },
+    {
+      "directory": "confirmdisconnect",
+      "file": "ArcadiumLegacy-confirmdisconnect-1.7.10.jar",
+      "modId": "confirmdisconnect",
+      "task": "assemble",
+      "outputDirectory": "build/libs",
+      "upstream": {
+        "name": "confirmdisconnect",
+        "repository": "MicrocontrollersDev/Confirm-Disconnect",
+        "branch": "1.8.9",
+        "commit": "d89d2e7a5b84e645512edd6d606e4df3363bf5d5",
+        "sourceArchiveSha256": "0223b5dc4a4830acacf4af998d223738016bb9f1b8dc9547fc99be440272e6c4",
+        "sourceArchiveBytes": 82603,
+        "sourceFiles": 22,
+        "upstreamHost": "codeberg.org"
+      },
+      "licenseFile": "LICENSE",
+      "licenseSha256": "e3a994d82e644b03a792a930f574002658412f62407f5fee083f2555c5f23118",
+      "sourceFiles": 19
+    },
+    {
+      "directory": "confirmresetkeys",
+      "file": "ArcadiumLegacy-confirmresetkeys-1.7.10.jar",
+      "modId": "confirmresetkeys",
+      "task": "assemble",
+      "outputDirectory": "build/libs",
+      "upstream": {
+        "name": "confirmresetkeys",
+        "repository": "MicrocontrollersDev/ConfirmResetKeys",
+        "branch": "1.8.9",
+        "commit": "dffb63eee779f4612b75c884346772414932d4cb",
+        "sourceArchiveSha256": "84213d468ffe061c3d42ae31157c6e17b2df8767f59fa807b0d93771ef6dae2e",
+        "sourceArchiveBytes": 78532,
+        "sourceFiles": 20,
+        "upstreamHost": "codeberg.org"
+      },
+      "licenseFile": "LICENSE",
+      "licenseSha256": "a5681bf9b05db14d86776930017c647ad9e6e56ff6bbcfdf21e5848288dfaf1b",
+      "sourceFiles": 17
+    },
+    {
+      "directory": "countdown",
+      "file": "ArcadiumLegacy-countdown-1.7.10.jar",
+      "modId": "countdown",
+      "task": ":1.7.10:assemble",
+      "outputDirectory": "versions/1.7.10/build/libs",
+      "upstream": {
+        "name": "countdown",
+        "repository": "chromatic/TNTCountdown",
+        "branch": "master",
+        "commit": "20e698e476594c94fdc90a69aaf7ffd897fb435b",
+        "sourceArchiveSha256": "5bdac5a1efdd5cd2122435ac246379c44ba16ae5ac4da68bbc2270b1347b4ee4",
+        "sourceArchiveBytes": 77751,
+        "sourceFiles": 23,
+        "upstreamHost": "codeberg.org"
+      },
+      "licenseFile": "LICENSE",
+      "licenseSha256": "8b1ba204bb69a0ade2bfcf65ef294a920f6bb361b317dba43c7ef29d96332b9b",
+      "sourceFiles": 20
+    },
+    {
+      "directory": "damagetint",
+      "file": "ArcadiumLegacy-damagetint-1.7.10.jar",
+      "modId": "damagetint",
+      "task": ":1.7.10:assemble",
+      "outputDirectory": "versions/1.7.10/build/libs",
+      "upstream": {
+        "name": "damagetint",
+        "file": "damagetint-3.7.2+1.8.9.jar",
+        "sha1": "2b741162c30b1fafd8eb3523ac372c563c6d6e8d",
+        "version": "v3.7.2",
+        "published": "2026-10-02T09:32:30.348738Z",
+        "source": "https://github.com/Polyfrost/DamageTint/",
+        "license": {
+          "id": "LGPL-3.0-only",
+          "name": "GNU Lesser General Public License v3.0 only",
+          "url": null
+        },
+        "repository": "Polyfrost/DamageTint",
+        "upstreamHost": "github.com",
+        "commit": "1d9584b5ebe9424470fbf15cbf323996aacf6aa9",
+        "branch": "default",
+        "sourceArchiveSha256": "9a7e4d592d2132dc78ac92e095a637525fa9e24d3fec8642422e6d6256e1b077",
+        "sourceArchiveBytes": 82999,
+        "sourceFiles": 39,
+        "sourceArchiveUrl": "https://codeload.github.com/Polyfrost/DamageTint/zip/1d9584b5ebe9424470fbf15cbf323996aacf6aa9",
+        "commitMessage": "Merge branch 'main' into legacy"
+      },
+      "licenseFile": "LICENSE",
+      "licenseSha256": "e3a994d82e644b03a792a930f574002658412f62407f5fee083f2555c5f23118",
+      "sourceFiles": 37
+    },
+    {
+      "directory": "droppeditemtweaks",
+      "file": "ArcadiumLegacy-droppeditemtweaks-1.7.10.jar",
+      "modId": "droppeditemtweaks",
+      "task": ":1.7.10:assemble",
+      "outputDirectory": "versions/1.7.10/build/libs",
+      "upstream": {
+        "name": "droppeditemtweaks",
+        "file": "droppeditemtweaks-2.0.1+1.8.9-fabric.jar",
+        "sha1": "ce7f7e0bd3c0aa261f69346e63c03670ff910d82",
+        "version": "2.0.1",
+        "published": "2026-10-03T03:01:41.773876Z",
+        "source": "https://codeberg.org/MicrocontrollersDev/DroppedItemTweaks",
+        "license": {
+          "id": "LGPL-3.0-only",
+          "name": "GNU Lesser General Public License v3.0 only",
+          "url": null
+        },
+        "repository": "MicrocontrollersDev/DroppedItemTweaks",
+        "upstreamHost": "codeberg.org",
+        "commit": "db618ffd8196c3be728c11a4f71f903d2922605e",
+        "branch": "1.8.9",
+        "sourceArchiveSha256": "a49b663774a345aca3c77b6cf2da7ab5fff486ecb250ef805791b1fd9cffe25e",
+        "sourceArchiveBytes": 306638,
+        "sourceFiles": 21,
+        "sourceArchiveUrl": "https://codeberg.org/MicrocontrollersDev/DroppedItemTweaks/archive/db618ffd8196c3be728c11a4f71f903d2922605e.zip",
+        "commitMessage": "fix publish\n"
+      },
+      "licenseFile": "LICENSE",
+      "licenseSha256": "a5681bf9b05db14d86776930017c647ad9e6e56ff6bbcfdf21e5848288dfaf1b",
+      "sourceFiles": 19
+    },
+    {
+      "directory": "evergreenhud",
+      "file": "ArcadiumLegacy-evergreenhud-1.7.10.jar",
+      "modId": "evergreenhud",
+      "task": ":1.7.10:assemble",
+      "outputDirectory": "versions/1.7.10/build/libs",
+      "upstream": {
+        "name": "evergreenhud",
+        "repository": "Polyfrost/EvergreenHUD",
+        "branch": "oneconfig",
+        "commit": "1e226fd523b45fa2194777d5b6974b9175c13f3a",
+        "sourceArchiveSha256": "7f0cacc9b2880aa2993cbc4c8905e5d5b7617608e5d97cddb4965e93d9d0a9c4",
+        "sourceArchiveBytes": 167248,
+        "sourceFiles": 112
+      },
+      "licenseFile": "LICENSE",
+      "licenseSha256": "f8101500194411a59f9a3e6f4877c73bf176f9129279fca7c54238a2a8d2d82c",
+      "sourceFiles": 113
+    },
+    {
+      "directory": "freelook",
+      "file": "ArcadiumLegacy-freelook-1.7.10.jar",
+      "modId": "freelook",
+      "task": ":1.7.10:assemble",
+      "outputDirectory": "versions/1.7.10/build/libs",
+      "upstream": {
+        "name": "freelook",
+        "repository": "https://codeberg.org/chromatic/Freelook",
+        "commit": "f2b7fbf1bb4a61c5f9182f8f673e658f5a1ddbc4",
+        "sourceArchiveSha256": "be232797ae718c548c97b5ed5bc98b2448d6bbab9a5acb047095d52df843b11c",
+        "sourceArchiveBytes": 79276
+      },
+      "licenseFile": "LICENSE",
+      "licenseSha256": "a5681bf9b05db14d86776930017c647ad9e6e56ff6bbcfdf21e5848288dfaf1b",
+      "sourceFiles": 33
+    },
+    {
+      "directory": "glintcolorizer",
+      "file": "ArcadiumLegacy-glintcolorizer-1.7.10.jar",
+      "modId": "glintcolorizer",
+      "task": ":1.7.10:assemble",
+      "outputDirectory": "versions/1.7.10/build/libs",
+      "upstream": {
+        "name": "glintcolorizer",
+        "file": "glintcolorizer-3.0.0+1.8.9.jar",
+        "sha1": "fcb8d9ffe4c431bfacc62ebe6297779f515556a0",
+        "version": "v3.0.0",
+        "published": "2026-10-02T01:42:37.096938Z",
+        "source": "https://github.com/Polyfrost/GlintColorizer",
+        "license": {
+          "id": "LicenseRef-GPL-3.0-with-Minecraft-Linking-Exception",
+          "name": "",
+          "url": "https://raw.githubusercontent.com/Polyfrost/GlintColorizer/main/LICENSE"
+        },
+        "repository": "Polyfrost/GlintColorizer",
+        "upstreamHost": "github.com",
+        "commit": "133d498051d84b39ac6a88f604d11addd19fdc12",
+        "branch": "default",
+        "sourceArchiveSha256": "1578427ac48b13a3bb2314071d4fba81aba4952120dc28bdae7d78418868554a",
+        "sourceArchiveBytes": 391194,
+        "sourceFiles": 32,
+        "sourceArchiveUrl": "https://codeload.github.com/Polyfrost/GlintColorizer/zip/133d498051d84b39ac6a88f604d11addd19fdc12",
+        "commitMessage": "changelog"
+      },
+      "licenseFile": "LICENSE",
+      "licenseSha256": "f8101500194411a59f9a3e6f4877c73bf176f9129279fca7c54238a2a8d2d82c",
+      "sourceFiles": 26
+    },
+    {
+      "directory": "guiblur",
+      "file": "ArcadiumLegacy-guiblur-1.7.10.jar",
+      "modId": "blur",
+      "task": "build",
+      "outputDirectory": "build/libs",
+      "upstream": {
+        "name": "guiblur",
+        "repository": "Polyfrost/Blur",
+        "host": "github.com",
+        "commit": "7693f7673c5975b0e3ce1e06704670bd55e17015",
+        "sourceArchiveUrl": "https://codeload.github.com/Polyfrost/Blur/zip/7693f7673c5975b0e3ce1e06704670bd55e17015",
+        "sourceArchiveSha256": "9175b7b93c4313d2b3f67b5eb31a98e5527a799e09b67888695f7683a471d93e",
+        "sourceArchiveBytes": 88389
+      },
+      "licenseFile": "LICENSE",
+      "licenseSha256": "904d3a634eb1d25c97cc5fb0a638253fa90f7c3b70e8570b08e3ec2c4187b1fe",
+      "sourceFiles": 27
+    },
+    {
+      "directory": "itemphysiclite",
+      "file": "ArcadiumLegacy-itemphysiclite-1.7.10.jar",
+      "modId": "itemphysiclite",
+      "task": "assemble",
+      "outputDirectory": "build/libs",
+      "upstream": {
+        "name": "itemphysiclite",
+        "file": "O-ItemPhysicLite-1.1.0.jar",
+        "sha1": "8154421c5814c927972a3f1b62aa28cc4c9544ba",
+        "version": "1.1.0",
+        "published": "2026-09-28T21:07:58.269160Z",
+        "source": "https://github.com/Tryflle/O-ItemPhysicLite",
+        "license": {
+          "id": "GPL-3.0-only",
+          "name": "GNU General Public License v3.0 only",
+          "url": null
+        },
+        "repository": "Tryflle/O-ItemPhysicLite",
+        "upstreamHost": "github.com",
+        "commit": "b62f61e8381f386495a5a30c9a109d00d49f666b",
+        "branch": "default",
+        "sourceArchiveSha256": "423fb9014732824b4cff2ce66e3a53c10cb3d96fec82aec774b9e465a4d32ef6",
+        "sourceArchiveBytes": 69276,
+        "sourceFiles": 16,
+        "sourceArchiveUrl": "https://codeload.github.com/Tryflle/O-ItemPhysicLite/zip/b62f61e8381f386495a5a30c9a109d00d49f666b",
+        "commitMessage": "feat: config via osl"
+      },
+      "licenseFile": "LICENSE",
+      "licenseSha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
+      "sourceFiles": 14
+    },
+    {
+      "directory": "mountopacity",
+      "file": "ArcadiumLegacy-mountopacity-1.7.10.jar",
+      "modId": "mountopacity",
+      "task": ":1.7.10:assemble",
+      "outputDirectory": "versions/1.7.10/build/libs",
+      "upstream": {
+        "name": "mountopacity",
+        "file": "mountopacity-1.2.3+1.8.9-fabric.jar",
+        "sha1": "b9da5f5c4480d895cd5191b5c580957dc1206383",
+        "version": "1.2.3",
+        "published": "2026-10-03T02:58:59.815967Z",
+        "source": "https://codeberg.org/MicrocontrollersDev/MountOpacity",
+        "license": {
+          "id": "LGPL-3.0-only",
+          "name": "GNU Lesser General Public License v3.0 only",
+          "url": null
+        },
+        "repository": "MicrocontrollersDev/MountOpacity",
+        "upstreamHost": "codeberg.org",
+        "commit": "74c483f90fb517abfdb6ec83cea8d0c76c4bf425",
+        "branch": "1.8.9",
+        "sourceArchiveSha256": "71d5a15cd3887ce3537ae845b6201408f0c181d8a84927701365ce1ae8b058cf",
+        "sourceArchiveBytes": 77073,
+        "sourceFiles": 21,
+        "sourceArchiveUrl": "https://codeberg.org/MicrocontrollersDev/MountOpacity/archive/74c483f90fb517abfdb6ec83cea8d0c76c4bf425.zip",
+        "commitMessage": "fix only working for horses\n"
+      },
+      "licenseFile": "LICENSE",
+      "licenseSha256": "a5681bf9b05db14d86776930017c647ad9e6e56ff6bbcfdf21e5848288dfaf1b",
+      "sourceFiles": 19
+    },
+    {
+      "directory": "numericalenchantments",
+      "file": "ArcadiumLegacy-numericalenchantments-1.7.10.jar",
+      "modId": "numericalenchantments",
+      "task": ":1.7.10:assemble",
+      "outputDirectory": "versions/1.7.10/build/libs",
+      "upstream": {
+        "name": "numericalenchantments",
+        "file": "numericalenchantments-1.0.2+1.8.9-fabric.jar",
+        "sha1": "06aca14d17663cd919a25badc8c52cbba0289ef4",
+        "version": "1.0.2",
+        "published": "2026-10-03T03:15:11.897398Z",
+        "source": "https://codeberg.org/MicrocontrollersDev/Numerical-Enchantments",
+        "license": {
+          "id": "LGPL-3.0-only",
+          "name": "GNU Lesser General Public License v3.0 only",
+          "url": null
+        },
+        "repository": "MicrocontrollersDev/Numerical-Enchantments",
+        "upstreamHost": "codeberg.org",
+        "commit": "8cb2e5bf30459c455b907c9758b680314e0edeaf",
+        "branch": "1.8.9",
+        "sourceArchiveSha256": "6f1e874468f553d6bc3b9d2fc86376dc72e21518c331db0c78e11df97c5bd07b",
+        "sourceArchiveBytes": 65259,
+        "sourceFiles": 22,
+        "sourceArchiveUrl": "https://codeberg.org/MicrocontrollersDev/Numerical-Enchantments/archive/8cb2e5bf30459c455b907c9758b680314e0edeaf.zip",
+        "commitMessage": "fix publish\n"
+      },
+      "licenseFile": "LICENSE",
+      "licenseSha256": "a5681bf9b05db14d86776930017c647ad9e6e56ff6bbcfdf21e5848288dfaf1b",
+      "sourceFiles": 18
+    },
+    {
+      "directory": "overflowanimations",
+      "file": "ArcadiumLegacy-overflowanimations-1.7.10.jar",
+      "modId": "overflowanimations",
+      "task": ":1.7.10:assemble",
+      "outputDirectory": "versions/1.7.10/build/libs",
+      "upstream": {
+        "name": "overflowanimations",
+        "repository": "Polyfrost/OverflowAnimationsV2",
+        "commit": "033f0d2e42f3d4b6929585db73bfca59c49e72ab",
+        "sourceArchiveSha256": "5285ed0bedf1dd3d870e2804c5a78f6a2e10fddd1f4670e201d3d34a97f6880b",
+        "sourceArchiveBytes": 5639637,
+        "sourceArchiveUrl": "https://codeload.github.com/Polyfrost/OverflowAnimationsV2/zip/033f0d2e42f3d4b6929585db73bfca59c49e72ab",
+        "unchangedSourceFilesVerified": 421
+      },
+      "licenseFile": "LICENSE",
+      "licenseSha256": "11d6283d3263d9b69459de7a82f6c6eca6a1456c2e7de0f8aca3a873b48b730c",
+      "sourceFiles": 477
+    },
+    {
+      "directory": "overflowparticles",
+      "file": "ArcadiumLegacy-overflowparticles-1.7.10.jar",
+      "modId": "overflowparticles",
+      "task": ":1.7.10:assemble",
+      "outputDirectory": "versions/1.7.10/build/libs",
+      "upstream": {
+        "name": "overflowparticles",
+        "file": "overflowparticles-1.2.1+1.8.9.jar",
+        "sha1": "8b4b2b7f172f72f7f2f35b648f88d0bae9870c67",
+        "version": "v1.2.1",
+        "published": "2026-10-02T09:56:22.006133Z",
+        "source": "https://github.com/Polyfrost/OverflowParticles",
+        "license": {
+          "id": "LicenseRef-GPL-3.0-with-Minecraft-Linking-Exception",
+          "name": "",
+          "url": "https://raw.githubusercontent.com/Polyfrost/OverflowParticles/main/LICENSE"
+        },
+        "repository": "Polyfrost/OverflowParticles",
+        "upstreamHost": "github.com",
+        "commit": "9b889cf6764ff021e1ca6dc3e4fb7f8f7831a245",
+        "branch": "default",
+        "sourceArchiveSha256": "7f6667bcef30b238b5a673b34f5f63d6a373bf736158eda57ddddc1fe9638253",
+        "sourceArchiveBytes": 759862,
+        "sourceFiles": 72,
+        "sourceArchiveUrl": "https://codeload.github.com/Polyfrost/OverflowParticles/zip/9b889cf6764ff021e1ca6dc3e4fb7f8f7831a245",
+        "commitMessage": "bump oneconfig to 1.2.10"
+      },
+      "licenseFile": "LICENSE",
+      "licenseSha256": "445deae17b55808beb8a0851bf0fa595f32c460ec2eb956b234160209bba5ad2",
+      "sourceFiles": 64,
+      "license": "GPL-3.0-only",
+      "licenseNote": "The upstream LICENSE is GPL-3.0; its Fabric metadata incorrectly declared LGPL-3.0. The port follows the included GPL-3.0 license."
+    },
+    {
+      "directory": "overlaytweaks",
+      "file": "ArcadiumLegacy-overlaytweaks-1.7.10.jar",
+      "modId": "overlaytweaks",
+      "task": ":1.7.10:assemble",
+      "outputDirectory": "versions/1.7.10/build/libs",
+      "upstream": {
+        "name": "overlaytweaks",
+        "file": "overlaytweaks-2.0.1+1.8.9-fabric.jar",
+        "sha1": "d536b25c1384e6d3bd482594e717b8785beebf4e",
+        "version": "2.0.1",
+        "published": "2026-10-03T02:47:11.784291Z",
+        "source": "https://codeberg.org/MicrocontrollersDev/OverlayTweaks",
+        "license": {
+          "id": "LGPL-3.0-only",
+          "name": "GNU Lesser General Public License v3.0 only",
+          "url": null
+        },
+        "repository": "MicrocontrollersDev/OverlayTweaks",
+        "upstreamHost": "codeberg.org",
+        "commit": "9b73af3c9da242796a897f905c748fa805447dbc",
+        "branch": "1.8.9",
+        "sourceArchiveSha256": "9a094908aa945d5b87adf972628867bb2f6643045cd1bfe9a314879a8e7595b6",
+        "sourceArchiveBytes": 70409,
+        "sourceFiles": 25,
+        "sourceArchiveUrl": "https://codeberg.org/MicrocontrollersDev/OverlayTweaks/archive/9b73af3c9da242796a897f905c748fa805447dbc.zip",
+        "commitMessage": "fix publish\n"
+      },
+      "licenseFile": "LICENSE",
+      "licenseSha256": "a5681bf9b05db14d86776930017c647ad9e6e56ff6bbcfdf21e5848288dfaf1b",
+      "sourceFiles": 22
+    },
+    {
+      "directory": "polyblur",
+      "file": "ArcadiumLegacy-polyblur-1.7.10.jar",
+      "modId": "polyblur",
+      "task": ":1.7.10:assemble",
+      "outputDirectory": "versions/1.7.10/build/libs",
+      "upstream": {
+        "name": "polyblur",
+        "file": "polyblur-2.2.6+1.8.9.jar",
+        "sha1": "96fc31aa7de8a2b9d94945e6b9f62c2fa39b1301",
+        "version": "v2.2.6",
+        "published": "2026-10-08T04:44:53.193516Z",
+        "source": "https://github.com/Polyfrost/PolyBlur",
+        "license": {
+          "id": "LicenseRef-GPL-3.0-with-Minecraft-Linking-Exception",
+          "name": "",
+          "url": "https://raw.githubusercontent.com/Polyfrost/PolyBlur/main/LICENSE"
+        },
+        "repository": "Polyfrost/PolyBlur",
+        "upstreamHost": "github.com",
+        "commit": "5c7983cb4c8098571a65d5912bb918847d0ab791",
+        "branch": "default",
+        "sourceArchiveSha256": "73c8c404560886ce2bfabc7c94b0624138eac20ba4e11f5e6b2b7e42b2839bcf",
+        "sourceArchiveBytes": 170689,
+        "sourceFiles": 106,
+        "sourceArchiveUrl": "https://codeload.github.com/Polyfrost/PolyBlur/zip/5c7983cb4c8098571a65d5912bb918847d0ab791",
+        "commitMessage": "2.2.6"
+      },
+      "licenseFile": "LICENSE",
+      "licenseSha256": "f8101500194411a59f9a3e6f4877c73bf176f9129279fca7c54238a2a8d2d82c",
+      "sourceFiles": 76
+    },
+    {
+      "directory": "polyhitbox",
+      "file": "ArcadiumLegacy-polyhitbox-1.7.10.jar",
+      "modId": "polyhitbox",
+      "task": ":1.7.10:assemble",
+      "outputDirectory": "versions/1.7.10/build/libs",
+      "upstream": {
+        "name": "polyhitbox",
+        "file": "polyhitbox-1.3.2+1.8.9.jar",
+        "sha1": "307d1efcd37e4b16e0233e0e9ffda2352c467db3",
+        "version": "v1.3.2",
+        "published": "2026-10-06T09:49:54.567384Z",
+        "source": "https://github.com/Polyfrost/PolyHitbox",
+        "license": {
+          "id": "LicenseRef-GPL-3.0-with-Minecraft-Linking-Exception",
+          "name": "",
+          "url": "https://raw.githubusercontent.com/Polyfrost/PolyHitbox/main/LICENSE"
+        },
+        "repository": "Polyfrost/PolyHitbox",
+        "upstreamHost": "github.com",
+        "commit": "3a6d883d00d4d90089dd4269aad556127db71759",
+        "branch": "default",
+        "sourceArchiveSha256": "6708985235c3be8973277435c482b19f29bb087aa6d20d0a68bd57331c144395",
+        "sourceArchiveBytes": 586907,
+        "sourceFiles": 50,
+        "sourceArchiveUrl": "https://codeload.github.com/Polyfrost/PolyHitbox/zip/3a6d883d00d4d90089dd4269aad556127db71759",
+        "commitMessage": "feat: accurate hitbox option for 1.8.9"
+      },
+      "licenseFile": "LICENSE",
+      "licenseSha256": "f8101500194411a59f9a3e6f4877c73bf176f9129279fca7c54238a2a8d2d82c",
+      "sourceFiles": 43,
+      "license": "GPL-3.0-only",
+      "upstreamMetadataLicense": "LGPL-3.0-or-later",
+      "licenseNote": "The original LICENSE is GPL-3.0. Upstream Fabric metadata declared LGPL-3.0-or-later; the port follows the included GPL-3.0 license. Original license files and source notices are retained."
+    },
+    {
+      "directory": "polynametag",
+      "file": "ArcadiumLegacy-polynametag-1.7.10.jar",
+      "modId": "polynametag",
+      "task": ":1.7.10:assemble",
+      "outputDirectory": "versions/1.7.10/build/libs",
+      "upstream": {
+        "name": "polynametag",
+        "file": "polynametag-1.2.2+1.8.9.jar",
+        "sha1": "0138c23862c1deaaa251226c825b25495b024dba",
+        "version": "v1.2.2",
+        "published": "2026-10-05T15:51:45.515793Z",
+        "source": "https://github.com/Polyfrost/PolyNametag",
+        "license": {
+          "id": "LicenseRef-GPL-3.0-with-Minecraft-Linking-Exception",
+          "name": "",
+          "url": "https://raw.githubusercontent.com/Polyfrost/PolyNametag/main/LICENSE"
+        },
+        "repository": "Polyfrost/PolyNametag",
+        "upstreamHost": "github.com",
+        "commit": "36ced06c23dc2f300c7f278cc2f58a5f4c9329b6",
+        "branch": "default",
+        "sourceArchiveSha256": "54d057273b9fea106276cc8dcc2b6ed351c4ed96a31f2df5a15bdf931199a79b",
+        "sourceArchiveBytes": 1819240,
+        "sourceFiles": 43,
+        "sourceArchiveUrl": "https://codeload.github.com/Polyfrost/PolyNametag/zip/36ced06c23dc2f300c7f278cc2f58a5f4c9329b6",
+        "commitMessage": "chore: bump to 1.2.2"
+      },
+      "licenseFile": "LICENSE",
+      "licenseSha256": "f8101500194411a59f9a3e6f4877c73bf176f9129279fca7c54238a2a8d2d82c",
+      "sourceFiles": 36
+    },
+    {
+      "directory": "polytime",
+      "file": "ArcadiumLegacy-polytime-1.7.10.jar",
+      "modId": "polytime",
+      "task": ":1.7.10:assemble",
+      "outputDirectory": "versions/1.7.10/build/libs",
+      "upstream": {
+        "name": "polytime",
+        "repository": "Polyfrost/PolyTime",
+        "commit": "52ff898da59f7783f553e9466e35855e0ecfd8e2",
+        "sourceArchiveSha256": "fcce96a30446104cf25ef60215097b5a96354c11e0949f21fdce3004d5734769",
+        "sourceArchiveBytes": 93370
+      },
+      "licenseFile": "LICENSE",
+      "licenseSha256": "445deae17b55808beb8a0851bf0fa595f32c460ec2eb956b234160209bba5ad2",
+      "sourceFiles": 28
+    },
+    {
+      "directory": "polyweather",
+      "file": "ArcadiumLegacy-polyweather-1.7.10.jar",
+      "modId": "polyweather",
+      "task": ":1.7.10:assemble",
+      "outputDirectory": "versions/1.7.10/build/libs",
+      "upstream": {
+        "name": "polyweather",
+        "repository": "Polyfrost/PolyWeather",
+        "commit": "228c5a1579dae4d6b5886b398d8749693624e726",
+        "sourceArchiveSha256": "264e6a8a79787e2331f7b8bb604af5c6150a6df3706e4bc12d675fa1c77bc68c",
+        "sourceArchiveBytes": 99622
+      },
+      "licenseFile": "LICENSE",
+      "licenseSha256": "445deae17b55808beb8a0851bf0fa595f32c460ec2eb956b234160209bba5ad2",
+      "sourceFiles": 34
+    },
+    {
+      "directory": "polyzoom",
+      "file": "ArcadiumLegacy-polyzoom-1.7.10.jar",
+      "modId": "polyzoom",
+      "task": "assemble",
+      "outputDirectory": "build/libs",
+      "upstream": {
+        "name": "polyzoom",
+        "repository": "Polyfrost/PolyZoom",
+        "commit": "dcca8bf869fb4b458b5fc7eb7e7ee97c2ec54017",
+        "sourceArchiveSha256": "e1b2046071b66d94bf5502fffe693f14078773de7493dda9d68c4ebd4feb120f",
+        "sourceArchiveBytes": 74554
+      },
+      "licenseFile": "LICENSE",
+      "licenseSha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
+      "sourceFiles": 18
+    },
+    {
+      "directory": "redaction",
+      "file": "ArcadiumLegacy-redaction-1.7.10.jar",
+      "modId": "redaction",
+      "task": ":1.7.10:assemble",
+      "outputDirectory": "versions/1.7.10/build/libs",
+      "upstream": {
+        "name": "redaction",
+        "file": "redaction-2.1.0+1.8.9.jar",
+        "sha1": "26c1098fe10e08c1bbda3616a768dd94c2bbffc5",
+        "version": "v2.1.0",
+        "published": "2026-10-02T10:44:21.714965Z",
+        "source": "https://github.com/Polyfrost/REDACTION/",
+        "license": {
+          "id": "LicenseRef-GPL-3.0-with-Minecraft-Linking-Exception",
+          "name": "",
+          "url": "https://raw.githubusercontent.com/Polyfrost/REDACTION/main/LICENSE"
+        },
+        "repository": "Polyfrost/REDACTION",
+        "upstreamHost": "github.com",
+        "commit": "3c397634159e532816fc74c64ce7f02c04753a3d",
+        "branch": "default",
+        "sourceArchiveSha256": "5f26ca29a1c89a058f777a5c7a40da953bb50124c2bcfd1d2da09be5ab55ff33",
+        "sourceArchiveBytes": 116454,
+        "sourceFiles": 50,
+        "sourceArchiveUrl": "https://codeload.github.com/Polyfrost/REDACTION/zip/3c397634159e532816fc74c64ce7f02c04753a3d",
+        "commitMessage": "build(modrinth): fabric -> ornithe"
+      },
+      "licenseFile": "LICENSE",
+      "licenseSha256": "f8101500194411a59f9a3e6f4877c73bf176f9129279fca7c54238a2a8d2d82c",
+      "sourceFiles": 45
+    },
+    {
+      "directory": "rendertweaks",
+      "file": "ArcadiumLegacy-rendertweaks-1.7.10.jar",
+      "modId": "rendertweaks",
+      "task": ":1.7.10:assemble",
+      "outputDirectory": "versions/1.7.10/build/libs",
+      "upstream": {
+        "name": "rendertweaks",
+        "file": "rendertweaks-2.0.2+1.8.9-fabric.jar",
+        "sha1": "746cae4df352b1ec782d87c66e499bdfc7550992",
+        "version": "2.0.2",
+        "published": "2026-10-03T02:48:28.875736Z",
+        "source": "https://codeberg.org/MicrocontrollersDev/RenderTweaks",
+        "license": {
+          "id": "LGPL-3.0-only",
+          "name": "GNU Lesser General Public License v3.0 only",
+          "url": null
+        },
+        "repository": "MicrocontrollersDev/RenderTweaks",
+        "upstreamHost": "codeberg.org",
+        "commit": "ce2ceefa5946bfbe65d9d3f0e68a3f17928fef5a",
+        "branch": "1.8.9",
+        "sourceArchiveSha256": "ab5fb37fdb33c0ed5d41528b19c96c6677b6939d1abeeac2a9536a731e9fb260",
+        "sourceArchiveBytes": 88800,
+        "sourceFiles": 23,
+        "sourceArchiveUrl": "https://codeberg.org/MicrocontrollersDev/RenderTweaks/archive/ce2ceefa5946bfbe65d9d3f0e68a3f17928fef5a.zip",
+        "commitMessage": "fix upload\n"
+      },
+      "licenseFile": "LICENSE",
+      "licenseSha256": "a5681bf9b05db14d86776930017c647ad9e6e56ff6bbcfdf21e5848288dfaf1b",
+      "sourceFiles": 21
+    },
+    {
+      "directory": "sciophobia",
+      "file": "ArcadiumLegacy-sciophobia-1.7.10.jar",
+      "modId": "sciophobia",
+      "task": "assemble",
+      "outputDirectory": "build/libs",
+      "upstream": {
+        "name": "sciophobia",
+        "repository": "MicrocontrollersDev/Sciophobia",
+        "host": "codeberg.org",
+        "commit": "ad8c868c94b9317363ac3eb15916bbc1c8826878",
+        "sourceArchiveUrl": "https://codeberg.org/MicrocontrollersDev/Sciophobia/archive/ad8c868c94b9317363ac3eb15916bbc1c8826878.zip",
+        "sourceArchiveSha256": "4b1a9acbb6227481411c304ebcb19f577e83c0b18b8c97181b7591260fb07685",
+        "sourceArchiveBytes": 79891
+      },
+      "licenseFile": "LICENSE",
+      "licenseSha256": "a5681bf9b05db14d86776930017c647ad9e6e56ff6bbcfdf21e5848288dfaf1b",
+      "sourceFiles": 13
+    },
+    {
+      "directory": "screenshots",
+      "file": "ArcadiumLegacy-screenshots-1.7.10.jar",
+      "modId": "screenshotmessageenhancer",
+      "task": ":1.7.10-ornithe:assemble",
+      "outputDirectory": "versions/1.7.10-ornithe/build/libs",
+      "upstream": {
+        "name": "screenshots",
+        "repository": "TomekoYT/ScreenshotMessageEnhancer",
+        "branch": "main",
+        "commit": "efe902423f119a7b4abc49d623c49186d03ef58e",
+        "sourceArchiveSha256": "f8880e5199cda28ab32b19126a683f5daf7b561e88f855c8f2dd0b7faae77486",
+        "sourceArchiveBytes": 129227,
+        "sourceFiles": 42,
+        "upstreamHost": "github.com"
+      },
+      "licenseFile": "LICENSE",
+      "licenseSha256": "8b1ba204bb69a0ade2bfcf65ef294a920f6bb361b317dba43c7ef29d96332b9b",
+      "sourceFiles": 42
+    },
+    {
+      "directory": "scrolltweaks",
+      "file": "ArcadiumLegacy-scrolltweaks-1.7.10.jar",
+      "modId": "scrolltweaks",
+      "task": "assemble",
+      "outputDirectory": "build/libs",
+      "upstream": {
+        "name": "scrolltweaks",
+        "repository": "MicrocontrollersDev/ScrollTweaks",
+        "branch": "1.8.9",
+        "commit": "9da44c35a5ce2f9fbfde729928398ae486a0485c",
+        "sourceArchiveSha256": "a0c8193b9e516b71d2b6632d9bf91b611b205aa6509f16e0bcfe748be575dfab",
+        "sourceArchiveBytes": 87681,
+        "sourceFiles": 21,
+        "upstreamHost": "codeberg.org"
+      },
+      "licenseFile": "LICENSE",
+      "licenseSha256": "a5681bf9b05db14d86776930017c647ad9e6e56ff6bbcfdf21e5848288dfaf1b",
+      "sourceFiles": 18
+    },
+    {
+      "directory": "shaketweaks",
+      "file": "ArcadiumLegacy-shaketweaks-1.7.10.jar",
+      "modId": "shaketweaks",
+      "task": ":1.7.10:assemble",
+      "outputDirectory": "versions/1.7.10/build/libs",
+      "upstream": {
+        "name": "shaketweaks",
+        "file": "shaketweaks-1.2.3+1.8.9-fabric.jar",
+        "sha1": "4910927789b7eadffffff2c3d57637f9772e634f",
+        "version": "1.2.3",
+        "published": "2026-10-03T03:14:01.411399Z",
+        "source": "https://codeberg.org/MicrocontrollersDev/ShakeTweaks",
+        "license": {
+          "id": "LGPL-3.0-only",
+          "name": "GNU Lesser General Public License v3.0 only",
+          "url": null
+        },
+        "repository": "MicrocontrollersDev/ShakeTweaks",
+        "upstreamHost": "codeberg.org",
+        "commit": "a1cba2a118707c641a04d5063891504b8ed4271c",
+        "branch": "1.8.9",
+        "sourceArchiveSha256": "63a3a65153dc58f3f427b7dab6afad3b2b480bea0be4e0fe732131bed45e5db8",
+        "sourceArchiveBytes": 64725,
+        "sourceFiles": 22,
+        "sourceArchiveUrl": "https://codeberg.org/MicrocontrollersDev/ShakeTweaks/archive/a1cba2a118707c641a04d5063891504b8ed4271c.zip",
+        "commitMessage": "fix publish\n"
+      },
+      "licenseFile": "LICENSE",
+      "licenseSha256": "a5681bf9b05db14d86776930017c647ad9e6e56ff6bbcfdf21e5848288dfaf1b",
+      "sourceFiles": 20
+    },
+    {
+      "directory": "smoothscrolling",
+      "file": "ArcadiumLegacy-smoothscrolling-1.7.10.jar",
+      "modId": "smoothscrollingrefurbished",
+      "task": "assemble",
+      "outputDirectory": "build/libs",
+      "upstream": {
+        "name": "smoothscrolling",
+        "repository": "awruff/SmoothScrollingRefurbished",
+        "branch": "main",
+        "commit": "bbba0cfa0964799a945a2420d46a39409781a36f",
+        "sourceArchiveSha256": "6cbe090d1fc772fd449d5c4f60aa8531d754b934cc5290db42e70253b430aa9f",
+        "sourceArchiveBytes": 66724,
+        "sourceFiles": 18,
+        "upstreamHost": "github.com"
+      },
+      "licenseFile": "LICENSE",
+      "licenseSha256": "c80be01aaa790b926a0642914686dbb3dba8b788ffecd2406364b7b9edce07a0",
+      "sourceFiles": 16
+    },
+    {
+      "directory": "smoothskies",
+      "file": "ArcadiumLegacy-smoothskies-1.7.10.jar",
+      "modId": "smoothskies",
+      "task": ":1.7.10:assemble",
+      "outputDirectory": "versions/1.7.10/build/libs",
+      "upstream": {
+        "name": "smoothskies",
+        "file": "smoothskies-2.12.2+1.8.9-fabric.jar",
+        "sha1": "a29df4413daf5a1ac5819dbe27658f3f9dbb7555",
+        "version": "2.12.2",
+        "published": "2026-10-03T02:40:05.469275Z",
+        "source": "https://codeberg.org/MicrocontrollersDev/Smooth-Skies",
+        "license": {
+          "id": "LGPL-3.0-only",
+          "name": "GNU Lesser General Public License v3.0 only",
+          "url": null
+        },
+        "repository": "MicrocontrollersDev/Smooth-Skies",
+        "upstreamHost": "codeberg.org",
+        "commit": "17fdcbb789cb55f72a6421d5fbe8f05a76cb7312",
+        "branch": "1.8.9",
+        "sourceArchiveSha256": "d14ca9043f232cb86dbd5e3683e00c3a927eb402d2356a0acd7e6e6a9a7ae0c8",
+        "sourceArchiveBytes": 67973,
+        "sourceFiles": 26,
+        "sourceArchiveUrl": "https://codeberg.org/MicrocontrollersDev/Smooth-Skies/archive/17fdcbb789cb55f72a6421d5fbe8f05a76cb7312.zip",
+        "commitMessage": "fix upload\n"
+      },
+      "licenseFile": "LICENSE",
+      "licenseSha256": "a5681bf9b05db14d86776930017c647ad9e6e56ff6bbcfdf21e5848288dfaf1b",
+      "sourceFiles": 22
+    },
+    {
+      "directory": "soundtweaks",
+      "file": "ArcadiumLegacy-soundtweaks-1.7.10.jar",
+      "modId": "soundtweaks",
+      "task": ":1.7.10:assemble",
+      "outputDirectory": "versions/1.7.10/build/libs",
+      "upstream": {
+        "name": "soundtweaks",
+        "file": "soundtweaks-1.0.1+1.8.9.jar",
+        "sha1": "ffb4d845235d5638f669cd708d38571a87d70440",
+        "version": "v1.0.1",
+        "published": "2026-10-02T10:11:44.142676Z",
+        "source": "https://github.com/Polyfrost/SoundTweaks/",
+        "license": {
+          "id": "CC-BY-NC-SA-4.0",
+          "name": "Creative Commons Attribution Non Commercial Share Alike 4.0 International",
+          "url": null
+        },
+        "repository": "Polyfrost/SoundTweaks",
+        "upstreamHost": "github.com",
+        "commit": "2b3c7fb79cd4ee4215aeada06d57059cd28dc7cf",
+        "branch": "default",
+        "sourceArchiveSha256": "c19c9429597e1da0804f66e66631941dca07d787c99473cb4c1d2a15dec830b0",
+        "sourceArchiveBytes": 83042,
+        "sourceFiles": 24,
+        "sourceArchiveUrl": "https://codeload.github.com/Polyfrost/SoundTweaks/zip/2b3c7fb79cd4ee4215aeada06d57059cd28dc7cf",
+        "commitMessage": "Update CHANGELOG.md"
+      },
+      "licenseFile": "LICENSE",
+      "licenseSha256": "445deae17b55808beb8a0851bf0fa595f32c460ec2eb956b234160209bba5ad2",
+      "sourceFiles": 21,
+      "license": "GPL-3.0-only",
+      "upstreamMetadataLicense": "missing",
+      "licenseNote": "The original LICENSE is GPL-3.0. Upstream Fabric metadata declared missing; the port follows the included GPL-3.0 license. Original license files and source notices are retained."
+    },
+    {
+      "directory": "tooltipscroll",
+      "file": "ArcadiumLegacy-tooltipscroll-1.7.10.jar",
+      "modId": "tooltipscroll",
+      "task": "assemble",
+      "outputDirectory": "build/libs",
+      "upstream": {
+        "name": "tooltipscroll",
+        "repository": "Polyfrost/Tooltip-Scroll-Fabric",
+        "branch": "1.8.9",
+        "commit": "cee1f3ee3788aa9b5224d34bc00d6e76b3b6af36",
+        "sourceArchiveSha256": "abff85f970dba0a871b57e240cd9f4e289ab2c17cf4a6449507e996cf67b96b1",
+        "sourceArchiveBytes": 78971,
+        "sourceFiles": 29,
+        "upstreamHost": "github.com"
+      },
+      "licenseFile": "LICENSE",
+      "licenseSha256": "9a2b2f4aed0cfee2a6bf310d21a6ea37abd62d723a48b89f405b556aa63e69d0",
+      "sourceFiles": 25
+    },
+    {
+      "directory": "vanillahud",
+      "file": "ArcadiumLegacy-vanillahud-1.7.10.jar",
+      "modId": "vanillahud",
+      "task": ":1.7.10:assemble",
+      "outputDirectory": "versions/1.7.10/build/libs",
+      "upstream": {
+        "name": "vanillahud",
+        "repository": "Polyfrost/VanillaHUD",
+        "branch": "main",
+        "commit": "555e9e25fd3a13b7e69516708a6b386405eb1f16",
+        "sourceArchiveSha256": "0f577ce896440f2f645281ec2b374ac0d61363878f78f053400a99196d4f435f",
+        "sourceArchiveBytes": 199195,
+        "sourceFiles": 71
+      },
+      "licenseFile": "LICENSE",
+      "licenseSha256": "f8101500194411a59f9a3e6f4877c73bf176f9129279fca7c54238a2a8d2d82c",
+      "sourceFiles": 75
+    }
+  ],
+  "excludedAssets": [
+    {
+      "project": "colorsaturation",
+      "file": "src/main/resources/assets/minecraft/shaders/post/color_saturation.json",
+      "sha256": "1b78e2bdf7efbef88c65ad319eff8667d7ed7abca32559ad25e64261e141e0ad",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "colorsaturation",
+      "file": "src/main/resources/assets/minecraft/shaders/program/color_saturation.fsh",
+      "sha256": "624fc957fc5184062efdec5de5c96eb72be157145ab57d7fc6a57365ab0ab5c4",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "colorsaturation",
+      "file": "src/main/resources/assets/minecraft/shaders/program/color_saturation.json",
+      "sha256": "7a8cecb4b814102de0152de9a27da18776c39972c0cb35bf5dd1c197e9d0f5f3",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "colorsaturation",
+      "file": "src/main/resources/assets/minecraft/shaders/program/color_saturation_glsl120.fsh",
+      "sha256": "bab57f19d3dd3273799a1089187418dbea7bf2117c9575982ca6817abf033844",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "overflowanimations",
+      "file": "src/main/resources/assets/minecraft/icons/icon_128x128.png",
+      "sha256": "821acfd1ceba3ba7a31b37e17fe8b729a2ff762e7cffe8894704bfe7667e86a5",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "overflowanimations",
+      "file": "src/main/resources/assets/minecraft/icons/icon_16x16.png",
+      "sha256": "6c51d4ef0405f5b7ca5d7ee505ce6160783588926dcdff8099169f7e2b10165b",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "overflowanimations",
+      "file": "src/main/resources/assets/minecraft/icons/icon_256x256.png",
+      "sha256": "757d02f7035e05a22dda91729fb1d14ac55fab67d0483683cff43549a8a5b542",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "overflowanimations",
+      "file": "src/main/resources/assets/minecraft/icons/icon_32x32.png",
+      "sha256": "2496adc8631bb3ab42ea5a737e2b39242e6a1ca86a90855f7d204a086de35fe9",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "overflowanimations",
+      "file": "src/main/resources/assets/minecraft/icons/icon_48_48.png",
+      "sha256": "0f96caf21494ff8946b8cc4cd0262cafb68ea5b583b6406a31863c0ce10cbcda",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "overflowanimations",
+      "file": "src/main/resources/assets/minecraft/textures/gui/title/mojang.png",
+      "sha256": "02c30243a7cd3ba8fce83d9c279d7cb3bebf2f15e2b5ee2225a05887756fdd79",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "overflowanimations",
+      "file": "src/main/resources/assets/minecraft/textures/particle/footprint.png",
+      "sha256": "7752910870fd759373d86c78aad00e1673822e52df7dd1b4d7a46fec68cb9d5a",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "overflowanimations",
+      "file": "src/main/resources/resourcepacks/classic_panorama/assets/minecraft/textures/gui/title/background/panorama_0.png",
+      "sha256": "5dccc0e7745e2b660c2838079ba448f68d5e9d8ea6eccbe016d66143cf056211",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "overflowanimations",
+      "file": "src/main/resources/resourcepacks/classic_panorama/assets/minecraft/textures/gui/title/background/panorama_1.png",
+      "sha256": "8212e370ffd9be98411ece5fb9c85e6329ea213bebf21ae26e3688a6f62fa81e",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "overflowanimations",
+      "file": "src/main/resources/resourcepacks/classic_panorama/assets/minecraft/textures/gui/title/background/panorama_2.png",
+      "sha256": "513afce708d0fd22a0143b9610726386e98e1988a7f2e473af9eff28a1f608b6",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "overflowanimations",
+      "file": "src/main/resources/resourcepacks/classic_panorama/assets/minecraft/textures/gui/title/background/panorama_3.png",
+      "sha256": "e0ec0fb3adc53c46355fc8614344dcf7c7c4ac456a52162673d01156e9e83966",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "overflowanimations",
+      "file": "src/main/resources/resourcepacks/classic_panorama/assets/minecraft/textures/gui/title/background/panorama_4.png",
+      "sha256": "4be9e8bafb338036cbbe6ac0fb362afb17eedd5fc5d9c069db39bf41573a9814",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "overflowanimations",
+      "file": "src/main/resources/resourcepacks/classic_panorama/assets/minecraft/textures/gui/title/background/panorama_5.png",
+      "sha256": "a07235d9a173e5634bc46835aaf4d73b70f078d66a26dc84a4b9076b65aa00c1",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "overflowanimations",
+      "file": "src/main/resources/resourcepacks/classic_textures/assets/minecraft/lang/en_us.json",
+      "sha256": "486ba83692fcfa8d508d6b1bf1a70e7a367f2a714673ca34443af0293db0823e",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "overflowanimations",
+      "file": "src/main/resources/resourcepacks/classic_textures/assets/minecraft/textures/block/black_wool.png",
+      "sha256": "6e3f48ef1393db3b2a02d7f86d0f80ed1f8b64780fd837fb140665b0c49cc877",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "overflowanimations",
+      "file": "src/main/resources/resourcepacks/classic_textures/assets/minecraft/textures/block/blue_wool.png",
+      "sha256": "d3ec9522d1e8b8207205af66787004b7d66e5494379528ff42fcbc6d4c4a78aa",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "overflowanimations",
+      "file": "src/main/resources/resourcepacks/classic_textures/assets/minecraft/textures/block/brown_wool.png",
+      "sha256": "c3cb7b3584a1865009e32d0171071d8bbcba91f21d470dd7921e24e393db4ab4",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "overflowanimations",
+      "file": "src/main/resources/resourcepacks/classic_textures/assets/minecraft/textures/block/cyan_wool.png",
+      "sha256": "b7801d42dd23d1e57560a9af14f794bd7395db6d7df0308434defcb6ab214980",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "overflowanimations",
+      "file": "src/main/resources/resourcepacks/classic_textures/assets/minecraft/textures/block/gray_wool.png",
+      "sha256": "f124ffbcb50bd3ac67a0d45cbbbbda690ceb859b1d8f337a7406f27513bfcc01",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "overflowanimations",
+      "file": "src/main/resources/resourcepacks/classic_textures/assets/minecraft/textures/block/green_wool.png",
+      "sha256": "80c1d30be3b1f84b77ce5bc5b767f915b74b8170a42792e54906c7df35672ce1",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "overflowanimations",
+      "file": "src/main/resources/resourcepacks/classic_textures/assets/minecraft/textures/block/light_blue_wool.png",
+      "sha256": "c60b8612f7d6b547e00c4a9fce27a58ad93ab85796bda989fb8d077714665f06",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "overflowanimations",
+      "file": "src/main/resources/resourcepacks/classic_textures/assets/minecraft/textures/block/light_gray_wool.png",
+      "sha256": "2839b29bec08d8307ba5c924e1a082f8391f1d498b80f64c1b1715f5a3bea336",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "overflowanimations",
+      "file": "src/main/resources/resourcepacks/classic_textures/assets/minecraft/textures/block/lime_wool.png",
+      "sha256": "620940b6f22cfa5ccac61d0d13b7680097ce0c8dc98b38b2b7da5c4491b5ad9c",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "overflowanimations",
+      "file": "src/main/resources/resourcepacks/classic_textures/assets/minecraft/textures/block/magenta_wool.png",
+      "sha256": "e0f42fc9833a2cad4a812f747e2128c8807589b86ebedacb9bcd91a7e0f58793",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "overflowanimations",
+      "file": "src/main/resources/resourcepacks/classic_textures/assets/minecraft/textures/block/orange_wool.png",
+      "sha256": "8dcb6a3fe9c168693148172b99fe88b023b5183f671797dcbc47dd171bcec9e7",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "overflowanimations",
+      "file": "src/main/resources/resourcepacks/classic_textures/assets/minecraft/textures/block/pink_wool.png",
+      "sha256": "bbe7586acbe45950c82b2ce9a59eb56d9bc6b65810552f422f22bd606dee29d8",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "overflowanimations",
+      "file": "src/main/resources/resourcepacks/classic_textures/assets/minecraft/textures/block/purple_wool.png",
+      "sha256": "1c442de390df3ce75f645462b32044265de7ec6106a4b1ed2679534dd182c661",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "overflowanimations",
+      "file": "src/main/resources/resourcepacks/classic_textures/assets/minecraft/textures/block/red_wool.png",
+      "sha256": "bffc566ff427b93681823e9f13dc97a8b975710fcc5949ec1d3f53275eaea0c7",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "overflowanimations",
+      "file": "src/main/resources/resourcepacks/classic_textures/assets/minecraft/textures/block/white_wool.png",
+      "sha256": "6d898cdf6bf9de1793a6dedf4dcd40f6cb07161ac8f8a3509643037c524d04ee",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "overflowanimations",
+      "file": "src/main/resources/resourcepacks/classic_textures/assets/minecraft/textures/block/yellow_wool.png",
+      "sha256": "844eac3f48c27fa7a2e73df3cd2f9c2687078341f10743aa32e3e60111bbe823",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "overflowanimations",
+      "file": "src/main/resources/resourcepacks/classic_textures/assets/minecraft/textures/gui/footer_separator.png",
+      "sha256": "9b8e88767e6767314478388cba7adfffcec94c90e071f446b2ce0d4bbeda01d6",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "overflowanimations",
+      "file": "src/main/resources/resourcepacks/classic_textures/assets/minecraft/textures/gui/header_separator.png",
+      "sha256": "9b8e88767e6767314478388cba7adfffcec94c90e071f446b2ce0d4bbeda01d6",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "overflowanimations",
+      "file": "src/main/resources/resourcepacks/classic_textures/assets/minecraft/textures/gui/sprites/container/slot/boots.png",
+      "sha256": "b62d8ff7eb1e0daa850dc4eb67e6349298cdb8f9c848fe085e0ce9866dde82c4",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "overflowanimations",
+      "file": "src/main/resources/resourcepacks/classic_textures/assets/minecraft/textures/gui/sprites/container/slot/chestplate.png",
+      "sha256": "0508241a8eba20fab496863d3dde92e66c31f01b639325cdc5b60bb0279ec812",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "overflowanimations",
+      "file": "src/main/resources/resourcepacks/classic_textures/assets/minecraft/textures/gui/sprites/container/slot/helmet.png",
+      "sha256": "ad92514ffb47489742b266eb83fbd0601732a19e729df96ae370c9a160dd0b0f",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "overflowanimations",
+      "file": "src/main/resources/resourcepacks/classic_textures/assets/minecraft/textures/gui/sprites/container/slot/leggings.png",
+      "sha256": "b7aa72fda7c8847bac88c6706b56ba6f3ecbacfe632ab414703b2fa189331158",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "overflowanimations",
+      "file": "src/main/resources/resourcepacks/classic_textures/assets/minecraft/textures/gui/sprites/container/slot/shield.png",
+      "sha256": "3fb67b0f9659cdf59fd3a41dbf2861e0de568cf45c761d83bbe64614422a5ef3",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "overflowanimations",
+      "file": "src/main/resources/resourcepacks/classic_textures/assets/minecraft/textures/gui/title/edition.png",
+      "sha256": "914456ab24e2e77013c700289f615ce2b82d147edaf54844bd6d81915a8fcc0d",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "overflowanimations",
+      "file": "src/main/resources/resourcepacks/classic_textures/assets/minecraft/textures/gui/title/minceraft.png",
+      "sha256": "f783b3be3aaeee3a6fcaca8dacc7d7f57b1b271761be2ccffb43e61d0bfb000e",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "overflowanimations",
+      "file": "src/main/resources/resourcepacks/classic_textures/assets/minecraft/textures/gui/title/minecraft.png",
+      "sha256": "f783b3be3aaeee3a6fcaca8dacc7d7f57b1b271761be2ccffb43e61d0bfb000e",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "overflowanimations",
+      "file": "src/main/resources/resourcepacks/classic_water/assets/minecraft/textures/block/water_flow.png",
+      "sha256": "ab13ff3fcac7c8c41718e5bb9b8208b1fe3abd258295a121beab055a7b93e9bc",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "overflowanimations",
+      "file": "src/main/resources/resourcepacks/classic_water/assets/minecraft/textures/block/water_flow.png.mcmeta",
+      "sha256": "802acdb8f55f30146d5ed18414b21ba35650d4e550f81825ea104131c12dc4fc",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "overflowanimations",
+      "file": "src/main/resources/resourcepacks/classic_water/assets/minecraft/textures/block/water_overlay.png",
+      "sha256": "e25a27413a2a2dfe1fd7c5f705d45cef492b77508b61c18d2305cddcf20cbbb1",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "overflowanimations",
+      "file": "src/main/resources/resourcepacks/classic_water/assets/minecraft/textures/block/water_still.png",
+      "sha256": "2fef429515591b671525477e886da265595027b288b771cac185fa331b0c52ba",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "overflowanimations",
+      "file": "src/main/resources/resourcepacks/classic_water/assets/minecraft/textures/block/water_still.png.mcmeta",
+      "sha256": "e9b8025fde1b09b0a4d2a38427b04f98f28a593045be6d177eb2b29164c872b0",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "polyblur",
+      "file": "src/main/resources/assets/minecraft/shaders/post/phosphor_hand.json",
+      "sha256": "fbce47f8c1f1ada185c0f68dfde54cb376444109bb92487016f78c9f672fc075",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "polyblur",
+      "file": "src/main/resources/assets/minecraft/shaders/post/phosphor_motion_blur.json",
+      "sha256": "bf531e020b8dcefd1aeb52b3860548711821cf7122873d687f90789b26e093ef",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "polyblur",
+      "file": "src/main/resources/assets/minecraft/shaders/post/unity_motion_blur.json",
+      "sha256": "9799b0cffedd176dd1a6fffb4b5de77f01a021a8e3d0c09ca0d929ce45eb9d5a",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "polyblur",
+      "file": "src/main/resources/assets/minecraft/shaders/program/phosphor_hand.json",
+      "sha256": "b3621875feaf38120605967cc1418dccaa58df0990d822dd9a6e903841d179b0",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "polyblur",
+      "file": "src/main/resources/assets/minecraft/shaders/program/phosphor_hand_glsl120.fsh",
+      "sha256": "b4ed64b5a924c89b53ce2de97dc09be09aa16b5372f8946df1335ddfa3fd5a7b",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "polyblur",
+      "file": "src/main/resources/assets/minecraft/shaders/program/phosphor_motion_blur.fsh",
+      "sha256": "4a46ebdeeb40979b52933737ba4ee882372a08737420ebccb0719d463148c26f",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "polyblur",
+      "file": "src/main/resources/assets/minecraft/shaders/program/phosphor_motion_blur.json",
+      "sha256": "079294c6dbae2afea31a615d4cbbb902d0a7e37598d09ec2ce2d440415a25757",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "polyblur",
+      "file": "src/main/resources/assets/minecraft/shaders/program/phosphor_motion_blur_glsl120.fsh",
+      "sha256": "8b092aeeaed10775a30458e59bd6d912ed502e727aa743917db95e1deacae72a",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "polyblur",
+      "file": "src/main/resources/assets/minecraft/shaders/program/polyblur_fullscreen_quad.vsh",
+      "sha256": "fb9846190ee581c84f92eb080d22335c20b979be81dab4d7175a5400d28eddb7",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "polyblur",
+      "file": "src/main/resources/assets/minecraft/shaders/program/polyblur_motion_reproject.fsh",
+      "sha256": "43ba51adc827d4fccb02670ee4dcf3d31e0f773006a39db4952477a44bd9cc55",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "polyblur",
+      "file": "src/main/resources/assets/minecraft/shaders/program/polyblur_motion_reproject.json",
+      "sha256": "108044202955a5801a4b6f3ea1b1d0c13fcd13b2c98149fae27d162956b5ad3d",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "polyblur",
+      "file": "src/main/resources/assets/minecraft/shaders/program/polyblur_motion_velocity.fsh",
+      "sha256": "dbe3a0482b5a7e8d7d4dafd7d29fd5a8cd863fd11f9ec306f756a511a6b2ee06",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "polyblur",
+      "file": "src/main/resources/assets/minecraft/shaders/program/polyblur_motion_velocity.json",
+      "sha256": "a7eaae6f72d298549c68581b9bf752d6ff3ce4dddb760b11121015a6866e80b6",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "polyblur",
+      "file": "src/main/resources/assets/minecraft/shaders/program/unity_motion_blur.fsh",
+      "sha256": "7ce9b04bb0796bd7084007134f5278858702663400380bf29de44f85f38944a3",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "polyblur",
+      "file": "src/main/resources/assets/minecraft/shaders/program/unity_motion_blur.json",
+      "sha256": "09a0208575b678bbcf88a5551e8d9b2ec6217f3b4f17baf7cfd6a896b1e71a26",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    },
+    {
+      "project": "polyblur",
+      "file": "src/main/resources/assets/minecraft/shaders/program/unity_motion_blur_glsl120.fsh",
+      "sha256": "c805a4b5805bbb610040131baacad9efec1c828473280c200d3ebeab55c3186f",
+      "reason": "Use the installed Minecraft resource instead of redistributing Minecraft assets."
+    }
+  ]
+}

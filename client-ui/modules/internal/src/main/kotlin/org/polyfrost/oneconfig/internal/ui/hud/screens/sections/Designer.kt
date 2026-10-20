@@ -250,15 +250,16 @@ fun Designer(hud: Hud? = null) {
                     val metrics = skiaFont.metrics
                     val previewLines = previewText.lines()
                     val lineHeight = skiaFont.spacing
-                    val textW = previewLines.maxOf { skiaFont.measureTextWidth(it) }
                     val textH = (previewLines.size - 1) * lineHeight + (metrics.descent - metrics.ascent)
-                    Canvas(modifier = Modifier.size((textW / density).dp, (textH / density).dp)) {
+                    Canvas(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp).height((textH / density).dp)) {
                         drawIntoCanvas { canvas ->
                             val paint = Paint().apply { color = textColor.toArgb() }
                             previewLines.forEachIndexed { index, lineText ->
                                 if (lineText.isEmpty()) return@forEachIndexed
                                 val baseline = index * lineHeight - metrics.ascent
-                                canvas.nativeCanvas.drawString(lineText, 0f, baseline, skiaFont, paint)
+                                val lineW = skiaFont.measureTextWidth(lineText)
+                                val lineX = McFontQueue.lineOffset(size.width, lineW, textAlign.ordinal)
+                                canvas.nativeCanvas.drawString(lineText, lineX, baseline, skiaFont, paint)
                                 if (textUnderline) {
                                     val underlinePos = metrics.underlinePosition ?: (14f * textScale * 0.08f)
                                     val underlineThick = metrics.underlineThickness ?: (14f * textScale * 0.06f)
@@ -266,8 +267,7 @@ fun Designer(hud: Hud? = null) {
                                         color = textColor.toArgb()
                                         strokeWidth = underlineThick
                                     }
-                                    val lineW = skiaFont.measureTextWidth(lineText)
-                                    canvas.nativeCanvas.drawLine(0f, baseline + underlinePos, lineW, baseline + underlinePos, linePaint)
+                                    canvas.nativeCanvas.drawLine(lineX, baseline + underlinePos, lineX + lineW, baseline + underlinePos, linePaint)
                                 }
                             }
                         }
@@ -280,19 +280,20 @@ fun Designer(hud: Hud? = null) {
                         append(previewText)
                     }
                     val scale = textScale
-                    val textW = mcText.lines().maxOf { McFontQueue.measureTextWidth(it, scale) }
-                    val textH = mcText.lines().size * McFontQueue.measureTextHeight(scale)
-                    Canvas(modifier = Modifier.size((textW / density).dp, (textH / density).dp)) {
+                    val previewLines = remember(mcText, scale, McFontQueue.revision) { McFontQueue.layoutLines(mcText, scale) }
+                    val lineHeight = McFontQueue.measureTextHeight(scale)
+                    val textH = previewLines.size * lineHeight
+                    Canvas(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp).height((textH / density).dp)) {
                         drawIntoCanvas { canvas ->
-                            McFontQueue.renderer?.invoke(
+                            previewLines.forEachIndexed { index, line -> McFontQueue.renderer?.invoke(
                                 canvas.nativeCanvas,
-                                mcText,
-                                0f,
-                                0f,
+                                line.text,
+                                McFontQueue.lineOffset(size.width, line.width, textAlign.ordinal),
+                                index * lineHeight,
                                 textColor.toArgb(),
                                 showShadow,
                                 scale
-                            )
+                            ) }
                         }
                     }
                 }

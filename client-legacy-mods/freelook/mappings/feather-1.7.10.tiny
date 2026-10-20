@@ -1,0 +1,5 @@
+tiny	2	0	intermediary	named
+c	net/minecraft/unmapped/C_76792751	net/minecraft/client/Options
+c	net/minecraft/unmapped/C_57778754	net/minecraft/client/player/LocalPlayer
+c	net/minecraft/unmapped/C_45510667	net/minecraft/util/Mth
+c	net/minecraft/unmapped/C_42232651	net/minecraft/world/entity/Entity

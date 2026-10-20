@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "id": "betterhurtcam",
+  "version": "1.15.1-arcadium",
+  "name": "BetterHurtCam",
+  "description": "nohurtcam but better",
+  "authors": [
+    "uku",
+    "thecount"
+  ],
+  "contact": {
+    "homepage": "https://modrinth.com/mod/betterhurtcam",
+    "sources": "https://github.com/uku3lig/betterhurtcam",
+    "issues": "https://discord.gg/QbNfaCHjUz",
+    "discord": "https://discord.gg/QbNfaCHjUz"
+  },
+  "license": "MIT",
+  "icon": "assets/betterhurtcam/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "client-init": [
+      "net.uku3lig.betterhurtcam.BetterHurtCam"
+    ]
+  },
+  "mixins": [
+    "betterhurtcam.mixins.json"
+  ],
+  "depends": {
+    "minecraft": "1.7.10",
+    "fabricloader": ">=0.19.5",
+    "oneconfigv1": ">=1.0.0"
+  },
+  "suggests": {
+    "modmenu": ">=0.5.0"
+  }
+}

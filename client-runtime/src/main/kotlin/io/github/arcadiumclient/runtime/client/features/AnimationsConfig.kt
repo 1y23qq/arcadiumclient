@@ -26,6 +26,13 @@ object AnimationsConfig : Config("arcadium-animations.json", "Animations", Categ
     @JvmStatic @Dropdown(title = "Mode", options = ["Overflow Animations", "Badlion Animations"])
     var mode = 0
 
+    @JvmStatic @Slider(title = "Item Scale X", min = 0.1f, max = 3f, step = 0.01f, category = "Badlion Animations", subcategory = "Items")
+    var itemScaleX = 1f
+    @JvmStatic @Slider(title = "Item Scale Y", min = 0.1f, max = 3f, step = 0.01f, category = "Badlion Animations", subcategory = "Items")
+    var itemScaleY = 1f
+    @JvmStatic @Slider(title = "Item Scale Z", min = 0.1f, max = 3f, step = 0.01f, category = "Badlion Animations", subcategory = "Items")
+    var itemScaleZ = 1f
+
     @JvmStatic @Switch(title = "Item Hold", description = "Use the 1.7 held item positions.", category = "Badlion Animations", subcategory = "Items")
     var itemHeld = true
     @JvmStatic @Switch(title = "Item Switch", description = "Keep the 1.7 equip behavior when a stack changes.", category = "Badlion Animations", subcategory = "Items")
@@ -190,7 +197,7 @@ object AnimationsConfig : Config("arcadium-animations.json", "Animations", Categ
     private fun snapshot() = BadlionAnimationState(itemHeld, itemSwitch, hitBox, inventory, blockHit,
         heartAnimation, damageAnimation, sneakingAnimation, eatAnimation, thrownItems, fishingRod,
         swordSwing, bowAnimation, alwaysSwing, removeTitles, oldEnchantGlint, leftHanded, noSmallArms,
-        noShake, fixLiquidPlace, movableTitles, shakeIntensity, titleX, titleY)
+        noShake, fixLiquidPlace, movableTitles, shakeIntensity, titleX, titleY, itemScaleX, itemScaleY, itemScaleZ)
 
     @JvmStatic fun badlion(): BadlionAnimationState? = runtimeState
 }

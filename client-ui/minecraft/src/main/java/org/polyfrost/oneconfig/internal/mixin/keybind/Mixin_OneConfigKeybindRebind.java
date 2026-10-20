@@ -27,7 +27,7 @@ import net.minecraft.client.gui.screens.options.controls.KeyBindsList;
 /*import net.minecraft.client.Minecraft;
 *///?}
 
-//? if = 1.8.9 {
+//? if <= 1.8.9 {
 /*import org.lwjgl.input.Mouse;
 import org.polyfrost.oneconfig.internal.legacy.KeyCodes;
 *///?}
@@ -69,7 +69,7 @@ public class Mixin_OneConfigKeybindRebind implements OneConfigKeybindRecorder {
     //?} else
     //private void oneconfig$keyPressed(char keyChar, int keyCode, CallbackInfo ci) {
         if (!oneconfig$isOurs()) return;
-        //? if = 1.8.9 {
+        //? if <= 1.8.9 {
         /^keyCode = KeyCodes.fromLegacy(keyCode).getValue();
         if (keyCode <= 0) {
             ci.cancel();
@@ -102,7 +102,7 @@ public class Mixin_OneConfigKeybindRebind implements OneConfigKeybindRecorder {
     //?} else
     //private void oneconfig$mouseClicked(int mouseX, int mouseY, int button, CallbackInfo ci) {
         if (!oneconfig$isOurs()) return;
-        //? if = 1.8.9
+        //? if <= 1.8.9
         //button = KeyCodes.mouseFromLegacy(button);
         oneconfig$recordMouse(button);
         //$ if > 1.8.9 'cir.setReturnValue(true);' else 'ci.cancel();'

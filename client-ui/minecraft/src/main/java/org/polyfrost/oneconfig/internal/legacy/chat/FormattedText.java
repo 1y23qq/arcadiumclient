@@ -1,6 +1,6 @@
 package org.polyfrost.oneconfig.internal.legacy.chat;
 
-//? if = 1.8.9 {
+//? if <= 1.8.9 {
 /*import java.util.Optional;
 
 public interface FormattedText {

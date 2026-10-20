@@ -86,7 +86,7 @@ import org.polyfrost.oneconfig.internal.compat.ArmorHudCompat;
 import org.polyfrost.oneconfig.internal.compat.FirmamentHudCompat;
 //?}
 
-//? if = 1.8.9 {
+//? if <= 1.8.9 {
 /*import net.ornithemc.osl.resource.loader.api.client.ClientResourceLoaderEvents;
 import org.polyfrost.oneconfig.internal.ui.compose.SkiaFontRenderer;
 *///?}
@@ -181,18 +181,20 @@ public class OneConfig
         if (!minecraft.isLocalServer()) return true;
 
         Scoreboard scoreboard = minecraft.level.getScoreboard();
+        //~ if = 1.7.10 'player.connection.getListedOnlinePlayers()' -> 'getNetworkHandler().onlinePlayers' {
         //~ if = 1.8.9 'player.connection.getListedOnlinePlayers' -> 'getNetworkHandler().getOnlinePlayers'
         return minecraft.player.connection.getListedOnlinePlayers().size() > 1
-                //~ if = 1.8.9 'DisplaySlot.LIST' -> '0'
+        //~}
+                //~ if <= 1.8.9 'DisplaySlot.LIST' -> '0'
                 || scoreboard.getDisplayObjective(DisplaySlot.LIST) != null;
     }
 
     private static boolean legacyHudOffscreenReady;
 
-    //~ if = 1.8.9 '(GuiGraphicsExtractor graphics)' -> '()'
+    //~ if <= 1.8.9 '(GuiGraphicsExtractor graphics)' -> '()'
     public static void render(GuiGraphicsExtractor graphics) {
         prepareHud();
-        //~ if = 1.8.9 '(graphics)' -> '()'
+        //~ if <= 1.8.9 '(graphics)' -> '()'
         submitHud(graphics);
     }
 
@@ -243,18 +245,18 @@ public class OneConfig
     }
 
     /** Submits the legacy HUDs (when not captured offscreen) and the Skia HUD blit into the vanilla HUD */
-    //~ if = 1.8.9 '(GuiGraphicsExtractor graphics)' -> '()'
+    //~ if <= 1.8.9 '(GuiGraphicsExtractor graphics)' -> '()'
     public static void submitHud(GuiGraphicsExtractor graphics) {
         if (!SkiaCtx.INSTANCE.isReady()) {
             return;
         }
         if (!legacyHudOffscreenReady) {
-            //~ if = 1.8.9 '(graphics)' -> '()'
+            //~ if <= 1.8.9 '(graphics)' -> '()'
             LegacyHudRenderer.INSTANCE.renderLive(graphics);
         }
         //~ if < 1.21.8 '.suppressInGameHudRender' -> '.shouldSuppressInGameHudRender()'
         if (!SkiaCtx.INSTANCE.suppressInGameHudRender) {
-            //~ if = 1.8.9 '(graphics)' -> '()'
+            //~ if <= 1.8.9 '(graphics)' -> '()'
             SkiaCtx.INSTANCE.blitHud(graphics);
         }
     }
@@ -380,7 +382,7 @@ public class OneConfig
 
         SkikoDataPath.redirect();
 
-        //? if = 1.8.9 {
+        //? if <= 1.8.9 {
         /*ClientResourceLoaderEvents.INIT_RESOURCE_MANAGER.register(
             resourceManager -> resourceManager.addReloader(SkiaFontRenderer.INSTANCE)
         );

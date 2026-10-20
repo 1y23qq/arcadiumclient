@@ -1,0 +1,28 @@
+{
+    "schemaVersion": 1,
+    "id": "${mod_id}",
+    "name": "${mod_name}",
+    "version": "${mod_version}",
+    "authors": [
+        "Polyfrost"
+    ],
+    "license": "GPL-3.0-only",
+    "environment": "client",
+    "entrypoints": {
+        "main": [
+            {
+                "adapter": "kotlin",
+                "value": "org.polyfrost.soundtweaks.SoundTweaks"
+            }
+        ]
+    },
+    "mixins": [
+        "soundtweaks.mixins.json5"
+    ],
+    "depends": {
+        "minecraft": "${minecraft_version_range}",
+        "fabricloader": ">=${loader_version}",
+        "fabric-language-kotlin": "*",
+        "oneconfigv1": ">=${oneconfig_version}"
+    }
+}

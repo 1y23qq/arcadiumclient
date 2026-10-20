@@ -1,0 +1,23 @@
+{
+	"required": true,
+	"compatibilityLevel": "JAVA_25",
+	"minVersion": "0.7",
+	"package": "org.polyfrost.redaction.mixin",
+	"refmap": "mixins.redaction.refmap.json",
+	"injectors": {
+		"defaultRequire": 1,
+		"maxShiftBy": 5
+	},
+	"client": [
+		"client.CameraMixin_CustomHandFOV",
+		"client.DirectJoinServerScreenMixin_ServerPreview",
+		"client.HudMixin_RenderBlackBar",
+		"client.SpectatorGuiMixin_RenderBlackBar",
+		"client.TitleScreenMixin_LastJoinedServer",
+		"client.accessor.HudAccessor",
+		"client.accessor.JoinMultiplayerScreenAccessor",
+		"client.accessor.OnlineServerEntryAccessor",
+		"client.accessor.SpectatorGuiAccessor"
+	],
+	"verbose": true
+}

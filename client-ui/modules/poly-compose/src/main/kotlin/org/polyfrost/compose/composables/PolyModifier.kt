@@ -24,6 +24,8 @@ open class PolyModifier internal constructor(internal val block: PolyLayoutStyle
         style.clipToBounds = false
         style.alpha = 1f
         style.tag = null
+        style.textAlign = 0
+        style.textWidth = null
         style.layoutType = lt
         style.gap = g
         style.block()
@@ -62,6 +64,11 @@ fun PolyModifier.alpha(a: Float) = then(PolyModifier { alpha = a })
 fun PolyModifier.align(a: PolyAlign) = then(PolyModifier { align = a })
 
 fun PolyModifier.tag(value: Any?) = then(PolyModifier { tag = value })
+
+fun PolyModifier.textAlign(value: Int, width: Float? = null) = then(PolyModifier {
+    textAlign = value.coerceIn(0, 2)
+    textWidth = width?.takeIf { it.isFinite() && it > 0f }
+})
 
 fun PolyModifier.absoluteAt(x: Float, y: Float) = then(PolyModifier {
     positionMode = PolyPositionMode.Absolute

@@ -1,0 +1,16 @@
+{
+  "required": true,
+  "package": "dev.microcontrollers.smoothskies.mixin",
+  "mixinextras": {
+    "minVersion": "0.5.0"
+  },
+  "compatibilityLevel": "JAVA_25",
+  "minVersion": "0.8",
+  "client": [
+    "WorldMixin",
+    "WorldRenderMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

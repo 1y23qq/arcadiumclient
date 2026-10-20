@@ -19,10 +19,10 @@
     ]
   },
   "mixins": [
-    "arcadium-runtime.mixins.json"
+    "${runtimeMixins}"
   ],
   "depends": {
-    "minecraft": "1.8.9",
+    "minecraft": "${minecraftVersion}",
     "java": ">=25",
     "fabricloader": ">=0.19.5",
     "oneconfigv1": ">=1.2.23-arcadium",

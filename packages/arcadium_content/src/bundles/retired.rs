@@ -146,8 +146,12 @@ pub(super) async fn retire_cluster(cluster_id: i64, ctx: &ContentCtx) -> Content
         }
         let mut roots = vec![
             arcadium_common::paths::cluster_mods_dir(&cluster.folder_name)?,
-            arcadium_common::paths::cluster_game_dir(&cluster.folder_name, cluster.is_isolated())?
-                .join("mods"),
+            arcadium_common::paths::cluster_game_dir(
+                &cluster.folder_name,
+                cluster.is_isolated(),
+                &cluster.mc_version,
+            )?
+            .join("mods"),
         ];
         roots.sort();
         roots.dedup();

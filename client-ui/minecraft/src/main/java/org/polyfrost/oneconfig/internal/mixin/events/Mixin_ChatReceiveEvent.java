@@ -34,16 +34,16 @@ import net.minecraft.network.chat.MessageSignature;
 /*import net.kyori.adventure.platform.fabric.FabricClientAudiences;
 *///?}
 
-//? if = 1.8.9 {
+//? if <= 1.8.9 {
 /*import net.minecraft.client.gui.chat.ChatGui;
 import net.minecraft.text.Text;
 *///?}
 
-//~ if = 1.8.9 'ChatComponent' -> 'ChatGui'
+//~ if <= 1.8.9 'ChatComponent' -> 'ChatGui'
 @Mixin(ChatComponent.class)
 public abstract class Mixin_ChatReceiveEvent {
     @Unique private ChatEvent.Receive ocfg$chatEvent;
-    //~ if = 1.8.9 'Component' -> 'Text'
+    //~ if <= 1.8.9 'Component' -> 'Text'
     @Unique private Component ocfg$nativeMessage;
     @Unique private net.kyori.adventure.text.Component ocfg$postedMessage;
 
@@ -79,13 +79,13 @@ public abstract class Mixin_ChatReceiveEvent {
             ordinal = 0,
             argsOnly = true
     )
-    //~ if = 1.8.9 'Component' -> 'Text'
+    //~ if <= 1.8.9 'Component' -> 'Text'
     public Component modifyMessage(Component message) {
         return ocfg$consume(message);
     }
 
     @Unique
-    //~ if = 1.8.9 'Component' -> 'Text'
+    //~ if <= 1.8.9 'Component' -> 'Text'
     private boolean ocfg$post(Component message) {
         ocfg$chatEvent = null;
         ocfg$nativeMessage = message;
@@ -113,11 +113,11 @@ public abstract class Mixin_ChatReceiveEvent {
      * pick up a stale event if the two HEAD injectors apply in the opposite order
      */
     @Unique
-    //~ if = 1.8.9 'Component' -> 'Text'
+    //~ if <= 1.8.9 'Component' -> 'Text'
     private Component ocfg$consume(Component message) {
         ChatEvent.Receive event = ocfg$chatEvent;
         net.kyori.adventure.text.Component posted = ocfg$postedMessage;
-        //~ if = 1.8.9 'Component' -> 'Text'
+        //~ if <= 1.8.9 'Component' -> 'Text'
         Component original = ocfg$nativeMessage;
         ocfg$chatEvent = null;
         ocfg$postedMessage = null;
@@ -140,7 +140,7 @@ public abstract class Mixin_ChatReceiveEvent {
     }
 
     @Unique
-    //~ if = 1.8.9 'Component component' -> 'Text text'
+    //~ if <= 1.8.9 'Component component' -> 'Text text'
     private static net.kyori.adventure.text.Component ocfg$toAdventure(Component component) {
         //? if >=1.21.4 {
         return MinecraftClientAudiences.of().asAdventure(component);
@@ -151,7 +151,7 @@ public abstract class Mixin_ChatReceiveEvent {
     }
 
     @Unique
-    //~ if = 1.8.9 'static Component' -> 'static Text'
+    //~ if <= 1.8.9 'static Component' -> 'static Text'
     private static Component ocfg$toNative(net.kyori.adventure.text.Component component) {
         //? if >=1.21.4 {
         return MinecraftClientAudiences.of().asNative(component);

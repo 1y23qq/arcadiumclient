@@ -1,6 +1,6 @@
 package org.polyfrost.oneconfig.internal.legacy.chat;
 
-//? if = 1.8.9 {
+//? if <= 1.8.9 {
 /*import java.util.regex.Pattern;
 import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.Nullable;

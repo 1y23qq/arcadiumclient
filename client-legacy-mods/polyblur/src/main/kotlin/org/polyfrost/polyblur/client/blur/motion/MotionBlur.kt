@@ -1,0 +1,284 @@
+package org.polyfrost.polyblur.client.blur.motion
+
+//? if =1.21.1 || <=1.8.9 {
+import com.google.gson.JsonSyntaxException
+import net.minecraft.client.render.pipeline.RenderTarget
+import net.minecraft.client.Minecraft
+import net.minecraft.client.render.PostChain
+import org.apache.logging.log4j.LogManager
+import org.polyfrost.polyblur.client.blur.phosphor.location
+import java.io.IOException
+//? if <=1.8.9 {
+import org.polyfrost.polyblur.client.blur.phosphor.processLegacy
+import org.polyfrost.polyblur.client.blur.phosphor.setUniform
+import org.polyfrost.polyblur.client.blur.phosphor.ensureLegacyPrograms
+//?}
+
+object MotionBlur {
+    private val logger = LogManager.getLogger(MotionBlur::class.java)
+    private val shaderLocation = location("minecraft", "shaders/post/unity_motion_blur.json")
+
+    private var postChain: PostChain? = null
+    private var prevWidth = -1
+    private var prevHeight = -1
+
+    @JvmStatic
+    fun render(renderTarget: RenderTarget) {
+        val shader = getPostChain(renderTarget) ?: return
+        MotionVelocity.update(renderTarget.viewWidth, renderTarget.viewHeight)
+        shader.setUniform("VelocityX", MotionVelocity.velX)
+        shader.setUniform("VelocityY", MotionVelocity.velY)
+        shader.setUniform("Samples", MotionVelocity.samples)
+        shader.setUniform("Jitter", MotionVelocity.JITTER)
+        //~ if <=1.8.9 'process(0f)' -> 'processLegacy()'
+        shader.processLegacy()
+    }
+
+    private fun getPostChain(renderTarget: RenderTarget): PostChain? {
+        if (postChain != null && renderTarget.viewWidth == prevWidth && renderTarget.viewHeight == prevHeight) {
+            return postChain
+        }
+
+        postChain?.close()
+        postChain = null
+
+        return try {
+            val minecraft = Minecraft.getInstance()
+            //? if <=1.8.9 {
+            ensureLegacyPrograms()
+            //?}
+            PostChain(minecraft.textureManager, minecraft.resourceManager, renderTarget, shaderLocation).also {
+                it.resize(renderTarget.viewWidth, renderTarget.viewHeight)
+                postChain = it
+                prevWidth = renderTarget.viewWidth
+                prevHeight = renderTarget.viewHeight
+            }
+        } catch (e: IOException) {
+            logger.error("Could not load motion blur", e)
+            null
+        } catch (e: JsonSyntaxException) {
+            logger.error("Could not parse motion blur", e)
+            null
+        }
+    }
+}
+//?}
+
+//? if =1.21.4 {
+/*import com.google.gson.JsonSyntaxException
+import com.mojang.blaze3d.framegraph.FrameGraphBuilder
+import net.minecraft.client.render.pipeline.RenderTarget
+import com.mojang.blaze3d.resource.CrossFrameResourcePool
+import net.minecraft.client.Minecraft
+import org.apache.logging.log4j.LogManager
+import org.polyfrost.polyblur.PolyBlurConstants
+import org.polyfrost.polyblur.client.blur.phosphor.location
+
+object MotionBlur {
+    private val logger = LogManager.getLogger(MotionBlur::class.java)
+    private val shaderLocation by lazy { location(PolyBlurConstants.ID, "unity_motion_blur") }
+
+    @JvmStatic
+    fun render(renderTarget: RenderTarget, resourcePool: CrossFrameResourcePool) {
+        val shader = try {
+            Minecraft.getInstance().shaderManager.getPostChain(shaderLocation, MotionTargetBundle.TARGETS)
+        } catch (e: JsonSyntaxException) {
+            logger.error("Could not load motion blur", e)
+            null
+        }
+
+        MotionVelocity.update(renderTarget.viewWidth, renderTarget.viewHeight)
+        shader?.setUniform("VelocityX", MotionVelocity.velX)
+        shader?.setUniform("VelocityY", MotionVelocity.velY)
+        shader?.setUniform("Samples", MotionVelocity.samples)
+        shader?.setUniform("Jitter", MotionVelocity.JITTER)
+
+        val builder = FrameGraphBuilder()
+        val targetBundle = MotionTargetBundle(builder.importExternal("main", renderTarget))
+
+        shader?.addToFrame(
+            builder,
+            renderTarget.viewWidth,
+            renderTarget.viewHeight,
+            targetBundle
+        )
+
+        builder.execute(resourcePool)
+    }
+}
+*///?}
+
+//? if =1.21.5 {
+/*import com.google.gson.JsonSyntaxException
+import com.mojang.blaze3d.framegraph.FrameGraphBuilder
+import net.minecraft.client.render.pipeline.RenderTarget
+import com.mojang.blaze3d.resource.CrossFrameResourcePool
+import net.minecraft.client.Minecraft
+import org.apache.logging.log4j.LogManager
+import org.polyfrost.polyblur.PolyBlurConstants
+import org.polyfrost.polyblur.client.blur.phosphor.location
+
+object MotionBlur {
+    private val logger = LogManager.getLogger(MotionBlur::class.java)
+    private val shaderLocation by lazy { location(PolyBlurConstants.ID, "unity_motion_blur") }
+
+    @JvmStatic
+    fun render(renderTarget: RenderTarget, resourcePool: CrossFrameResourcePool) {
+        val shader = try {
+            Minecraft.getInstance().shaderManager.getPostChain(shaderLocation, MotionTargetBundle.TARGETS)
+        } catch (e: JsonSyntaxException) {
+            logger.error("Could not load motion blur", e)
+            null
+        }
+
+        MotionVelocity.update(renderTarget.viewWidth, renderTarget.viewHeight)
+
+        val builder = FrameGraphBuilder()
+        val targetBundle = MotionTargetBundle(builder.importExternal("main", renderTarget))
+
+        shader?.addToFrame(
+            builder,
+            renderTarget.viewWidth,
+            renderTarget.viewHeight,
+            targetBundle
+        ) { renderPass ->
+            renderPass.setUniform("VelocityX", MotionVelocity.velX)
+            renderPass.setUniform("VelocityY", MotionVelocity.velY)
+            renderPass.setUniform("Samples", MotionVelocity.samples)
+            renderPass.setUniform("Jitter", MotionVelocity.JITTER)
+        }
+
+        builder.execute(resourcePool)
+    }
+}
+*///?}
+
+//? if >1.21.5 {
+/*import net.minecraft.client.render.pipeline.RenderTarget
+import com.mojang.blaze3d.resource.CrossFrameResourcePool
+import com.mojang.blaze3d.systems.RenderSystem
+import com.mojang.blaze3d.pipeline.RenderPipeline
+import com.mojang.blaze3d.shaders.UniformType
+import org.polyfrost.polyblur.PolyBlurConstants
+import org.polyfrost.polyblur.client.blur.phosphor.FullscreenPass
+import org.polyfrost.polyblur.client.blur.phosphor.InternalTargetTracker
+import org.polyfrost.polyblur.client.blur.phosphor.RenderTargetTracker
+import org.polyfrost.polyblur.client.blur.phosphor.location
+
+//? if >=26.2 {
+/*import com.mojang.blaze3d.pipeline.BindGroupLayout
+import com.mojang.blaze3d.PrimitiveTopology
+import java.util.Optional
+*///?} else {
+import com.mojang.blaze3d.vertex.DefaultVertexFormat
+import com.mojang.blaze3d.vertex.VertexFormat
+import java.util.OptionalInt
+//?}
+
+//? if >=26.1 {
+/*import com.mojang.blaze3d.pipeline.ColorTargetState
+import com.mojang.blaze3d.platform.CompareOp
+import com.mojang.blaze3d.pipeline.DepthStencilState
+*///?} else
+import com.mojang.blaze3d.platform.DepthTestFunction
+
+//? if >=1.21.11
+//import org.polyfrost.polyblur.client.blur.phosphor.BlurSampler
+
+object MotionBlur {
+    private val pipeline by lazy {
+        RenderPipeline.builder()
+            .withLocation(location(PolyBlurConstants.ID, "unity_motion_blur_pipeline"))
+            //? if >=1.21.10 {
+            /*.withVertexShader("core/screenquad")
+            *///?}
+            //? if <1.21.10 {
+            .withVertexShader(location(PolyBlurConstants.ID, "core/fullscreen_quad"))
+            //?}
+            .withFragmentShader(location(PolyBlurConstants.ID, "post/unity_motion_blur"))
+            //? if >=26.2 {
+            /*.withPrimitiveTopology(PrimitiveTopology.TRIANGLES)
+            .withDepthStencilState(Optional.empty())
+            .withColorTargetState(ColorTargetState.DEFAULT)
+            .withBindGroupLayout(
+                BindGroupLayout.builder()
+                    //? if >=26.3 {
+                    /*.withUniform("DiffuseSampler", UniformType.COMBINED_IMAGE_SAMPLER)
+                    *///?} else {
+                    .withSampler("DiffuseSampler")
+                    //?}
+                    .withUniform("MotionBlurConfig", UniformType.UNIFORM_BUFFER)
+                    .build()
+            )
+            *///?}
+            //? if >=1.21.10 && <26.2 {
+            /*.withVertexFormat(DefaultVertexFormat.EMPTY, VertexFormat.Mode.TRIANGLES)
+            *///?}
+            //? if <1.21.10 {
+            .withVertexFormat(DefaultVertexFormat.POSITION, VertexFormat.Mode.QUADS)
+            //?}
+            //? if >=26.1 && <26.2 {
+            /*.withDepthStencilState(DepthStencilState(CompareOp.ALWAYS_PASS, false))
+            .withColorTargetState(ColorTargetState.DEFAULT)
+            *///?}
+            //? if <26.1 {
+            .withDepthWrite(false)
+            .withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
+            .withColorWrite(true, true)
+            //?}
+            //? if <26.2 {
+            .withUniform("MotionBlurConfig", UniformType.UNIFORM_BUFFER)
+            .withSampler("DiffuseSampler")
+            //?}
+            .build()
+    }
+
+    @JvmStatic
+    @Suppress("UNUSED_PARAMETER")
+    fun render(renderTarget: RenderTarget, resourcePool: CrossFrameResourcePool) {
+        if (!RenderTargetTracker.isAttachmentInSync(renderTarget)) return
+
+        InternalTargetTracker.updateSize(renderTarget.width, renderTarget.height)
+
+        val tempTarget = InternalTargetTracker.target ?: return
+
+        MotionVelocity.update(renderTarget.width, renderTarget.height)
+        MotionBlurUniforms.upload(
+            MotionVelocity.velX,
+            MotionVelocity.velY,
+            MotionVelocity.samples,
+            MotionVelocity.JITTER
+        )
+
+        RenderSystem.getDevice().createCommandEncoder().createRenderPass(
+            { "PolyBlur/Motion" },
+            tempTarget.getColorTextureView()!!,
+            //? if >=26.2 {
+            /*Optional.empty()
+            *///?}
+            //? if <26.2 {
+            OptionalInt.empty()
+            //?}
+        ).use { renderPass ->
+            //? if >=26.3 {
+            /*renderPass.setPipeline(RenderSystem.getCompiledPipeline(pipeline))
+            *///?} else {
+            renderPass.setPipeline(pipeline)
+            //?}
+
+            //? if >=26.3 {
+            /*renderPass.setUniform("DiffuseSampler", renderTarget.getColorTextureView()!!, BlurSampler.linearClamp)
+            *///?} elif >=1.21.11 {
+            /*renderPass.bindTexture("DiffuseSampler", renderTarget.getColorTextureView()!!, BlurSampler.linearClamp)
+            *///?} else {
+            renderPass.bindSampler("DiffuseSampler", renderTarget.getColorTextureView()!!)
+            //?}
+
+            renderPass.setUniform("MotionBlurConfig", MotionBlurUniforms.buffer)
+            FullscreenPass.draw(renderPass)
+        }
+
+        RenderTargetTracker.blit(tempTarget, renderTarget)
+    }
+}
+*///?}

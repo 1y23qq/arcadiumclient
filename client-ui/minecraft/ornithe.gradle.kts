@@ -23,6 +23,9 @@ dependencies {
     mappings(ploceus.layeredMappings {
         mappings("net.ornithemc:feather-gen2:${versionedCatalog.versions["minecraft"].requiredVersion}+build.${versionedCatalog.versions["feather.build"].requiredVersion}:v2")
         mappings(rootProject.file("mappings/feather-overrides.tiny"))
+        if (versionedCatalog.versions["minecraft"].requiredVersion == "1.7.10") {
+            mappings(rootProject.file("mappings/feather-1.7.10.tiny"))
+        }
     })
     ploceus.dependOsl(versionedCatalog.versions["osl"].requiredVersion)
 

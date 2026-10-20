@@ -11,11 +11,11 @@ import net.minecraft.client.gui.GuiGraphicsExtractor
 
 object CompatOverlayRenderer {
     private val LOG = LoggerFactory.getLogger("Arcadium Options/CompatOverlayRenderer")
-    //~ if = 1.8.9 '<(GuiGraphicsExtractor)' -> '<()'
+    //~ if <= 1.8.9 '<(GuiGraphicsExtractor)' -> '<()'
     private val hooks = CopyOnWriteArrayList<(GuiGraphicsExtractor) -> Unit>()
 
     @JvmStatic
-    //~ if = 1.8.9 'hook: (GuiGraphicsExtractor)' -> 'hook: ()'
+    //~ if <= 1.8.9 'hook: (GuiGraphicsExtractor)' -> 'hook: ()'
     fun register(hook: (GuiGraphicsExtractor) -> Unit) {
         hooks.add(hook)
     }
@@ -27,12 +27,12 @@ object CompatOverlayRenderer {
     fun oneConfigScreenOpen(): Boolean = HudManager.isEditing || SkiaCtx.suppressInGameHudRender
 
     @JvmStatic
-    //~ if = 1.8.9 '(ctx: GuiGraphicsExtractor)' -> '()'
+    //~ if <= 1.8.9 '(ctx: GuiGraphicsExtractor)' -> '()'
     fun render(ctx: GuiGraphicsExtractor) {
         if (hooks.isEmpty()) return
         for (hook in hooks) {
             try {
-                //~ if = 1.8.9 'hook(ctx)' -> 'hook()'
+                //~ if <= 1.8.9 'hook(ctx)' -> 'hook()'
                 hook(ctx)
             } catch (t: Throwable) {
                 LOG.debug("compat overlay hook failed", t)

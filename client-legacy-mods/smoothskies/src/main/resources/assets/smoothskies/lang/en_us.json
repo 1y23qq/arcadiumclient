@@ -1,0 +1,35 @@
+{
+  "modmenu.descriptionTranslation.smoothskies": "${description}",
+  "${id}": {
+    "${id}": "${name}",
+    "extras": "Extras",
+    "set-fog-view-distance": {
+      "name": "Set Fog View Distance",
+      "description": "Set a custom view distance for the skybox fog.\n\nHigher numbers mean bluer skies."
+    },
+    "fix-skybox-clipping": {
+      "name": "Fix Skybox Clipping",
+      "description": "Fixes skybox clipping on low render distances by increasing far plane clipping."
+    },
+    "lower-sky-void-darkness": {
+      "name": "Lower Sky Void Darkness",
+      "description": "Correctly lowers the height when the sky turns black to the world's lowest height.\n\nThis prevents the sky from suddenly turning black at a high Y value, and should now smoothly fade to black instead.\n\nMost noticeable in Skyblock or void type worlds."
+    },
+    "remove-sunrise-and-sunset-coloring": {
+      "name": "Remove Sunrise and Sunset Coloring",
+      "description": "Removes the colored ring during sunrise and sunset, preventing the harsh fog discoloration effect."
+    },
+    "remove-void-box": {
+      "name": "Remove Void Box",
+      "description": "Removes the black box that renders around the player in the void."
+    },
+    "remove-sky-in-void": {
+      "name": "Remove Sky in the Void",
+      "description": "Removes the sky when in the void. This fixes MC-249655."
+    },
+    "clear-skies": {
+      "name": "Clear Skies",
+      "description": "Removes banding on the horizon, making the sky one uniform color.\n\nThis is taken from grondag's Clear Skies mod."
+    }
+  }
+}

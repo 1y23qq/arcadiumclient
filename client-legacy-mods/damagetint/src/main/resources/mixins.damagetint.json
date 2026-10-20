@@ -1,0 +1,17 @@
+{
+    "required": true,
+    "compatibilityLevel": "JAVA_21",
+    "minVersion": "0.7",
+    "package": "org.polyfrost.damagetint.mixin",
+    "refmap": "mixins.${mod_id}.refmap.json",
+    "plugin": "org.polyfrost.damagetint.plugin.DamageTintMixinPlugin",
+    "client": [
+        "client.Mixin_ClientPacketListener",
+        "client.Mixin_LivingEntity",
+        "client.NativeLivingTint1710Mixin",
+        "client.NativeDragonTint1710Mixin"
+    ],
+    "injectors": {
+        "defaultRequire": 1
+    }
+}

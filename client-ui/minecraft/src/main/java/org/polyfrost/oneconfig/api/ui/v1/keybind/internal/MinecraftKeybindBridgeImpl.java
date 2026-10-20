@@ -45,7 +45,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /*import org.polyfrost.oneconfig.internal.mixin.keybind.KeyMappingCategoryAccessor;
 *///?}
 
-//? if = 1.8.9 {
+//? if <= 1.8.9 {
 /*import org.polyfrost.oneconfig.internal.legacy.KeyCodes;
 *///?}
 
@@ -401,7 +401,7 @@ public final class MinecraftKeybindBridgeImpl implements MinecraftKeybindBridge 
         internalSetKey = true;
         try {
             mapping.setKey(key);
-            //? if = 1.8.9
+            //? if <= 1.8.9
             //KeyMapping.resetMapping();
         } finally {
             internalSetKey = false;

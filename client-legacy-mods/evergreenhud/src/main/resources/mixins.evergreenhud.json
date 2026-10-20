@@ -1,0 +1,29 @@
+{
+  "required": true,
+  "compatibilityLevel": "${java}",
+  "minVersion": "0.8",
+  "package": "org.polyfrost.evergreenhud.mixins",
+  "injectors": {
+    "maxShiftBy": 5,
+    "defaultRequire": 1
+  },
+  "verbose": true,
+  "client": [
+    //? if = 1.7.10
+    //"client.Mixin_ClientWorld_BlockChanged",
+    //? if = 1.7.10
+    //"client.Mixin_EntityRenderer_PlayerPreviewShadow",
+    "client.Mixin_ClientCommonPacketListenerImpl_ServerChangedEvent",
+    "client.Mixin_ClientPacketListener_ForcePingSample",
+    "client.Mixin_Player_ClientDamageEntityEvent",
+    "client.Mixin_FoodStats_SaturationChangedEvent",
+    "client.Mixin_InGameHud_SmuggleDrawContext",
+    "client.Mixin_RenderGlobal_EntityCounterEvent",
+    "client.Mixin_BlockItem_ClientPlaceBlockEvent",
+    "client.Mixin_AbstractContainerScreen_ShulkerPreviewTooltip",
+    "client.Mixin_LivingEntityRenderer_PlayerPreviewNameTag",
+    "client.Mixin_PlayerPreviewPresent"
+  ],
+  "mixins": [
+  ]
+}

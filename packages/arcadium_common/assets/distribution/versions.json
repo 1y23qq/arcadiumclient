@@ -17,6 +17,27 @@
           ]
         }
       ]
+    },
+    {
+      "major_version": 7,
+      "name": "Arcadium 1.7.10",
+      "long_description": "",
+      "tags": [
+        "PvP"
+      ],
+      "entries": [
+        {
+          "minor_version": 10,
+          "loader": "ornithe",
+          "java_version": 25,
+          "tags": [
+            "PvP"
+          ],
+          "flags": {
+            "show_initial_migration": false
+          }
+        }
+      ]
     }
   ],
   "migrations": []

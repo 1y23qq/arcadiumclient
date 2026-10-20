@@ -16,12 +16,12 @@ import net.minecraft.client.gui.components.debug.DebugScreenEntryList;
 /*import net.minecraft.client.gui.components.DebugScreenOverlay;
 *///?}
 
-//? if = 1.8.9 {
+//? if <= 1.8.9 {
 /*import org.objectweb.asm.Opcodes;
 *///?}
 
 //? < 1.21.10 {
-/*//~ if = 1.8.9 'DebugScreenOverlay' -> 'Minecraft'
+/*//~ if <= 1.8.9 'DebugScreenOverlay' -> 'Minecraft'
 @Mixin(DebugScreenOverlay.class)
 public abstract class Mixin_DebugOpenEvent {
     //? if > 1.8.9 {

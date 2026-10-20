@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "id": "sciophobia",
+  "version": "1.2.6-arcadium",
+  "name": "Sciophobia",
+  "description": "Customize text shadows.",
+  "authors": [
+    "Microcontrollers",
+    "Wyvest"
+  ],
+  "contact": {
+    "homepage": "https://modrinth.com/mod/sciophobia",
+    "sources": "https://codeberg.org/MicrocontrollersDev/Sciophobia",
+    "issues": "https://discord.gg/QbNfaCHjUz",
+    "discord": "https://discord.gg/QbNfaCHjUz"
+  },
+  "license": "LGPL-3.0-only",
+  "icon": "assets/sciophobia/icon.png",
+  "environment": "client",
+  "depends": {
+    "minecraft": "1.7.10",
+    "fabricloader": ">=0.19.5",
+    "oneconfigv1": ">=1.0.0"
+  },
+  "breaks": {},
+  "entrypoints": {
+    "main": [
+      "dev.microcontrollers.sciophobia.Sciophobia"
+    ]
+  },
+  "mixins": [
+    "sciophobia.mixins.json"
+  ]
+}

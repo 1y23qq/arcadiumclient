@@ -1,0 +1,15 @@
+{
+    "required": true,
+    "compatibilityLevel": "JAVA_21",
+    "minVersion": "0.8",
+    "package": "org.polyfrost.polyblur.mixin",
+    "injectors": {
+        "maxShiftBy": 5,
+        "defaultRequire": 1
+    },
+    "client": [
+        "client.Mixin_ApplyPhosphorBlur",
+        "client.Mixin_CaptureWorldMatrices",
+        "client.PostChainAccessor"
+    ]
+}

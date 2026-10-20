@@ -27,6 +27,10 @@ object ChatTweaksConfig : Config("chattweaks.json", "Chat Tweaks", Category.QOL)
     @JvmStatic @Switch(title = "Compact Chat", subcategory = "Compact Chat") var compactChat = true
     @JvmStatic @Switch(title = "Consecutive Messages Only", subcategory = "Compact Chat") var consecutiveCompactChat = false
     @JvmStatic @Switch(title = "Keep Screenshot Messages Separate", subcategory = "Compact Chat") var dontCompactScreenshots = true
+    @JvmStatic @Dropdown(title = "Merge Limit", options = ["Time", "Lines", "Time and Lines"], subcategory = "Compact Chat")
+    var compactChatLimit = 0
+    @JvmStatic @Slider(title = "Merge Line Range", description = "Only merge repeats within this many visible chat lines.", min = 1f, max = 1000f, step = 1f, subcategory = "Compact Chat")
+    var compactChatLines = 10
     @JvmStatic @Slider(title = "Merge Window", description = "Only merge repeats received within this many seconds.", min = 1f, max = 120f, step = 1f, subcategory = "Compact Chat")
     var compactChatTime = 60
     @JvmStatic @Dropdown(title = "Counter Format", options = ["(2)", "[2]", "{2}", "<2>", "(x2)", "[x2]", "{x2}", "<x2>", "x2", "2x"], subcategory = "Compact Chat")
@@ -58,7 +62,7 @@ object ChatTweaksConfig : Config("chattweaks.json", "Chat Tweaks", Category.QOL)
     override fun initialize(byConfigManager: Boolean) {
         super.initialize(byConfigManager)
         val tree = tree ?: return
-        listOf("removeBlankMessages", "compactChat", "consecutiveCompactChat", "dontCompactScreenshots", "compactChatTime",
+        listOf("removeBlankMessages", "compactChat", "consecutiveCompactChat", "dontCompactScreenshots", "compactChatTime", "compactChatLimit", "compactChatLines",
             "compactChatFormat", "hideDuplicateCount", "timestamps", "timestampsFormat", "timestampsStyle", "timestampsBrackets",
             "timestampsLeftBracket", "timestampsRightBracket", "onlyNewTimestamps", "secondsOnTimestamps").forEach { key ->
             tree.getProp(key)?.addCallback { ChatTweaks.requestRefresh(); false }

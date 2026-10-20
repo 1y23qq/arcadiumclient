@@ -1,0 +1,20 @@
+{
+  "compatibilityLevel": "JAVA_25",
+  "minVersion": "0.8",
+  "required": true,
+  "package": "org.polyfrost.polyweather.mixin",
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "client": [
+    "client.Mixin_AllowWeatherEverywhere",
+    "client.Mixin_CancelGroundParticles",
+    "client.Mixin_FixWorldColors",
+    "client.Mixin_HideCelestialBodies",
+    "client.Mixin_ModifyFogColor",
+    "client.Mixin_ModifyPrecipitationStrength",
+    "client.Mixin_ModifyThunderStrength",
+    "client.Mixin_ModifyWeatherFog",
+    "client.Mixin_WeatherSound"
+  ]
+}

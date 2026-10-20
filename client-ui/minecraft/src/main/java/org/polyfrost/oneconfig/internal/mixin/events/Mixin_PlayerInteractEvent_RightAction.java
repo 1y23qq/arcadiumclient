@@ -1,7 +1,11 @@
 package org.polyfrost.oneconfig.internal.mixin.events;
 
 import net.minecraft.client.Minecraft;
+//? if = 1.7.10 {
+import net.minecraft.client.entity.living.player.LocalClientPlayerEntity;
+//?} else {
 import net.minecraft.client.player.LocalPlayer;
+//?}
 import net.minecraft.world.phys.HitResult;
 import org.polyfrost.oneconfig.api.event.v1.EventManager;
 import org.polyfrost.oneconfig.api.event.v1.events.PlayerInteractEvent;
@@ -14,7 +18,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(Minecraft.class)
 public class Mixin_PlayerInteractEvent_RightAction {
     @Shadow public HitResult hitResult;
+    //? if = 1.7.10 {
+    @Shadow public LocalClientPlayerEntity player;
+    //?} else {
     @Shadow public LocalPlayer player;
+    //?}
 
     @Inject(
             method = "startUseItem",

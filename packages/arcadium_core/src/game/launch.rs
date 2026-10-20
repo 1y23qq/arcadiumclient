@@ -86,12 +86,25 @@ async fn start(
     stage(LaunchStage::Checking);
 
     let existing = state.clusters.get(cluster_id).await?;
-    if existing.mc_version != arcadium_common::distribution::MINECRAFT_VERSION {
+    if !arcadium_common::distribution::supports_version(&existing.mc_version) {
         return Err(crate::ClusterError::InvalidVersion(
-            "Arcadium supports Minecraft 1.8.9 only".into(),
+            "Arcadium supports Minecraft 1.8.9 and 1.7.10.".into(),
         )
         .into());
     }
+    if existing.mc_version == "1.7.10" && existing.mc_loader != arcadium_common::GameLoader::Ornithe
+    {
+        return Err(crate::LauncherError::Minecraft(
+            "Arcadium 1.7.10 uses Ornithe. Forge mod compatibility is only available for Minecraft 1.8.9.".into(),
+        ));
+    }
+
+    let components = arcadium_common::distribution::components(&existing.mc_version).ok_or_else(|| {
+        crate::LauncherError::Minecraft(format!(
+            "Arcadium components for Minecraft {} are not included in this build. Reinstall the launcher.",
+            existing.mc_version
+        ))
+    })?;
 
     let game_dir = existing.game_dir()?;
     let dedicated = existing.uses_dedicated_dir();
@@ -397,7 +410,9 @@ async fn start(
             arcadium_common::install_layout::resources(&std::env::current_exe().unwrap_or_default())
                 .join("components")
         });
-    for &(file, sha1) in arcadium_common::distribution::COMPONENTS {
+    for component in components {
+        let file = &component.file;
+        let sha1 = &component.sha1;
         let destination = mods_dir.join(file);
         if !arcadium_net::matches_on_disk(&destination, sha1).await {
             let source = components_dir.join(file);
@@ -409,10 +424,14 @@ async fn start(
             arcadium_io::write_atomic(&destination, arcadium_io::read(&source).await?).await?;
         }
     }
-    let branding = mods_dir.join("ArcadiumBrand-1.8.9.jar");
-    if !arcadium_net::matches_on_disk(&branding, arcadium_common::distribution::BRANDING_SHA1).await
-    {
-        arcadium_io::write_atomic(&branding, arcadium_common::distribution::BRANDING_MOD).await?;
+    if cluster.mc_version == "1.8.9" {
+        let branding = mods_dir.join("ArcadiumBrand-1.8.9.jar");
+        if !arcadium_net::matches_on_disk(&branding, arcadium_common::distribution::BRANDING_SHA1)
+            .await
+        {
+            arcadium_io::write_atomic(&branding, arcadium_common::distribution::BRANDING_MOD)
+                .await?;
+        }
     }
     if let Some(arg) = crate::game::mods_folder_argument(
         cluster.mc_loader,
@@ -424,7 +443,9 @@ async fn start(
         jvm_args.push(arg);
     }
 
-    let main_class = if cluster.mc_loader == arcadium_common::GameLoader::Ornithe {
+    let main_class = if cluster.mc_loader == arcadium_common::GameLoader::Ornithe
+        && arcadium_common::distribution::supports_forge_compat(&cluster.mc_version)
+    {
         configure_forge_bootstrap(
             &mut jvm_args,
             &mods_dir.join("ArcadiumForgeCompat-1.8.9.jar"),
@@ -433,6 +454,10 @@ async fn start(
     } else {
         version_info.main_class.as_str()
     };
+
+    if !arcadium_common::distribution::supports_forge_compat(&cluster.mc_version) {
+        reject_unsupported_forge_mods(&cwd, &mods_dir, &cluster.mc_version).await?;
+    }
 
     let mut mc_args = arguments::minecraft_arguments(
         arg_map.get(&ArgumentType::Game).map(Vec::as_slice),
@@ -619,6 +644,42 @@ async fn start(
     });
 
     Ok(LaunchedGame { cluster_id, pid })
+}
+
+async fn reject_unsupported_forge_mods(
+    cwd: &Path,
+    mods_dir: &Path,
+    mc_version: &str,
+) -> LauncherResult<()> {
+    let mut roots = vec![cwd.join("mods"), mods_dir.to_path_buf()];
+    roots.extend(roots.clone().into_iter().map(|root| root.join(mc_version)));
+    roots.sort();
+    roots.dedup();
+    for root in roots {
+        let mut entries = match tokio::fs::read_dir(&root).await {
+            Ok(entries) => entries,
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => continue,
+            Err(error) => return Err(error.into()),
+        };
+        while let Some(entry) = entries.next_entry().await? {
+            let path = entry.path();
+            if !path
+                .extension()
+                .is_some_and(|extension| extension.eq_ignore_ascii_case("jar"))
+            {
+                continue;
+            }
+            if arcadium_content::packages::local_manifest::read_jar_loader(&path).await
+                == Some(arcadium_common::GameLoader::Forge)
+            {
+                return Err(crate::LauncherError::Minecraft(format!(
+                    "{} is a Forge mod. Forge mod compatibility is only available for Minecraft 1.8.9. Remove it from the Minecraft {mc_version} mods folder.",
+                    entry.file_name().to_string_lossy()
+                )));
+            }
+        }
+    }
+    Ok(())
 }
 
 fn configure_forge_bootstrap(jvm_args: &mut Vec<String>, component: &Path) -> LauncherResult<()> {
@@ -956,6 +1017,78 @@ mod optimization_tests {
                 .is_err()
         );
         check_optimization_mods(dir.path(), &dir.join("cluster-mods"), false, &[])
+            .await
+            .unwrap();
+    }
+}
+
+#[cfg(test)]
+mod legacy_mod_tests {
+    use super::reject_unsupported_forge_mods;
+
+    #[tokio::test]
+    async fn legacy_forge_mods_are_rejected_without_removing_user_files() {
+        let root = arcadium_io::testing::ScratchDir::new("legacy-forge-rejection");
+        let directory = root.join("mods/1.7.10");
+        tokio::fs::create_dir_all(&directory).await.unwrap();
+        let path = directory.join("example-forge.jar");
+        let file = tokio::fs::File::create(&path).await.unwrap();
+        let mut writer = async_zip::tokio::write::ZipFileWriter::with_tokio(file);
+        writer
+            .write_entry_whole(
+                async_zip::ZipEntryBuilder::new(
+                    "mcmod.info".into(),
+                    async_zip::Compression::Stored,
+                ),
+                b"[{\"modid\":\"legacy_example\",\"name\":\"Example\"}]",
+            )
+            .await
+            .unwrap();
+        let mut output = writer.close().await.unwrap();
+        futures_lite::io::AsyncWriteExt::flush(&mut output)
+            .await
+            .unwrap();
+        drop(output);
+        let error =
+            reject_unsupported_forge_mods(root.path(), &root.join("cluster/mods"), "1.7.10")
+                .await
+                .unwrap_err()
+                .to_string();
+        assert!(error.contains("example-forge.jar"));
+        assert!(error.contains("Forge mod compatibility is only available for Minecraft 1.8.9"));
+        assert!(path.is_file());
+    }
+
+    #[tokio::test]
+    async fn a_fabric_jar_with_forge_metadata_is_not_misidentified() {
+        let root = arcadium_io::testing::ScratchDir::new("legacy-multiloader-metadata");
+        let directory = root.join("mods");
+        tokio::fs::create_dir_all(&directory).await.unwrap();
+        let file = tokio::fs::File::create(directory.join("fabric-with-credits.jar"))
+            .await
+            .unwrap();
+        let mut writer = async_zip::tokio::write::ZipFileWriter::with_tokio(file);
+        for (name, bytes) in [
+            (
+                "fabric.mod.json",
+                b"{\"schemaVersion\":1,\"id\":\"example_fabric\",\"version\":\"1.0\"}".as_slice(),
+            ),
+            ("mcmod.info", b"[]".as_slice()),
+        ] {
+            writer
+                .write_entry_whole(
+                    async_zip::ZipEntryBuilder::new(name.into(), async_zip::Compression::Stored),
+                    bytes,
+                )
+                .await
+                .unwrap();
+        }
+        let mut output = writer.close().await.unwrap();
+        futures_lite::io::AsyncWriteExt::flush(&mut output)
+            .await
+            .unwrap();
+        drop(output);
+        reject_unsupported_forge_mods(root.path(), &root.join("cluster/mods"), "1.7.10")
             .await
             .unwrap();
     }

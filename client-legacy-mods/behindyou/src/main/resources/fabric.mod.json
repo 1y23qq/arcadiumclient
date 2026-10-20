@@ -1,0 +1,36 @@
+{
+    "schemaVersion": 1,
+    "id": "${mod_id}",
+    "name": "${mod_name}",
+    "version": "${mod_version}",
+    "description": "Look behind you with ease!",
+    "authors": [
+        "Polyfrost",
+        "isXander"
+    ],
+    "contact": {
+        "homepage": "https://github.com/Polyfrost/BehindYouV3",
+        "sources": "https://github.com/Polyfrost/BehindYouV3",
+        "issues": "https://discord.gg/QbNfaCHjUz"
+    },
+    "entrypoints": {
+        "client": [
+            {
+                "adapter": "kotlin",
+                "value": "org.polyfrost.behindyou.BehindYouEntrypoint"
+            }
+        ]
+    },
+    "mixins": [
+        "mixins.behindyouv3.json"
+    ],
+    "license": "GPL-3.0-only",
+    "environment": "client",
+    "accessWidener": "behindyouv3.classtweaker",
+    "depends": {
+        "minecraft": "${minecraft_version_range}",
+        "fabricloader": ">=${loader_version}",
+        "oneconfigv1": ">=${oneconfig_version}",
+        "fabric-language-kotlin": "*"
+    }
+}

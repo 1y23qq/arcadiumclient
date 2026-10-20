@@ -1,0 +1,52 @@
+package org.polyfrost.overflowparticles.client.config
+
+import net.minecraft.client.entity.particle.Particle
+import org.polyfrost.overflowparticles.utils.ParticleType
+//? if >=1.21.11 {
+/*import net.minecraft.resources.Identifier as ResourceLocation
+*///?} else {
+import net.minecraft.resource.Identifier as ResourceLocation
+//?}
+import org.polyfrost.overflowparticles.client.particles.ParticleInfo
+import org.polyfrost.overflowparticles.client.particles.ParticleRegistry
+import org.polyfrost.overflowparticles.utils.ParticleIdentifier
+
+object PerParticleConfigManager {
+    @JvmStatic var blockSetting = BlockParticleEntry()
+    @JvmStatic var configs = HashMap<ResourceLocation, ParticleConfig>()
+
+    fun fillConfigs() {
+        if (configs.isNotEmpty()) {
+            return
+        }
+
+        for ((type, data) in ParticleRegistry.registry) {
+            if (data.isIgnored) {
+                continue
+            }
+
+            configs[ParticleRegistry.location(type)] = ParticleConfig(data.name, type)
+        }
+    }
+
+    @JvmStatic
+    fun getConfig(entity: Particle?): ParticleConfig? {
+        return (entity as? ParticleIdentifier)?.`overflowparticles$getConfig`()
+    }
+
+    @JvmStatic
+    fun getConfigByType(info: ParticleInfo): ParticleConfig {
+        return getConfigByType(info.id) ?: throw IllegalArgumentException("No config found for particle type: ${info.name} (ID: ${info.id})")
+    }
+
+    @JvmStatic
+    fun getConfigByType(particleType: ParticleType<*>?): ParticleConfig? {
+        if (particleType == null) {
+            return null
+        }
+
+        // Some types redirect to another so resolve the redirect before looking up the config
+        val redirectedType = ParticleRegistry.of(particleType)?.id ?: particleType
+        return configs[ParticleRegistry.location(redirectedType)]
+    }
+}

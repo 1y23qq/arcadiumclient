@@ -125,8 +125,9 @@ def build(args):
         shutil.copy2(ROOT / "packages/arcadium_app/icons/512x512.png", resources / "game-icon.png")
         components = resources / "components"
         components.mkdir()
-        lock = json.loads((ROOT / "distribution/oneclient-1.8.9.lock.json").read_text())
-        for component in lock["arcadiumComponents"]:
+        from package_client import LOCK_PATHS, distribution_locks, verify_components, write_legacy_notices
+        locks = distribution_locks(ROOT)
+        for component in verify_components(ROOT)["components"]:
             source = ROOT / "packages/arcadium_common/assets/distribution" / component["file"]
             if digest(source) != component["sha256"]:
                 raise RuntimeError(f"Client component hash mismatch: {source.name}")
@@ -134,11 +135,15 @@ def build(args):
         for name in ["LICENSE", "NOTICE.md", "README.md"]:
             shutil.copy2(ROOT / name, resources / name)
         shutil.copytree(ROOT / "licenses", resources / "licenses")
+        write_legacy_notices(resources / "licenses/legacy-mods", ROOT)
         for font in ["JetBrainsMono", "Poppins"]:
             shutil.copy2(ROOT / "packages/arcadium_app/assets/fonts" / font / "OFL.txt",
                          resources / "licenses" / f"{font}-OFL.txt")
         dependency_notices(target, resources / "licenses/Rust-dependencies.txt")
         shutil.copy2(ROOT / "distribution/oneclient-1.8.9.lock.json", resources / "distribution-lock.json")
+        for minecraft in locks:
+            if minecraft != "1.8.9":
+                shutil.copy2(ROOT / LOCK_PATHS[minecraft], resources / f"distribution-lock-{minecraft}.json")
         metadata = {
             "CFBundleInfoDictionaryVersion": "6.0",
             "CFBundleName": "Arcadium Client", "CFBundleDisplayName": "Arcadium Client",
@@ -172,6 +177,7 @@ def build(args):
         files = [{"path": file.relative_to(app).as_posix(), "sha256": digest(file)}
                  for file in sorted(app.rglob("*")) if file.is_file()]
         manifest = {"product": "Arcadium Client", "minecraftVersion": "1.8.9",
+                    "minecraftVersions": list(locks),
                     "launcherVersion": version, "platform": platform_id,
                     "minimumSystemVersion": minimum,
                     "installerSha256": digest(archive), "archive": archive.name,

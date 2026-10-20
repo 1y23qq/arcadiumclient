@@ -1,0 +1,160 @@
+package org.polyfrost.polyblur.client.blur.motion
+
+//? if >1.21.5 {
+/*import net.minecraft.client.render.pipeline.RenderTarget
+import com.mojang.blaze3d.systems.RenderSystem
+import com.mojang.blaze3d.pipeline.RenderPipeline
+import com.mojang.blaze3d.shaders.UniformType
+import org.joml.Matrix4f
+import org.joml.Vector4f
+import org.polyfrost.polyblur.PolyBlurConstants
+import org.polyfrost.polyblur.client.PolyBlurConfig
+import org.polyfrost.polyblur.client.blur.BlurPrewarm
+// import org.polyfrost.polyblur.client.blur.BlurProfiler
+import org.polyfrost.polyblur.client.blur.phosphor.FullscreenPass
+import org.polyfrost.polyblur.client.blur.phosphor.location
+
+//? if >=26.2 {
+/*import com.mojang.blaze3d.PrimitiveTopology
+import com.mojang.blaze3d.pipeline.BindGroupLayout
+import java.util.Optional
+*///?} else {
+import com.mojang.blaze3d.vertex.DefaultVertexFormat
+import com.mojang.blaze3d.vertex.VertexFormat
+import java.util.OptionalInt
+//?}
+
+//? if >=26.1 {
+/*import com.mojang.blaze3d.pipeline.ColorTargetState
+import com.mojang.blaze3d.pipeline.DepthStencilState
+import com.mojang.blaze3d.platform.CompareOp
+*///?} else
+import com.mojang.blaze3d.platform.DepthTestFunction
+
+//? if >=1.21.11
+//import org.polyfrost.polyblur.client.blur.phosphor.BlurSampler
+
+object MotionVelocityPass {
+    const val MAX_VEL = 0.25f
+
+    private const val VELOCITY_SMOOTHING = 0.35f
+
+    private val invCurVP = Matrix4f()
+    private val prevVP = Matrix4f()
+    private val reproj = Matrix4f()
+    private val invRow3 = Vector4f()
+    private val dVec = Vector4f()
+
+    private val pipeline by lazy {
+        RenderPipeline.builder()
+            .withLocation(location(PolyBlurConstants.ID, "motion_velocity_pipeline"))
+            //? if >=1.21.10 {
+            /*.withVertexShader("core/screenquad")
+            *///?}
+            //? if <1.21.10 {
+            .withVertexShader(location(PolyBlurConstants.ID, "core/fullscreen_quad"))
+            //?}
+            .withFragmentShader(location(PolyBlurConstants.ID, "post/motion_velocity"))
+            //? if >=26.2 {
+            /*.withPrimitiveTopology(PrimitiveTopology.TRIANGLES)
+            .withDepthStencilState(Optional.empty())
+            .withColorTargetState(ColorTargetState.DEFAULT)
+            .withBindGroupLayout(
+                BindGroupLayout.builder()
+                    //? if >=26.3 {
+                    /*.withUniform("DepthSampler", UniformType.COMBINED_IMAGE_SAMPLER)
+                    .withUniform("HistorySampler", UniformType.COMBINED_IMAGE_SAMPLER)
+                    *///?} else {
+                    .withSampler("DepthSampler")
+                    .withSampler("HistorySampler")
+                    //?}
+                    .withUniform("VelocityConfig", UniformType.UNIFORM_BUFFER)
+                    .build()
+            )
+            *///?}
+            //? if >=1.21.10 && <26.2 {
+            /*.withVertexFormat(DefaultVertexFormat.EMPTY, VertexFormat.Mode.TRIANGLES)
+            *///?}
+            //? if <1.21.10 {
+            .withVertexFormat(DefaultVertexFormat.POSITION, VertexFormat.Mode.QUADS)
+            //?}
+            //? if >=26.1 && <26.2 {
+            /*.withDepthStencilState(DepthStencilState(CompareOp.ALWAYS_PASS, false))
+            .withColorTargetState(ColorTargetState.DEFAULT)
+            *///?}
+            //? if <26.1 {
+            .withDepthWrite(false)
+            .withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
+            .withColorWrite(true, true)
+            //?}
+            //? if <26.2 {
+            .withUniform("VelocityConfig", UniformType.UNIFORM_BUFFER)
+            .withSampler("DepthSampler")
+            .withSampler("HistorySampler")
+            //?}
+            .build()
+    }
+
+    internal fun prewarm() = BlurPrewarm.compile(pipeline)
+
+    @JvmStatic
+    // fun run(mainTarget: RenderTarget) = BlurProfiler.section("motion.velocity") { runInner(mainTarget) }
+    fun run(mainTarget: RenderTarget) = runInner(mainTarget)
+
+    private fun runInner(mainTarget: RenderTarget) {
+        if (BlurPrewarm.failed || !WorldCamera.hasPrev) return
+
+        val velTarget = VelocityTarget.beginFrame(mainTarget.width, mainTarget.height)
+        val histTarget = VelocityTarget.history ?: return
+
+        WorldCamera.invCurVP(invCurVP)
+        WorldCamera.prevVP(prevVP)
+        reproj.set(prevVP).mul(invCurVP)
+        invCurVP.getRow(3, invRow3)
+        if (PolyBlurConfig.translationParallax) {
+            dVec.set(WorldCamera.deltaX, WorldCamera.deltaY, WorldCamera.deltaZ, 0f)
+            prevVP.transform(dVec)
+        } else {
+            dVec.set(0f, 0f, 0f, 0f)
+        }
+        //? if >=26.2 {
+        /*val zZeroToOne = if (RenderSystem.getDevice().deviceInfo.isZZeroToOne) 1f else 0f
+        *///?}
+        //? if <26.2 {
+        val zZeroToOne = 0f
+        //?}
+        val timeScale = org.polyfrost.polyblur.client.blur.FrameClock.timeScale
+        val alpha = 1f - Math.pow((1f - VELOCITY_SMOOTHING).toDouble(), (1f / maxOf(timeScale, 1e-6f)).toDouble()).toFloat()
+        MotionVelocityUniforms.upload(reproj, invRow3, dVec, MAX_VEL, timeScale, zZeroToOne, alpha)
+
+        RenderSystem.getDevice().createCommandEncoder().createRenderPass(
+            { "PolyBlur/MotionVelocity" },
+            velTarget.getColorTextureView()!!,
+            //? if >=26.2 {
+            /*Optional.empty()
+            *///?}
+            //? if <26.2 {
+            OptionalInt.empty()
+            //?}
+        ).use { renderPass ->
+            //? if >=26.3 {
+            /*renderPass.setPipeline(RenderSystem.getCompiledPipeline(pipeline))
+            *///?} else {
+            renderPass.setPipeline(pipeline)
+            //?}
+            //? if >=26.3 {
+            /*renderPass.setUniform("DepthSampler", mainTarget.getDepthTextureView()!!, BlurSampler.linearClamp)
+            renderPass.setUniform("HistorySampler", histTarget.getColorTextureView()!!, BlurSampler.linearClamp)
+            *///?} elif >=1.21.11 {
+            /*renderPass.bindTexture("DepthSampler", mainTarget.getDepthTextureView()!!, BlurSampler.linearClamp)
+            renderPass.bindTexture("HistorySampler", histTarget.getColorTextureView()!!, BlurSampler.linearClamp)
+            *///?} else {
+            renderPass.bindSampler("DepthSampler", mainTarget.getDepthTextureView()!!)
+            renderPass.bindSampler("HistorySampler", histTarget.getColorTextureView()!!)
+            //?}
+            renderPass.setUniform("VelocityConfig", MotionVelocityUniforms.buffer)
+            FullscreenPass.draw(renderPass)
+        }
+    }
+}
+*///?}

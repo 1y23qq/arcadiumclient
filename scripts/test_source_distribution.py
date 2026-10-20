@@ -8,10 +8,10 @@ import zipfile
 import check_source_distribution as gate
 
 
-def bundle(extra=None):
+def bundle(extra=None, minecraft_version="1.8.9"):
     output = io.BytesIO()
     with zipfile.ZipFile(output, "w") as archive:
-        archive.writestr("modrinth.index.json", json.dumps({"dependencies": {"minecraft": "1.8.9"}, "files": []}))
+        archive.writestr("modrinth.index.json", json.dumps({"dependencies": {"minecraft": minecraft_version}, "files": []}))
         for name, raw in (extra or {}).items():
             archive.writestr(name, raw)
     return output.getvalue()
@@ -20,7 +20,13 @@ def bundle(extra=None):
 class SourcePublicationTests(unittest.TestCase):
     def test_original_metadata_compatibility_override_is_allowed_without_binary_payloads(self):
         raw = bundle({"overrides/": b"", "overrides/config/": b"", "overrides/config/fabric_loader_dependencies.json": json.dumps({"version": 1, "overrides": {"pylon": {"+breaks": {"lenis": "*"}}}})})
-        self.assertEqual(gate.check_file(sorted(gate.BUNDLES)[0], raw), [])
+        self.assertEqual(gate.check_file(next(name for name in sorted(gate.BUNDLES) if "1.8.9" in name), raw), [])
+
+    def test_legacy_bundle_requires_its_own_version_and_no_payload(self):
+        name = "packages/arcadium_common/assets/distribution/core-1.7.10-ornithe.mrpack"
+        self.assertEqual(gate.check_file(name, bundle(minecraft_version="1.7.10")), [])
+        self.assertTrue(gate.check_file(name, bundle()))
+        self.assertTrue(gate.check_file(name, bundle({"mods/old.jar": b"data"}, "1.7.10")))
 
     def test_game_mod_payload_or_unreviewed_override_cannot_enter_source_mrpack(self):
         for name in ["mods/forbidden.jar", "overrides/config/unreviewed.json", "overrides/saves/level.dat"]:

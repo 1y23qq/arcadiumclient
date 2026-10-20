@@ -49,13 +49,13 @@ import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.repository.PackSource;
 //?}
 
-//? if = 1.8.9 {
+//? if <= 1.8.9 {
 /*import net.ornithemc.osl.resource.loader.api.resource.pack.PackPosition;
 import net.ornithemc.osl.resource.loader.api.resource.repository.ResourcePackSummary;
 import net.ornithemc.osl.resource.loader.impl.resource.pack.DirectoryResourcePack;
 *///?}
 
-//~ if = 1.8.9 'RepositorySource' -> 'ResourcePackRepository.Source'
+//~ if <= 1.8.9 'RepositorySource' -> 'ResourcePackRepository.Source'
 public final class OneConfigSoundPackSource implements RepositorySource {
     public static final OneConfigSoundPackSource INSTANCE = new OneConfigSoundPackSource();
 

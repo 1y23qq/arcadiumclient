@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "id": "arcadium-legacy-performance",
+  "version": "${version}",
+  "name": "Arcadium Performance",
+  "description": "Rendering optimizations for Arcadium 1.7.10.",
+  "authors": ["0aurorq3"],
+  "license": "MIT",
+  "environment": "client",
+  "mixins": ["arcadium-legacy-performance.mixins.json"],
+  "depends": {"fabricloader": ">=0.19.5", "pylon": ">=0.2.2-beta.1", "minecraft": "1.7.10", "java": ">=25"}
+}

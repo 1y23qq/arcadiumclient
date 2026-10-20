@@ -1,0 +1,32 @@
+package org.polyfrost.overflowparticles.utils
+
+import net.minecraft.client.entity.particle.Particle
+import org.polyfrost.overflowparticles.utils.ParticleType
+import org.polyfrost.overflowparticles.client.config.ParticleConfig
+
+@Suppress("FunctionName")
+interface ParticleIdentifier {
+    companion object {
+        @JvmStatic
+        fun get(entity: Particle): ParticleType<*>? {
+            return (entity as? ParticleIdentifier)?.getId()
+        }
+
+        @JvmStatic
+        fun set(entity: Particle, id: ParticleType<*>) {
+            (entity as? ParticleIdentifier)?.setId(id)
+        }
+    }
+
+    fun `overflowparticles$getId`(): ParticleType<*>
+    fun `overflowparticles$setId`(id: ParticleType<*>)
+    fun `overflowparticles$getConfig`(): ParticleConfig?
+
+    fun getId(): ParticleType<*> {
+        return `overflowparticles$getId`()
+    }
+
+    fun setId(id: ParticleType<*>) {
+        `overflowparticles$setId`(id)
+    }
+}

@@ -11,10 +11,10 @@ import build_client
 import package_client as package
 
 
-def jar(mod_id="example", *, files=None, authors=None, license="LGPL-3.0-only"):
+def jar(mod_id="example", *, files=None, authors=None, license="LGPL-3.0-only", mixins=None, minecraft=None):
     output = io.BytesIO()
     with zipfile.ZipFile(output, "w") as archive:
-        archive.writestr("fabric.mod.json", json.dumps({"schemaVersion": 1, "id": mod_id, "name": "Upstream library", "authors": authors or ["Original author"], "license": license}))
+        archive.writestr("fabric.mod.json", json.dumps({"schemaVersion": 1, "id": mod_id, "name": "Upstream library", "authors": authors or ["Original author"], "license": license, "mixins": mixins or [], "depends": {"minecraft": minecraft} if minecraft else {}}))
         archive.writestr("LICENSE", "Original license and copyright")
         for name, raw in (files or {}).items():
             archive.writestr(name, raw)
@@ -22,6 +22,50 @@ def jar(mod_id="example", *, files=None, authors=None, license="LGPL-3.0-only"):
 
 
 class PackagingTests(unittest.TestCase):
+    def test_native_shader_closure_is_required_for_each_effect_provider(self):
+        for mod_id, programs in package.NATIVE_SHADER_PROGRAMS.items():
+            with self.subTest(mod_id=mod_id):
+                files = {}
+                for name in programs:
+                    namespace = "blur" if mod_id == "blur" else "minecraft"
+                    files[f"assets/{namespace}/shaders/post/{name}.json"] = json.dumps({"passes": [{"name": name}]})
+                    files[f"assets/minecraft/shaders/program/{name}.json"] = json.dumps({"vertex": "sobel", "fragment": name})
+                    files[f"assets/minecraft/shaders/program/{name}.fsh"] = "#version 120\nvoid main() {}"
+                package.inspect_component(jar(mod_id, minecraft="1.7.10", files=files), "native.jar")
+                files.pop(f"assets/minecraft/shaders/program/{programs[-1]}.fsh")
+                with self.assertRaisesRegex(RuntimeError, "Missing authored native shader resource"):
+                    package.inspect_component(jar(mod_id, minecraft="1.7.10", files=files), "native.jar")
+                files[f"assets/minecraft/shaders/program/{programs[-1]}.fsh"] = "#version 150\nvoid main() {}"
+                with self.assertRaisesRegex(RuntimeError, "must use GLSL 1.20"):
+                    package.inspect_component(jar(mod_id, minecraft="1.7.10", files=files), "native.jar")
+
+    def test_native_legacy_locale_rejects_nested_values_before_game_startup(self):
+        raw = jar(minecraft="1.7.10", files={"assets/example/lang/en_us.json": '{"example":{"label":"Setting"}}'})
+        with self.assertRaisesRegex(RuntimeError, "requires flat string translations"):
+            package.inspect_component(raw, "native.jar")
+        raw = jar(minecraft="1.7.10", files={"assets/example/lang/en_us.json": '{"example.label":"Setting"}'})
+        self.assertEqual(package.inspect_component(raw, "native.jar")["id"], "example")
+
+    def test_missing_native_mixin_config_and_class_fail_packaging(self):
+        with self.assertRaisesRegex(RuntimeError, "Missing Mixin configuration"):
+            package.inspect_component(jar(mixins=["native.json"]), "native.jar")
+        raw = jar(mixins=["native.json"], files={"native.json": json.dumps({"package": "example.mixin", "client": ["Missing"]})})
+        with self.assertRaisesRegex(RuntimeError, "Missing Mixin class.*Missing.class"):
+            package.inspect_component(raw, "native.jar")
+
+    def test_mixin_integrity_accepts_upstream_comments_trailing_commas_and_plugin(self):
+        raw = jar(mixins=[{"config": "native.json", "environment": "client"}], files={
+            "native.json": '{"package":"example.mixin",/*note*/"plugin":"example.Plugin","client":["Native",],"url":"https://example.invalid/x,]"}',
+            "example/mixin/Native.class": b"fixture", "example/Plugin.class": b"fixture"})
+        self.assertEqual(package.inspect_component(raw, "native.jar")["id"], "example")
+
+    def test_mixin_plugin_can_be_supplied_by_the_actual_nested_dependency(self):
+        raw = jar(mixins=["native.json"], files={
+            "native.json": '{"package":"example.mixin","plugin":"external.Plugin","client":["Native"]}',
+            "example/mixin/Native.class": b"fixture",
+            "META-INF/jars/plugin.jar": jar("plugin_provider", files={"external/Plugin.class": b"fixture"})})
+        self.assertEqual(package.inspect_component(raw, "native.jar")["id"], "example")
+
     def test_component_inspection_preserves_license_author_and_exact_jar_bytes(self):
         raw = jar(authors=["Original author", "Another contributor"])
         metadata = package.inspect_component(raw, "library.jar", "example")
@@ -119,6 +163,72 @@ class PackagingTests(unittest.TestCase):
         self.assertFalse(any("client-renderer" in command for command in text))
         self.assertTrue(text[-1].endswith("scripts/package_client.py") or text[-1].endswith("scripts\\package_client.py"))
         self.assertFalse(any("client-features" in command for command in text))
+
+    def test_legacy_core_runtime_branding_and_performance_are_separate_from_forge(self):
+        with patch.object(package, "legacy_ports", return_value=[]):
+            legacy = package.component_sources(package.ROOT, "0.4.0", "1.7.10")
+        modern = package.component_sources(package.ROOT, "0.4.0", "1.8.9")
+        self.assertEqual(set(legacy), {"ArcadiumCore-1.7.10.jar", "ArcadiumFeatures-1.7.10.jar",
+                                      "ArcadiumRenderer-1.7.10.jar", "ArcadiumPerformance-1.7.10.jar"})
+        self.assertIn("ArcadiumForgeCompat-1.8.9.jar", modern)
+        self.assertEqual(legacy["ArcadiumRenderer-1.7.10.jar"][0], modern["ArcadiumRenderer-1.8.9.jar"][0])
+        self.assertIn("build/1.7.10/libs/", legacy["ArcadiumFeatures-1.7.10.jar"][0].as_posix())
+        self.assertNotEqual(legacy["ArcadiumCore-1.7.10.jar"][0], modern["ArcadiumCore-1.8.9.jar"][0])
+        text = [" ".join(command) for command in build_client.build_commands()]
+        self.assertTrue(any("client-runtime" in command and "-PminecraftVersion=1.7.10" in command for command in text))
+        self.assertTrue(any("game-branding" in command and "-PminecraftVersion=1.7.10" in command for command in text))
+        self.assertTrue(any("client-legacy-performance" in command and "build" in command for command in text))
+
+    def test_legacy_packaging_preserves_current_primary_catalog_and_brand_hash(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            assets = root / package.ASSET_PATH
+            assets.mkdir(parents=True)
+            (root / "distribution").mkdir()
+            (root / "client-ui/gradle").mkdir(parents=True)
+            (root / "client-ui/gradle.properties").write_text("version=1.2.23-arcadium\n")
+            (root / "client-ui/gradle/libs.versions.toml").write_text('[versions]\ncompose="1.13.0-alpha02"\n')
+            (root / "Cargo.toml").write_text('[workspace.package]\nversion="0.4.0"\n')
+            (root / "distribution/oneclient-1.8.9.lock.json").write_text('{"arcadiumComponents":[{"file":"primary.jar"}]}')
+            (root / "distribution/arcadium-1.7.10.lock.json").write_text('{"bundles":[]}')
+            (assets / "bundles.json").write_text('{"versions":{"1.8.9":{"ornithe":[]},"1.7.10":{"ornithe":[]}}}')
+            sources = package.component_sources(root, "0.4.0", "1.7.10")
+            for source, mod_id in sources.values():
+                source.parent.mkdir(parents=True, exist_ok=True)
+                source.write_bytes(jar(mod_id))
+            brand = root / "game-branding/build/1.7.10/libs/ArcadiumBrand-0.4.0-1.7.10.jar"
+            brand.parent.mkdir(parents=True)
+            brand.write_bytes(jar("arcadiumclient"))
+            primary = (root / "distribution/oneclient-1.8.9.lock.json").read_bytes()
+            components = package.package(root, "1.7.10")
+            self.assertEqual(len(components), 5)
+            self.assertTrue(all("1.7.10" in component["file"] for component in components))
+            self.assertFalse(any("Forge" in component["file"] for component in components))
+            self.assertEqual((assets / "ArcadiumBrand-1.7.10.jar").read_bytes(), brand.read_bytes())
+            catalog = json.loads((assets / "client-components.json").read_text())
+            self.assertEqual(catalog["1.7.10"], components)
+            self.assertEqual((root / "distribution/oneclient-1.8.9.lock.json").read_bytes(), primary)
+            self.assertEqual(catalog["1.8.9"], [{"file": "primary.jar"}])
+
+    def test_incomplete_legacy_payload_cannot_silently_ship_a_primary_only_installer(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / "distribution").mkdir()
+            (root / "distribution/arcadium-1.7.10.lock.json").write_text('{"arcadiumComponents":[]}')
+            with self.assertRaisesRegex(RuntimeError, "1.7.10.*incomplete"):
+                package.shipped_components(root)
+
+    def test_legacy_dependency_sources_keep_original_licenses_and_no_excluded_providers(self):
+        ports = package.legacy_ports()
+        self.assertEqual(len(ports), 39)
+        self.assertEqual(len({port["file"] for port in ports}), len(ports))
+        self.assertTrue({"evergreenhud", "vanillahud", "overflowanimations", "blockoverlay", "damagetint", "polyhitbox"}.issubset({port["directory"] for port in ports}))
+        self.assertFalse(package.EXCLUDED_MOD_IDS.intersection(port["modId"] for port in ports))
+        text = [" ".join(command) for command in build_client.build_commands()]
+        for port in ports:
+            self.assertTrue(any("client-legacy-mods" in command and port["directory"] in command
+                                and port["task"] in command for command in text), port["directory"])
+            self.assertRegex(port["upstream"]["commit"], r"^[a-f0-9]{40}$")
 
 
 if __name__ == "__main__":

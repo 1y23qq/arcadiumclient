@@ -22,7 +22,7 @@ import net.minecraft.client.gui.screens.LoadingOverlay;
 /*import net.minecraft.Util;
 *///?}
 
-//? if = 1.8.9 {
+//? if <= 1.8.9 {
 /*import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.minecraft.client.Minecraft;
@@ -30,7 +30,7 @@ import net.minecraft.client.gui.screens.TitleScreen;
 import org.lwjgl.opengl.Display;
 *///?}
 
-//~ if = 1.8.9 'LoadingOverlay' -> 'Minecraft'
+//~ if <= 1.8.9 'LoadingOverlay' -> 'Minecraft'
 @Mixin(LoadingOverlay.class)
 public class Mixin_StartupWarmupOverlay {
     //? if > 1.8.9 {

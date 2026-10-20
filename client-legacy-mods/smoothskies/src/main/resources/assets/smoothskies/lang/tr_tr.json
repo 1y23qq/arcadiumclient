@@ -1,0 +1,35 @@
+{
+  "modmenu.descriptionTranslation.smoothskies": "Fixes several skybox related graphical issues",
+  "${id}": {
+    "${id}": "Smooth Skies",
+    "extra": "Extra",
+    "set-fog-view-distance": {
+      "name": "Sis Görüş Mesafesini Ayarla",
+      "description": "Skybox sisi için özel bir görüş mesafesi ayarlayın.\n\nDaha yüksek sayılar daha mavi gökyüzü anlamına gelir."
+    },
+    "fix-skybox-clipping": {
+      "name": "Skybox Kesilmesini Düzelt",
+      "description": "Düşük render mesafelerinde skybox kesilmesini uzak düzlem kesimini artırarak düzeltir."
+    },
+    "lower-sky-void-darkness": {
+      "name": "Gökyüzü Boşluk Karanlığını Azalt",
+      "description": "Gökyüzünün siyaha döndüğü yüksekliği dünyanın en düşük yüksekliğine doğru şekilde düşürür.\n\nBu, gökyüzünün yüksek bir Y değerinde aniden siyaha dönmesini engeller ve bunun yerine siyaha doğru yumuşak bir geçiş sağlar.\n\nEn çok Skyblock veya boşluk (void) türü dünyalarda fark edilir."
+    },
+    "remove-sunrise-and-sunset-coloring": {
+      "name": "Remove Sunrise and Sunset Coloring",
+      "description": "Removes the colored ring during sunrise and sunset, preventing the harsh fog discoloration effect."
+    },
+    "remove-void-box": {
+      "name": "Remove Void Box",
+      "description": "Removes the black box that renders around the player in the void."
+    },
+    "remove-sky-in-void": {
+      "name": "Boşlukta Gökyüzünü Kaldır",
+      "description": "Boşluktayken gökyüzünü kaldırır. Bu, MC-249655 sorununu düzeltir."
+    },
+    "clear-skies": {
+      "name": "Temiz Gökyüzü",
+      "description": "Ufuktaki bantlaşmayı kaldırır ve gökyüzünün tek renkli olmasını sağlar.\n\nBu, grondag'ın Clear Skies modundan alınmıştır."
+    }
+  }
+}

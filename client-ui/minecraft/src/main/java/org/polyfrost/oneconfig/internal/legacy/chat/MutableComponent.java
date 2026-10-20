@@ -1,6 +1,6 @@
 package org.polyfrost.oneconfig.internal.legacy.chat;
 
-//? if = 1.8.9 {
+//? if <= 1.8.9 {
 /*import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import java.util.Iterator;
@@ -119,9 +119,9 @@ public final class MutableComponent implements Component {
     public Iterator<net.minecraft.text.Text> iterator() {
         return Iterators.concat(
                 Iterators.singletonIterator((net.minecraft.text.Text) this),
-                Iterators.concat(Iterators.transform(
+                Iterators.<net.minecraft.text.Text>concat(Iterators.<net.minecraft.text.Text, Iterator<? extends net.minecraft.text.Text>>transform(
                         (Iterator<net.minecraft.text.Text>) (Iterator<?>) this.siblings.iterator(),
-                        net.minecraft.text.Text::iterator
+                        text -> (Iterator<net.minecraft.text.Text>) text.iterator()
                 ))
         );
     }

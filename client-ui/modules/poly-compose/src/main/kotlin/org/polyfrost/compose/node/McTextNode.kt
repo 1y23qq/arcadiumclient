@@ -10,16 +10,24 @@ class McTextNode : PolyNode() {
     var color: PolyColor = PolyColor.WHITE
     var shadow: Boolean = true
     var scale: Float = 1f
+    private var lines = emptyList<McFontQueue.Line>()
+    private var lineHeight = 9f
 
     fun remeasure() {
-        val lines = text.lines()
-        style.width = PolySize.Px(McFontQueue.measureTextWidth(text, scale))
-        style.height = PolySize.Px(lines.size * McFontQueue.measureTextHeight(scale))
+        lines = McFontQueue.layoutLines(text, scale)
+        lineHeight = McFontQueue.measureTextHeight(scale)
+        style.width = PolySize.Px(maxOf(lines.maxOfOrNull { it.width } ?: 0f, style.textWidth ?: 0f))
+        style.height = PolySize.Px(lines.size * lineHeight)
     }
 
     override fun render(ctx: RenderContext) {
         val renderer = McFontQueue.renderer
         // read color.argb at draw time so chroma colours keep cycling every frame
-        if (renderer != null) renderer(ctx.canvas, text, x, y, color.argb, shadow, scale)
+        if (renderer == null) return
+        if (style.textAlign == 0) renderer(ctx.canvas, text, x, y, color.argb, shadow, scale)
+        else lines.forEachIndexed { index, line ->
+            renderer(ctx.canvas, line.text, x + McFontQueue.lineOffset(width, line.width, style.textAlign),
+                y + index * lineHeight, color.argb, shadow, scale)
+        }
     }
 }

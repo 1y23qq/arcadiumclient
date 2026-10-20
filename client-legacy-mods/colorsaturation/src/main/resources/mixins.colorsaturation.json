@@ -1,0 +1,16 @@
+{
+    "required": true,
+    "compatibilityLevel": "JAVA_21",
+    "minVersion": "0.7",
+    "package": "org.polyfrost.colorsaturation.mixin",
+    "refmap": "mixins.${mod_id}.refmap.json",
+    "injectors": {
+        "defaultRequire": 1,
+        "maxShiftBy": 5
+    },
+    "client": [
+        "client.Mixin_ApplySaturation",
+        "client.PostChainAccessor"
+    ],
+    "verbose": true
+}

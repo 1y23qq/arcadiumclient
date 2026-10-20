@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "rendertweaks",
+  "version": "${version}",
+  "name": "Render Tweaks",
+  "description": "Allows modifying the rendering of some in world things.",
+  "authors": [
+    "Microcontrollers"
+  ],
+  "contact": {
+    "sources": "https://codeberg.org/MicrocontrollersDev/Render-Tweaks",
+    "issues": "https://discord.gg/QbNfaCHjUz"
+  },
+  "license": "LGPL-3.0",
+  "environment": "client",
+  "icon": "assets/rendertweaks/icon.png",
+  "entrypoints": {
+    "main": [
+      "dev.microcontrollers.rendertweaks.RenderTweaks"
+    ]
+  },
+  "mixins": [
+    "rendertweaks.mixins.json"
+  ],
+  "depends": {
+    "minecraft": "${minecraft}",
+    "fabricloader": ">=0.19.5",
+    "oneconfigv1": ">=1.2.23-arcadium",
+    "java": ">=25"
+  }
+}

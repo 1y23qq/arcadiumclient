@@ -1,0 +1,24 @@
+publish.modrinth = "HeyHGg62"
+publish.curseforge = ""
+
+mod.name = "Numerical Enchantments"
+mod.id = "numericalenchantments"
+mod.group = "dev.microcontrollers.numericalenchantments"
+mod.description = "Converts roman numerals to arabic numbers."
+mod.source = "https://codeberg.org/MicrocontrollersDev/Numerical-Enchantments"
+mod.issues = "https://discord.gg/QbNfaCHjUz"
+mod.license = "LGPL-3.0"
+mod.modrinth = "https://modrinth.com/mod/numerical-enchantments"
+mod.curseforge = "https://www.curseforge.com/minecraft/mc-mods/numerical-enchantments"
+mod.kofi = "https://ko-fi.com/microcontrollers"
+mod.discord = "https://discord.gg/QbNfaCHjUz"
+
+mod.version = "1.0.2"
+
+deps.oneconfig_version = "1.1.12"
+deps.osl_version = "0.21.0"
+deps.lenis_version = "0.1.4"
+
+["1.8.9"]
+deps.oneconfig_mc_version = "1.8.9"
+mod.mc_dep = "1.8.9"

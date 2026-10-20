@@ -1,6 +1,6 @@
 package org.polyfrost.oneconfig.internal.ui.compose;
 
-//? if = 1.8.9 {
+//? if <= 1.8.9 {
 /*import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import net.minecraft.client.gui.chat.ChatGui;

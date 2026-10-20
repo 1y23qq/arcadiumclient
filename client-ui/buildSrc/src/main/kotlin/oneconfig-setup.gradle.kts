@@ -269,7 +269,7 @@ dependencies {
         } else {
             "modImplementation"(hypixelFabricMod) { isTransitive = false }
         }
-    } else if (loader == "ornithe") {
+    } else if (loader == "ornithe" && stonecutter.current.version == "1.8.9") {
         "modLocalRuntime"("org.polyfrost:mod-api-fabric:1.0.2+build.3+mc1.8.9") { isTransitive = false }
     }
 
@@ -426,7 +426,7 @@ tasks.withType<ProcessResources>() {
 
     val mixinCompat = if (
         stonecutter.eval(stonecutter.current.version, ">= 26.1") ||
-        stonecutter.eval(stonecutter.current.version, "= 1.8.9")
+        loader == "ornithe"
     ) "JAVA_25" else "JAVA_21"
     this.inputs.property("mixin_compat", mixinCompat)
     this.filesMatching("mixins.oneconfigv1*.json") {
@@ -437,7 +437,7 @@ tasks.withType<ProcessResources>() {
 val minJavaVersion = 21
 val javaVersion = if (
     stonecutter.eval(stonecutter.current.version, ">= 26.1") ||
-    stonecutter.eval(stonecutter.current.version, "= 1.8.9")
+    loader == "ornithe"
 ) {
     25
 } else {

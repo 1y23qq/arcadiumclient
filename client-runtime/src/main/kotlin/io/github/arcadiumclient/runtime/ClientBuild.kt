@@ -3,8 +3,14 @@
 
 package io.github.arcadiumclient.runtime
 
+import net.fabricmc.loader.api.FabricLoader
+
 object ClientBuild {
-    const val VERSION = "0.3.6"
+    val VERSION: String by lazy {
+        FabricLoader.getInstance().getModContainer("arcadium_runtime")
+            .orElseThrow { IllegalStateException("Arcadium Runtime metadata is unavailable.") }
+            .metadata.version.friendlyString
+    }
     const val MINECRAFT_VERSION = "1.8.9"
     const val SUPPORT_URL = "https://discord.gg/QbNfaCHjUz"
 }

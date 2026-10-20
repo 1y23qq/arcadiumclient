@@ -1,3 +1,4 @@
+//? if > 1.7.10 {
 /*
  * This file is part of OneConfig.
  * OneConfig - Next Generation Config Library for Minecraft: Java Edition
@@ -101,7 +102,7 @@ public class TestLegacyHud_Test extends LegacyHud {
     //public void render() {
         if (stack == null) stack = new ItemStack(Items.DIAMOND_SWORD);
 
-        //~ if = 1.8.9 'graphics.fill' -> 'GuiElement.fill'
+        //~ if <= 1.8.9 'graphics.fill' -> 'GuiElement.fill'
         graphics.fill(0, 0, (int) W, (int) H, 0x80000000);
 
         //? if > 1.8.9 {
@@ -111,3 +112,5 @@ public class TestLegacyHud_Test extends LegacyHud {
         //Minecraft.getInstance().getItemRenderer().renderGuiItem(stack, 2, 2);
     }
 }
+
+//?}

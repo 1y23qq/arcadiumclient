@@ -1,6 +1,6 @@
 package org.polyfrost.oneconfig.internal.ui.compose;
 
-//? if = 1.8.9 {
+//? if <= 1.8.9 {
 /*import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;

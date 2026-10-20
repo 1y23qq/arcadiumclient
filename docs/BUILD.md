@@ -1,6 +1,6 @@
 # Build Arcadium
 
-The source supports Minecraft 1.8.9. Build the Java client components before
+The source supports Minecraft 1.8.9 and 1.7.10. Build the Java client components before
 compiling the native launcher. No prebuilt Arcadium client JAR is required.
 
 Install JDK 25, Python 3.12 or newer, Rust with Cargo, and the native build tools
@@ -20,6 +20,14 @@ fork and its local API, Arcadium Runtime, the Forge
 compatibility layer and game branding. It then generates the launcher's component
 catalog and copies the exact built JARs into its distribution assets. Original
 third-party author, copyright and license metadata is preserved.
+
+Minecraft 1.7.10 also builds the independent renderer optimizations in
+`client-legacy-performance` and the dependency source ports in `client-legacy-mods`.
+Their pinned upstream commits and original license hashes are recorded in
+`client-legacy-mods/ports.json`. The same installer contains both Minecraft
+versions; 1.7.10 keeps its game settings, packs and worlds in a separate directory.
+It uses Java 25 and Ornithe 0.19.5. Forge compatibility is available only on 1.8.9.
+Bedwars Overlay, NoHitDelay and Hypixel-specific modules are available on 1.8.9.
 
 The runtime build refreshes Loom's remapped dependencies after publishing the
 local configuration library, so changes to its API are picked up by cached builds.
@@ -66,6 +74,19 @@ Use `scripts/test_forge_compat_runtime.py --help` for the required arguments. On
 Windows, use a short ASCII `--output-root`, such as `C:/Temp/ArcadiumQa`, so native
 Skiko/ICU extraction paths stay within Win32 path limits. Tests create isolated
 offline accounts and worlds; do not point their inputs at active account data.
+
+The `arcadium_core` example `verify_arcadium` checks the real launcher catalog,
+provisioning, installation and Java launch path. Set `ARCADIUM_COMPONENTS_DIR` to
+the built component directory and `ARCADIUM_VERIFICATION_LAUNCHER` to the built
+native launcher, then run:
+
+```sh
+cargo run --release -p arcadium_core --example verify_arcadium -- /path/to/new/test-profile --minecraft=1.7.10 --prepare --java=/path/to/jdk-25 --offline-probe
+```
+
+It uses a synthetic offline account, records the actual Java arguments and stops
+its own game after startup verification. Add `--prepare-only` to check installation
+without opening the game. Verification results are written inside that test profile.
 
 Arcadium's launcher and client source are distributed under the project GPL
 license. External dependencies retain their own copyright and license terms;

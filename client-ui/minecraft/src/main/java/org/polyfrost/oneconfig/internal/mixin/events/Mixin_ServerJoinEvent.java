@@ -11,11 +11,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 //?}
 
-//? if = 1.8.9 {
+//? if <= 1.8.9 {
 /*import net.minecraft.client.network.handler.ClientPlayNetworkHandler;
 *///?}
 
-//~ if = 1.8.9 'ClientPacketListener' -> 'ClientPlayNetworkHandler'
+//~ if <= 1.8.9 'ClientPacketListener' -> 'ClientPlayNetworkHandler'
 @Mixin(ClientPacketListener.class)
 public class Mixin_ServerJoinEvent {
 

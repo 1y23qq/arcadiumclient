@@ -1,0 +1,17 @@
+{
+  "required": true,
+  "compatibilityLevel": "JAVA_21",
+  "minVersion": "0.8",
+  "package": "org.polyfrost.polyhitbox.mixin",
+  "refmap": "mixins.polyhitbox.refmap.json",
+  "client": [
+    "FogCaptureMixin",
+    "FovAccessor",
+    "HitboxRenderMixin",
+    "VanillaHitboxKeyMixin",
+    "VanillaHitboxMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

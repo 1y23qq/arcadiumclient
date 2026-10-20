@@ -1,0 +1,25 @@
+{
+  "modmenu.descriptionTranslation.examplemod": "${description}",
+  "dropped-item-tweaks": {
+    "static-dropped-items": {
+      "name": "Static Dropped Items",
+      "description": "Remove the bobbing of items dropped on the ground."
+    },
+    "dropped-stack-item-count": {
+      "name": "Dropped Stack Item Count",
+      "description": "The max amount of dropped items to render. This does not scale like vanilla. Set to 0 to disable."
+    },
+    "item-scale": {
+      "name": "Item Scale",
+      "description": "The scale of dropped items."
+    },
+    "custom-item-scale": {
+      "name": "Custom Item Scale",
+      "description": "Custom scale for any items you list. Set to 0 to disable!"
+    },
+    "custom-item-scale-list": {
+      "name": "Custom Item Scale List",
+      "description": "Use the item selector to add the items you want. Order doesn't matter."
+    }
+  }
+}

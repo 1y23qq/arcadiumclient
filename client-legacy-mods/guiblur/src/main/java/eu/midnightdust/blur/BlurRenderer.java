@@ -1,0 +1,217 @@
+package eu.midnightdust.blur;
+
+import eu.midnightdust.blur.mixin.PostChainAccessor;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiElement;
+import net.minecraft.client.gui.screen.game.ChatScreen;
+import net.minecraft.client.gui.screen.game.CommandBlockScreen;
+import net.minecraft.client.gui.screen.game.DeathScreen;
+import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.screen.menu.TitleScreen;
+import net.minecraft.client.gui.screen.game.BookEditScreen;
+import net.minecraft.client.gui.screen.game.inventory.InventoryMenuScreen;
+import net.minecraft.client.gui.screen.game.SignEditScreen;
+import net.minecraft.client.render.PostChain;
+import net.minecraft.client.render.PostPass;
+import net.minecraft.client.render.shaders.Uniform;
+import net.minecraft.resource.Identifier;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL13;
+import org.lwjgl.opengl.GL20;
+
+
+public final class BlurRenderer extends GuiElement {
+	private static final Identifier SHADER = new Identifier(Blur.MOD_ID, "shaders/post/arcadium_gui_blur.json");
+	private static final BlurRenderer GUI = new BlurRenderer();
+
+	private static PostChain shader;
+	private static int shaderWidth;
+	private static int shaderHeight;
+	private static boolean blurTarget;
+	private static boolean backgroundTarget;
+	private static long transitionStarted;
+	private static float blurStart;
+	private static float backgroundStart;
+	private static float blurProgress;
+	private static float backgroundProgress;
+
+	private BlurRenderer() {
+	}
+
+	public static void render() {
+		if (!BlurConfig.enabled) {
+			disable();
+			return;
+		}
+
+		Minecraft minecraft = Minecraft.getInstance();
+		updateTarget(minecraft.screen);
+		updateProgress();
+
+		if (blurProgress < 0.001F) {
+			closeShader();
+			return;
+		}
+
+		if (!loadShader(minecraft)) return;
+		for (PostPass pass : ((PostChainAccessor) shader).blur$getPasses()) {
+			Uniform radius = pass.getEffect().getUniform("Radius");
+			Uniform progress = pass.getEffect().getUniform("Progress");
+			if (radius != null) radius.set(BlurConfig.radius * (isReducedBlur(minecraft.screen) ? 0.5F : 1F));
+			if (progress != null) progress.set(blurProgress);
+		}
+		int matrix = GL11.glGetInteger(GL11.GL_MATRIX_MODE);
+		int activeTexture = GL11.glGetInteger(GL13.GL_ACTIVE_TEXTURE);
+		int program = GL11.glGetInteger(GL20.GL_CURRENT_PROGRAM);
+		GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
+		GL13.glActiveTexture(GL13.GL_TEXTURE0);
+		GL11.glMatrixMode(GL11.GL_TEXTURE); GL11.glPushMatrix(); GL11.glLoadIdentity();
+		GL11.glMatrixMode(GL11.GL_PROJECTION); GL11.glPushMatrix();
+		GL11.glMatrixMode(GL11.GL_MODELVIEW); GL11.glPushMatrix();
+		try {
+			shader.process(0F);
+		} finally {
+			GL11.glMatrixMode(GL11.GL_MODELVIEW); GL11.glPopMatrix();
+			GL11.glMatrixMode(GL11.GL_PROJECTION); GL11.glPopMatrix();
+			GL13.glActiveTexture(GL13.GL_TEXTURE0);
+			GL11.glMatrixMode(GL11.GL_TEXTURE); GL11.glPopMatrix();
+			minecraft.getRenderTarget().bindWrite(false);
+			GL11.glPopAttrib(); GL20.glUseProgram(program);
+			GL13.glActiveTexture(activeTexture); GL11.glMatrixMode(matrix);
+			minecraft.getRenderTarget().bindWrite(true);
+		}
+	}
+
+	public static boolean renderBackground(Screen screen) {
+		if (!BlurConfig.enabled) return false;
+		// render() skips menus without a world
+		if (screen == Minecraft.getInstance().screen) {
+			updateTarget(screen);
+			updateProgress();
+		}
+		if (!backgroundTarget || !BlurConfig.useGradient) return false;
+		// Hide vanilla background before the fade shows
+		if (backgroundProgress < 0.001F) return true;
+
+		int width = screen.width;
+		int height = screen.height;
+		float scale = (float) Math.sqrt(width * width + height * height) / Math.min(width, height);
+		GL11.glPushMatrix();
+		GL11.glTranslatef(width / 2F, height / 2F, 0F);
+		GL11.glRotatef(BlurConfig.gradientRotation, 0F, 0F, 1F);
+		GL11.glScalef(scale, scale, 1F);
+		GUI.fillGradient(-width / 2, -height / 2, width / 2, height / 2, color(false), color(true));
+		GL11.glPopMatrix();
+		return true;
+	}
+
+	private static void updateTarget(Screen screen) {
+		boolean nextBlur = shouldBlur(screen);
+		boolean nextBackground = shouldDrawBackground(screen, nextBlur);
+		if (nextBlur == blurTarget && nextBackground == backgroundTarget) return;
+
+		updateProgress();
+		blurTarget = nextBlur;
+		backgroundTarget = nextBackground;
+		blurStart = blurProgress;
+		backgroundStart = backgroundProgress;
+		transitionStarted = System.nanoTime();
+	}
+
+	private static void updateProgress() {
+		if (transitionStarted == 0L) return;
+		float elapsed = (System.nanoTime() - transitionStarted) / 1_000_000F;
+		float blurProgressTime = Math.min(elapsed / (blurTarget ? BlurConfig.fadeTimeMillis : BlurConfig.fadeOutTimeMillis), 1F);
+		float backgroundProgressTime = Math.min(elapsed / (backgroundTarget ? BlurConfig.fadeTimeMillis : BlurConfig.fadeOutTimeMillis), 1F);
+		blurProgress = interpolate(blurStart, blurTarget ? 1F : 0F, BlurConfig.blurAnimationCurve.apply(blurProgressTime));
+		backgroundProgress = interpolate(backgroundStart, backgroundTarget ? 1F : 0F, BlurConfig.backgroundAnimationCurve.apply(backgroundProgressTime));
+	}
+
+	private static boolean loadShader(Minecraft minecraft) {
+		if (shader != null && (shaderWidth != minecraft.width || shaderHeight != minecraft.height)) {
+			closeShader();
+		}
+		if (shader != null) return true;
+
+		try {
+			if (net.minecraft.client.render.shaders.ProgramManager.getInstance() == null) net.minecraft.client.render.shaders.ProgramManager.createInstance();
+			shader = new PostChain(minecraft.getTextureManager(), minecraft.getResourceManager(), minecraft.getRenderTarget(), SHADER);
+			shader.resize(minecraft.width, minecraft.height);
+			shaderWidth = minecraft.width;
+			shaderHeight = minecraft.height;
+			return true;
+		} catch (Exception e) {
+			Blur.LOGGER.warn("Could not load Legacy GUI Blur shader", e);
+			closeShader();
+			return false;
+		} finally {
+			minecraft.getRenderTarget().bindWrite(true);
+		}
+	}
+
+	private static void closeShader() {
+		if (shader != null) {
+			shader.close();
+			Minecraft.getInstance().getRenderTarget().bindWrite(true);
+		}
+		shader = null;
+		shaderWidth = 0;
+		shaderHeight = 0;
+	}
+
+	private static void disable() {
+		if (!blurTarget && !backgroundTarget && shader == null && transitionStarted == 0L) return;
+		closeShader();
+		blurTarget = false;
+		backgroundTarget = false;
+		transitionStarted = 0L;
+		blurStart = 0F;
+		backgroundStart = 0F;
+		blurProgress = 0F;
+		backgroundProgress = 0F;
+	}
+
+	private static boolean shouldBlur(Screen screen) {
+		if (!BlurConfig.enabled || screen == null) return false;
+		String name = screen.getClass().getName();
+		if (BlurConfig.contains(BlurConfig.forceDisabledScreens, name)) return false;
+		if (BlurConfig.contains(BlurConfig.forceEnabledScreens, name)) return true;
+        if (screen instanceof org.polyfrost.oneconfig.internal.ui.compose.ComposeScreen) return false;
+		// No world to blur, keep dirt
+		if (Minecraft.getInstance().world == null && !(screen instanceof TitleScreen)) return false;
+		if (screen instanceof ChatScreen) return false;
+		if (screen instanceof TitleScreen) return BlurConfig.blurTitleScreen;
+		if (screen instanceof DeathScreen) return BlurConfig.blurDeathScreen;
+		if (screen instanceof BookEditScreen) return BlurConfig.blurBooks;
+		if (screen instanceof SignEditScreen) return BlurConfig.blurSigns;
+		if (screen instanceof CommandBlockScreen) return BlurConfig.blurCommandBlocks;
+		if (screen instanceof InventoryMenuScreen) return BlurConfig.blurContainers;
+		return true;
+	}
+
+	private static boolean shouldDrawBackground(Screen screen, boolean blur) {
+		if (!blur) return false;
+		return !(screen instanceof TitleScreen) || BlurConfig.darkenTitleScreen;
+	}
+
+	public static void renderScreenId() {
+		Minecraft minecraft = Minecraft.getInstance();
+		if (BlurConfig.showScreenID && minecraft.screen != null) {
+			minecraft.textRenderer.drawWithShadow(minecraft.screen.getClass().getName(), 2, 2, 0xFF80DFFF);
+		}
+	}
+
+	private static boolean isReducedBlur(Screen screen) {
+		return BlurConfig.reduceInGameBlur && screen instanceof InventoryMenuScreen;
+	}
+
+	private static float interpolate(float start, float end, float progress) {
+		return start + (end - start) * progress;
+	}
+
+	private static int color(boolean second) {
+		int argb = (second ? BlurConfig.gradientEndColor : BlurConfig.gradientStartColor).getArgb();
+		int alpha = Math.max(0, Math.min(255, (int) ((argb >>> 24) * backgroundProgress)));
+		return alpha << 24 | argb & 0xFFFFFF;
+	}
+}

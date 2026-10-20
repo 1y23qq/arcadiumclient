@@ -60,6 +60,7 @@ val versions = buildList {
 
     both("26.3")
     ornithe("1.8.9")
+    ornithe("1.7.10")
 }
 
 stonecutter {

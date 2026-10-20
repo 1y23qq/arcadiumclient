@@ -69,7 +69,7 @@ public class OneConfigMixinInit implements IMixinConfigPlugin {
     public List<String> getMixins() {
         List<String> mixins = new ArrayList<>();
 
-        //? if = 1.8.9 {
+        //? if <= 1.8.9 {
         /*mixins.add("render.Mixin_HidePlayerArmor");
         mixins.add("render.Mixin_GameFont");
         if (net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("argentum")) {
@@ -83,6 +83,10 @@ public class OneConfigMixinInit implements IMixinConfigPlugin {
         mixins.add("network.Mixin_LegacyChatTrace");
         mixins.add("network.Mixin_LegacyChatInputTrace");
         mixins.add("fixes.Mixin_RememberUnknownOptions");
+        *///?}
+
+        //? if = 1.7.10 {
+        /*mixins.add("skia.Mixin_LegacyHudAlpha");
         *///?}
 
         //? moul_compat {
@@ -191,9 +195,9 @@ public class OneConfigMixinInit implements IMixinConfigPlugin {
 
         mixins.add("skia.Mixin_InitSkia");
         mixins.add("skia.Mixin_SkiaFrame");
-        //? if = 1.8.9
+        //? if <= 1.8.9
         //mixins.add("fixes.Mixin_LegacyFullscreenCursor");
-        //? if = 1.8.9
+        //? if <= 1.8.9
         //mixins.add("fixes.Mixin_RawMouseInput");
         mixins.add("skia.Mixin_SkiaFrameVk");
         //? >= 26.1 {

@@ -22,4 +22,6 @@ class PolyLayoutStyle {
     var clipToBounds: Boolean = false
     var alpha: Float = 1f
     var tag: Any? = null
+    var textAlign: Int = 0
+    var textWidth: Float? = null
 }

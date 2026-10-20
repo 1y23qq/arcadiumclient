@@ -101,11 +101,14 @@ import net.minecraft.resources.ResourceLocation
 /*import net.minecraft.util.RandomSource
 *///?}
 
-//? if = 1.8.9 {
+//? if <= 1.8.9 {
 /*import net.minecraft.client.render.platform.Lighting
 *///?}
 
 class MinecraftItemCatalogService : ItemCatalogService {
+    //? if = 1.7.10
+    //private val legacyItemRenderer by lazy { net.minecraft.client.render.entity.ItemRenderer() }
+
     internal interface ItemStackIconHandle : ItemIconHandle {
         /** Updates the stack rendered by this handle while preserving its atlas slot. */
         fun update(stack: ItemStack)
@@ -289,6 +292,7 @@ class MinecraftItemCatalogService : ItemCatalogService {
         }
         //?} else {
         /*Item.REGISTRY.mapNotNull { item ->
+            if (item !is Item) return@mapNotNull null
             val id = Item.REGISTRY.getKey(item)?.toString() ?: return@mapNotNull null
             RegistryEntry(item, id)
         }
@@ -352,7 +356,7 @@ class MinecraftItemCatalogService : ItemCatalogService {
         entry.failed = true
         val item = entry.stack.item
         val firstFailure = synchronized(requestLock) { failedItems.add(item) }
-        //~ if = 1.8.9 'BuiltInRegistries.ITEM' -> 'Item.REGISTRY'
+        //~ if <= 1.8.9 'BuiltInRegistries.ITEM' -> 'Item.REGISTRY'
         val id = BuiltInRegistries.ITEM.getKey(item)
         if (firstFailure) {
             LOG.warn("Item icon for {} failed while {}, it will stay blank until the next server join, resize, or resources reload", id, stage, throwable)
@@ -677,6 +681,18 @@ class MinecraftItemCatalogService : ItemCatalogService {
         scratch.ref(guiModel.transforms.getTransform(ItemDisplayContext.GUI))
         scratch.ref(ItemBlockRenderTypes.getRenderType(stack, true))
         scratch.int(if (resolvedModel.usesBlockLight()) 1 else 0)
+        *///?} elif = 1.7.10 {
+        /*val sprite = stack.item.getSprite(stack)
+        val animated = stack.hasEnchantmentGlint() ||
+            (sprite is net.minecraft.client.render.texture.TextureAtlasSprite && sprite.isAnimated) ||
+            sprite is net.minecraft.client.render.texture.ClockSprite ||
+            sprite is net.minecraft.client.render.texture.CompassSprite
+        val special = false
+        scratch.ref(sprite)
+        scratch.ref(stack.item)
+        scratch.int(stack.metadata)
+        scratch.int(stack.count)
+        scratch.int(stack.nbt?.hashCode() ?: 0)
         *///?} else {
         /*val guiModel = client.itemRenderer.modelShaper.getModel(stack)
         val animated = stack.hasEnchantmentGlint() || guiModel.particleIcon?.isAnimated == true
@@ -876,7 +892,11 @@ class MinecraftItemCatalogService : ItemCatalogService {
                     val left = entry.x / CELL_SIZE * renderSizePx
                     val top = entry.y / CELL_SIZE * renderSizePx
                     GL11.glScissor(left, target.height - top - renderSizePx, renderSizePx, renderSizePx)
+                    //? if = 1.7.10 {
+                    legacyItemRenderer.renderGuiItemWithEnchantmentGlint(mc.font, mc.textureManager, entry.stack, entry.x, entry.y)
+                    //?} else {
                     mc.itemRenderer.renderGuiItem(entry.stack, entry.x, entry.y)
+                    //?}
                 }
             } finally {
                 GL11.glDisable(GL11.GL_SCISSOR_TEST)

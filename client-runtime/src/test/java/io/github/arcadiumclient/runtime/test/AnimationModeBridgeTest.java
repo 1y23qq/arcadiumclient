@@ -92,6 +92,24 @@ class AnimationModeBridgeTest {
     }
 
     @Test
+    void badlionScalesReachBlockItemsAndStayFinite() {
+        BadlionAnimationState scaled = new BadlionAnimationState(false, false, false, false,
+                false, false, false, false, false, false, false, false, false, false,
+                false, false, false, false, false, false, false, 100f, 0f, 0f, 0.65f, 1.2f, 1.4f);
+        Map<String, Object> values = scaled.overflowValues();
+        assertEquals(true, values.get("items.applyCustomizationToBlockItems"));
+        assertEquals(0.65f, values.get("items.itemScaleX"));
+        assertEquals(1.2f, values.get("items.itemScaleY"));
+        assertEquals(1.4f, values.get("items.itemScaleZ"));
+        BadlionAnimationState corrupt = new BadlionAnimationState(false, false, false, false,
+                false, false, false, false, false, false, false, false, false, false,
+                false, false, false, false, false, false, false, 100f, 0f, 0f, Float.NaN, -1f, 999f);
+        assertEquals(1f, corrupt.overflowValues().get("items.itemScaleX"));
+        assertEquals(0.1f, corrupt.overflowValues().get("items.itemScaleY"));
+        assertEquals(3f, corrupt.overflowValues().get("items.itemScaleZ"));
+    }
+
+    @Test
     void cameraIntensityAndTitleOffsetsAreFiniteAndBounded() {
         assertEquals(0.35f, state(false, false, false, false, false, 35f, false, 0f, 0f).hurtCameraScale());
         assertEquals(0f, state(false, false, false, false, true, 100f, false, 0f, 0f).hurtCameraScale());
@@ -118,6 +136,6 @@ class AnimationModeBridgeTest {
     private static BadlionAnimationState state(boolean block, boolean eat, boolean bow, boolean always,
                                                boolean noShake, float intensity, boolean move, float x, float y) {
         return new BadlionAnimationState(false, false, false, false, block, false, false, false, eat,
-                false, false, false, bow, always, false, false, false, false, noShake, false, move, intensity, x, y);
+                false, false, false, bow, always, false, false, false, false, noShake, false, move, intensity, x, y, 1f, 1f, 1f);
     }
 }

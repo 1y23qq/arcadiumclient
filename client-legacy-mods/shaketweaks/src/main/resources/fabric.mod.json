@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "id": "${id}",
+  "version": "${version}",
+  "name": "${name}",
+  "description": "${description}",
+  "authors": [
+    "Microcontrollers"
+  ],
+  "contributors": [
+  ],
+  "contact": {
+    "homepage": "${modrinth}",
+    "sources": "${source}",
+    "issues": "https://discord.gg/QbNfaCHjUz"
+  },
+  "license": "${license}",
+  "icon": "assets/${id}/icon.png",
+  "environment": "*",
+  "depends": {
+    "fabricloader": ">=${fabric_loader_version}",
+    "minecraft": "${mcdep}",
+    "java": ">=25",
+    "oneconfigv1": "*"
+  },
+  "custom": {
+    "modmenu": {
+      "links": {
+        "modmenu.kofi": "${kofi}",
+        "modmenu.discord": "https://discord.gg/QbNfaCHjUz",
+        "modmenu.modrinth": "${modrinth}"
+      },
+      "update_checker": true
+    }
+  }
+}

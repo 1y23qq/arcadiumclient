@@ -1,0 +1,16 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.provismet.tooltipscroll.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": [
+  ],
+  "client": [
+    "ScreenMixin",
+    "MouseMixin",
+    "MinecraftMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

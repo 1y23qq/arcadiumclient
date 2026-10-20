@@ -1,0 +1,17 @@
+{
+    "compatibilityLevel": "JAVA_21",
+    "minVersion": "0.7",
+    "required": true,
+    "package": "org.polyfrost.behindyou.mixin",
+    "refmap": "mixins.behindyouv3.refmap.json",
+    "injectors": {
+        "maxShiftBy": 5,
+        "defaultRequire": 1
+    },
+    "client": [
+		"client.Mixin_AdjustLevel",
+		"client.Mixin_AdjustFov",
+		"client.Mixin_CapturePOVSet",
+		"client.Mixin_KeepThirdPerson"
+    ]
+}

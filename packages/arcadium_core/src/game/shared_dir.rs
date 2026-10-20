@@ -72,7 +72,7 @@ pub async fn materialize_content(
     let cluster_dir = cluster.dir()?;
     let isolated = cluster.is_isolated();
     let global_root = if isolated {
-        cluster_dir.clone()
+        game_dir.to_path_buf()
     } else {
         paths::shared_minecraft_dir()?
     };
@@ -1792,7 +1792,7 @@ async fn import_manual_content_with(
 
     let isolated = cluster.is_isolated();
     let global_root = if isolated {
-        let Ok(dir) = cluster.dir() else {
+        let Ok(dir) = cluster.game_dir() else {
             return failed_mods;
         };
         dir

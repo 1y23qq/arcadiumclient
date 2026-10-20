@@ -20,13 +20,13 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import net.minecraft.client.KeyboardHandler;
 //?}
 
-//? if = 1.8.9 {
+//? if <= 1.8.9 {
 /*import org.lwjgl.input.Keyboard;
 import org.polyfrost.oneconfig.internal.legacy.KeyCodes;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 *///?}
 
-//~ if = 1.8.9 'KeyboardHandler.class' -> 'Keyboard.class'
+//~ if <= 1.8.9 'KeyboardHandler.class' -> 'Keyboard.class'
 @Mixin(KeyboardHandler.class)
 public class Mixin_KeyInputEvent {
 

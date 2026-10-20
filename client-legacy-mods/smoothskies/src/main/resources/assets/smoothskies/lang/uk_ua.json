@@ -1,0 +1,35 @@
+{
+  "modmenu.descriptionTranslation.smoothskies": "Вирішує кілька графічних проблем, пов’язаних з небом",
+  "${id}": {
+    "${id}": "Налаштування Smooth Skies",
+    "extra": "Extra",
+    "set-fog-view-distance": {
+      "name": "Дальність промальовування туману",
+      "description": "Установлює власну дальність промальовування туману неба.\n\nВищі значення означають блакитніше небо."
+    },
+    "fix-skybox-clipping": {
+      "name": "Виправлення обрізання неба",
+      "description": "Виправляє обрізання неба на низькій дальности промальовування шляхом збільшення обрізання дальньої площини."
+    },
+    "lower-sky-void-darkness": {
+      "name": "Темрява неба порожнечі",
+      "description": "Правильно знижує висоту, коли небо стає чорним, до найнижчої висоти в світі.\n\nЦе запобігає раптовому почорнінню неба при високому значенні Y, і тепер має плавно зникати до чорного.\n\nНайбільш помітно в світах типу Skyblock або порожнечі."
+    },
+    "remove-sunrise-and-sunset-coloring": {
+      "name": "Remove Sunrise and Sunset Coloring",
+      "description": "Removes the colored ring during sunrise and sunset, preventing the harsh fog discoloration effect."
+    },
+    "remove-void-box": {
+      "name": "Remove Void Box",
+      "description": "Removes the black box that renders around the player in the void."
+    },
+    "remove-sky-in-void": {
+      "name": "Видалити небо в порожнечі",
+      "description": "Видаляє небо коли ви в порожнечі. Виправляє MC-249655."
+    },
+    "clear-skies": {
+      "name": "Чисті небеса",
+      "description": "Усуває смуги на горизонті, роблячи небо однорідним кольором.\n\nЦе взято з мода «Clear Skies» grondag."
+    }
+  }
+}

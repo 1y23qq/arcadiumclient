@@ -1,10 +1,11 @@
 classTweaker v1 official
 
-#? if = 1.8.9 {
+#? if <= 1.8.9 {
 #accessible field net/minecraft/client/Minecraft tasks Ljava/util/Queue;
 #accessible field net/minecraft/client/render/texture/HttpTexture image Ljava/awt/image/BufferedImage;
 #accessible field net/minecraft/client/render/texture/HttpTexture uploaded Z
 #accessible method net/minecraft/client/gui/screen/menu/TitleScreen drawBackground (IIF)V
+#? if = 1.8.9 {
 #accessible class net/minecraft/client/render/platform/GlStateManager$GlState
 #accessible class net/minecraft/client/render/platform/GlStateManager$Alpha
 #accessible class net/minecraft/client/render/platform/GlStateManager$Blend
@@ -20,6 +21,7 @@ classTweaker v1 official
 #accessible field net/minecraft/client/render/platform/GlStateManager TEXTURES [Lnet/minecraft/client/render/platform/GlStateManager$Texture;
 #accessible field net/minecraft/client/render/platform/GlStateManager shadeModel I
 #accessible field net/minecraft/client/render/platform/GlStateManager COLOR Lnet/minecraft/client/render/platform/GlStateManager$Color;
+#?}
 #transitive-inject-interface net/minecraft/client/Minecraft org/polyfrost/oneconfig/internal/legacy/compat/MinecraftCompat
 #transitive-inject-interface net/minecraft/client/KeyMapping org/polyfrost/oneconfig/internal/legacy/compat/KeyBindingCompat
 #transitive-inject-interface net/minecraft/world/HitResult org/polyfrost/oneconfig/internal/legacy/compat/HitResultCompat

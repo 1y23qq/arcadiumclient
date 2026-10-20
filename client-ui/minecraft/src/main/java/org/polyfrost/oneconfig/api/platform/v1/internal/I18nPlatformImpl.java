@@ -47,7 +47,7 @@ public class I18nPlatformImpl implements I18nPlatform {
 
     @Override
     public String translateString(String key, Object... args) {
-        //~ if = 1.8.9 'I18n.get(' -> 'L10n.get('
+        //~ if <= 1.8.9 'I18n.get(' -> 'L10n.get('
         return I18n.get(key, args);
     }
 

@@ -10,6 +10,7 @@ import net.ornithemc.osl.config.api.ConfigManager
 import net.ornithemc.osl.config.api.ConfigScope
 import net.ornithemc.osl.config.api.config.Config
 import net.ornithemc.osl.config.api.config.option.BaseOption
+//? if > 1.7.10
 import net.ornithemc.osl.config.api.config.option.IdentifierOption
 import net.ornithemc.osl.config.api.config.option.ListOption
 import net.ornithemc.osl.config.api.config.option.Option
@@ -183,6 +184,7 @@ internal object OslConfigCompat {
             }
 
             else -> {
+                //? if > 1.7.10 {
                 if (option !is IdentifierOption) return null
                 visualizer = Visualizer.TextVisualizer::class.java
                 val parse = default.javaClass.getConstructor(String::class.java)
@@ -191,6 +193,8 @@ internal object OslConfigCompat {
                     { it?.toString().orEmpty() },
                     { value -> runCatching { parse.newInstance(value as String) }.getOrNull() },
                 )
+                //? } else
+                //return null
             }
         }
 

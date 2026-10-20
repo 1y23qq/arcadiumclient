@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "polyzoom",
+  "name": "Arcadium Zoom",
+  "version": "${version}",
+  "environment": "client",
+  "description": "Zoom controls.",
+  "authors": [
+    "Polyfrost"
+  ],
+  "contact": {
+    "issues": "https://discord.gg/QbNfaCHjUz",
+    "sources": "https://github.com/Polyfrost/PolyZoom"
+  },
+  "entrypoints": {
+    "client": [
+      "org.polyfrost.polyzoom.PolyZoom"
+    ]
+  },
+  "license": "GPL-3.0-or-later",
+  "mixins": [
+    "polyzoom.mixins.json"
+  ],
+  "depends": {
+    "minecraft": "1.7.10",
+    "fabricloader": ">=0.19.5",
+    "oneconfigv1": ">=1.2.23-arcadium",
+    "pylon": ">=0.2.2-beta.1",
+    "java": ">=25"
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "id": "tooltipscroll",
+  "version": "${version}",
+
+  "name": "Tooltip Scroll",
+  "description": "Allows the tooltip GUI to be moved with the scrollwheel or configurable keys.",
+  "authors": [
+    "Provismet"
+  ],
+  "contact": {
+    "homepage": "https://github.com/Provismet/Tooltip-Scroll-Fabric",
+    "sources": "https://github.com/Provismet/Tooltip-Scroll-Fabric",
+    "issues": "https://discord.gg/QbNfaCHjUz"
+  },
+
+  "license": "MIT",
+  "icon": "assets/toolscroll/icon.png",
+
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "com.provismet.tooltipscroll.TooltipScrollClient"
+    ]
+  },
+  "mixins": [
+    "toolscroll.mixins.json"
+  ],
+
+  "depends": {
+    "fabricloader": ">=0.15.0",
+    "minecraft": "1.7.10",
+    "java": ">=8"
+  }
+}

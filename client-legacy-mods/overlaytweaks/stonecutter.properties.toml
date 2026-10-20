@@ -1,0 +1,30 @@
+publish.modrinth = "wql2D9Gj"
+publish.curseforge = ""
+
+mod.name = "Overlay Tweaks"
+mod.id = "overlaytweaks"
+mod.group = "dev.microcontrollers.overlaytweaks"
+mod.description = "Small tweaks to Minecraft's overlays!"
+mod.source = "https://codeberg.org/MicrocontrollersDev/OverlayTweaks"
+mod.issues = "https://discord.gg/QbNfaCHjUz"
+mod.license = "LGPL-3.0"
+mod.modrinth = "https://modrinth.com/mod/scrolltweaks"
+mod.curseforge = "https://www.curseforge.com/minecraft/mc-mods/scroll-tweaks"
+mod.kofi = "https://ko-fi.com/microcontrollers"
+mod.discord = "https://discord.gg/QbNfaCHjUz"
+
+mod.version = "2.0.1-arcadium"
+
+deps.oneconfig_version = "1.2.23-arcadium"
+deps.osl_version = "0.22.0"
+deps.lenis_version = "0.1.4"
+
+["1.8.9"]
+deps.oneconfig_mc_version = "1.8.9"
+mod.mc_dep = "1.8.9"
+
+["1.7.10"]
+deps.oneconfig_mc_version = "1.7.10"
+mod.mc_dep = "1.7.10"
+
+feather_build = 2

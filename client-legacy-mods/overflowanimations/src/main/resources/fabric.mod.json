@@ -1,0 +1,50 @@
+{
+	"schemaVersion": 1,
+	"id": "${id}",
+	"version": "${version}",
+	"name": "${name}",
+	"description": "${description}",
+	"authors": [
+		"Mixces",
+		"lowercasebtw"
+	],
+	"contributors": [
+		"Tellinq",
+		"MicrocontrollersDev",
+		"Wyvest"
+	],
+	"contact": {
+		"sources": "${source}",
+		"issues": "https://discord.gg/QbNfaCHjUz"
+	},
+	"license": "${license}",
+	"icon": "assets/${id}/icon.png",
+	"accessWidener": "overflowanimations.accesswidener",
+	"environment": "client",
+	"provides": ["animatium"],
+	"depends": {
+		"fabricloader": ">=${fabric_loader_version}",
+		"minecraft": "${minecraft_version_range}",
+		"fabric-networking-api-v1": "*",
+		"fabric-command-api-v2": "*",
+		"fabric-resource-loader-v0": "*",
+		"fabric-language-kotlin": "*",
+		"oneconfigv1": "*"
+	},
+	"custom": {
+		"loom:injected_interfaces": {
+			"net/minecraft/client/renderer/state/CameraRenderState": ["org/polyfrost/overflowanimations/util/states/CameraUtilityRenderState"],
+			"net/minecraft/client/renderer/state/level/CameraRenderState": ["org/polyfrost/overflowanimations/util/states/CameraUtilityRenderState"],
+			"net/minecraft/client/renderer/item/ItemStackRenderState": ["org/polyfrost/overflowanimations/util/states/ItemUtilityRenderState"],
+			"net/minecraft/client/renderer/entity/state/ArmedEntityRenderState": ["org/polyfrost/overflowanimations/util/states/UtilityRenderState"],
+			"net/minecraft/world/entity/Entity": ["org/polyfrost/overflowanimations/util/states/ViewBobbingStorage"]
+		},
+		"modmenu": {
+			"links": {
+				"modmenu.discord": "https://discord.gg/QbNfaCHjUz",
+				"modmenu.modrinth": "${modrinth}"
+			},
+			"update_checker": true
+		}
+	}
+}

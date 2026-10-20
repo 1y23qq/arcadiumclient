@@ -11,6 +11,11 @@ import androidx.compose.foundation.VerticalScrollbar
 import org.polyfrost.oneconfig.internal.ui.themes.accentAwareBackground as background
 import org.polyfrost.oneconfig.internal.ui.themes.accentAwareBorder as border
 import androidx.compose.foundation.hoverable
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.awaitTouchSlopOrCancellation
+import androidx.compose.foundation.gestures.drag
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,15 +27,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,6 +47,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.ImageBitmap
@@ -48,10 +59,20 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.zIndex
+import kotlin.math.roundToInt
 import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -85,6 +106,16 @@ class ArcadiumResourcePacksScreen(private val parent: Screen?) : ComposeScreen(R
     private var query by mutableStateOf("")
     private var sort by mutableStateOf(PackSort.NAME)
     private var pending by mutableStateOf<PackView?>(null)
+    private var pendingIndex = 0
+    private var dragging by mutableStateOf<PackDrag?>(null)
+    private var dragPosition by mutableStateOf(Offset.Zero)
+    private val cardBounds = mutableMapOf<PackDrag, Rect>()
+    private var availableBounds = Rect.Zero
+    private var activeBounds = Rect.Zero
+    private var availableListBounds = Rect.Zero
+    private var activeListBounds = Rect.Zero
+    private var dragRoot = Offset.Zero
+    private var dragControlWidth = 1f
     private var applying by mutableStateOf(false)
     private var closeAfterApply = false
     private var error by mutableStateOf<String?>(null)
@@ -110,12 +141,13 @@ class ArcadiumResourcePacksScreen(private val parent: Screen?) : ComposeScreen(R
         }
     }
 
-    private fun add(pack: PackView) {
+    private fun add(pack: PackView, index: Int = 0) {
         if (pack.format < 0 || pack.id in active) return
         if (pack.format == 1 || pack.id in client.options.incompatibleResourcePacks) {
-            active = listOf(pack.id) + active
+            active = active.toMutableList().apply { add(index.coerceIn(0, size), pack.id) }
         } else {
             pending = pack
+            pendingIndex = index
         }
     }
 
@@ -131,8 +163,71 @@ class ArcadiumResourcePacksScreen(private val parent: Screen?) : ComposeScreen(R
     }
 
     private fun confirmPending() {
-        pending?.let { if (it.id !in active) active = listOf(it.id) + active }
+        pending?.let { pack -> if (pack.id !in active) active = active.toMutableList().apply { add(pendingIndex.coerceIn(0, size), pack.id) } }
         pending = null
+    }
+
+    private fun dropIndex(): Int {
+        val visible = active.mapIndexedNotNull { index, id -> cardBounds[PackDrag(id, true)]?.let { index to it } }
+        return visible.firstOrNull { dragPosition.y < it.second.center.y }?.first
+            ?: visible.lastOrNull()?.let { it.first + 1 } ?: 0
+    }
+
+    private fun dropPack(drag: PackDrag) {
+        if (applying || pending != null) return
+        if (activeBounds.contains(dragPosition)) {
+            val index = dropIndex()
+            if (drag.fromActive) {
+                val from = active.indexOf(drag.id)
+                if (from < 0) return
+                active = active.toMutableList().apply {
+                    removeAt(from)
+                    add((if (from < index) index - 1 else index).coerceIn(0, size), drag.id)
+                }
+            } else packs.firstOrNull { it.id == drag.id }?.let { add(it, index) }
+        } else if (drag.fromActive && availableBounds.contains(dragPosition)) {
+            remove(drag.id)
+            var prefix = ""
+            for (part in drag.id.split('/').dropLast(1)) {
+                prefix = if (prefix.isEmpty()) part else "$prefix/$part"
+                expanded = expanded + prefix
+            }
+        }
+    }
+
+    private fun Modifier.packDragGestures(): Modifier = pointerInput(Unit) {
+        awaitEachGesture {
+            val down = awaitFirstDown(requireUnconsumed = false)
+            if (applying || pending != null) return@awaitEachGesture
+            val point = down.position + dragRoot
+            val candidate = cardBounds.entries.firstOrNull { (key, rect) ->
+                (if (key.fromActive) activeListBounds else availableListBounds).contains(point)
+                    && rect.contains(point) && point.x < rect.right - dragControlWidth * (if (key.fromActive) 90f else 48f)
+                    && packs.any { it.id == key.id && it.format >= 0 }
+            }?.key ?: return@awaitEachGesture
+            val start = awaitTouchSlopOrCancellation(down.id) { change, _ -> change.consume() }
+                ?: return@awaitEachGesture
+            dragging = candidate
+            dragPosition = start.position + dragRoot
+            try {
+                val completed = drag(start.id) { change ->
+                    dragPosition = change.position + dragRoot
+                    change.consume()
+                }
+                if (completed) dropPack(candidate)
+            } finally {
+                dragging = null
+            }
+        }
+    }
+
+    @Composable
+    private fun cardModifier(id: String, active: Boolean): Modifier {
+        val key = remember(id, active) { PackDrag(id, active) }
+        DisposableEffect(key) { onDispose { cardBounds.remove(key) } }
+        return Modifier.onGloballyPositioned { cardBounds[key] = it.boundsInRoot() }
+            .semantics { contentDescription = "Resource pack $id" }
+            .alpha(if (dragging == key) 0.45f else 1f)
     }
 
     private fun finish(close: Boolean) {
@@ -178,6 +273,26 @@ class ArcadiumResourcePacksScreen(private val parent: Screen?) : ComposeScreen(R
     @Composable
     override fun compose() {
         Theme {
+            val density = LocalDensity.current
+            dragControlWidth = density.density
+            val availableList = rememberLazyListState()
+            val activeList = rememberLazyListState()
+            LaunchedEffect(dragging) {
+                while (dragging != null) {
+                    val available = availableListBounds.contains(dragPosition)
+                    val bounds = if (available) availableListBounds else activeListBounds
+                    if (bounds.contains(dragPosition)) {
+                        val margin = 36f * density.density
+                        val amount = when {
+                            dragPosition.y < bounds.top + margin -> -10f * density.density
+                            dragPosition.y > bounds.bottom - margin -> 10f * density.density
+                            else -> 0f
+                        }
+                        if (amount != 0f) (if (available) availableList else activeList).scrollBy(amount)
+                    }
+                    delay(16)
+                }
+            }
             LaunchedEffect(applying) {
                 if (applying) {
                     delay(40)
@@ -198,7 +313,7 @@ class ArcadiumResourcePacksScreen(private val parent: Screen?) : ComposeScreen(R
                         if (pending != null) pending = null else finish(true)
                         true
                     } else false
-                }.padding(20.dp),
+                }.padding(20.dp).onGloballyPositioned { dragRoot = it.positionInRoot() }.packDragGestures(),
                 contentAlignment = Alignment.Center,
             ) {
                 Column(
@@ -217,17 +332,18 @@ class ArcadiumResourcePacksScreen(private val parent: Screen?) : ComposeScreen(R
                         UiIconButton(PACK_ICONS + "close.svg", tooltip = "Done") { finish(true) }
                     }
                     Row(Modifier.weight(1f).fillMaxWidth().padding(horizontal = 14.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        PackPane(Modifier.weight(1f), "Available") {
+                        PackPane(Modifier.weight(1f).onGloballyPositioned { availableBounds = it.boundsInRoot() }, "Available",
+                            dragging != null && availableBounds.contains(dragPosition)) {
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 UiTextField(query, { query = it }, Modifier.weight(1f), "Search packs", PACK_ICONS + "search.svg", 160)
                                 UiDropdown("", PackSort.entries, sort, { it.label }, Modifier.width(112.dp)) { sort = it }
                             }
-                            PackScrollList(tree, { it.key }, query) { row ->
+                            PackScrollList(tree, { it.key }, query, availableList, { availableListBounds = it }) { row ->
                                 when (row) {
                                     is PackRow.Folder -> FolderRow(row, row.id in expanded || query.isNotBlank()) {
                                         expanded = if (row.id in expanded) expanded - row.id else expanded + row.id
                                     }
-                                    is PackRow.Pack -> PackCard(row.pack, row.depth) {
+                                    is PackRow.Pack -> PackCard(row.pack, row.depth, cardModifier(row.pack.id, false)) {
                                         PackAction(PACK_ICONS + "right-arrow.svg", "Enable pack", enabled = row.pack.format >= 0) { add(row.pack) }
                                     }
                                 }
@@ -236,13 +352,14 @@ class ArcadiumResourcePacksScreen(private val parent: Screen?) : ComposeScreen(R
                                 UiText(if (query.isBlank()) "No available packs" else "No matching packs", 13.sp, color = UiTextSecondary)
                             }
                         }
-                        PackPane(Modifier.weight(1f), "Active") {
-                            PackScrollList(activeResults, { it }, query) { id ->
+                        PackPane(Modifier.weight(1f).onGloballyPositioned { activeBounds = it.boundsInRoot() }, "Active",
+                            dragging != null && activeBounds.contains(dragPosition)) {
+                            PackScrollList(activeResults, { it }, query, activeList, { activeListBounds = it }) { id ->
                                 byId[id]?.let { pack ->
-                                    PackCard(pack, 0) {
+                                    PackCard(pack, 0, cardModifier(id, true)) {
                                         Column {
-                                            PackAction(PACK_ICONS + "up.svg", "Move up", enabled = active.indexOf(id) > 0) { move(id, -1) }
-                                            PackAction(PACK_ICONS + "down.svg", "Move down", enabled = active.indexOf(id) < active.lastIndex) { move(id, 1) }
+                                            PackAction(PACK_ICONS + "up.svg", "Move up", enabled = active.indexOf(id) > 0, compact = true) { move(id, -1) }
+                                            PackAction(PACK_ICONS + "down.svg", "Move down", enabled = active.indexOf(id) < active.lastIndex, compact = true) { move(id, 1) }
                                         }
                                         PackAction(PACK_ICONS + "close.svg", "Disable pack") { remove(id) }
                                     }
@@ -279,6 +396,14 @@ class ArcadiumResourcePacksScreen(private val parent: Screen?) : ComposeScreen(R
                         UiButton("Done", filled = true, enabled = !applying, modifier = Modifier.width(100.dp)) { finish(true) }
                     }
                 }
+                dragging?.let { drag -> byId[drag.id]?.let { pack ->
+                    Box(Modifier.align(Alignment.TopStart).zIndex(5f).offset {
+                        IntOffset((dragPosition.x - dragRoot.x + 12f).roundToInt(), (dragPosition.y - dragRoot.y + 12f).roundToInt())
+                    }.widthIn(max = 260.dp).clip(uiShape(6.dp)).background(UiControlBackground)
+                        .border(1.dp, Accent, uiShape(6.dp)).padding(10.dp)) {
+                        MinecraftText(pack.formattedTitle, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
+                } }
                 pending?.let { pack ->
                     UiModalScrim({ pending = null }) {
                         ModalPanel(440.dp) {
@@ -329,6 +454,8 @@ private enum class PackSort(val label: String) {
     NAME("A to Z"), REVERSE_NAME("Z to A"), NEWEST("Newest"),
 }
 
+private data class PackDrag(val id: String, val fromActive: Boolean)
+
 private sealed interface PackRow {
     val key: String
     val depth: Int
@@ -369,10 +496,10 @@ private fun packRows(packs: List<PackView>, expanded: Set<String>, query: String
 }
 
 @Composable
-private fun PackPane(modifier: Modifier, title: String, content: @Composable ColumnScope.() -> Unit) {
+private fun PackPane(modifier: Modifier, title: String, highlighted: Boolean = false, content: @Composable ColumnScope.() -> Unit) {
     Column(
         modifier.fillMaxHeight().clip(uiShape(8.dp)).background(UiSidebarBackground)
-            .border(1.dp, UiBorderColor, uiShape(8.dp)).padding(12.dp),
+            .border(1.dp, if (highlighted) Accent else UiBorderColor, uiShape(8.dp)).padding(12.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         UiText(title, 17.sp, fontWeight = FontWeight.Medium)
@@ -381,10 +508,10 @@ private fun PackPane(modifier: Modifier, title: String, content: @Composable Col
 }
 
 @Composable
-private fun <T> ColumnScope.PackScrollList(rows: List<T>, key: (T) -> Any, query: String, content: @Composable (T) -> Unit) {
-    val state = rememberLazyListState()
+private fun <T> ColumnScope.PackScrollList(rows: List<T>, key: (T) -> Any, query: String, state: LazyListState,
+                                         onBounds: (Rect) -> Unit, content: @Composable (T) -> Unit) {
     LaunchedEffect(query) { state.scrollToItem(0) }
-    Box(Modifier.weight(1f).fillMaxWidth()) {
+    Box(Modifier.weight(1f).fillMaxWidth().onGloballyPositioned { onBounds(it.boundsInRoot()) }) {
         LazyColumn(state = state, modifier = Modifier.fillMaxSize().padding(end = 9.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             items(rows, key = key) { content(it) }
         }
@@ -411,11 +538,11 @@ private fun FolderRow(folder: PackRow.Folder, open: Boolean, onToggle: () -> Uni
 }
 
 @Composable
-private fun PackCard(pack: PackView, depth: Int, actions: @Composable () -> Unit) {
+private fun PackCard(pack: PackView, depth: Int, modifier: Modifier = Modifier, actions: @Composable () -> Unit) {
     val (interaction, hovered) = rememberUiHover()
     val border by animateColorAsState(if (hovered) UiHoverBorder else UiBorderColor)
     Row(
-        Modifier.fillMaxWidth().padding(start = (depth.coerceAtMost(6) * 12).dp)
+        modifier.fillMaxWidth().padding(start = (depth.coerceAtMost(6) * 12).dp)
             .clip(uiShape(6.dp)).background(UiCardBackground)
             .border(1.dp, if (pack.format != 1) UiWarnColor.copy(alpha = 0.7f) else border, uiShape(6.dp))
             .hoverable(interaction).padding(9.dp),
@@ -457,11 +584,16 @@ private fun PackImage(icon: ImageBitmap?) {
 }
 
 @Composable
-private fun PackAction(icon: String, label: String, enabled: Boolean = true, onClick: () -> Unit) {
+private fun PackAction(icon: String, label: String, enabled: Boolean = true, compact: Boolean = false, onClick: () -> Unit) {
+    val size = if (compact) 24.dp else 36.dp
     if (enabled) {
-        UiIconButton(icon, modifier = Modifier.size(24.dp), tooltip = label, onClick = onClick)
+        Box(Modifier.size(size).clip(UiFieldShape).background(UiControlBackground)
+            .border(1.dp, UiBorderColor, UiFieldShape).semantics { contentDescription = label }
+            .arcadiumClickable(onClick), contentAlignment = Alignment.Center) {
+            Icon(icon, UiTextPrimary, Modifier.size(if (compact) 15.dp else 21.dp))
+        }
     } else {
-        Box(Modifier.size(24.dp), contentAlignment = Alignment.Center) {
+        Box(Modifier.size(size), contentAlignment = Alignment.Center) {
             Icon(icon, UiTextSecondary.copy(alpha = 0.25f), Modifier.size(14.dp))
         }
     }

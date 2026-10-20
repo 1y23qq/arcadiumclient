@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "package": "dev.microcontrollers.numericalenchantments.mixin",
+  "mixinextras": {
+    "minVersion": "0.5.0"
+  },
+  "compatibilityLevel": "JAVA_25",
+  "client": [
+    "EnchantmentMixin",
+    "PotionContentsMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

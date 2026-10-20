@@ -1,0 +1,36 @@
+{
+    "key.category.tooltipscroll.keys": "Tooltip Scroll",
+
+    "title.tooltipscroll.config": "Tooltip Scroll",
+
+    "category.tooltipscroll.general": "General",
+
+    "entry.tooltipscroll.canscroll": "Enable ScrollWheel",
+    "entry.tooltipscroll.usewasd": "Enable WASD",
+    "entry.tooltipscroll.startontop": "Start On Top",
+    "entry.tooltipscroll.resetonunlock": "Reset Position When Not Hovered",
+    "entry.tooltipscroll.uselshift": "Use Left-Shift",
+    "entry.tooltipscroll.invertxscroll": "Invert Horizontal Movement",
+    "entry.tooltipscroll.invertyscroll": "Invert Vertical Movement",
+    "entry.tooltipscroll.scrollspeed": "Mouse Scrolling Speed",
+    "entry.tooltipscroll.scrollspeedkeys": "Keyboard Scrolling Speed",
+    "entry.tooltipscroll.smoothness": "Scroll Smoothness",
+    "entry.tooltipscroll.matrix_compatibility": "Matrix Compatibility",
+
+    "entrytooltip.tooltipscroll.canscroll": "Allows the scroll wheel to move a tooltip.",
+    "entrytooltip.tooltipscroll.usewasd": "Allows the WASD keys to move a tooltip.",
+    "entrytooltip.tooltipscroll.startontop": "Start at the top of the tooltip when hovered (if off-screen)",
+    "entrytooltip.tooltipscroll.resetonunlock": "Resets the position of a tooltip when it is not visible.",
+    "entrytooltip.tooltipscroll.uselshift": "Use left-shift for horizontal scrolling. (unaffected by keybind)",
+    "entrytooltip.tooltipscroll.invertxscroll": "Invert the horizontal tooltip movement when scrolling.",
+    "entrytooltip.tooltipscroll.invertyscroll": "Invert the vertical tooltip movement when scrolling.",
+    "entrytooltip.tooltipscroll.scrollspeed": "Tooltip speed when scrolling with the mouse.",
+    "entrytooltip.tooltipscroll.scrollspeedkeys": "Tooltip speed when moving it with the keyboard.",
+    "entrytooltip.tooltipscroll.smoothness": "How fast the tooltip should slide between positions.\nRange of [0.05 - 1], where 1 is instant.",
+    "entrytooltip.tooltipscroll.matrix_compatibility": "Changes how Tooltip Scroll handles tooltips moving.\nMay improve compatibility with some mods.\nBreaks the start-on-top feature.",
+
+    "key.tooltipscroll.moveUp": "Move Tooltip Up",
+    "key.tooltipscroll.moveDown": "Move Tooltip Down",
+    "key.tooltipscroll.horizontal": "Horizontal Movement",
+    "key.tooltipscroll.reset": "Reset Tooltip"
+}

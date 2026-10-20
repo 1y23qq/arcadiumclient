@@ -21,8 +21,12 @@ foreach ($entry in $manifest.files) {
         throw "Installed payload mismatch: $($entry.path)"
     }
 }
-$catalog = Get-Content -LiteralPath (Join-Path $projectRoot 'distribution/oneclient-1.8.9.lock.json') -Raw | ConvertFrom-Json
-foreach ($component in $catalog.arcadiumComponents) {
+$components = @()
+foreach ($lockPath in @('distribution/oneclient-1.8.9.lock.json', 'distribution/arcadium-1.7.10.lock.json')) {
+    $catalog = Get-Content -LiteralPath (Join-Path $projectRoot $lockPath) -Raw | ConvertFrom-Json
+    $components += @($catalog.arcadiumComponents)
+}
+foreach ($component in $components) {
     if ((Get-FileHash -LiteralPath (Join-Path $target "components/$($component.file)") -Algorithm SHA256).Hash.ToLowerInvariant() -ne $component.sha256) {
         throw 'The installer contains an obsolete client component'
     }
@@ -60,6 +64,6 @@ $nativeHelperReport = Get-Content -LiteralPath (Join-Path $projectRoot "build/wi
 if (!$nativeHelperReport.passed) { throw 'Installed native helper checks did not pass' }
 $uninstall = Start-Process -FilePath (Join-Path $target 'Uninstall.exe') -ArgumentList @('/S','/TESTINSTALL') -WindowStyle Hidden -Wait -PassThru
 if ($uninstall.ExitCode -ne 0 -or (Test-Path -LiteralPath $target)) { throw 'Isolated uninstall failed' }
-@{ version=$Version; filesVerified=$manifest.files.Count; clientComponentsVerified=$catalog.arcadiumComponents.Count; launcherWindow='Arcadium Client'; startupBehavior=$startupBehavior; nativeHelperChecks=$nativeHelperReport.checks.Count; uninstallVerified=$true; installerSha256=$manifest.installerSha256 } |
+@{ version=$Version; filesVerified=$manifest.files.Count; clientComponentsVerified=$components.Count; launcherWindow='Arcadium Client'; startupBehavior=$startupBehavior; nativeHelperChecks=$nativeHelperReport.checks.Count; uninstallVerified=$true; installerSha256=$manifest.installerSha256 } |
     ConvertTo-Json | Set-Content -LiteralPath (Join-Path $projectRoot "build/windows-$Version-installer-checks.json") -Encoding utf8NoBOM
 Write-Output 'Verified installer payload, current components, native launcher and isolated uninstall'

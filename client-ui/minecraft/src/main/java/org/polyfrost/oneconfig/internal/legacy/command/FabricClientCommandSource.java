@@ -1,6 +1,6 @@
 package org.polyfrost.oneconfig.internal.legacy.command;
 
-//? if = 1.8.9 {
+//? if <= 1.8.9 {
 /*import net.minecraft.client.Minecraft;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;

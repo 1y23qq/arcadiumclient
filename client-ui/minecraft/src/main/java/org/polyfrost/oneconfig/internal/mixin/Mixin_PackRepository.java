@@ -43,21 +43,21 @@ import net.minecraft.client.resources.ClientPackSource;
 import net.minecraft.server.packs.repository.PackRepository;
 //?}
 
-//? if = 1.8.9 {
+//? if <= 1.8.9 {
 /*import net.ornithemc.osl.resource.loader.api.resource.ResourceType;
 import net.ornithemc.osl.resource.loader.impl.resource.repository.SimpleResourcePackRepository;
 *///?}
 
-//~ if = 1.8.9 'PackRepository' -> 'SimpleResourcePackRepository'
+//~ if <= 1.8.9 'PackRepository' -> 'SimpleResourcePackRepository'
 @Mixin(PackRepository.class)
 public abstract class Mixin_PackRepository {
     @Mutable
     @Shadow
     @Final
-    //~ if = 1.8.9 'RepositorySource' -> 'ResourcePackRepository.Source'
+    //~ if <= 1.8.9 'RepositorySource' -> 'ResourcePackRepository.Source'
     private Set<RepositorySource> sources;
 
-    //? if = 1.8.9 {
+    //? if <= 1.8.9 {
     /*@Shadow
     @Final
     private ResourceType type;

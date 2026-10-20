@@ -1,6 +1,6 @@
 package org.polyfrost.oneconfig.internal.legacy.compat;
 
-//? if = 1.8.9 {
+//? if <= 1.8.9 {
 /*import net.minecraft.client.entity.living.player.ClientPlayerEntity;
 import org.polyfrost.oneconfig.internal.legacy.PlayerSkin;
 

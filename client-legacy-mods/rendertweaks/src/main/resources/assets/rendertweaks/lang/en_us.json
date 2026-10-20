@@ -1,0 +1,18 @@
+{
+  "modmenu.descriptionTranslation.rendertweaks": "${description}",
+  "rendertweaks.rendertweaks": "Render Tweaks",
+  "rendertweaks.disable": "Disable",
+  "rendertweaks.lightning-bolt": "Lightning Bolt",
+  "rendertweaks.lightning-bolt.disable.description": "Disables rendering of lightning",
+  "rendertweaks.fishing-line": "Fishing Line",
+  "rendertweaks.fishing-line.disable.description": "Disables rendering of the fishing rod line",
+  "rendertweaks.fishing-line.width-multiplier": "Line Width Multiplier",
+  "rendertweaks.fishing-line.width-multiplier.description": "Change the size of the fishing line.",
+  "rendertweaks.world-border": "World Border",
+  "rendertweaks.world-border.stationary": "Stationary",
+  "rendertweaks.world-border.stationary.disable.description": "Disables rendering of the world border when it is stationary.",
+  "rendertweaks.world-border.shrinking": "Shrinking",
+  "rendertweaks.world-border.shrinking.disable.description": "Disables rendering of the world border when it is shrinking.",
+  "rendertweaks.world-border.growing": "Growing",
+  "rendertweaks.world-border.growing.disable.description": "Disables rendering of the world border when it is growing."
+}

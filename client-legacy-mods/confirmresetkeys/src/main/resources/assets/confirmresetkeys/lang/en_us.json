@@ -1,0 +1,5 @@
+{
+  "modmenu.descriptionTranslation.${id}": "${description}",
+  "confirmresetkeys.title": "Are you sure you want to reset your keys?",
+  "confirmresetkeys.message": "This action cannot be undone."
+}

@@ -12,6 +12,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class CrosshairProbeMixin {
     @Inject(method = "drawTexture(IIIIII)V", at = @At("HEAD"))
     private void arcadium$crosshairMatrix(int x, int y, int u, int v, int width, int height, CallbackInfo callback) {
-        if ((Object) this instanceof GameGui && u == 0 && v == 0 && width == 16 && height == 16) FeatureQa.crosshairMatrix();
+        if ((Object) this instanceof GameGui && u == 0 && v == 0 && width == 16 && height == 16) {
+            FeatureQa.crosshairMatrix();
+            io.github.arcadiumclient.featuretest.Release040WorldQa.vanillaCrosshairDraw();
+        }
     }
 }

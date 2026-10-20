@@ -43,7 +43,7 @@ public class Mixin_WorldUnloadEvent {
     @Shadow public ClientLevel level;
 
     @Inject(
-            //~ if = 1.8.9 'setLevel' -> 'setWorld(Lnet/minecraft/client/multiplayer/ClientLevel;Ljava/lang/String;)V'
+            //~ if <= 1.8.9 'setLevel' -> 'setWorld(Lnet/minecraft/client/multiplayer/ClientLevel;Ljava/lang/String;)V'
             method = "setLevel"
             , at = @At("HEAD"))
     private void onWorldUnloadCallback(CallbackInfo ci) {

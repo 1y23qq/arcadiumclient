@@ -41,6 +41,7 @@ import org.polyfrost.compose.composables.PolyModifier
 import org.polyfrost.compose.composables.align
 import org.polyfrost.compose.composables.padding
 import org.polyfrost.compose.composables.size
+import org.polyfrost.compose.composables.textAlign
 import org.polyfrost.compose.layout.PolyInsets
 import org.polyfrost.compose.mc.McFontQueue
 import org.polyfrost.compose.render.FontManager
@@ -112,7 +113,7 @@ abstract class TextHud(
                 val metrics = skiaFont.metrics
                 val lines = text.lines()
                 val lineHeight = skiaFont.spacing
-                val blockW = lines.maxOf { skiaFont.measureTextWidth(it) }
+                val blockW = maxOf(lines.maxOf { skiaFont.measureTextWidth(it) }, if (isStaticValid) staticW - padLeft - padRight else 0f)
                 val blockH = (lines.size - 1) * lineHeight + (metrics.descent - metrics.ascent)
                 val underlinePos = metrics.underlinePosition ?: (fontSize * 0.08f)
                 val underlineThick = metrics.underlineThickness ?: (fontSize * 0.06f)
@@ -125,25 +126,26 @@ abstract class TextHud(
                         if (lineText.isEmpty()) return@forEachIndexed
                         val baseline = y + index * lineHeight - metrics.ascent
                         val lineW = skiaFont.measureTextWidth(lineText)
+                        val lineX = x + McFontQueue.lineOffset(blockW, lineW, textAlign)
                         if (shadowCol != null) {
-                            text(lineText, x + shadowOffsetX, baseline + shadowOffsetY, shadowCol, skiaFont)
+                            text(lineText, lineX + shadowOffsetX, baseline + shadowOffsetY, shadowCol, skiaFont)
                             if (textUnderline) {
                                 line(
-                                    x + shadowOffsetX,
+                                    lineX + shadowOffsetX,
                                     baseline + shadowOffsetY + underlinePos,
-                                    x + shadowOffsetX + lineW,
+                                    lineX + shadowOffsetX + lineW,
                                     baseline + shadowOffsetY + underlinePos,
                                     shadowCol,
                                     underlineThick
                                 )
                             }
                         }
-                        text(lineText, x, baseline, fgColor, skiaFont)
+                        text(lineText, lineX, baseline, fgColor, skiaFont)
                         if (textUnderline) {
                             line(
-                                x,
+                                lineX,
                                 baseline + underlinePos,
-                                x + lineW,
+                                lineX + lineW,
                                 baseline + underlinePos,
                                 fgColor,
                                 underlineThick
@@ -165,7 +167,8 @@ abstract class TextHud(
                     color = fgColor,
                     shadow = showShadow,
                     scale = textScale,
-                    modifier = if (isStaticValid) PolyModifier.align(contentAlign) else PolyModifier,
+                    modifier = (if (isStaticValid) PolyModifier.align(contentAlign) else PolyModifier)
+                        .textAlign(textAlign, if (isStaticValid) staticW - padLeft - padRight else null),
                 )
             }
         }

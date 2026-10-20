@@ -45,15 +45,30 @@ tasks.withType<Test>().configureEach {
 val sc = extensions.getByName<StonecutterBuildExtension>("stonecutter")
 val loom = extensions.getByName<LoomGradleExtensionAPI>("loom")
 loom.apply {
-    accessWidenerPath = sc.process(
-        rootProject.file("minecraft/src/main/resources/oneconfigv1.classtweaker"),
-        "build/processed.classtweaker",
-    )
+    val minecraftVersion = versionedCatalog.versions["minecraft"].requiredVersion
+    accessWidenerPath = if (minecraftVersion in setOf("1.7.10", "1.8.9")) {
+        rootProject.file("minecraft/mappings/$minecraftVersion.classtweaker")
+    } else {
+        sc.process(
+            rootProject.file("minecraft/src/main/resources/oneconfigv1.classtweaker"),
+            "build/processed.classtweaker",
+        )
+    }
     runConfigs["client"].apply {
         ideConfigGenerated(true)
         runDir = "../../run"
         // -Pdevauth=false launches offline for runs that do not need a real account
         property("devauth.enabled", (project.findProperty("devauth") ?: "true").toString())
         property("oneconfig.test", "true")
+    }
+}
+
+if (versionedCatalog.versions["minecraft"].requiredVersion in setOf("1.7.10", "1.8.9")) {
+    val legacyAccessFile = rootProject.file("minecraft/mappings/${versionedCatalog.versions["minecraft"].requiredVersion}.classtweaker")
+    tasks.named<ProcessResources>("processResources") {
+        inputs.file(legacyAccessFile)
+        doLast {
+            legacyAccessFile.copyTo(destinationDir.resolve("oneconfigv1.classtweaker"), overwrite = true)
+        }
     }
 }

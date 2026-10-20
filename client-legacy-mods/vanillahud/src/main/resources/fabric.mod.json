@@ -1,0 +1,33 @@
+{
+    "schemaVersion": 1,
+    "id": "${mod_id}",
+    "name": "${mod_name}",
+    "version": "${mod_version}",
+    "description": "Adds in a load of customization to a few native UI elements such as the bossbar, scoreboard, etc.",
+    "icon": "assets/vanillahud/icon.png",
+    "authors": [
+        "Polyfrost"
+    ],
+    "contact": {
+        "homepage": "https://polyfrost.org",
+        "sources": "https://github.com/Polyfrost/VanillaHUD"
+    },
+    "license": "GPL-3.0",
+    "environment": "client",
+    "entrypoints": {
+        "client": [
+            {
+                "value": "org.polyfrost.vanillahud.VanillaHUDClient",
+                "adapter": "kotlin"
+            }
+        ]
+    },
+    "mixins": [
+        "mixins.vanillahud.json"
+    ],
+    "depends": {
+        "minecraft": "${minecraft_version_range}",
+        "fabricloader": ">=${loader_version}",
+        "oneconfigv1": ">=${oneconfig_version}"
+    }
+}

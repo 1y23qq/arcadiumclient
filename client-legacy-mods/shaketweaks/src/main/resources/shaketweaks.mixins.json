@@ -1,0 +1,11 @@
+{
+  "required": true,
+  "package": "dev.microcontrollers.shaketweaks.mixin",
+  "mixinextras": {"minVersion": "0.5.0"},
+  "compatibilityLevel": "JAVA_25",
+  "client": [
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

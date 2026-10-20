@@ -1,0 +1,15 @@
+{
+    "required": true,
+    "package": "org.codeberg.chromatic.countdown.mixin",
+    "compatibilityLevel": "${java}",
+    "client": [
+        "legacy.TextRendererMixin",
+        "TntRendererMixin"
+    ],
+    "injectors": {
+        "defaultRequire": 1
+    },
+    "overwrites": {
+        "requireAnnotations": true
+    }
+}

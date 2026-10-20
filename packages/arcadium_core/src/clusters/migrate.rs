@@ -56,7 +56,7 @@ pub async fn apply_remote_migrations(state: &LauncherState) -> LauncherResult<us
 }
 
 async fn apply_rule(state: &LauncherState, rule: &RemoteMigration) -> LauncherResult<bool> {
-    if rule.to.mc_version != arcadium_common::distribution::MINECRAFT_VERSION {
+    if !arcadium_common::distribution::supports_version(&rule.to.mc_version) {
         return Ok(false);
     }
 

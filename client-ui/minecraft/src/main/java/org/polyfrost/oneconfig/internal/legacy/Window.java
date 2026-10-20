@@ -1,6 +1,6 @@
 package org.polyfrost.oneconfig.internal.legacy;
 
-//? if = 1.8.9 {
+//? if <= 1.8.9 {
 /*import net.minecraft.client.Minecraft;
 import org.lwjgl.sdl.SDLVideo;
 import org.lwjgl.sdl.SDL_DisplayMode;
@@ -12,7 +12,11 @@ public final class Window {
     private final DisplaySdl display = DisplaySdl.instance();
 
     public Window(Minecraft minecraft) {
+        //? if = 1.7.10 {
+        this.scaled = new net.minecraft.client.render.Window(minecraft, minecraft.width, minecraft.height);
+        //?} else {
         this.scaled = new net.minecraft.client.render.Window(minecraft);
+        //?}
     }
 
     public long getWindow() {

@@ -1,0 +1,29 @@
+{
+    "schemaVersion": 1,
+    "id": "${mod_id}",
+    "version": "${mod_version}",
+    "name": "${mod_name}",
+    "description": "",
+    "authors": [
+        "Polyfrost"
+    ],
+    "license": "GPL-3.0-with-Minecraft-Linking-Exception",
+    "environment": "*",
+    "accessWidener": "evergreenhud.classtweaker",
+    "entrypoints": {
+        "client": [
+            {
+                "value": "org.polyfrost.evergreenhud.client.EvergreenHudClient",
+                "adapter": "kotlin"
+            }
+        ]
+    },
+    "mixins": [
+        "mixins.evergreenhud.json"
+    ],
+    "depends": {
+        "minecraft": "${minecraft_version_range}",
+        "fabricloader": ">=${loader_version}",
+        "oneconfigv1": ">=${oneconfig_version}"
+    }
+}

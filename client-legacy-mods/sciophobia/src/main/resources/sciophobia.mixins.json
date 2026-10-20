@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "package": "dev.microcontrollers.sciophobia.mixin",
+  "mixinextras": {
+    "minVersion": "0.5.0"
+  },
+  "compatibilityLevel": "JAVA_25",
+  "client": [
+    "TextRendererMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

@@ -64,7 +64,15 @@ public final class ChatTweaks {
             group = groups.remove(key);
             long elapsed = group == null ? Long.MAX_VALUE : received - group.received;
             boolean consecutive = !ChatTweaksConfig.getConsecutiveCompactChat() || key.equals(previousKey);
-            if (group == null || elapsed < 0 || elapsed > Math.max(1, Math.min(120, ChatTweaksConfig.getCompactChatTime())) * 1000L || !consecutive) {
+            boolean withinTime = elapsed >= 0 && elapsed <= Math.max(1, Math.min(120, ChatTweaksConfig.getCompactChatTime())) * 1000L;
+            int limit = ChatTweaksConfig.getCompactChatLimit();
+            boolean withinLines = group != null && (limit == 0 || withinLines(group, visible));
+            boolean withinWindow = switch (limit) {
+                case 1 -> withinLines;
+                case 2 -> withinTime && withinLines;
+                default -> withinTime;
+            };
+            if (group == null || !withinWindow || !consecutive) {
                 group = new Group(received);
             } else {
                 Group duplicate = group;
@@ -100,6 +108,14 @@ public final class ChatTweaks {
             }
         }
         return new Display(output, group, false);
+    }
+
+    private static boolean withinLines(Group group, List<ChatMessage> visible) {
+        int limit = Math.min(visible.size(), Math.max(1, Math.min(1000, ChatTweaksConfig.getCompactChatLines())));
+        for (int index = 0; index < limit; index++) {
+            if (group.lines.contains(visible.get(index).getText())) return true;
+        }
+        return false;
     }
 
     public void wrapped(Display display, List<Text> lines) {
