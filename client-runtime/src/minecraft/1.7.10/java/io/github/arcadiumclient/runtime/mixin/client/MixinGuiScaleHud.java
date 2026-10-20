@@ -9,11 +9,15 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import io.github.arcadiumclient.runtime.client.features.CustomCrosshairRenderer;
 import io.github.arcadiumclient.runtime.client.features.LegacyGuiScaleTransform;
 import io.github.arcadiumclient.runtime.legacy.LegacyWindows;
+import io.github.arcadiumclient.runtime.legacy.LegacyCrosshairConfig;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GameGui;
 import net.minecraft.client.render.TextRenderer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Slice;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL14;
 
 @Mixin(GameGui.class)
 public abstract class MixinGuiScaleHud {
@@ -26,8 +30,22 @@ public abstract class MixinGuiScaleHud {
             || height == 5 && u == 0 && (v == 64 || v == 69 || v == 84 || v == 89);
         boolean pushed = crosshair ? LegacyGuiScaleTransform.crosshair(window, x, y)
             : bar && LegacyGuiScaleTransform.hotbar(window);
+        boolean style = false;
+        if (crosshair) {
+            boolean first = Minecraft.getInstance().options.perspective == 0;
+            float rawOpacity = first ? LegacyCrosshairConfig.crosshairOpacityFirstPerson : LegacyCrosshairConfig.crosshairOpacityThirdPerson;
+            float opacity = Float.isFinite(rawOpacity) ? Math.max(0f, Math.min(100f, rawOpacity)) / 100f : 1f;
+            boolean plain = first ? LegacyCrosshairConfig.removeCrosshairBlendingFirstPerson : LegacyCrosshairConfig.removeCrosshairBlendingThirdPerson;
+            if (plain || opacity != 1f) {
+                GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_COLOR_BUFFER_BIT | GL11.GL_CURRENT_BIT);
+                style = true;
+                GL14.glBlendFuncSeparate(plain ? GL11.GL_SRC_ALPHA : GL11.GL_ONE_MINUS_DST_COLOR,
+                    plain ? GL11.GL_ONE_MINUS_SRC_ALPHA : GL11.GL_ONE_MINUS_SRC_COLOR, GL11.GL_ONE, GL11.GL_ZERO);
+                GL11.glColor4f(1f, 1f, 1f, opacity);
+            }
+        }
         try { original.call(gui, x, y, u, v, width, height); }
-        finally { LegacyGuiScaleTransform.pop(pushed); }
+        finally { if (style) GL11.glPopAttrib(); LegacyGuiScaleTransform.pop(pushed); }
     }
 
     @WrapMethod(method = "renderStatusBars")

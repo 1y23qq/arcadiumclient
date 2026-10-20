@@ -26,8 +26,8 @@ final class LegacyFeet040Qa {
         }
         require(height != null && position != null, "The real native height and position HUD providers are missing");
         Class<?> limits = Class.forName("io.github.arcadiumclient.runtime.legacy.LegacyHeightConfig");
-        boolean vanilla = (boolean) call(limits, "getVanillaLimit");
-        int custom = ((Number) call(limits, "getCustomLimit")).intValue();
+        boolean debug = (boolean) call(limits, "getDebugModeEnabled");
+        int custom = ((Number) call(limits, "getDebugModeHeight")).intValue();
         Class<?> cuteConfig = Class.forName("io.github.arcadiumclient.runtime.client.features.CuteVisualsConfig");
         Object cuteState = field(Class.forName("io.github.arcadiumclient.runtime.client.features.CuteVisuals"), "STATE");
         Map<String, Object> cuteSettings = new LinkedHashMap<>();
@@ -38,7 +38,7 @@ final class LegacyFeet040Qa {
         try {
             player.setPositionAndAngles(prior[0], 8.5, prior[2], yaw, pitch);
             require(player.shape.minY == 8.5 && Math.floor(player.y) != 8, "The fixture did not distinguish feet from native eye coordinates");
-            call(limits, "setVanillaLimit", true);
+            call(limits, "setDebugModeEnabled", false);
             call(height, "setStyle", 0);
             String classic = (String) call(height, "getText");
             require(classic.equals("8 / 256"), "Height Limit HUD used eye height instead of actual feet: " + classic);
@@ -46,7 +46,7 @@ final class LegacyFeet040Qa {
             call(height, "setShowCurrentY", true); call(height, "setShowDistanceToLimit", true);
             String compact = (String) call(height, "getText");
             require(compact.equals("8 / 256 (248)"), "Compact height distance did not use actual feet: " + compact);
-            call(limits, "setVanillaLimit", false); call(limits, "setCustomLimit", 100);
+            call(limits, "setDebugModeEnabled", true); call(limits, "setDebugModeHeight", 100);
             String hundred = (String) call(height, "getText");
             require(hundred.equals("8 / 100 (92)"), "The hundred-block limit did not calculate distance from feet: " + hundred);
             Object center = Class.forName("io.github.arcadiumclient.runtime.legacy.BlockPos").getConstructor(Entity.class).newInstance(player);
@@ -77,7 +77,7 @@ final class LegacyFeet040Qa {
             player.setPositionAndAngles(prior[0], prior[1], prior[2], yaw, pitch);
             player.y = prior[3]; player.lastX = prior[4]; player.lastY = prior[5]; player.lastZ = prior[6];
             player.prevX = prior[7]; player.prevY = prior[8]; player.prevZ = prior[9]; player.lastYaw = lastYaw; player.lastPitch = lastPitch;
-            call(limits, "setVanillaLimit", vanilla); call(limits, "setCustomLimit", custom);
+            call(limits, "setDebugModeEnabled", debug); call(limits, "setDebugModeHeight", custom);
             for (Map.Entry<String, Object> entry : hudSettings.entrySet()) call(height, "set" + entry.getKey(), entry.getValue());
             for (Map.Entry<String, Object> entry : positionSettings.entrySet()) call(position, "set" + entry.getKey(), entry.getValue());
             call(position, "update"); call(position, "update");

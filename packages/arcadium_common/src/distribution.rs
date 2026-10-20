@@ -73,13 +73,13 @@ pub fn bundle(path: &str) -> Option<&'static [u8]> {
 }
 
 pub const BRANDING_MOD: &[u8] = include_bytes!("../assets/distribution/ArcadiumBrand-1.8.9.jar");
-pub const BRANDING_SHA1: &str = "eb2b84807d6fc56b4de410b8900cba90757f3482";
+pub const BRANDING_SHA1: &str = "d8ac13b28bb70ee400b649d48ffa56e9784fbb01";
 
 pub const COMPONENTS: &[(&str, &str)] = &[
     ("ArcadiumCore-1.8.9.jar", "5369cb4b8a20ca4f2bb1600aabe80e3dd3c5e6c9"),
-    ("ArcadiumFeatures-1.8.9.jar", "77a7962cd6205eacae6d97061fe63b27d1459c6d"),
+    ("ArcadiumFeatures-1.8.9.jar", "28f0f1367c2728cbbd9b50d7984ad9c88aa4f704"),
     ("ArcadiumRenderer-1.8.9.jar", "a93ef441f12e02add2c756c3b1dedad0454bc616"),
-    ("ArcadiumForgeCompat-1.8.9.jar", "77ebf7d37ec5beb87e6830f508813b887be5736d"),
+    ("ArcadiumForgeCompat-1.8.9.jar", "c053319f053088cbbd0276e858c631f32669d519"),
 ];
 
 #[cfg(test)]

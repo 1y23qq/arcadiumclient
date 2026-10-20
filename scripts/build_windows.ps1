@@ -134,8 +134,21 @@ try {
     New-Item -ItemType Directory -Force -Path $installerDirectory | Out-Null
     $output = Join-Path $installerDirectory "ArcadiumClientSetup-$launcherVersion-x64.exe"
     $updateFiles = Join-Path $buildDirectory 'managed-update-files.nsh'
-    $updateEntries = @('!macro ArcadiumManagedUpdateFiles action')
-    foreach ($managedFile in (Get-ChildItem -LiteralPath $stage -Recurse -File | Sort-Object FullName)) {
+    $managedFiles = @(Get-ChildItem -LiteralPath $stage -Recurse -File | Sort-Object FullName)
+    $payloadBytes = [long](($managedFiles | Measure-Object Length -Sum).Sum)
+    $payloadKiB = [long][Math]::Ceiling($payloadBytes / 1024.0)
+    $updateEntries = @(
+        ('!define ARCADIUM_PAYLOAD_BYTES "' + $payloadBytes + '"'),
+        ('!define ARCADIUM_PAYLOAD_KIB ' + $payloadKiB),
+        '!macro ArcadiumManagedPayloadFiles action'
+    )
+    foreach ($managedFile in $managedFiles) {
+        $relative = [IO.Path]::GetRelativePath($stage, $managedFile.FullName)
+        $updateEntries += ('!insertmacro ${action} "' + $relative + '" "' + $managedFile.Length + '"')
+    }
+    $updateEntries += '!macroend'
+    $updateEntries += '!macro ArcadiumManagedUpdateFiles action'
+    foreach ($managedFile in $managedFiles) {
         $relative = [IO.Path]::GetRelativePath($stage, $managedFile.FullName)
         $updateEntries += ('!insertmacro ${action} "' + $relative + '"')
     }

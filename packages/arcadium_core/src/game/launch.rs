@@ -310,6 +310,16 @@ async fn start(
     let cwd = game_dir;
     arcadium_io::create_dir_all(&cwd).await.ok();
 
+    if cluster.uses_bundles() && cluster.mc_version == "1.7.10" {
+        let primary = paths::shared_minecraft_dir()?;
+        let backups = Box::pin(crate::game::share_client_settings(&cwd, &primary))
+            .await
+            .map_err(|error| crate::LauncherError::Minecraft(format!("Could not share Minecraft 1.8.9 client settings: {error}")))?;
+        if !backups.is_empty() {
+            tracing::info!(?backups, "Preserved version-specific client settings before sharing the 1.8.9 settings");
+        }
+    }
+
     if let Err(err) = crate::game::write_allowed_symlinks(&cwd).await {
         tracing::warn!(cluster_id, error = %err, "failed to write allowed_symlinks.txt");
     }

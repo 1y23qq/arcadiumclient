@@ -14,7 +14,9 @@
     "LegacyHurtCam040Probe",
     "LegacyWholeClientPerformance040Mixin",
     "LegacyPerformance040ServerMixin",
-    "LegacyPerformance040SkinsMixin"
+    "LegacyPerformance040SkinsMixin",
+    "SharedSettings041Mixin",
+    "NativeVisual041Mixin"
   ],
   "injectors": {
     "defaultRequire": 1

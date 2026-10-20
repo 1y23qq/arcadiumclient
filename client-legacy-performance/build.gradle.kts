@@ -3,7 +3,7 @@ plugins {
     id("ploceus") version "1.17.7"
 }
 
-version = "0.4.0"
+version = "0.4.1"
 group = "io.github.arcadiumclient"
 base.archivesName = "ArcadiumLegacyPerformance"
 

@@ -45,7 +45,8 @@
     "FontControlsChatProbeMixin",
     "NoHitDelayProbeAccess",
     "NoHitDelayPacketProbeMixin",
-    "MinemenMinecraftAccess"
+    "MinemenMinecraftAccess",
+    "SharedSettings041Mixin"
   ],
   "injectors": {
     "defaultRequire": 1

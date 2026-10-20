@@ -68,18 +68,25 @@ class HeightLimitHud : TextHud("arcadium-height-limit-hud.json", "Height Limit H
 object HeightLimitSource {
     data class Snapshot(val inBedwars: Boolean = false, val map: String? = null, val maximum: Int? = null,
                         val supported: Boolean = inBedwars)
+    private var cachedAddress: String? = null
+    private var cachedMinemen = false
     @JvmStatic fun minemenLimitActive(): Boolean {
         val client = Minecraft.getInstance()
-        return client.world != null && !client.isSingleplayer &&
-            io.github.arcadiumclient.runtime.legacy.LegacyHeightConfig.minemenLimit &&
-            MinemenHeightLimit.matches(client.currentServerEntry?.ip)
+        if (client.world == null || client.isSingleplayer || !io.github.arcadiumclient.runtime.legacy.LegacyHeightConfig.minemenHeightLimit) return false
+        val address = client.currentServerEntry?.ip
+        if (address != cachedAddress) {
+            cachedAddress = address
+            cachedMinemen = MinemenHeightLimit.matches(address)
+        }
+        return cachedMinemen
     }
-    @JvmStatic fun minemenOverlayActive() = minemenLimitActive() && io.github.arcadiumclient.runtime.legacy.LegacyHeightConfig.enabled
+    @JvmStatic fun minemenOverlayActive() = minemenLimitActive() && io.github.arcadiumclient.runtime.legacy.LegacyHeightConfig.heightOverlay
     @JvmStatic fun snapshot(): Snapshot {
         if (Minecraft.getInstance().world == null) return Snapshot()
         if (minemenLimitActive()) return Snapshot(false, "Minemen Club", 100, true)
-        val limit = if (io.github.arcadiumclient.runtime.legacy.LegacyHeightConfig.vanillaLimit) 256
-            else io.github.arcadiumclient.runtime.legacy.LegacyHeightConfig.customLimit.coerceIn(1, 256)
-        return Snapshot(false, null, limit, true)
+        return Snapshot(false, null, currentLimit(), true)
     }
+    @JvmStatic fun currentLimit(): Int = if (minemenLimitActive()) 100
+        else if (io.github.arcadiumclient.runtime.legacy.LegacyHeightConfig.debugModeEnabled)
+            io.github.arcadiumclient.runtime.legacy.LegacyHeightConfig.debugModeHeight.coerceIn(1, 256) else 256
 }

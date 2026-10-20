@@ -1,3 +1,8 @@
+## 0.4.1
+
+- Fixed Windows update recovery.
+- Shared mod and HUD settings between Minecraft 1.7.10 and 1.8.9.
+
 ## 0.4.0
 
 - Added Minecraft 1.7.10 support.

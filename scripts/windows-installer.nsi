@@ -26,7 +26,31 @@ Var TestInstall
 Var AutoUpdate
 Var RestartAfterInstall
 Var UpdateProcess
-Var UpdateBackupReady
+Var UpdatePid
+Var ParentExited
+Var TransactionDir
+Var StageDir
+Var BackupDir
+Var TransactionPrepared
+Var BackupStarted
+Var BackupComplete
+Var CommitStarted
+Var CommitComplete
+Var RollbackFailed
+Var FailureHandled
+Var TransactionError
+Var OldLauncherPresent
+Var UninstallBytes
+Var FileLength
+Var FileLengthOk
+Var InstallVolume
+Var TempVolume
+Var InstallVolumeId
+Var TempVolumeId
+Var InstallFree
+Var TempFree
+Var RequiredInstall
+Var RequiredTemp
 !macro DeleteManagedFile relative
     Delete "$INSTDIR\${relative}"
 !macroend
@@ -56,7 +80,19 @@ Function .onInit
     StrCpy $TestInstall 0
     StrCpy $AutoUpdate 0
     StrCpy $RestartAfterInstall 0
-    StrCpy $UpdateBackupReady 0
+    StrCpy $UpdateProcess 0
+    StrCpy $ParentExited 0
+    StrCpy $TransactionDir ""
+    StrCpy $TransactionPrepared 0
+    StrCpy $BackupStarted 0
+    StrCpy $BackupComplete 0
+    StrCpy $CommitStarted 0
+    StrCpy $CommitComplete 0
+    StrCpy $RollbackFailed 0
+    StrCpy $FailureHandled 0
+    StrCpy $TransactionError ""
+    StrCpy $OldLauncherPresent 0
+    SectionSetSize 0 ${ARCADIUM_PAYLOAD_KIB}
     ${GetParameters} $R0
     ClearErrors
     ${GetOptions} $R0 "/TESTINSTALL" $R1
@@ -78,82 +114,150 @@ Function .onInit
             SetErrorLevel 2
             Abort
         ${EndIf}
-        System::Call 'kernel32::OpenProcess(i 0x00100000, i 0, i $R1) p .r2'
+        StrCpy $UpdatePid $R1
+        System::Call 'kernel32::OpenProcess(i 0x00100000, i 0, i $UpdatePid) p .r2'
         StrCpy $UpdateProcess $2
+        ${If} $UpdateProcess == 0
+            StrCpy $TransactionError "The running launcher could not be identified. Please close it and run this installer again."
+            Call FailTransaction
+            Abort
+        ${EndIf}
+        Call PrepareTransaction
+        ${If} $TransactionPrepared != 1
+            Call FailTransaction
+            Abort
+        ${EndIf}
         ReadEnvStr $R8 "ARCADIUM_UPDATE_READY"
         ${If} $R8 != ""
             ClearErrors
-            FileOpen $R9 "$R8" w
+            FileOpen $R9 "$R8.tmp" w
             ${If} ${Errors}
-                SetErrorLevel 6
+                StrCpy $TransactionError "The update handoff could not be acknowledged."
+                Call FailTransaction
                 Abort
             ${EndIf}
             FileWrite $R9 "ready"
             FileClose $R9
-        ${EndIf}
-        ${If} $UpdateProcess != 0
-            System::Call 'kernel32::WaitForSingleObject(p $UpdateProcess, i 30000) i .r3'
-            System::Call 'kernel32::CloseHandle(p $UpdateProcess)'
-            ${If} $3 != 0
-                SetErrorLevel 3
+            ${IfNot} ${Errors}
+                Rename "$R8.tmp" "$R8"
+            ${EndIf}
+            ${If} ${Errors}
+                StrCpy $TransactionError "The update handoff could not be acknowledged."
+                Call FailTransaction
                 Abort
             ${EndIf}
         ${EndIf}
+        System::Call 'kernel32::WaitForSingleObject(p $UpdateProcess, i 30000) i .r3'
+        System::Call 'kernel32::CloseHandle(p $UpdateProcess)'
+        StrCpy $UpdateProcess 0
+        ${If} $3 != 0
+            StrCpy $TransactionError "The launcher did not close. Your installed files have not been changed."
+            Call FailTransaction
+            Abort
+        ${EndIf}
+        StrCpy $ParentExited 1
     ${EndIf}
 FunctionEnd
 
 Function .onInstSuccess
     ${If} $RestartAfterInstall == 1
+    ${AndIf} $CommitComplete == 1
         Exec '$\"$INSTDIR\Arcadium.exe$\"'
     ${EndIf}
 FunctionEnd
 
-!macro BackupManagedFile relativePath
-    ${If} ${FileExists} "$INSTDIR\${relativePath}"
-        ${GetParent} "$PLUGINSDIR\rollback\${relativePath}" $R4
-        CreateDirectory "$R4"
-        System::Call 'kernel32::CopyFileW(w "$INSTDIR\${relativePath}", w "$PLUGINSDIR\rollback\${relativePath}", i 0) i .r3'
-        ${If} $3 == 0
-            SetErrorLevel 4
-            Abort
-        ${EndIf}
+Function ReadFileLength
+    Pop $R4
+    StrCpy $FileLengthOk 0
+    System::Call 'kernel32::CreateFileW(w "$R4", i 0x80, i 7, p 0, i 3, i 0x80, p 0) p .r2'
+    ${If} $2 == -1
+        Return
     ${EndIf}
-!macroend
-
-!macro RestoreManagedFile relativePath
-    ${If} ${FileExists} "$PLUGINSDIR\rollback\${relativePath}"
-        System::Call 'kernel32::CopyFileW(w "$PLUGINSDIR\rollback\${relativePath}", w "$INSTDIR\${relativePath}", i 0) i .r3'
-    ${EndIf}
-!macroend
-
-Function BackupUpdate
-    InitPluginsDir
-    CreateDirectory "$PLUGINSDIR\rollback"
-    CreateDirectory "$PLUGINSDIR\rollback\components"
-    CreateDirectory "$PLUGINSDIR\rollback\licenses"
-    !insertmacro ArcadiumManagedUpdateFiles BackupManagedFile
-    StrCpy $UpdateBackupReady 1
-FunctionEnd
-
-Function .onInstFailed
-    ${If} $AutoUpdate == 1
-        ${If} $UpdateBackupReady == 1
-            !insertmacro ArcadiumManagedUpdateFiles RestoreManagedFile
-        ${EndIf}
-        System::Call 'kernel32::SetEnvironmentVariableW(w "ARCADIUM_UPDATE_FAILED", w "${ARCADIUM_VERSION}")'
-        ${If} $RestartAfterInstall == 1
-            Exec '$\"$INSTDIR\Arcadium.exe$\"'
-        ${EndIf}
+    System::Call 'kernel32::GetFileSizeEx(p r2, *l .r3) i .r4'
+    System::Call 'kernel32::CloseHandle(p r2)'
+    ${If} $4 != 0
+        StrCpy $FileLength $3
+        StrCpy $FileLengthOk 1
     ${EndIf}
 FunctionEnd
 
-Section "Arcadium Client"
-    SetShellVarContext current
-    ${If} $AutoUpdate == 1
-        Call BackupUpdate
+!macro VerifyPayloadFile root relativePath expectedBytes
+    Push "${root}\${relativePath}"
+    Call ReadFileLength
+    ${If} $FileLengthOk != 1
+    ${OrIf} $FileLength != "${expectedBytes}"
+        StrCpy $TransactionError "A required file is missing or incomplete: ${relativePath}"
+        Return
     ${EndIf}
+!macroend
+
+!macro VerifyStagedFile relativePath expectedBytes
+    !insertmacro VerifyPayloadFile "$StageDir" "${relativePath}" "${expectedBytes}"
+!macroend
+
+!macro VerifyInstalledFile relativePath expectedBytes
+    !insertmacro VerifyPayloadFile "$INSTDIR" "${relativePath}" "${expectedBytes}"
+!macroend
+
+Function CheckDiskSpace
+    System::Call 'kernel32::GetVolumePathNameW(w "$INSTDIR", w .r1, i ${NSIS_MAX_STRLEN}) i .r0'
+    StrCpy $InstallVolume $1
+    ${If} $0 == 0
+        StrCpy $TransactionError "The installation volume could not be checked."
+        Return
+    ${EndIf}
+    System::Call 'kernel32::GetVolumePathNameW(w "$TEMP", w .r1, i ${NSIS_MAX_STRLEN}) i .r0'
+    StrCpy $TempVolume $1
+    ${If} $0 == 0
+        StrCpy $TransactionError "The temporary volume could not be checked."
+        Return
+    ${EndIf}
+    StrCpy $InstallVolumeId $InstallVolume
+    StrCpy $TempVolumeId $TempVolume
+    System::Call 'kernel32::GetVolumeNameForVolumeMountPointW(w "$InstallVolume", w .r1, i ${NSIS_MAX_STRLEN}) i .r0'
+    ${If} $0 != 0
+        StrCpy $InstallVolumeId $1
+    ${EndIf}
+    System::Call 'kernel32::GetVolumeNameForVolumeMountPointW(w "$TempVolume", w .r1, i ${NSIS_MAX_STRLEN}) i .r0'
+    ${If} $0 != 0
+        StrCpy $TempVolumeId $1
+    ${EndIf}
+    System::Call 'kernel32::GetDiskFreeSpaceExW(w "$InstallVolume", *l .r1, p 0, p 0) i .r0'
+    StrCpy $InstallFree $1
+    ${If} $0 == 0
+        StrCpy $TransactionError "Free installation space could not be checked."
+        Return
+    ${EndIf}
+    System::Call 'kernel32::GetDiskFreeSpaceExW(w "$TempVolume", *l .r1, p 0, p 0) i .r0'
+    StrCpy $TempFree $1
+    ${If} $0 == 0
+        StrCpy $TransactionError "Free temporary space could not be checked."
+        Return
+    ${EndIf}
+    System::Int64Op "${ARCADIUM_PAYLOAD_BYTES}" + 67108864
+    Pop $RequiredInstall
+    StrCpy $RequiredTemp $RequiredInstall
+    ${If} $InstallVolumeId == $TempVolumeId
+        System::Int64Op $RequiredInstall + "${ARCADIUM_PAYLOAD_BYTES}"
+        Pop $RequiredInstall
+        StrCpy $RequiredTemp $RequiredInstall
+    ${EndIf}
+    System::Int64Op $InstallFree < $RequiredInstall
+    Pop $R0
+    ${If} $R0 != 0
+        StrCpy $TransactionError "There is not enough free installation space to update safely. Free some space and try again."
+        Return
+    ${EndIf}
+    System::Int64Op $TempFree < $RequiredTemp
+    Pop $R0
+    ${If} $R0 != 0
+        StrCpy $TransactionError "There is not enough free temporary space to update safely. Free some space and try again."
+    ${EndIf}
+FunctionEnd
+
+Function ExtractPayload
     ClearErrors
-    SetOutPath "$INSTDIR"
+    SetOutPath "$StageDir"
     File "${STAGEDIR}\Arcadium.exe"
     File "${STAGEDIR}\concrt140.dll"
     File "${STAGEDIR}\msvcp140.dll"
@@ -169,15 +273,263 @@ Section "Arcadium Client"
     File "${STAGEDIR}\NOTICE.md"
     File "${STAGEDIR}\README.md"
     File "${STAGEDIR}\distribution-lock*.json"
-    SetOutPath "$INSTDIR\components"
+    ${If} ${Errors}
+        StrCpy $TransactionError "The launcher payload could not be extracted."
+        Return
+    ${EndIf}
+    SetOutPath "$StageDir\components"
     File "${STAGEDIR}\components\*.jar"
-    SetOutPath "$INSTDIR\licenses"
+    ${If} ${Errors}
+        StrCpy $TransactionError "The client components could not be extracted."
+        Return
+    ${EndIf}
+    SetOutPath "$StageDir\licenses"
     File /r "${STAGEDIR}\licenses\*.*"
     ${If} ${Errors}
-        SetErrorLevel 5
+        StrCpy $TransactionError "The license notices could not be extracted."
+        Return
+    ${EndIf}
+    WriteUninstaller "$StageDir\Uninstall.exe"
+    ${If} ${Errors}
+        StrCpy $TransactionError "The uninstaller could not be prepared."
+        Return
+    ${EndIf}
+    Push "$StageDir\Uninstall.exe"
+    Call ReadFileLength
+    ${If} $FileLengthOk != 1
+    ${OrIf} $FileLength == 0
+        StrCpy $TransactionError "The prepared uninstaller is incomplete."
+        Return
+    ${EndIf}
+    StrCpy $UninstallBytes $FileLength
+    !insertmacro ArcadiumManagedPayloadFiles VerifyStagedFile
+FunctionEnd
+
+Function PrepareTransaction
+    Call CheckDiskSpace
+    ${If} $TransactionError != ""
+        Return
+    ${EndIf}
+    System::Call 'kernel32::GetCurrentProcessId() i .r0'
+    System::Call 'kernel32::GetTickCount64() l .r1'
+    StrCpy $TransactionDir "$INSTDIR\.arcadium-update-$0-$1"
+    StrCpy $StageDir "$TransactionDir\payload"
+    StrCpy $BackupDir "$TransactionDir\backup"
+    ${If} ${FileExists} "$TransactionDir"
+        StrCpy $TransactionDir ""
+        StrCpy $TransactionError "The update staging directory is already in use."
+        Return
+    ${EndIf}
+    ClearErrors
+    CreateDirectory "$StageDir"
+    CreateDirectory "$BackupDir"
+    ${If} ${Errors}
+        StrCpy $TransactionError "The update staging directory could not be created."
+        Return
+    ${EndIf}
+    Call ExtractPayload
+    ${If} $TransactionError != ""
+        Return
+    ${EndIf}
+    StrCpy $TransactionPrepared 1
+FunctionEnd
+
+!macro BackupManagedFile relativePath
+    ${If} ${FileExists} "$INSTDIR\${relativePath}"
+        Push "$INSTDIR\${relativePath}"
+        Call ReadFileLength
+        ${If} $FileLengthOk != 1
+            StrCpy $TransactionError "An installed file cannot be safely replaced: ${relativePath}"
+            Return
+        ${EndIf}
+        ${GetParent} "$BackupDir\${relativePath}" $R4
+        ClearErrors
+        CreateDirectory "$R4"
+        Rename "$INSTDIR\${relativePath}" "$BackupDir\${relativePath}"
+        ${If} ${Errors}
+            StrCpy $TransactionError "An installed file is in use or could not be backed up: ${relativePath}"
+            Return
+        ${EndIf}
+    ${EndIf}
+!macroend
+
+!macro BackupOtherManagedFile relativePath
+    ${If} "${relativePath}" != "Arcadium.exe"
+        !insertmacro BackupManagedFile "${relativePath}"
+    ${EndIf}
+!macroend
+
+Function BackupUpdate
+    ${If} ${FileExists} "$INSTDIR\Arcadium.exe"
+        StrCpy $OldLauncherPresent 1
+    ${EndIf}
+    StrCpy $BackupStarted 1
+    !insertmacro ArcadiumManagedUpdateFiles BackupOtherManagedFile
+    StrCpy $BackupComplete 1
+FunctionEnd
+
+!macro MoveStagedFile relativePath
+    ${GetParent} "$INSTDIR\${relativePath}" $R4
+    ClearErrors
+    CreateDirectory "$R4"
+    Rename "$StageDir\${relativePath}" "$INSTDIR\${relativePath}"
+    ${If} ${Errors}
+        StrCpy $TransactionError "A prepared file could not be installed: ${relativePath}"
+        Return
+    ${EndIf}
+!macroend
+
+!macro CommitPayloadFile relativePath expectedBytes
+    ${If} "${relativePath}" != "Arcadium.exe"
+        !insertmacro MoveStagedFile "${relativePath}"
+    ${EndIf}
+!macroend
+
+Function CommitUpdate
+    StrCpy $CommitStarted 1
+    !insertmacro ArcadiumManagedPayloadFiles CommitPayloadFile
+    !insertmacro MoveStagedFile "Uninstall.exe"
+    !insertmacro BackupManagedFile "Arcadium.exe"
+    !insertmacro MoveStagedFile "Arcadium.exe"
+    !insertmacro ArcadiumManagedPayloadFiles VerifyInstalledFile
+    !insertmacro VerifyPayloadFile "$INSTDIR" "Uninstall.exe" "$UninstallBytes"
+    StrCpy $CommitComplete 1
+FunctionEnd
+
+!macro RestoreOneFile relativePath
+    ${If} ${FileExists} "$BackupDir\${relativePath}"
+        ${If} ${FileExists} "$INSTDIR\${relativePath}"
+            ClearErrors
+            Delete "$INSTDIR\${relativePath}"
+            ${If} ${Errors}
+                StrCpy $RollbackFailed 1
+            ${EndIf}
+        ${EndIf}
+        ${GetParent} "$INSTDIR\${relativePath}" $R4
+        ClearErrors
+        CreateDirectory "$R4"
+        Rename "$BackupDir\${relativePath}" "$INSTDIR\${relativePath}"
+        ${If} ${Errors}
+            StrCpy $RollbackFailed 1
+        ${EndIf}
+    ${ElseIf} $CommitStarted == 1
+        ${IfNot} ${FileExists} "$StageDir\${relativePath}"
+            ${If} ${FileExists} "$INSTDIR\${relativePath}"
+                ClearErrors
+                Delete "$INSTDIR\${relativePath}"
+                ${If} ${Errors}
+                    StrCpy $RollbackFailed 1
+                ${EndIf}
+            ${EndIf}
+        ${EndIf}
+    ${EndIf}
+!macroend
+
+!macro RestoreManagedFile relativePath
+    ${If} "${relativePath}" != "Arcadium.exe"
+        !insertmacro RestoreOneFile "${relativePath}"
+    ${EndIf}
+!macroend
+
+Function RollbackUpdate
+    !insertmacro ArcadiumManagedUpdateFiles RestoreManagedFile
+    ${If} $RollbackFailed == 0
+        !insertmacro RestoreOneFile "Arcadium.exe"
+    ${EndIf}
+    ${If} $OldLauncherPresent == 1
+    ${AndIfNot} ${FileExists} "$INSTDIR\Arcadium.exe"
+        StrCpy $RollbackFailed 1
+    ${EndIf}
+FunctionEnd
+
+!macro DeleteTransactionFile relativePath
+    Delete "$StageDir\${relativePath}"
+    Delete "$BackupDir\${relativePath}"
+!macroend
+
+!macro RemoveTransactionDirectory relativePath
+    RMDir "$StageDir\${relativePath}"
+    RMDir "$BackupDir\${relativePath}"
+!macroend
+
+Function CleanupTransaction
+    ${If} $TransactionDir == ""
+        Return
+    ${EndIf}
+    SetOutPath "$TEMP"
+    !insertmacro ArcadiumManagedUpdateFiles DeleteTransactionFile
+    !insertmacro ArcadiumManagedUpdateDirectories RemoveTransactionDirectory
+    RMDir "$StageDir"
+    RMDir "$BackupDir"
+    Delete "$TransactionDir\failure.txt"
+    RMDir "$TransactionDir"
+FunctionEnd
+
+Function FailTransaction
+    ${If} $FailureHandled == 1
+        Return
+    ${EndIf}
+    StrCpy $FailureHandled 1
+    ${If} $UpdateProcess != 0
+        System::Call 'kernel32::CloseHandle(p $UpdateProcess)'
+        StrCpy $UpdateProcess 0
+    ${EndIf}
+    ${If} $BackupStarted == 1
+        Call RollbackUpdate
+    ${EndIf}
+    ${If} $RollbackFailed == 0
+        Call CleanupTransaction
+    ${Else}
+        FileOpen $R9 "$TransactionDir\failure.txt" w
+        FileWrite $R9 "$TransactionError$\r$\nPrevious files are preserved in: $BackupDir$\r$\n"
+        FileClose $R9
+    ${EndIf}
+    ReadEnvStr $R8 "ARCADIUM_UPDATE_READY"
+    ${If} $R8 != ""
+        FileOpen $R9 "$R8.error" w
+        FileWrite $R9 "$TransactionError$\r$\nRollback failed: $RollbackFailed$\r$\nRecovery: $TransactionDir$\r$\n"
+        FileClose $R9
+    ${EndIf}
+    ${If} $AutoUpdate == 1
+    ${AndIf} $ParentExited == 1
+    ${AndIf} $RollbackFailed == 0
+    ${AndIf} $OldLauncherPresent == 1
+        System::Call 'kernel32::SetEnvironmentVariableW(w "ARCADIUM_UPDATE_FAILED", w "${ARCADIUM_VERSION}")'
+        ${If} $RestartAfterInstall == 1
+            Exec '$\"$INSTDIR\Arcadium.exe$\"'
+        ${EndIf}
+    ${EndIf}
+    ${If} $RollbackFailed == 1
+        MessageBox MB_OK|MB_ICONSTOP "The update could not be completed. Previous files are preserved in:$\r$\n$BackupDir$\r$\n$TransactionError" /SD IDOK
+    ${Else}
+        MessageBox MB_OK|MB_ICONSTOP "$TransactionError$\r$\nYour previous installed files have been kept." /SD IDOK
+    ${EndIf}
+    SetErrorLevel 5
+FunctionEnd
+
+Function .onInstFailed
+    Call FailTransaction
+FunctionEnd
+
+Section "Arcadium Client"
+    SetShellVarContext current
+    ${If} $TransactionPrepared != 1
+        Call PrepareTransaction
+    ${EndIf}
+    ${If} $TransactionPrepared != 1
+        Call FailTransaction
         Abort
     ${EndIf}
-    WriteUninstaller "$INSTDIR\Uninstall.exe"
+    Call BackupUpdate
+    ${If} $BackupComplete != 1
+        Call FailTransaction
+        Abort
+    ${EndIf}
+    Call CommitUpdate
+    ${If} $CommitComplete != 1
+        Call FailTransaction
+        Abort
+    ${EndIf}
     ${If} $TestInstall != 1
         WriteRegStr HKCU "Software\ArcadiumClient" "InstallPath" "$INSTDIR"
         WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\ArcadiumClient" "DisplayName" "Arcadium Client"
@@ -199,6 +551,7 @@ Section "Arcadium Client"
         CreateShortcut "$DESKTOP\Arcadium Client.lnk" "$INSTDIR\Arcadium.exe"
         ${EndIf}
     ${EndIf}
+    Call CleanupTransaction
 SectionEnd
 
 Function un.onInit

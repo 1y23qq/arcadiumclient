@@ -441,7 +441,7 @@ dependencies = [
 
 [[package]]
 name = "arcadium_app"
-version = "0.4.0"
+version = "0.4.1"
 dependencies = [
  "anyhow",
  "arboard",
@@ -499,7 +499,7 @@ dependencies = [
 
 [[package]]
 name = "arcadium_auth"
-version = "0.4.0"
+version = "0.4.1"
 dependencies = [
  "arcadium_common",
  "arcadium_events",
@@ -525,7 +525,7 @@ dependencies = [
 
 [[package]]
 name = "arcadium_cluster"
-version = "0.4.0"
+version = "0.4.1"
 dependencies = [
  "arcadium_common",
  "arcadium_db",
@@ -549,7 +549,7 @@ dependencies = [
 
 [[package]]
 name = "arcadium_common"
-version = "0.4.0"
+version = "0.4.1"
 dependencies = [
  "directories",
  "interfrost",
@@ -563,7 +563,7 @@ dependencies = [
 
 [[package]]
 name = "arcadium_content"
-version = "0.4.0"
+version = "0.4.1"
 dependencies = [
  "arcadium_common",
  "arcadium_db",
@@ -591,7 +591,7 @@ dependencies = [
 
 [[package]]
 name = "arcadium_core"
-version = "0.4.0"
+version = "0.4.1"
 dependencies = [
  "anyhow",
  "arcadium_auth",
@@ -656,7 +656,7 @@ dependencies = [
 
 [[package]]
 name = "arcadium_db"
-version = "0.4.0"
+version = "0.4.1"
 dependencies = [
  "async-tempfile",
  "chrono",
@@ -671,7 +671,7 @@ dependencies = [
 
 [[package]]
 name = "arcadium_discord"
-version = "0.4.0"
+version = "0.4.1"
 dependencies = [
  "arcadium_common",
  "chrono",
@@ -684,7 +684,7 @@ dependencies = [
 
 [[package]]
 name = "arcadium_events"
-version = "0.4.0"
+version = "0.4.1"
 dependencies = [
  "thiserror 2.0.21",
  "tokio",
@@ -694,7 +694,7 @@ dependencies = [
 
 [[package]]
 name = "arcadium_io"
-version = "0.4.0"
+version = "0.4.1"
 dependencies = [
  "astral-tokio-tar",
  "async-compression",
@@ -720,7 +720,7 @@ dependencies = [
 
 [[package]]
 name = "arcadium_java"
-version = "0.4.0"
+version = "0.4.1"
 dependencies = [
  "arcadium_common",
  "arcadium_events",
@@ -743,7 +743,7 @@ dependencies = [
 
 [[package]]
 name = "arcadium_macro"
-version = "0.4.0"
+version = "0.4.1"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -752,7 +752,7 @@ dependencies = [
 
 [[package]]
 name = "arcadium_mc"
-version = "0.4.0"
+version = "0.4.1"
 dependencies = [
  "arcadium_common",
  "arcadium_events",
@@ -774,7 +774,7 @@ dependencies = [
 
 [[package]]
 name = "arcadium_net"
-version = "0.4.0"
+version = "0.4.1"
 dependencies = [
  "arc-swap",
  "arcadium_common",
@@ -796,7 +796,7 @@ dependencies = [
 
 [[package]]
 name = "arcadium_update"
-version = "0.4.0"
+version = "0.4.1"
 dependencies = [
  "anyhow",
  "flate2",

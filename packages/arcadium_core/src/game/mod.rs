@@ -8,6 +8,7 @@ mod log_replay;
 mod process;
 mod reattach;
 mod session;
+mod settings_share;
 mod shared_dir;
 mod tail;
 
@@ -34,6 +35,7 @@ pub use error::GameError;
 pub use fabric::{mods_folder_argument, uses_cluster_mods_folder};
 pub use heal::clear_zeroed_files;
 pub use launch::{LaunchedGame, is_running, launch_cluster, offer_repair};
+pub use settings_share::share_client_settings;
 pub use process::{
     GameProcess, GameProcessManager, is_process_alive, kill_process, process_start_time,
 };

@@ -9,7 +9,7 @@ on:
         options: [package, warm]
       build_tag:
         type: string
-        default: ci-inputs-0.4.0
+        default: ci-inputs-0.4.1
       component_sha256:
         type: string
 
@@ -78,6 +78,7 @@ jobs:
         run: |
           cargo build --locked --profile macos-testing --target '${{ matrix.target }}' -p arcadium_app --bin Arcadium
           cargo test --locked --profile macos-testing --target '${{ matrix.target }}' -p arcadium_app --lib theme::accent -- --test-threads=1
+          cargo test --locked --profile macos-testing --target '${{ matrix.target }}' -p arcadium_core --lib game::settings_share::tests -- --test-threads=1
       - name: Package and verify macOS application
         if: inputs.mode == 'package'
         run: |
