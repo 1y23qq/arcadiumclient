@@ -12,8 +12,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(Minecraft.class)
 public abstract class FeatureTestMixin {
     @Inject(method = "tick", at = @At("TAIL"))
-    private void arcadium$featureTick(CallbackInfo callback) { if (ForgeQa.enabled()) { ForgeQa.tick(); return; } if (FeatureQa028.enabled()) FeatureQa028.tick(); else FeatureQa.tick(); }
+    private void arcadium$featureTick(CallbackInfo callback) { if (io.github.arcadiumclient.featuretest.Rendering042Qa.enabled()) { io.github.arcadiumclient.featuretest.Rendering042Qa.tick(); return; } if (ForgeQa.enabled()) { ForgeQa.tick(); return; } if (FeatureQa028.enabled()) FeatureQa028.tick(); else FeatureQa.tick(); }
 
     @Inject(method = "runGame", at = @At("TAIL"))
-    private void arcadium$featureFrame(CallbackInfo callback) { if (ForgeQa.enabled()) { ForgeQa.afterFrame(); return; } if (FeatureQa028.enabled()) FeatureQa028.afterFrame(); else FeatureQa.afterFrame(); }
+    private void arcadium$featureFrame(CallbackInfo callback) { if (io.github.arcadiumclient.featuretest.Rendering042Qa.enabled()) { io.github.arcadiumclient.featuretest.Rendering042Qa.afterFrame(); return; } if (ForgeQa.enabled()) { ForgeQa.afterFrame(); return; } if (FeatureQa028.enabled()) FeatureQa028.afterFrame(); else FeatureQa.afterFrame(); }
 }

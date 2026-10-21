@@ -59,6 +59,14 @@ source repository or Arcadium's production JAR. Forge, FML and decoding-library
 notices are preserved in [licenses/](licenses/) and
 [licenses/forge-compat/](licenses/forge-compat/).
 
+Minecraft 1.7.10 uses native Forge, Angelica, GTNHLib, LWJGL3ify and modular
+UniMixins dependencies. Their exact versions, source links and download hashes
+are recorded in `distribution/forge-1.7.10.dependencies.json`; original notices
+are retained in [licenses/forge1710/](licenses/forge1710/). These dependencies
+remain unmodified external downloads under their respective licenses. Arcadium's
+Forge integration is in `client-forge1710/`, with retained library notices in
+the merged component. Minecraft and Forge game patches are not embedded in it.
+
 The unchanged LZMA and Vecmath libraries are also obtained from their official
 endpoints when Forge mods are used; their bytes are excluded from the Arcadium
 adapter. Trove retains its original LGPL and CERN notices. Exact grants, hashes

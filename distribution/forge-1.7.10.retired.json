@@ -1,0 +1,242 @@
+[
+  {
+    "file": "ArcadiumCore-1.7.10.jar",
+    "sha1": "e5f572bdb6c460055622ccbb18a394fb5127256a",
+    "modId": "oneconfig"
+  },
+  {
+    "file": "ArcadiumFeatures-1.7.10.jar",
+    "sha1": "582ab4cfcf48aec867afb101b60db17cc6c659d8",
+    "modId": "arcadium_runtime"
+  },
+  {
+    "file": "ArcadiumRenderer-1.7.10.jar",
+    "sha1": "a93ef441f12e02add2c756c3b1dedad0454bc616",
+    "modId": "compose-multiplatform"
+  },
+  {
+    "file": "ArcadiumPerformance-1.7.10.jar",
+    "sha1": "9986dd252469dbbbb4cee545ed5705d9aef7d7f9",
+    "modId": "arcadium-legacy-performance"
+  },
+  {
+    "file": "ArcadiumLegacy-behindyou-1.7.10.jar",
+    "sha1": "cfbc17307cb63436147e22db2cc0652cd4194c5d",
+    "modId": "behindyouv3"
+  },
+  {
+    "file": "ArcadiumLegacy-betterhurtcam-1.7.10.jar",
+    "sha1": "bf51ef7808a212ecc3566a27bf4f4362b309bfdc",
+    "modId": "betterhurtcam"
+  },
+  {
+    "file": "ArcadiumLegacy-betternightvision-1.7.10.jar",
+    "sha1": "e41d1690dc9a120bf9f8a6c8cfc9e4bbd2b25ce0",
+    "modId": "betternightvision"
+  },
+  {
+    "file": "ArcadiumLegacy-betterscreens-1.7.10.jar",
+    "sha1": "eec3504b1d11b1d4721fd563ab72ed03c7d6410f",
+    "modId": "betterscreens"
+  },
+  {
+    "file": "ArcadiumLegacy-blockoverlay-1.7.10.jar",
+    "sha1": "5dfafaf0ebb68ad4aa7eea48bf62c3f6d50cc2b0",
+    "modId": "custom-block-highlight"
+  },
+  {
+    "file": "ArcadiumLegacy-chatting-1.7.10.jar",
+    "sha1": "b9b5eaf99779e5b9581d725c941ea00e4e3ad2b1",
+    "modId": "chatting"
+  },
+  {
+    "file": "ArcadiumLegacy-colorsaturation-1.7.10.jar",
+    "sha1": "3630aa9575dc148dad8265428d7d1b9edbb4c826",
+    "modId": "colorsaturation"
+  },
+  {
+    "file": "ArcadiumLegacy-confirmdisconnect-1.7.10.jar",
+    "sha1": "ae1b7f054f321b08a03fcec5e94b3e6e97a5f699",
+    "modId": "confirmdisconnect"
+  },
+  {
+    "file": "ArcadiumLegacy-confirmresetkeys-1.7.10.jar",
+    "sha1": "e7dc1da810c9d1dcccc714f4abf0984e1c8fa109",
+    "modId": "confirmresetkeys"
+  },
+  {
+    "file": "ArcadiumLegacy-countdown-1.7.10.jar",
+    "sha1": "87cb81e7ba27ca305bced709bfb92f466b911c1c",
+    "modId": "countdown"
+  },
+  {
+    "file": "ArcadiumLegacy-damagetint-1.7.10.jar",
+    "sha1": "2baf0ccad1dbff1ef7b70f30409a9fb193f4c6e2",
+    "modId": "damagetint"
+  },
+  {
+    "file": "ArcadiumLegacy-droppeditemtweaks-1.7.10.jar",
+    "sha1": "b7904cfdf2ece2bc5c05b0c3fa2f7b200b3d9652",
+    "modId": "droppeditemtweaks"
+  },
+  {
+    "file": "ArcadiumLegacy-evergreenhud-1.7.10.jar",
+    "sha1": "cdaa1926f39c058de6625157a20e4b4914648330",
+    "modId": "evergreenhud"
+  },
+  {
+    "file": "ArcadiumLegacy-freelook-1.7.10.jar",
+    "sha1": "83dc9f1075f2cbd4d2fbc91edf60746ae98be977",
+    "modId": "freelook"
+  },
+  {
+    "file": "ArcadiumLegacy-glintcolorizer-1.7.10.jar",
+    "sha1": "5c90932191287544088f84237167304f1ff3124f",
+    "modId": "glintcolorizer"
+  },
+  {
+    "file": "ArcadiumLegacy-guiblur-1.7.10.jar",
+    "sha1": "d3401bf3b3cde7aaf715103906cfbe3357db41a2",
+    "modId": "blur"
+  },
+  {
+    "file": "ArcadiumLegacy-itemphysiclite-1.7.10.jar",
+    "sha1": "c488a5e9974728e507b1465de6d0fc34cdd49528",
+    "modId": "itemphysiclite"
+  },
+  {
+    "file": "ArcadiumLegacy-mountopacity-1.7.10.jar",
+    "sha1": "d5a2cdebc7a07fc65f70676a0ab034ce6e6d05c9",
+    "modId": "mountopacity"
+  },
+  {
+    "file": "ArcadiumLegacy-numericalenchantments-1.7.10.jar",
+    "sha1": "62f9e43a645109538682c0b99059e97f5e833c6b",
+    "modId": "numericalenchantments"
+  },
+  {
+    "file": "ArcadiumLegacy-overflowanimations-1.7.10.jar",
+    "sha1": "8302a2a54207377a3d15418bb8d7935b56da0e9a",
+    "modId": "overflowanimations"
+  },
+  {
+    "file": "ArcadiumLegacy-overflowparticles-1.7.10.jar",
+    "sha1": "db150fafe51384d5dbd03d31eb953da32df4b712",
+    "modId": "overflowparticles"
+  },
+  {
+    "file": "ArcadiumLegacy-overlaytweaks-1.7.10.jar",
+    "sha1": "b9a074d77115aae3eef56edcf8cdc7f900a1d2fc",
+    "modId": "overlaytweaks"
+  },
+  {
+    "file": "ArcadiumLegacy-polyblur-1.7.10.jar",
+    "sha1": "f9141ae8d00eb798b114bedb26b7eafeaeb518e4",
+    "modId": "polyblur"
+  },
+  {
+    "file": "ArcadiumLegacy-polyhitbox-1.7.10.jar",
+    "sha1": "2b6d67f1cf9f2097404586ba89253778552a2dd9",
+    "modId": "polyhitbox"
+  },
+  {
+    "file": "ArcadiumLegacy-polynametag-1.7.10.jar",
+    "sha1": "b8e94fdfdaaea736bbde8b209a7bc002319b6e8f",
+    "modId": "polynametag"
+  },
+  {
+    "file": "ArcadiumLegacy-polytime-1.7.10.jar",
+    "sha1": "fa81c3545dc020307b4d2d8d7c1113ff522219fe",
+    "modId": "polytime"
+  },
+  {
+    "file": "ArcadiumLegacy-polyweather-1.7.10.jar",
+    "sha1": "4d719a05bbcb3c03f580a833e30ba398c0f75e03",
+    "modId": "polyweather"
+  },
+  {
+    "file": "ArcadiumLegacy-polyzoom-1.7.10.jar",
+    "sha1": "6cbd5458d836c8fbdbe8dde3d260936c7ea67ad1",
+    "modId": "polyzoom"
+  },
+  {
+    "file": "ArcadiumLegacy-redaction-1.7.10.jar",
+    "sha1": "4b7c428f2cebaa8222a692c577f2206a95a73a03",
+    "modId": "redaction"
+  },
+  {
+    "file": "ArcadiumLegacy-rendertweaks-1.7.10.jar",
+    "sha1": "292bf81206f4c33e76e663a681a7505b1f788ebc",
+    "modId": "rendertweaks"
+  },
+  {
+    "file": "ArcadiumLegacy-sciophobia-1.7.10.jar",
+    "sha1": "f89e40b6b414e262e66ec738bf268b61e4171928",
+    "modId": "sciophobia"
+  },
+  {
+    "file": "ArcadiumLegacy-screenshots-1.7.10.jar",
+    "sha1": "728207c1199b66b366317823d8db664886015e85",
+    "modId": "screenshotmessageenhancer"
+  },
+  {
+    "file": "ArcadiumLegacy-scrolltweaks-1.7.10.jar",
+    "sha1": "6d403a9cd19d8fd3e5aaa2570797e0e6a9837af5",
+    "modId": "scrolltweaks"
+  },
+  {
+    "file": "ArcadiumLegacy-shaketweaks-1.7.10.jar",
+    "sha1": "36059b98032cc2c1ec85ec5c20e39d9afa7915c9",
+    "modId": "shaketweaks"
+  },
+  {
+    "file": "ArcadiumLegacy-smoothscrolling-1.7.10.jar",
+    "sha1": "6c4a6e3a3280b91e0fafd25791163e60eda61771",
+    "modId": "smoothscrollingrefurbished"
+  },
+  {
+    "file": "ArcadiumLegacy-smoothskies-1.7.10.jar",
+    "sha1": "8d78adfd532448e1a222233eb8f0944bfc1327aa",
+    "modId": "smoothskies"
+  },
+  {
+    "file": "ArcadiumLegacy-soundtweaks-1.7.10.jar",
+    "sha1": "b931ef1d7a908a211e062b7ea6ffaede8d2c206e",
+    "modId": "soundtweaks"
+  },
+  {
+    "file": "ArcadiumLegacy-tooltipscroll-1.7.10.jar",
+    "sha1": "8fdcaaf3ec15e693c3f0765f24953258f83c878f",
+    "modId": "tooltipscroll"
+  },
+  {
+    "file": "ArcadiumLegacy-vanillahud-1.7.10.jar",
+    "sha1": "d3e370b99c9f0377c7a259bf6e5f4bafff9cb4f3",
+    "modId": "vanillahud"
+  },
+  {
+    "file": "ArcadiumBrand-1.7.10.jar",
+    "sha1": "d1eede99882c78e873ff541ced65615d07fb9b63",
+    "modId": "arcadiumclient"
+  },
+  {
+    "file": "fabric-language-kotlin-1.14.2+kotlin.2.4.21.jar",
+    "sha1": "f1d4ab6ecd54d9782521333a87eb50724ecb03e0"
+  },
+  {
+    "file": "ornithe-standard-libraries-0.22.0.jar",
+    "sha1": "78421447c15de0439f90e6be4a111721c3f30ff4"
+  },
+  {
+    "file": "pylon-0.2.2-beta.1.jar",
+    "sha1": "5cb0d71a6838b046670cdab4f33715865eaa92d5"
+  },
+  {
+    "file": "asynclogger-2.2.2+1.8.9-ornithe.jar",
+    "sha1": "cb25c8cbac18425723006cd89158076633e89152"
+  },
+  {
+    "file": "smartsearch-1.2.0-ornithe.jar",
+    "sha1": "897326ec6573fc78a0ff46f24f42a2b76f257e27"
+  }
+]

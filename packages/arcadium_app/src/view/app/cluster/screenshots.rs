@@ -40,7 +40,7 @@ impl Component for ClusterScreenshots {
         let Some(cluster) = use_cluster(self.cluster_id) else {
             return cluster_not_found();
         };
-        let folder = cluster.game_dir().ok().map(|d| d.join("screenshots"));
+        let folder = cluster.user_game_dir().ok().map(|d| d.join("screenshots"));
 
         let query = use_cluster_screenshots(self.cluster_id);
         // Otherwise a screenshot taken in game only shows up on the next visit

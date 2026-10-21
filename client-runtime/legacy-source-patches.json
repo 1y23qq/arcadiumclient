@@ -336,5 +336,31 @@
       "from": "\"dynamic_lights\" to \"dynamic_fov\",",
       "to": "\"clouds\" to \"dynamic_fov\","
     }
+  ],
+  "kotlin/io/github/arcadiumclient/runtime/client/gui/VideoSettingsModel.kt": [
+    {
+      "from": "internal enum class VideoControl { TOGGLE, CHOICE, SLIDER }",
+      "to": "internal enum class VideoControl { TOGGLE, CHOICE, SLIDER, ACTION }"
+    },
+    {
+      "from": "        value = normalized",
+      "to": "        if (control != VideoControl.ACTION) value = normalized"
+    }
+  ],
+  "kotlin/io/github/arcadiumclient/runtime/client/gui/ArcadiumVideoSettingsScreen.kt": [
+    {
+      "from": "            VideoControl.TOGGLE -> VideoToggle(option, container)",
+      "to": "            VideoControl.ACTION -> UiButton(option.label, container, enabled = option.available) { option.change(Unit) }\n            VideoControl.TOGGLE -> VideoToggle(option, container)"
+    }
+  ],
+  "java/io/github/arcadiumclient/runtime/mixin/client/branding/NametagFontLayoutMixin.java": [
+    {
+      "from": "draw(Ljava/lang/String;FFIZ)I",
+      "to": "draw(Ljava/lang/String;IIIZ)I"
+    },
+    {
+      "from": "String text, float x, float y",
+      "to": "String text, int x, int y"
+    }
   ]
 }

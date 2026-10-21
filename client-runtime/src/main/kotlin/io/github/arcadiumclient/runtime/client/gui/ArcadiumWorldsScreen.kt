@@ -73,6 +73,7 @@ import org.polyfrost.oneconfig.internal.ui.compose.ComposeScreen
 import org.polyfrost.oneconfig.internal.ui.themes.Accent
 import org.polyfrost.oneconfig.internal.ui.themes.Theme
 import io.github.arcadiumclient.runtime.client.MenuPreferences
+import io.github.arcadiumclient.runtime.ClientBuild
 
 internal const val MENU_ICONS = "assets/oneconfig/ico/"
 
@@ -86,6 +87,7 @@ class ArcadiumWorldsScreen(private val parent: Screen?) : ComposeScreen(RenderMo
     private var error by mutableStateOf<String?>(null)
     private var dialog by mutableStateOf<WorldAction?>(null)
     private var rename by mutableStateOf("")
+    private var opening by mutableStateOf(false)
 
     override fun init() {
         super.init()
@@ -95,7 +97,7 @@ class ArcadiumWorldsScreen(private val parent: Screen?) : ComposeScreen(RenderMo
     private fun close() = client.tell { client.openScreen(parent) }
 
     private fun play(world: WorldView) {
-        if (world.metadata.needsWarning()) dialog = WorldAction.Open(world)
+        if (world.metadata.needsWarning(ClientBuild.MINECRAFT_VERSION)) dialog = WorldAction.Open(world)
         else open(world)
     }
 
@@ -108,6 +110,21 @@ class ArcadiumWorldsScreen(private val parent: Screen?) : ComposeScreen(RenderMo
                 LOGGER.error("Could not open world {}", world.id, failure)
                 error = "Could not open this world. Check the game log for details."
             }
+        }
+    }
+
+    private suspend fun backupAndOpen(world: WorldView) {
+        opening = true
+        try {
+            val backup = withContext(Dispatchers.IO) { WorldBackup.create(world.directory, ClientBuild.MINECRAFT_VERSION) }
+            LOGGER.info("World backup created: {}", backup)
+            if (client.screen === this) open(world)
+        } catch (failure: Exception) {
+            LOGGER.error("Could not back up world {}", world.id, failure)
+            error = "Could not create the world backup. The world was not opened. Check available storage and the game log."
+            dialog = null
+        } finally {
+            opening = false
         }
     }
 
@@ -169,13 +186,13 @@ class ArcadiumWorldsScreen(private val parent: Screen?) : ComposeScreen(RenderMo
                 loading = false
             }
             val visible = remember(worlds, query, hideNewer) {
-                worlds.filter { (!hideNewer || !it.metadata.newerThan189()) && (query.isBlank()
+                worlds.filter { (!hideNewer || !it.metadata.newerThan(ClientBuild.MINECRAFT_VERSION)) && (query.isBlank()
                     || it.title.contains(query, true) || it.id.contains(query, true)) }
             }
             val current = visible.firstOrNull { it.id == selected }
             val state = rememberLazyListState()
             val scope = rememberCoroutineScope()
-            ArcadiumMenuWindow("Singleplayer", error, onEscape = { if (dialog != null) dialog = null else close() }, onKey = {
+            ArcadiumMenuWindow("Singleplayer", error, onEscape = { if (!opening) { if (dialog != null) dialog = null else close() } }, onKey = {
                 if (dialog != null || TextInputFocus.isTyping || it.type != KeyEventType.KeyDown) false
                 else when (it.key) {
                     Key.Enter, Key.NumPadEnter -> { current?.let(::play); true }
@@ -212,7 +229,7 @@ class ArcadiumWorldsScreen(private val parent: Screen?) : ComposeScreen(RenderMo
                         )
                     }
                 }
-                val hidden = if (hideNewer) worlds.count { it.metadata.newerThan189() } else 0
+                val hidden = if (hideNewer) worlds.count { it.metadata.newerThan(ClientBuild.MINECRAFT_VERSION) } else 0
                 if (hidden > 0) UiText("$hidden ${if (hidden == 1) "newer world hidden" else "newer worlds hidden"}", 11.sp, color = UiTextSecondary)
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     UiButton("Play", filled = true, enabled = current != null && !loading, modifier = Modifier.weight(1f)) { current?.let(::play) }
@@ -229,19 +246,19 @@ class ArcadiumWorldsScreen(private val parent: Screen?) : ComposeScreen(RenderMo
                 }
             }
             dialog?.let { action ->
-                UiModalScrim({ dialog = null }) {
+                UiModalScrim({ if (!opening) dialog = null }) {
                     ModalPanel(440.dp) {
                         when (action) {
                             is WorldAction.Open -> {
                                 UiText("Open this world?", 19.sp, fontWeight = FontWeight.SemiBold)
                                 UiText(action.world.title, 15.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                                UiText(if (action.world.metadata.newerThan189())
-                                    "This world was saved in ${action.world.metadata.versionName().ifBlank { "a newer version of Minecraft" }}. Opening it in 1.8.9 can permanently damage the save. Make a backup first."
-                                    else "The world version could not be verified. Opening it in 1.8.9 may damage the save. Make a backup first.",
+                                UiText(if (action.world.metadata.newerThan(ClientBuild.MINECRAFT_VERSION))
+                                    "This world was saved in ${action.world.metadata.versionName().ifBlank { "a newer version of Minecraft" }}. Opening it in ${ClientBuild.MINECRAFT_VERSION} can remove newer blocks or damage the save. A backup will be created before opening."
+                                    else "The world version could not be verified. Opening it in ${ClientBuild.MINECRAFT_VERSION} may damage the save. A backup will be created before opening.",
                                     13.sp, color = UiWarnColor)
                                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    UiButton("Cancel", modifier = Modifier.weight(1f)) { dialog = null }
-                                    UiButton("Open anyway", filled = true, danger = true, modifier = Modifier.weight(1f)) { open(action.world) }
+                                    UiButton("Cancel", modifier = Modifier.weight(1f), enabled = !opening) { dialog = null }
+                                    UiButton(if (opening) "Creating backup..." else "Back up and open", filled = true, danger = true, enabled = !opening, modifier = Modifier.weight(1f)) { scope.launch { backupAndOpen(action.world) } }
                                 }
                             }
                             is WorldAction.Delete -> {
@@ -312,8 +329,8 @@ private fun WorldCard(world: WorldView, selected: Boolean, onSelect: () -> Unit,
             UiText("${world.mode}  ·  ${world.date}", 11.sp, color = UiTextSecondary, maxLines = 1, overflow = TextOverflow.Ellipsis)
             UiText(world.id, 11.sp, color = UiTextSecondary, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
-        if (world.metadata.needsWarning()) {
-            UiText(if (world.metadata.newerThan189()) world.metadata.versionName().ifBlank { "Newer version" } else "Unverified version", 11.sp, color = UiWarnColor)
+        if (world.metadata.needsWarning(ClientBuild.MINECRAFT_VERSION)) {
+            UiText(if (world.metadata.newerThan(ClientBuild.MINECRAFT_VERSION)) world.metadata.versionName().ifBlank { "Newer version" } else "Unverified version", 11.sp, color = UiWarnColor)
         }
     }
 }

@@ -116,6 +116,18 @@ impl GameProcessManager {
         self.dirs.lock().unwrap().insert(cluster_id, dir);
     }
 
+    pub fn reserve_dir(&self, cluster_id: i64, dir: PathBuf, allow_own: bool) -> Result<(), i64> {
+        let mut directories = self.dirs.lock().unwrap();
+        if let Some((owner, _)) = directories
+            .iter()
+            .find(|(owner, path)| path.as_path() == dir && (!allow_own || **owner != cluster_id))
+        {
+            return Err(*owner);
+        }
+        directories.insert(cluster_id, dir);
+        Ok(())
+    }
+
     /// Like [`Self::dir_in_use_by`] but counts a cluster's own session too the
     /// shared game directory holds one game at a time whoever it belongs to
     pub fn dir_in_use(&self, dir: &Path) -> Option<i64> {
@@ -175,5 +187,50 @@ impl GameProcessManager {
             .filter(|(_, p)| p.stage == LaunchStage::Running)
             .map(|(id, _)| *id)
             .collect()
+    }
+}
+
+#[cfg(test)]
+mod shared_directory_tests {
+    use super::*;
+    use std::sync::{Arc, Barrier};
+
+    #[test]
+    fn simultaneous_launches_cannot_both_claim_shared_user_data() {
+        let manager = Arc::new(GameProcessManager::new());
+        let barrier = Arc::new(Barrier::new(2));
+        let attempts: Vec<_> = (1..=2)
+            .map(|id| {
+                let manager = manager.clone();
+                let barrier = barrier.clone();
+                std::thread::spawn(move || {
+                    barrier.wait();
+                    manager.reserve_dir(id, PathBuf::from("shared-user-data"), false)
+                })
+            })
+            .collect();
+        let results: Vec<_> = attempts
+            .into_iter()
+            .map(|thread| thread.join().unwrap())
+            .collect();
+        assert_eq!(results.iter().filter(|result| result.is_ok()).count(), 1);
+        assert_eq!(results.iter().filter(|result| result.is_err()).count(), 1);
+        let owner = manager.dir_in_use(Path::new("shared-user-data")).unwrap();
+        manager.remove(owner);
+        assert!(
+            manager
+                .reserve_dir(3, PathBuf::from("shared-user-data"), false)
+                .is_ok()
+        );
+    }
+
+    #[test]
+    fn explicit_private_parallel_launches_still_allow_their_own_directory() {
+        let manager = GameProcessManager::new();
+        let directory = PathBuf::from("private-runtime");
+        assert!(manager.reserve_dir(1, directory.clone(), false).is_ok());
+        assert_eq!(manager.reserve_dir(1, directory.clone(), false), Err(1));
+        assert!(manager.reserve_dir(1, directory.clone(), true).is_ok());
+        assert_eq!(manager.reserve_dir(2, directory, true), Err(1));
     }
 }

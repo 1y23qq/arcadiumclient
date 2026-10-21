@@ -714,6 +714,10 @@ pub async fn download_version_info(
     loader: Option<&LoaderVersion>,
     force: bool,
 ) -> McResult<VersionInfo> {
+    if crate::native_forge::applies(&version.id, game_loader) {
+        let loader = crate::native_forge::loader(loader.map(|loader| loader.id.as_str()))?;
+        return crate::native_forge::profile(&format!("{}-{}", version.id, loader.id));
+    }
     let version_id = loader
         .map(|it| format!("{}-{}", version.id, it.id))
         .unwrap_or_else(|| version.id.clone());
@@ -1440,6 +1444,9 @@ pub fn get_loader_version_cached(
     loader: GameLoader,
     loader_version: Option<&str>,
 ) -> McResult<Option<LoaderVersion>> {
+    if crate::native_forge::applies(mc_version, loader) {
+        return crate::native_forge::loader(loader_version).map(Some);
+    }
     if loader == GameLoader::Vanilla {
         return Ok(None);
     }
@@ -1457,6 +1464,9 @@ pub async fn get_loader_version(
     loader: GameLoader,
     loader_version: Option<&str>,
 ) -> McResult<Option<LoaderVersion>> {
+    if crate::native_forge::applies(mc_version, loader) {
+        return crate::native_forge::loader(loader_version).map(Some);
+    }
     if loader == GameLoader::Vanilla {
         return Ok(None);
     }
@@ -1713,10 +1723,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn legacy_loader_pin_does_not_affect_forge_or_explicit_choices() {
+    fn retired_ornithe_loader_is_not_selected_implicitly() {
         assert_eq!(
             requested_loader_version("1.7.10", GameLoader::Ornithe, None),
-            Some("0.19.5")
+            None
         );
         assert_eq!(
             requested_loader_version("1.7.10", GameLoader::Ornithe, Some("0.20.1")),

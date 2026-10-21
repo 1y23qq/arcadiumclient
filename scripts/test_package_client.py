@@ -164,12 +164,12 @@ class PackagingTests(unittest.TestCase):
         self.assertTrue(text[-1].endswith("scripts/package_client.py") or text[-1].endswith("scripts\\package_client.py"))
         self.assertFalse(any("client-features" in command for command in text))
 
-    def test_legacy_core_runtime_branding_and_performance_are_separate_from_forge(self):
+    def test_forge_source_inputs_exclude_the_retired_performance_engine(self):
         with patch.object(package, "legacy_ports", return_value=[]):
             legacy = package.component_sources(package.ROOT, "0.4.0", "1.7.10")
         modern = package.component_sources(package.ROOT, "0.4.0", "1.8.9")
         self.assertEqual(set(legacy), {"ArcadiumCore-1.7.10.jar", "ArcadiumFeatures-1.7.10.jar",
-                                      "ArcadiumRenderer-1.7.10.jar", "ArcadiumPerformance-1.7.10.jar"})
+                                      "ArcadiumRenderer-1.7.10.jar"})
         self.assertIn("ArcadiumForgeCompat-1.8.9.jar", modern)
         self.assertEqual(legacy["ArcadiumRenderer-1.7.10.jar"][0], modern["ArcadiumRenderer-1.8.9.jar"][0])
         self.assertIn("build/1.7.10/libs/", legacy["ArcadiumFeatures-1.7.10.jar"][0].as_posix())
@@ -177,7 +177,7 @@ class PackagingTests(unittest.TestCase):
         text = [" ".join(command) for command in build_client.build_commands()]
         self.assertTrue(any("client-runtime" in command and "-PminecraftVersion=1.7.10" in command for command in text))
         self.assertTrue(any("game-branding" in command and "-PminecraftVersion=1.7.10" in command for command in text))
-        self.assertTrue(any("client-legacy-performance" in command and "build" in command for command in text))
+        self.assertFalse(any("client-legacy-performance" in command and "build" in command for command in text))
 
     def test_legacy_packaging_preserves_current_primary_catalog_and_brand_hash(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -201,7 +201,7 @@ class PackagingTests(unittest.TestCase):
             brand.write_bytes(jar("arcadiumclient"))
             primary = (root / "distribution/oneclient-1.8.9.lock.json").read_bytes()
             components = package.package(root, "1.7.10")
-            self.assertEqual(len(components), 5)
+            self.assertEqual(len(components), 4)
             self.assertTrue(all("1.7.10" in component["file"] for component in components))
             self.assertFalse(any("Forge" in component["file"] for component in components))
             self.assertEqual((assets / "ArcadiumBrand-1.7.10.jar").read_bytes(), brand.read_bytes())

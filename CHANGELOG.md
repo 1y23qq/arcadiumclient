@@ -1,3 +1,14 @@
+## 0.4.2
+
+- Rebuilt Minecraft 1.7.10 with native Forge mod loading and Angelica rendering.
+- Preserved shared settings and player data while separating version-specific loaders and mods.
+- Shared worlds, game settings, server lists and other player data between Minecraft versions.
+- Added backups before opening newer worlds in an older Minecraft version.
+
+- Fixed Compact Chat counters and nametag alignment.
+- Improved Height Limit HUD formatting and colors.
+- Added Unfocused FPS and Health HUD.
+
 ## 0.4.1
 
 - Fixed Windows update recovery.

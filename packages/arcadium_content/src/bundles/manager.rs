@@ -180,7 +180,12 @@ impl BundlesManager {
         loader: GameLoader,
     ) -> ContentResult<Vec<Bundle>> {
         if arcadium_common::distribution::supports_version(mc_version) {
-            if loader != GameLoader::Ornithe {
+            let expected = if arcadium_common::distribution::uses_native_forge(mc_version) {
+                GameLoader::Forge
+            } else {
+                GameLoader::Ornithe
+            };
+            if loader != expected {
                 return Ok(Vec::new());
             }
             return self
@@ -205,10 +210,15 @@ impl BundlesManager {
             serde_json::from_slice(arcadium_common::distribution::BUNDLES)?;
         arcadium_io::create_dir_all(&bundles_root.join("bundles")).await?;
         let mut bundles = Vec::new();
+        let loader = if arcadium_common::distribution::uses_native_forge(mc_version) {
+            "forge"
+        } else {
+            "ornithe"
+        };
         for entry in manifest
             .remote_paths()
             .into_iter()
-            .filter(|entry| entry.mc_version == mc_version && entry.loader == "ornithe")
+            .filter(|entry| entry.mc_version == mc_version && entry.loader == loader)
         {
             self.sync_bundle(&entry, ctx, bundles_root).await?;
             let row = bundle_dao::get_by_remote_path(&ctx.db, &entry.remote_path)
@@ -423,10 +433,10 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(manifest.mc_version, "1.7.10");
-        assert_eq!(manifest.loader, GameLoader::Ornithe);
-        assert_eq!(manifest.loader_version, "0.19.5");
+        assert_eq!(manifest.loader, GameLoader::Forge);
+        assert_eq!(manifest.loader_version, "10.13.4.1614");
         assert_eq!(manifest.java_version_override, Some(25));
-        assert_eq!(manifest.files.len(), 5);
+        assert_eq!(manifest.files.len(), 7);
         for file in manifest.files {
             let path = file.path.to_ascii_lowercase();
             assert!(

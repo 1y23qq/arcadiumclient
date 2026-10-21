@@ -70,7 +70,7 @@ pub async fn materialize_content(
 
     let dedicated = cluster.uses_dedicated_dir();
     let cluster_dir = cluster.dir()?;
-    let isolated = cluster.is_isolated();
+    let isolated = cluster.kind.is_isolated();
     let global_root = if isolated {
         game_dir.to_path_buf()
     } else {
@@ -84,7 +84,7 @@ pub async fn materialize_content(
         arcadium_io::create_dir_all(paths::cluster_mods_dir(&cluster.folder_name)?)
             .await
             .ok();
-        if isolated {
+        if cluster.is_isolated() {
             remove_mods_link(&cluster.folder_name).await;
         } else {
             ensure_mods_link(cluster).await;
@@ -117,7 +117,7 @@ pub async fn materialize_content(
         manifest::load(&global_root, manifest::GLOBAL_MANIFEST_NAME).await
     };
 
-    let repair_unlinked = mods_in_cluster && !cluster.user_created && !isolated;
+    let repair_unlinked = mods_in_cluster && !cluster.user_created && !cluster.is_isolated();
     if repair_unlinked && manifest::mods_live_in_cluster(&cluster_dir).await {
         clear_unlinked_mods_once(
             services,
@@ -645,7 +645,13 @@ async fn launch_uses_cluster_mods(state: &LauncherState, cluster: &Cluster) -> b
         .ok()
         .and_then(|profile| profile.launch_args)
         .unwrap_or_default();
-    let loader_version = cluster.mc_loader_version.as_deref().unwrap_or("999.0.0");
+    let loader_version = cluster.mc_loader_version.as_deref().unwrap_or_else(|| {
+        if arcadium_common::distribution::uses_native_forge(&cluster.mc_version) {
+            arcadium_common::distribution::FORGE_1710_VERSION
+        } else {
+            "999.0.0"
+        }
+    });
 
     super::fabric::uses_cluster_mods_folder(cluster.mc_loader, Some(loader_version), &custom_args)
 }
@@ -1790,7 +1796,7 @@ async fn import_manual_content_with(
     )
     .await;
 
-    let isolated = cluster.is_isolated();
+    let isolated = cluster.kind.is_isolated();
     let global_root = if isolated {
         let Ok(dir) = cluster.game_dir() else {
             return failed_mods;

@@ -6,6 +6,9 @@
   "client": [
     "FeatureTestMixin",
     "FontProbeMixin",
+    "Rendering042FontProbe",
+    "Rendering042PresenceProbe",
+    "Rendering042BackgroundProbe",
     "FontControlsProbeMixin",
     "ContainerProbeAccess",
     "CreativeProbeAccess",

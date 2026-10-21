@@ -1,0 +1,18 @@
+[
+  {
+    "path": "mods/fabric-language-kotlin-1.14.2+kotlin.2.4.21.jar",
+    "sha1": "f1d4ab6ecd54d9782521333a87eb50724ecb03e0",
+    "downloads": [
+      "https://github.com/FabricMC/fabric-language-kotlin/releases/download/1.14.2%2Bkotlin.2.4.21/fabric-language-kotlin-1.14.2%2Bkotlin.2.4.21.jar"
+    ],
+    "enabled": true
+  },
+  {
+    "path": "mods/ornithe-standard-libraries-0.22.0.jar",
+    "sha1": "78421447c15de0439f90e6be4a111721c3f30ff4",
+    "downloads": [
+      "https://cdn.modrinth.com/data/EHGtwpJv/versions/8qR4kY5j/ornithe-standard-libraries-0.22.0.jar"
+    ],
+    "enabled": true
+  }
+]

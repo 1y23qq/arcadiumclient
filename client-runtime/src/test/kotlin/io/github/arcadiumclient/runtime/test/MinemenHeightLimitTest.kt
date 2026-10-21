@@ -32,8 +32,8 @@ class MinemenHeightLimitTest {
     @Test
     fun hudLimitAndDistanceUseTheSameCeiling() {
         assertEquals("64 / 100", HeightLimitText.format(0, 64, MinemenHeightLimit.LIMIT, true, false, true))
-        assertEquals("100 (36)", HeightLimitText.format(1, 64, MinemenHeightLimit.LIMIT, true, false, true))
-        assertEquals("100 (0)", HeightLimitText.format(1, 100, MinemenHeightLimit.LIMIT, true, false, true))
-        assertEquals("100 (-1)", HeightLimitText.format(1, 101, MinemenHeightLimit.LIMIT, true, false, true))
+        assertEquals("100(36)", HeightLimitText.format(1, 64, MinemenHeightLimit.LIMIT, true, false, true))
+        assertEquals("100(0)", HeightLimitText.format(1, 100, MinemenHeightLimit.LIMIT, true, false, true))
+        assertEquals("100(0)", HeightLimitText.format(1, 101, MinemenHeightLimit.LIMIT, true, false, true))
     }
 }

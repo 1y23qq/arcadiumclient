@@ -1,0 +1,131 @@
+[
+  {
+    "file": "angelica-2.2.35.jar",
+    "version": "2.2.35",
+    "url": "https://github.com/GTNewHorizons/Angelica/releases/download/2.2.35/angelica-2.2.35.jar",
+    "sha256": "2049f86ecadf45b96b59ffe9f766332519174b84323520880319a4577aecac76",
+    "bytes": 12177681,
+    "source": "https://github.com/GTNewHorizons/Angelica/tree/2.2.35",
+    "notices": [
+      {
+        "originalPath": "COPYING",
+        "file": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986.txt",
+        "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
+      },
+      {
+        "originalPath": "COPYING.LESSER",
+        "file": "e3a994d82e644b03a792a930f574002658412f62407f5fee083f2555c5f23118.txt",
+        "sha256": "e3a994d82e644b03a792a930f574002658412f62407f5fee083f2555c5f23118"
+      },
+      {
+        "originalPath": "LICENSE",
+        "file": "2d000228a03a7bdefe8271686ce4152a47ee1d04795d5f848260c4d7afafa5df.txt",
+        "sha256": "2d000228a03a7bdefe8271686ce4152a47ee1d04795d5f848260c4d7afafa5df"
+      },
+      {
+        "originalPath": "META-INF/LICENSE.txt",
+        "file": "3a7384a3d3c12acfd59286ac9ff1ee2a14a7bc3422aaccad6adeecb7d2762a1f.txt",
+        "sha256": "3a7384a3d3c12acfd59286ac9ff1ee2a14a7bc3422aaccad6adeecb7d2762a1f"
+      },
+      {
+        "originalPath": "META-INF/NOTICE.txt",
+        "file": "6204827e3cc3390b8f8e09d6c9ab98b709a6443bd60d25858cdc52e9600be3c9.txt",
+        "sha256": "6204827e3cc3390b8f8e09d6c9ab98b709a6443bd60d25858cdc52e9600be3c9"
+      }
+    ]
+  },
+  {
+    "file": "gtnhlib-0.11.54.jar",
+    "version": "0.11.54",
+    "url": "https://github.com/GTNewHorizons/GTNHLib/releases/download/0.11.54/gtnhlib-0.11.54.jar",
+    "sha256": "61340948f200ce52f210380ec00ec763fe867fac10c6342743e04c1688e85039",
+    "bytes": 1432444,
+    "source": "https://github.com/GTNewHorizons/GTNHLib/tree/0.11.54",
+    "notices": []
+  },
+  {
+    "file": "lwjgl3ify-3.0.39.jar",
+    "version": "3.0.39",
+    "url": "https://github.com/GTNewHorizons/lwjgl3ify/releases/download/3.0.39/lwjgl3ify-3.0.39.jar",
+    "sha256": "c120ef93dfda5bd54e2b16ffae3265fc8bb188e952790cb886999896a70a52c6",
+    "bytes": 8267108,
+    "source": "https://github.com/GTNewHorizons/lwjgl3ify/tree/3.0.39",
+    "notices": [
+      {
+        "originalPath": "LICENSE",
+        "file": "dd983fe376f82d06b33a700497f437fdf3a78fd786eb961aa05b34adc5ca077c.txt",
+        "sha256": "dd983fe376f82d06b33a700497f437fdf3a78fd786eb961aa05b34adc5ca077c"
+      }
+    ]
+  },
+  {
+    "file": "+unimixins-compat-1.7.10-0.3.2.jar",
+    "version": "0.3.2",
+    "url": "https://github.com/LegacyModdingMC/UniMixins/releases/download/0.3.2/%2Bunimixins-compat-1.7.10-0.3.2.jar",
+    "sha256": "313736581291c0c78848906e0f379a289b583ebaa53979e48679ab527da6b10d",
+    "bytes": 46541,
+    "source": "https://github.com/LegacyModdingMC/UniMixins/tree/0.3.2",
+    "notices": [
+      {
+        "originalPath": "LICENSE",
+        "file": "7e12e5df4bae12cb21581ba157ced20e1986a0508dd10d0e8a4ab9a4cf94e85c.txt",
+        "sha256": "7e12e5df4bae12cb21581ba157ced20e1986a0508dd10d0e8a4ab9a4cf94e85c"
+      }
+    ]
+  },
+  {
+    "file": "+unimixins-gtnhmixins-1.7.10-0.3.2+2.2.0.jar",
+    "version": "0.3.2",
+    "url": "https://github.com/LegacyModdingMC/UniMixins/releases/download/0.3.2/%2Bunimixins-gtnhmixins-1.7.10-0.3.2%2B2.2.0.jar",
+    "sha256": "919e20447bde0a281a0d692ab4a4daa17eb0d5b2c8f5fe3248c446c1ab0731b7",
+    "bytes": 61058,
+    "source": "https://github.com/LegacyModdingMC/UniMixins/tree/0.3.2",
+    "notices": [
+      {
+        "originalPath": "LICENSE",
+        "file": "ea8af5e789cb2d4e9b10bce3874982ade163b749b6bfbdb32e2df21c4d106de1.txt",
+        "sha256": "ea8af5e789cb2d4e9b10bce3874982ade163b749b6bfbdb32e2df21c4d106de1"
+      }
+    ]
+  },
+  {
+    "file": "+unimixins-spongemixins-1.7.10-0.3.2+gtnh.2.0.1.jar",
+    "version": "0.3.2",
+    "url": "https://github.com/LegacyModdingMC/UniMixins/releases/download/0.3.2/%2Bunimixins-spongemixins-1.7.10-0.3.2%2Bgtnh.2.0.1.jar",
+    "sha256": "44e67781394934aad749777af9dffeaf00e2effba3ff56f111bb5a2c7b1a9831",
+    "bytes": 10968,
+    "source": "https://github.com/LegacyModdingMC/UniMixins/tree/0.3.2",
+    "notices": [
+      {
+        "originalPath": "LICENSE.LGPLv3",
+        "file": "ea8af5e789cb2d4e9b10bce3874982ade163b749b6bfbdb32e2df21c4d106de1.txt",
+        "sha256": "ea8af5e789cb2d4e9b10bce3874982ade163b749b6bfbdb32e2df21c4d106de1"
+      },
+      {
+        "originalPath": "LICENSE.SpongeMixins",
+        "file": "2598da8d2c6cfeee992256dfb725b3532d95442af0b6a73ce963922db2971aea.txt",
+        "sha256": "2598da8d2c6cfeee992256dfb725b3532d95442af0b6a73ce963922db2971aea"
+      },
+      {
+        "originalPath": "LICENSE",
+        "file": "318c84e27e7d02fe84bba0721631d5bdbfdfe5c08c18274e33114a1259375728.txt",
+        "sha256": "318c84e27e7d02fe84bba0721631d5bdbfdfe5c08c18274e33114a1259375728"
+      }
+    ]
+  },
+  {
+    "file": "+unimixins-mixingasm-1.7.10-0.3.2+0.3.jar",
+    "version": "0.3.2",
+    "url": "https://github.com/LegacyModdingMC/UniMixins/releases/download/0.3.2/%2Bunimixins-mixingasm-1.7.10-0.3.2%2B0.3.jar",
+    "sha256": "9d4d0eaa0331d678c4d1b0a32d7ef34bdda642fcd078f1a9f422ef4ea70c76d3",
+    "bytes": 33465,
+    "source": "https://github.com/LegacyModdingMC/UniMixins/tree/0.3.2",
+    "notices": [
+      {
+        "originalPath": "LICENSE",
+        "file": "7e12e5df4bae12cb21581ba157ced20e1986a0508dd10d0e8a4ab9a4cf94e85c.txt",
+        "sha256": "7e12e5df4bae12cb21581ba157ced20e1986a0508dd10d0e8a4ab9a4cf94e85c"
+      }
+    ]
+  }
+]

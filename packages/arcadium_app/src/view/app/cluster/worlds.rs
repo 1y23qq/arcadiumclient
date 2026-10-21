@@ -56,7 +56,7 @@ impl Component for ClusterWorlds {
         let cluster = use_cluster(cluster_id);
         let saves = cluster
             .as_ref()
-            .and_then(|c| c.game_dir().ok())
+            .and_then(|c| c.user_game_dir().ok())
             .map(|d| d.join("saves"));
 
         let query = use_cluster_worlds(cluster_id);

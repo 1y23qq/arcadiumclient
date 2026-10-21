@@ -78,6 +78,24 @@ class WorldMetadataTest {
         assertThrows(IOException.class, () -> WorldMetadata.readCompressed(new ByteArrayInputStream(bytes.toByteArray())));
     }
 
+    @Test void worldBorderTagsIdentify189WorldsWhenOpenedBy1710() throws IOException {
+        var bytes = new ByteArrayOutputStream();
+        try (var out = new DataOutputStream(new GZIPOutputStream(bytes))) {
+            out.writeByte(10); out.writeUTF("");
+            out.writeByte(10); out.writeUTF("Data");
+            out.writeByte(8); out.writeUTF("LevelName"); out.writeUTF("Shared world");
+            out.writeByte(6); out.writeUTF("BorderSize"); out.writeDouble(60000000);
+            out.writeByte(0); out.writeByte(0);
+        }
+        var metadata = WorldMetadata.readCompressed(new ByteArrayInputStream(bytes.toByteArray()));
+        assertEquals("1.8", metadata.versionName());
+        assertTrue(metadata.newerThan("1.7.10"));
+        assertTrue(metadata.needsWarning("1.7.10"));
+        assertFalse(metadata.newerThan("1.8.9"));
+        assertFalse(metadata.needsWarning("1.8.9"));
+        assertFalse(new WorldMetadata("", 0, 0, false, false, 0, "1.7.10", false, true).newerThan("1.7.10"));
+    }
+
     @Test void missingDataCompoundIsRejected() throws IOException {
         var bytes = new ByteArrayOutputStream();
         try (var out = new DataOutputStream(new GZIPOutputStream(bytes))) {

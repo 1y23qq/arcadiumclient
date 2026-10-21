@@ -154,7 +154,10 @@ async fn readopt(
 
     state.games.set_stage(cluster_id, LaunchStage::Running);
     state.games.set_pid(cluster_id, Some(pid));
-    state.games.set_dir(cluster_id, cwd.clone());
+    state.games.set_dir(
+        cluster_id,
+        cluster.user_game_dir().unwrap_or_else(|_| cwd.clone()),
+    );
     state
         .services
         .events
@@ -286,7 +289,11 @@ async fn reconcile(
 
     // A cluster re-adopted moments ago may share this directory clearing it
     // mid-session would pull that game apart underneath it
-    let shared_dir_busy = state.games.dir_in_use_by(&cwd, cluster_id).is_some();
+    let user_game_dir = cluster.user_game_dir().unwrap_or_else(|_| cwd.clone());
+    let shared_dir_busy = state
+        .games
+        .dir_in_use_by(&user_game_dir, cluster_id)
+        .is_some();
     if shared_dir_busy {
         tracing::debug!(
             cluster_id,

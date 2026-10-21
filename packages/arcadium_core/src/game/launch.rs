@@ -85,17 +85,25 @@ async fn start(
 
     stage(LaunchStage::Checking);
 
-    let existing = state.clusters.get(cluster_id).await?;
+    let mut existing = state.clusters.get(cluster_id).await?;
+    if arcadium_common::distribution::uses_native_forge(&existing.mc_version)
+        && existing.mc_loader != arcadium_common::GameLoader::Forge
+        && existing.uses_bundles()
+    {
+        state.versions.sync(&state.services).await?;
+        state.bundles.sync(&state.services.content()).await?;
+        crate::clusters::apply_remote_migrations(state).await?;
+        existing = state.clusters.get(cluster_id).await?;
+    }
     if !arcadium_common::distribution::supports_version(&existing.mc_version) {
         return Err(crate::ClusterError::InvalidVersion(
             "Arcadium supports Minecraft 1.8.9 and 1.7.10.".into(),
         )
         .into());
     }
-    if existing.mc_version == "1.7.10" && existing.mc_loader != arcadium_common::GameLoader::Ornithe
-    {
+    if existing.mc_version == "1.7.10" && existing.mc_loader != arcadium_common::GameLoader::Forge {
         return Err(crate::LauncherError::Minecraft(
-            "Arcadium 1.7.10 uses Ornithe. Forge mod compatibility is only available for Minecraft 1.8.9.".into(),
+            "This Minecraft 1.7.10 installation still uses the retired renderer. Restart Arcadium to migrate it to Forge.".into(),
         ));
     }
 
@@ -107,23 +115,23 @@ async fn start(
     })?;
 
     let game_dir = existing.game_dir()?;
+    let user_game_dir = existing.user_game_dir()?;
     let dedicated = existing.uses_dedicated_dir();
 
-    // Non-dedicated clusters share one directory so a second game there would
-    // materialize over the running one's
-    // `dir_in_use_by` waves a cluster past
-    // its own session which parallel launches make reachable
-    if !dedicated && let Some(other) = state.games.dir_in_use(&game_dir) {
-        tracing::warn!(cluster_id, other, "shared game dir busy; refusing launch");
-        let name = running_cluster_name(state, other).await;
-        return Err(GameError::SharedDirectoryBusy(name).into());
-    }
-
-    if let Some(other) = state.games.dir_in_use_by(&game_dir, cluster_id) {
+    // Reserve shared player data before either version can start.
+    let shared_user_data = !dedicated || user_game_dir != game_dir;
+    if let Err(other) =
+        state
+            .games
+            .reserve_dir(cluster_id, user_game_dir.clone(), !shared_user_data)
+    {
+        if shared_user_data {
+            tracing::warn!(cluster_id, other, "shared game dir busy; refusing launch");
+            let name = running_cluster_name(state, other).await;
+            return Err(GameError::SharedDirectoryBusy(name).into());
+        }
         return Err(GameError::DirectoryInUse(other).into());
     }
-
-    state.games.set_dir(cluster_id, game_dir.clone());
 
     match state.clusters.mark_played(cluster_id).await {
         Ok(()) => events.signal(arcadium_events::Signal::ClustersChanged),
@@ -314,10 +322,24 @@ async fn start(
         let primary = paths::shared_minecraft_dir()?;
         let backups = Box::pin(crate::game::share_client_settings(&cwd, &primary))
             .await
-            .map_err(|error| crate::LauncherError::Minecraft(format!("Could not share Minecraft 1.8.9 client settings: {error}")))?;
+            .map_err(|error| {
+                crate::LauncherError::Minecraft(format!(
+                    "Could not share Minecraft 1.8.9 client settings: {error}"
+                ))
+            })?;
         if !backups.is_empty() {
-            tracing::info!(?backups, "Preserved version-specific client settings before sharing the 1.8.9 settings");
+            tracing::info!(
+                ?backups,
+                "Preserved version-specific client settings before sharing the 1.8.9 settings"
+            );
         }
+        Box::pin(crate::game::user_data_share::share_user_data(
+            &cwd, &primary,
+        ))
+        .await
+        .map_err(|error| {
+            crate::LauncherError::Minecraft(format!("Could not share Minecraft user data: {error}"))
+        })?;
     }
 
     if let Err(err) = crate::game::write_allowed_symlinks(&cwd).await {
@@ -420,9 +442,20 @@ async fn start(
             arcadium_common::install_layout::resources(&std::env::current_exe().unwrap_or_default())
                 .join("components")
         });
+    let mut native_bootstrap = None;
     for component in components {
         let file = &component.file;
         let sha1 = &component.sha1;
+        if component.bootstrap {
+            let source = components_dir.join(file);
+            if !arcadium_net::matches_on_disk(&source, sha1).await {
+                return Err(crate::LauncherError::Minecraft(format!(
+                    "Arcadium bootstrap is missing or damaged: {file}. Reinstall the launcher."
+                )));
+            }
+            native_bootstrap = Some(source);
+            continue;
+        }
         let destination = mods_dir.join(file);
         if !arcadium_net::matches_on_disk(&destination, sha1).await {
             let source = components_dir.join(file);
@@ -453,7 +486,30 @@ async fn start(
         jvm_args.push(arg);
     }
 
-    let main_class = if cluster.mc_loader == arcadium_common::GameLoader::Ornithe
+    let native_forge = arcadium_common::distribution::uses_native_forge(&cluster.mc_version);
+    if native_forge {
+        let retired = super::native_forge::retire_ornithe_mods(&cwd, &mods_dir).await?;
+        if !retired.is_empty() {
+            tracing::info!(
+                ?retired,
+                "Preserved retired Ornithe components outside the Forge mods folder"
+            );
+        }
+        super::native_forge::prepare_mods(&cwd, &mods_dir).await?;
+        jvm_args.push(format!("-Darcadium.runtimeGameDir={}", cwd.display()));
+        jvm_args.push(format!(
+            "-Darcadium.userGameDir={}",
+            user_game_dir.display()
+        ));
+        configure_forge_bootstrap(
+            &mut jvm_args,
+            native_bootstrap.as_deref().ok_or_else(|| {
+                crate::LauncherError::Minecraft("The native Forge bootstrap is missing.".into())
+            })?,
+        )?;
+    }
+    let main_class = if !native_forge
+        && cluster.mc_loader == arcadium_common::GameLoader::Ornithe
         && arcadium_common::distribution::supports_forge_compat(&cluster.mc_version)
     {
         configure_forge_bootstrap(
@@ -477,7 +533,7 @@ async fn start(
         account.id,
         &version.id,
         &version_info.asset_index.id,
-        &cwd,
+        if native_forge { &cwd } else { &user_game_dir },
         &assets,
         version.type_,
         profile.resolution.unwrap_or_default(),

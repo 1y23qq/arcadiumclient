@@ -5,12 +5,14 @@ pub mod gpu;
 mod heal;
 mod launch;
 mod log_replay;
+mod native_forge;
 mod process;
 mod reattach;
 mod session;
 mod settings_share;
 mod shared_dir;
 mod tail;
+pub mod user_data_share;
 
 pub use analytics::{
     Analytics, DayPlaytime, Persona, PlaytimeStats, ServerStat, WEEKDAY_LABELS, aggregate_servers,
@@ -35,11 +37,11 @@ pub use error::GameError;
 pub use fabric::{mods_folder_argument, uses_cluster_mods_folder};
 pub use heal::clear_zeroed_files;
 pub use launch::{LaunchedGame, is_running, launch_cluster, offer_repair};
-pub use settings_share::share_client_settings;
 pub use process::{
     GameProcess, GameProcessManager, is_process_alive, kill_process, process_start_time,
 };
 pub use reattach::recover_sessions;
+pub use settings_share::share_client_settings;
 pub use shared_dir::{
     DuplicateMods, dematerialize_content, import_manual_content, link_cluster_logs,
     materialize_content, shadowed_bundle_mods, sync_cluster_mods, unlink_cluster_logs,

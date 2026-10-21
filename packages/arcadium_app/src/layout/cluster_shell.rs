@@ -169,7 +169,7 @@ impl Component for ClusterShell {
                 dispatch,
                 launch_state,
                 game.is_running(cluster_id),
-                cluster.game_dir().ok(),
+                cluster.user_game_dir().ok(),
             )
             .into_element()
         });

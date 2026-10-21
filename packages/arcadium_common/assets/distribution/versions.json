@@ -28,7 +28,7 @@
       "entries": [
         {
           "minor_version": 10,
-          "loader": "ornithe",
+          "loader": "forge",
           "java_version": 25,
           "tags": [
             "PvP"
@@ -40,5 +40,18 @@
       ]
     }
   ],
-  "migrations": []
+  "migrations": [
+    {
+      "id": "arcadium-1710-native-forge-1",
+      "from": {
+        "mc_version": "1.7.10",
+        "loader": "ornithe"
+      },
+      "to": {
+        "mc_version": "1.7.10",
+        "loader": "forge"
+      },
+      "allow_without_bundles": true
+    }
+  ]
 }

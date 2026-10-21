@@ -57,7 +57,10 @@ fn plain_name(name: &str) -> ClusterResult<&str> {
 }
 
 fn world_dir(cluster: &Cluster, world: &str) -> ClusterResult<PathBuf> {
-    let dir = cluster.game_dir()?.join(SAVES_DIR).join(plain_name(world)?);
+    let dir = cluster
+        .user_game_dir()?
+        .join(SAVES_DIR)
+        .join(plain_name(world)?);
     if dir.is_dir() {
         Ok(dir)
     } else {
@@ -92,7 +95,7 @@ fn move_to_trash(path: &Path) -> ClusterResult<()> {
 
 #[tracing::instrument(level = "debug", skip(cluster), fields(cluster_id = cluster.id))]
 pub fn list_cluster_worlds(cluster: &Cluster) -> ClusterResult<Vec<WorldInfo>> {
-    let dir = cluster.game_dir()?.join(SAVES_DIR);
+    let dir = cluster.user_game_dir()?.join(SAVES_DIR);
     let mut out = Vec::new();
 
     let Ok(entries) = std::fs::read_dir(&dir) else {

@@ -37,6 +37,7 @@ class ArcadiumRuntime : ClientModInitializer {
             "NoHitDelay" to { NoHitDelayConfig.preload() },
             "Chat Filters" to { ChatFiltersConfig.initialize() },
             "Height Limit HUD" to { HudManager.register(HeightLimitHud(), "hybedwars.json", "/assets/arcadium/logo.svg") },
+            "Health" to { HudManager.register(HealthHud(), "arcadium-health.json", "/assets/arcadium/logo.svg") },
             "Bedwars Overlay" to { BedwarsOverlay.initialize() },
             "Animations" to { AnimationsConfig.initialize() },
             "Arcadium Badge" to { ArcadiumPlayersConfig.preload(); ArcadiumPresence.initialize() },

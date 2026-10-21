@@ -246,6 +246,9 @@ impl MetadataStore {
         loader: GameLoader,
         mc_version: &str,
     ) -> McResult<bool> {
+        if crate::native_forge::applies(mc_version, loader) {
+            return Ok(true);
+        }
         if !loader.is_modded() {
             return Ok(true);
         }

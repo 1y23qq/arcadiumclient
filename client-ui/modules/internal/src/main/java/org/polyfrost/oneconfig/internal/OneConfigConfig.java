@@ -43,6 +43,10 @@ public class OneConfigConfig extends Config {
         subcategory = "oneconfig.preferences.category.gui", subcategoryTranslation = true, options = {"Top", "Bottom"})
     public static int serverListStartPosition = 0;
 
+    @Slider(title = "Unfocused FPS", description = "Limit FPS while another window is focused. Click the value to enter a number.",
+        subcategory = "Performance", min = 5f, max = 200f, step = 1f)
+    public static int unfocusedFps = 60;
+
     @Switch(title = "Use Inter in-game", description = "Use Inter for Minecraft text.", subcategory = "Fonts")
     public static volatile boolean useInterInGame = false;
 

@@ -79,6 +79,7 @@ async fn verify() -> anyhow::Result<()> {
     let state = LauncherState::new(events).await?;
     state.versions.sync(&state.services).await?;
     state.bundles.sync(&state.services.content()).await?;
+    arcadium_core::clusters::apply_remote_migrations(&state).await?;
     let clusters = arcadium_core::ensure_from_bundles(&state).await?;
     let list = state.clusters.list().await?;
     assert!(!list.is_empty());
@@ -154,27 +155,30 @@ async fn verify() -> anyhow::Result<()> {
                         .iter()
                         .map(|value| value.to_string_lossy().into_owned())
                         .collect();
-                    let game_directory = cluster.game_dir()?.canonicalize()?;
+                    let game_directory = if minecraft == "1.7.10" {
+                        cluster.game_dir()?
+                    } else {
+                        cluster.user_game_dir()?
+                    }
+                    .canonicalize()?;
                     anyhow::ensure!(
                         command.windows(2).any(|pair| pair[0] == "--gameDir"
                             && std::path::Path::new(&pair[1])
                                 .canonicalize()
                                 .is_ok_and(|value| value == game_directory)),
-                        "The native process did not receive the selected version's game directory"
+                        "Minecraft did not receive the expected initial game directory"
                     );
                     if minecraft == "1.7.10" {
                         anyhow::ensure!(
-                            command
-                                .iter()
-                                .any(|value| value
-                                    == "net.fabricmc.loader.impl.launch.knot.KnotClient"),
-                            "The native legacy process did not use the Ornithe loader entry point"
+                            command.iter().any(|value| value
+                                == "com.gtnewhorizons.retrofuturabootstrap.MainStartOnFirstThread"),
+                            "The native legacy process did not use the Forge bootstrap"
                         );
                         anyhow::ensure!(
                             command
                                 .iter()
-                                .any(|value| value.contains("fabric-loader-0.19.5.jar")),
-                            "The native legacy process did not use the pinned loader version"
+                                .any(|value| value == "io.github.arcadiumclient.forge1710.bootstrap.ArcadiumForgeTweaker"),
+                            "The native legacy process did not use the native Forge tweaker"
                         );
                         anyhow::ensure!(
                             !command.iter().any(|value| value
@@ -226,7 +230,7 @@ async fn verify() -> anyhow::Result<()> {
         data.join("verification.json"),
         serde_json::to_vec_pretty(
             &serde_json::json!({"catalogVerified":true,"minecraftVersion":minecraft,"instanceCount":list.len(),"app":"Arcadium Client",
-                "gameDirectory":cluster.game_dir()?,"modsDirectory":arcadium_common::paths::cluster_mods_dir(&cluster.folder_name)?,
+                "gameDirectory":cluster.game_dir()?,"userGameDirectory":cluster.user_game_dir()?,"modsDirectory":arcadium_common::paths::cluster_mods_dir(&cluster.folder_name)?,
                 "requiredJavaMajor":required_java,
                 "loader":cluster.mc_loader.to_string(),"loaderBackend":cluster.mc_loader.modrinth_name(),"defaultLoaderVersion":arcadium_common::distribution::default_ornithe_loader(minecraft),
                 "componentFiles":arcadium_common::distribution::components(minecraft).map(|entries|entries.iter().map(|entry|&entry.file).collect::<Vec<_>>()),

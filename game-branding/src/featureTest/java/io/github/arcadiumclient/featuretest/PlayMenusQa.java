@@ -79,7 +79,7 @@ final class PlayMenusQa {
             }
             case 2 -> {
                 if (substage == 0) {
-                    require(invoke(screen, "getDialog") != null && hasText("Open anyway"), "A newer world skipped its safety confirmation");
+                    require(invoke(screen, "getDialog") != null && hasText("Back up and open"), "A newer world skipped its safety confirmation");
                     capture(mc, "play-menus-02-newer-warning.png");
                     click("Cancel");
                     require(java.util.Arrays.equals(futureBytes, Files.readAllBytes(mc.gameDir.toPath().resolve("saves/" + NEWER + "/level.dat"))),

@@ -10,5 +10,5 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(Minecraft.class)
 public abstract class SharedSettings041Mixin {
     @Inject(method="tick",at=@At("TAIL"))
-    private void arcadium$shared041(CallbackInfo ci){SharedSettings041Qa.tick();}
+    private void arcadium$shared041(CallbackInfo ci){SharedSettings041Qa.tick();io.github.arcadiumclient.featuretest.SharedGameDataQa.tick();}
 }

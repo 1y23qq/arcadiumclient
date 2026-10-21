@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "io.github.arcadiumclient"
-version = "0.4.1"
+version = "0.4.2"
 base.archivesName = "ArcadiumRuntime"
 val minecraftVersion = providers.gradleProperty("minecraftVersion").getOrElse("1.8.9")
 require(minecraftVersion in setOf("1.7.10", "1.8.9")) { "Unsupported Minecraft version: $minecraftVersion" }
@@ -16,6 +16,7 @@ if (minecraftVersion == "1.7.10") layout.buildDirectory.set(layout.projectDirect
 repositories {
     mavenLocal()
     mavenCentral()
+    maven("https://libraries.minecraft.net")
     google()
     maven("https://maven.fabricmc.net/")
     maven("https://maven.ornithemc.net/releases/")

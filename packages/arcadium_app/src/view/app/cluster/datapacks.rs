@@ -111,7 +111,7 @@ impl Component for ClusterDataPacks {
         };
 
         let folder: Option<PathBuf> = cluster
-            .game_dir()
+            .user_game_dir()
             .ok()
             .map(|d| d.join("saves").join(&world).join("datapacks"));
 

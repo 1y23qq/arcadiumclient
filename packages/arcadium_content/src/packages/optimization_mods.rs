@@ -287,11 +287,11 @@ fn load_managed_hashes() -> ContentResult<HashSet<String>> {
         .ok_or_else(invalid_distribution)?;
     let bundles: Vec<_> = versions
         .values()
-        .map(|version| {
-            version["ornithe"]
-                .as_array()
-                .ok_or_else(invalid_distribution)
-        })
+        .map(|version| version.as_object().ok_or_else(invalid_distribution))
+        .collect::<ContentResult<Vec<_>>>()?
+        .into_iter()
+        .flat_map(|loaders| loaders.values())
+        .map(|bundles| bundles.as_array().ok_or_else(invalid_distribution))
         .collect::<ContentResult<Vec<_>>>()?
         .into_iter()
         .flatten()

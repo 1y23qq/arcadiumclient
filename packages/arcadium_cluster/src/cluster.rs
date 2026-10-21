@@ -137,7 +137,7 @@ impl Cluster {
     }
 
     pub fn shares_content(&self, content_type: arcadium_common::domain::ContentType) -> bool {
-        content_type.is_global() && !self.is_isolated()
+        content_type.is_global() && !self.kind.is_isolated()
     }
 
     pub fn modpack_icon_file(&self) -> Option<PathBuf> {
@@ -165,6 +165,16 @@ impl Cluster {
         )?)
     }
 
+    /// Player data is shared; loader state still uses `game_dir`.
+    pub fn user_game_dir(&self) -> ClusterResult<PathBuf> {
+        if self.uses_bundles() && arcadium_common::distribution::supports_version(&self.mc_version)
+        {
+            Ok(paths::shared_minecraft_dir()?)
+        } else {
+            self.game_dir()
+        }
+    }
+
     pub fn as_link_target(&self) -> ClusterLinkTarget<'_> {
         ClusterLinkTarget {
             id: self.id,
@@ -189,4 +199,49 @@ fn parse_timestamp(value: Option<String>) -> Option<DateTime<Utc>> {
             .ok()
             .map(|dt| dt.with_timezone(&Utc))
     })
+}
+
+#[cfg(test)]
+mod shared_user_data_tests {
+    use super::*;
+    use arcadium_common::domain::ContentType;
+
+    #[test]
+    fn official_versions_share_user_data_but_keep_native_mods_and_caches_separate() {
+        let primary = Cluster {
+            id: 1,
+            name: "Shared data test".into(),
+            folder_name: "shared-data-test-189".into(),
+            setting_profile_name: None,
+            mc_version: "1.8.9".into(),
+            mc_loader: GameLoader::Ornithe,
+            mc_loader_version: None,
+            stage: ClusterStage::from_repr(0).unwrap(),
+            created_at: None,
+            last_played: None,
+            overall_played: Duration::ZERO,
+            linked_modpack_hash: None,
+            kind: ClusterKind::Arcadium,
+            user_created: false,
+            description: None,
+            tags: Vec::new(),
+            cover_path: None,
+        };
+        let mut legacy = primary.clone();
+        legacy.id = 2;
+        legacy.folder_name = "shared-data-test-1710".into();
+        legacy.mc_version = "1.7.10".into();
+        assert_eq!(
+            primary.user_game_dir().unwrap(),
+            legacy.user_game_dir().unwrap()
+        );
+        assert_ne!(legacy.game_dir().unwrap(), legacy.user_game_dir().unwrap());
+        assert_ne!(primary.game_dir().unwrap(), legacy.game_dir().unwrap());
+        assert!(legacy.shares_content(ContentType::ResourcePack));
+        assert!(legacy.shares_content(ContentType::Shader));
+        assert!(!legacy.shares_content(ContentType::Mod));
+        legacy.kind = ClusterKind::Modded;
+        assert_eq!(legacy.user_game_dir().unwrap(), legacy.game_dir().unwrap());
+        assert!(!legacy.shares_content(ContentType::ResourcePack));
+    }
 }

@@ -1,50 +1,80 @@
 {
   "minecraftVersion": "1.7.10",
   "javaVersion": 25,
-  "loader": "Ornithe",
-  "loaderVersion": "0.19.5",
+  "loader": "Forge",
+  "loaderVersion": "10.13.4.1614",
   "bundles": [
     {
-      "file": "core-1.7.10-ornithe.mrpack",
-      "arcadiumSha1": "c8bdc917dc17f8093d6b2a32c69e206114aca437",
+      "file": "core-1.7.10-forge.mrpack",
+      "arcadiumSha1": "0d9e5743a3346c5ba4aeb09e647b1cbfe29c496e",
       "mods": [
         {
-          "path": "mods/fabric-language-kotlin-1.14.2+kotlin.2.4.21.jar",
-          "sha1": "f1d4ab6ecd54d9782521333a87eb50724ecb03e0",
+          "path": "mods/angelica-2.2.35.jar",
+          "sha1": "85121da267642f874734bbc751c1ab6af5ac919a",
+          "sha256": "2049f86ecadf45b96b59ffe9f766332519174b84323520880319a4577aecac76",
+          "bytes": 12177681,
           "downloads": [
-            "https://github.com/FabricMC/fabric-language-kotlin/releases/download/1.14.2%2Bkotlin.2.4.21/fabric-language-kotlin-1.14.2%2Bkotlin.2.4.21.jar"
+            "https://github.com/GTNewHorizons/Angelica/releases/download/2.2.35/angelica-2.2.35.jar"
           ],
           "enabled": true
         },
         {
-          "path": "mods/ornithe-standard-libraries-0.22.0.jar",
-          "sha1": "78421447c15de0439f90e6be4a111721c3f30ff4",
+          "path": "mods/gtnhlib-0.11.54.jar",
+          "sha1": "98293359726681e0ff1341efd0934ceb84c284a4",
+          "sha256": "61340948f200ce52f210380ec00ec763fe867fac10c6342743e04c1688e85039",
+          "bytes": 1432444,
           "downloads": [
-            "https://cdn.modrinth.com/data/EHGtwpJv/versions/8qR4kY5j/ornithe-standard-libraries-0.22.0.jar"
+            "https://github.com/GTNewHorizons/GTNHLib/releases/download/0.11.54/gtnhlib-0.11.54.jar"
           ],
           "enabled": true
         },
         {
-          "path": "mods/pylon-0.2.2-beta.1.jar",
-          "sha1": "5cb0d71a6838b046670cdab4f33715865eaa92d5",
+          "path": "mods/lwjgl3ify-3.0.39.jar",
+          "sha1": "13d907c295018de9c56988f1f4b1ad5e81b193bc",
+          "sha256": "c120ef93dfda5bd54e2b16ffae3265fc8bb188e952790cb886999896a70a52c6",
+          "bytes": 8267108,
           "downloads": [
-            "https://github.com/Polyfrost/pylon/releases/download/0.2.2-beta.1/pylon-0.2.2-beta.1.jar"
+            "https://github.com/GTNewHorizons/lwjgl3ify/releases/download/3.0.39/lwjgl3ify-3.0.39.jar"
           ],
           "enabled": true
         },
         {
-          "path": "mods/asynclogger-2.2.2+1.8.9-ornithe.jar",
-          "sha1": "cb25c8cbac18425723006cd89158076633e89152",
+          "path": "mods/+unimixins-compat-1.7.10-0.3.2.jar",
+          "sha1": "8e658b641bdd6bc637e74e47505fa657d6154380",
+          "sha256": "313736581291c0c78848906e0f379a289b583ebaa53979e48679ab527da6b10d",
+          "bytes": 46541,
           "downloads": [
-            "https://cdn.modrinth.com/data/zvNzKfGF/versions/lwjZBYEm/asynclogger-2.2.2%2B1.8.9-ornithe.jar"
+            "https://github.com/LegacyModdingMC/UniMixins/releases/download/0.3.2/%2Bunimixins-compat-1.7.10-0.3.2.jar"
           ],
           "enabled": true
         },
         {
-          "path": "mods/smartsearch-1.2.0-ornithe.jar",
-          "sha1": "897326ec6573fc78a0ff46f24f42a2b76f257e27",
+          "path": "mods/+unimixins-gtnhmixins-1.7.10-0.3.2+2.2.0.jar",
+          "sha1": "3c9aea30337eae6cd18ca33bc6f2ae1845aa9b91",
+          "sha256": "919e20447bde0a281a0d692ab4a4daa17eb0d5b2c8f5fe3248c446c1ab0731b7",
+          "bytes": 61058,
           "downloads": [
-            "https://cdn.modrinth.com/data/N5EQhK31/versions/xUnOUkeY/smartsearch-1.2.0-ornithe.jar"
+            "https://github.com/LegacyModdingMC/UniMixins/releases/download/0.3.2/%2Bunimixins-gtnhmixins-1.7.10-0.3.2%2B2.2.0.jar"
+          ],
+          "enabled": true
+        },
+        {
+          "path": "mods/+unimixins-spongemixins-1.7.10-0.3.2+gtnh.2.0.1.jar",
+          "sha1": "757e556d898df7441df614045dfa97e42a041f5a",
+          "sha256": "44e67781394934aad749777af9dffeaf00e2effba3ff56f111bb5a2c7b1a9831",
+          "bytes": 10968,
+          "downloads": [
+            "https://github.com/LegacyModdingMC/UniMixins/releases/download/0.3.2/%2Bunimixins-spongemixins-1.7.10-0.3.2%2Bgtnh.2.0.1.jar"
+          ],
+          "enabled": true
+        },
+        {
+          "path": "mods/+unimixins-mixingasm-1.7.10-0.3.2+0.3.jar",
+          "sha1": "76eef930e4fe69cd8d43466d3408ce4062fbd095",
+          "sha256": "9d4d0eaa0331d678c4d1b0a32d7ef34bdda642fcd078f1a9f422ef4ea70c76d3",
+          "bytes": 33465,
+          "downloads": [
+            "https://github.com/LegacyModdingMC/UniMixins/releases/download/0.3.2/%2Bunimixins-mixingasm-1.7.10-0.3.2%2B0.3.jar"
           ],
           "enabled": true
         }
@@ -53,709 +83,29 @@
   ],
   "arcadiumComponents": [
     {
-      "file": "ArcadiumCore-1.7.10.jar",
-      "sha1": "e5f572bdb6c460055622ccbb18a394fb5127256a",
-      "sha256": "15c05187cb9bb826b429f596306cc97f52dbf1736068390392b509d3f79e1f59",
-      "bytes": 10608273,
-      "modId": "oneconfig",
-      "license": "GPL-3.0-only",
-      "authors": [
-        "Polyfrost",
-        "0aurorq3 (Arcadium modifications)"
-      ],
-      "contact": {
-        "homepage": "https://arcadiumclient.com",
-        "sources": "https://github.com/0aurorq3/arcadiumclient",
-        "issues": "https://discord.gg/QbNfaCHjUz"
-      }
-    },
-    {
-      "file": "ArcadiumFeatures-1.7.10.jar",
-      "sha1": "5168999043911bf7115aab250398c0afd6c04979",
-      "sha256": "74c95c9c94c4119db52000721346e41e6357eb22cc43d1a9aff8402b92e6ef43",
-      "bytes": 5276835,
-      "modId": "arcadium_runtime",
-      "license": "GPL-3.0-only",
-      "authors": [
-        "0aurorq3 and Arcadium contributors"
-      ],
-      "contact": {
-        "homepage": "https://arcadiumclient.com",
-        "sources": "https://github.com/0aurorq3/arcadiumclient",
-        "issues": "https://discord.gg/QbNfaCHjUz"
-      }
-    },
-    {
-      "file": "ArcadiumRenderer-1.7.10.jar",
-      "sha1": "a93ef441f12e02add2c756c3b1dedad0454bc616",
-      "sha256": "9327d6e3b7e49d2546e258cee389cf27af2250c0d2b68bbf5e79185675fbfb7b",
-      "bytes": 65462958,
-      "modId": "compose-multiplatform",
-      "license": "Apache-2.0",
-      "authors": [
-        "Polyfrost"
-      ],
-      "contact": {
-        "homepage": "https://polyfrost.org",
-        "sources": "https://github.com/Polyfrost/OneConfig"
-      }
-    },
-    {
-      "file": "ArcadiumPerformance-1.7.10.jar",
-      "sha1": "9986dd252469dbbbb4cee545ed5705d9aef7d7f9",
-      "sha256": "04d0837494d4897ed08a30f7659c17ef997a32336c2f5182318e368da7f11af1",
-      "bytes": 37905,
-      "modId": "arcadium-legacy-performance",
-      "license": "MIT",
-      "authors": [
-        "0aurorq3"
-      ],
-      "contact": {}
-    },
-    {
-      "file": "ArcadiumLegacy-behindyou-1.7.10.jar",
-      "sha1": "cfbc17307cb63436147e22db2cc0652cd4194c5d",
-      "sha256": "62f2111eaea409d25b1d28f75f8f2830ea0df9ebabd056173c1bf71fb46f933b",
-      "bytes": 54475,
-      "modId": "behindyouv3",
-      "license": "GPL-3.0-only",
-      "authors": [
-        "Polyfrost",
-        "isXander"
-      ],
-      "contact": {
-        "homepage": "https://github.com/Polyfrost/BehindYouV3",
-        "sources": "https://github.com/Polyfrost/BehindYouV3",
-        "issues": "https://discord.gg/QbNfaCHjUz"
-      }
-    },
-    {
-      "file": "ArcadiumLegacy-betterhurtcam-1.7.10.jar",
-      "sha1": "bf51ef7808a212ecc3566a27bf4f4362b309bfdc",
-      "sha256": "d31e7709bd900696b500826bfed6e013e1a1a9f97d3e634aff47de859fa0f396",
-      "bytes": 31236,
-      "modId": "betterhurtcam",
-      "license": "MIT",
-      "authors": [
-        "uku",
-        "thecount"
-      ],
-      "contact": {
-        "homepage": "https://modrinth.com/mod/betterhurtcam",
-        "sources": "https://github.com/uku3lig/betterhurtcam",
-        "issues": "https://discord.gg/QbNfaCHjUz",
-        "discord": "https://discord.gg/QbNfaCHjUz"
-      }
-    },
-    {
-      "file": "ArcadiumLegacy-betternightvision-1.7.10.jar",
-      "sha1": "e41d1690dc9a120bf9f8a6c8cfc9e4bbd2b25ce0",
-      "sha256": "072b95f96630be75c917e1c99b9704c8eb08fe29d8006975f44f0ba442c5c5ad",
-      "bytes": 11940,
-      "modId": "betternightvision",
-      "license": "LGPL-3.0",
-      "authors": [
-        "Microcontrollers"
-      ],
-      "contact": {
-        "sources": "https://codeberg.org/MicrocontrollersDev/BetterNightVision",
-        "issues": "https://discord.gg/QbNfaCHjUz"
-      }
-    },
-    {
-      "file": "ArcadiumLegacy-betterscreens-1.7.10.jar",
-      "sha1": "eec3504b1d11b1d4721fd563ab72ed03c7d6410f",
-      "sha256": "d8a6914b2cbb0acab55487e2e2e4714a4668e724ef60658f2034d395121d381a",
-      "bytes": 62733,
-      "modId": "betterscreens",
-      "license": "GPL-3.0",
-      "authors": [
-        "Microcontrollers",
-        "Moulberry",
-        "nea89o",
-        "Noamm"
-      ],
-      "contact": {
-        "homepage": "https://modrinth.com/mod/better-screens",
-        "sources": "https://codeberg.org/MicrocontrollersDev/Better-Screens",
-        "issues": "https://discord.gg/QbNfaCHjUz"
-      }
-    },
-    {
-      "file": "ArcadiumLegacy-blockoverlay-1.7.10.jar",
-      "sha1": "5dfafaf0ebb68ad4aa7eea48bf62c3f6d50cc2b0",
-      "sha256": "85cadf86f22427b3b09af46100c94592813c6b6b0c8147a1e7160954bd26e3fb",
-      "bytes": 965294,
-      "modId": "custom-block-highlight",
-      "license": "GPL-3.0",
-      "authors": [
-        "Tektonikal"
-      ],
-      "contact": {
-        "homepage": "https://modrinth.com/mod/custom-block-highlight",
-        "sources": "https://github.com/Tektonikal/CustomBlockHighlight",
-        "issues": "https://discord.gg/QbNfaCHjUz"
-      }
-    },
-    {
-      "file": "ArcadiumLegacy-chatting-1.7.10.jar",
-      "sha1": "b9b5eaf99779e5b9581d725c941ea00e4e3ad2b1",
-      "sha256": "40d831de7adbde2c6de905a7ab94ea74511651b1499daff6d4063f0ac4e48eb6",
-      "bytes": 255861,
-      "modId": "chatting",
-      "license": "GPL-3.0-only",
-      "authors": [
-        "Polyfrost"
-      ],
-      "contact": {
-        "homepage": "https://polyfrost.org",
-        "sources": "https://github.com/Polyfrost/Chatting",
-        "issues": "https://discord.gg/QbNfaCHjUz"
-      }
-    },
-    {
-      "file": "ArcadiumLegacy-colorsaturation-1.7.10.jar",
-      "sha1": "3630aa9575dc148dad8265428d7d1b9edbb4c826",
-      "sha256": "0b795f7b315e0204af55da5dbc83e65e12903c7f1c6d266c9bfd690ed57ca7ea",
-      "bytes": 33871,
-      "modId": "colorsaturation",
-      "license": "GPL-3.0-or-later",
-      "authors": [
-        "Polyfrost"
-      ],
-      "contact": {
-        "issues": "https://discord.gg/QbNfaCHjUz",
-        "sources": "https://github.com/Polyfrost/ColorSaturation"
-      }
-    },
-    {
-      "file": "ArcadiumLegacy-confirmdisconnect-1.7.10.jar",
-      "sha1": "ae1b7f054f321b08a03fcec5e94b3e6e97a5f699",
-      "sha256": "3fa63e327228fe5eabdb8224fcf863cf80af083c068522907b4443d9c588ffba",
-      "bytes": 32562,
-      "modId": "confirmdisconnect",
-      "license": "LGPL-3.0",
-      "authors": [
-        "Microcontrollers"
-      ],
-      "contact": {
-        "homepage": "https://modrinth.com/mod/confirm-disconnect",
-        "sources": "https://codeberg.org/MicrocontrollersDev/Confirm-Disconnect",
-        "issues": "https://discord.gg/QbNfaCHjUz"
-      }
-    },
-    {
-      "file": "ArcadiumLegacy-confirmresetkeys-1.7.10.jar",
-      "sha1": "e7dc1da810c9d1dcccc714f4abf0984e1c8fa109",
-      "sha256": "834e6c3ff5c0941d58dbd4f002122ef3b5bdadb8d8408b3f5187147a67817618",
-      "bytes": 27432,
-      "modId": "confirmresetkeys",
-      "license": "LGPLv3",
-      "authors": [
-        "Microcontrollers"
-      ],
-      "contact": {
-        "homepage": "https://modrinth.com/mod/confirmresetkeys",
-        "sources": "https://codeberg.org/MicrocontrollersDev/ConfirmResetKeys",
-        "issues": "https://discord.gg/QbNfaCHjUz"
-      }
-    },
-    {
-      "file": "ArcadiumLegacy-countdown-1.7.10.jar",
-      "sha1": "87cb81e7ba27ca305bced709bfb92f466b911c1c",
-      "sha256": "8a3f9a8fb0b458d85c95576728eb044e01ad020f4ee7b78d4761fda5cf565546",
-      "bytes": 10977,
-      "modId": "countdown",
-      "license": "GPL-3.0",
-      "authors": [
-        "chromatic"
-      ],
-      "contact": {
-        "homepage": "https://modrinth.com/mod/tntcountdown",
-        "sources": "https://codeberg.org/chromatic/TNTCountdown"
-      }
-    },
-    {
-      "file": "ArcadiumLegacy-damagetint-1.7.10.jar",
-      "sha1": "2baf0ccad1dbff1ef7b70f30409a9fb193f4c6e2",
-      "sha256": "0684f9f28d9af3f87116ce6337fbf1bdf060a81b28f105693f65487c97e628af",
-      "bytes": 24381,
-      "modId": "damagetint",
-      "license": "LGPL 3.0",
-      "authors": [
-        "PolyFrost"
-      ],
-      "contact": {
-        "homepage": "https://github.com/Polyfrost/DamageTint",
-        "sources": "https://github.com/Polyfrost/DamageTint",
-        "issues": "https://discord.gg/QbNfaCHjUz"
-      }
-    },
-    {
-      "file": "ArcadiumLegacy-droppeditemtweaks-1.7.10.jar",
-      "sha1": "b7904cfdf2ece2bc5c05b0c3fa2f7b200b3d9652",
-      "sha256": "40dcabf09a3b505a92e59c0f2a4efe5342b669e5fd2388e066bc5c2dc278baea",
-      "bytes": 255611,
-      "modId": "droppeditemtweaks",
-      "license": "LGPLv3",
-      "authors": [
-        "Microcontrollers"
-      ],
-      "contact": {
-        "homepage": "https://modrinth.com/mod/droppeditemtweaks",
-        "sources": "https://codeberg.org/MicrocontrollersDev/DroppedItemTweaks",
-        "issues": "https://discord.gg/QbNfaCHjUz"
-      }
-    },
-    {
-      "file": "ArcadiumLegacy-evergreenhud-1.7.10.jar",
-      "sha1": "cdaa1926f39c058de6625157a20e4b4914648330",
-      "sha256": "90efbe7258ffeab294233fa8960a1c731f3de32b62a1c633e0f2ed46ea486f8c",
-      "bytes": 2418116,
-      "modId": "evergreenhud",
-      "license": "GPL-3.0-with-Minecraft-Linking-Exception",
-      "authors": [
-        "Polyfrost"
-      ],
-      "contact": {}
-    },
-    {
-      "file": "ArcadiumLegacy-freelook-1.7.10.jar",
-      "sha1": "83dc9f1075f2cbd4d2fbc91edf60746ae98be977",
-      "sha256": "89b1409c682964150e679d260ed2f3eb9891d49b6ef6977c05c1541b63a329b8",
-      "bytes": 31360,
-      "modId": "freelook",
-      "license": "LGPL-3.0",
-      "authors": [
-        "chromatic"
-      ],
-      "contact": {
-        "homepage": "https://modrinth.com/project/S1v2ASLQ",
-        "sources": "https://codeberg.org/chromatic/Freelook"
-      }
-    },
-    {
-      "file": "ArcadiumLegacy-glintcolorizer-1.7.10.jar",
-      "sha1": "5c90932191287544088f84237167304f1ff3124f",
-      "sha256": "e018e3a4e5f859b50fdfaa93c8aae3a76c3fa656f307c7aebdd77c6e42e0d31e",
-      "bytes": 40089,
-      "modId": "glintcolorizer",
-      "license": "GPL-3.0-or-later",
-      "authors": [
-        "Polyfrost"
-      ],
-      "contact": {
-        "issues": "https://discord.gg/QbNfaCHjUz",
-        "sources": "https://github.com/Polyfrost/GlintColorizer"
-      }
-    },
-    {
-      "file": "ArcadiumLegacy-guiblur-1.7.10.jar",
-      "sha1": "d3401bf3b3cde7aaf715103906cfbe3357db41a2",
-      "sha256": "5040aa1436eb75fc7d91eef719d4a7b9621b8e54a1734670519f6d542709d491",
-      "bytes": 33789,
-      "modId": "blur",
-      "license": "MIT",
-      "authors": [
-        "Motschen",
-        "amiralimollaei",
-        "tterrag1098",
-        "Pyrofab"
-      ],
-      "contact": {
-        "homepage": "https://github.com/Polyfrost/Blur",
-        "sources": "https://github.com/Polyfrost/Blur",
-        "issues": "https://discord.gg/QbNfaCHjUz"
-      }
-    },
-    {
-      "file": "ArcadiumLegacy-itemphysiclite-1.7.10.jar",
-      "sha1": "c488a5e9974728e507b1465de6d0fc34cdd49528",
-      "sha256": "e55f5cd72e424fdbd3da8eb1051739e30a2343ce44799ae0c83db3427be8e361",
-      "bytes": 18299,
-      "modId": "itemphysiclite",
-      "license": "GPL-3.0-only",
-      "authors": [
-        "Tryfle"
-      ],
-      "contact": {}
-    },
-    {
-      "file": "ArcadiumLegacy-mountopacity-1.7.10.jar",
-      "sha1": "d5a2cdebc7a07fc65f70676a0ab034ce6e6d05c9",
-      "sha256": "56e437dd3188c7be0ef8f3bb26da9ca672e6ec6f8be6408130983de27fb1c590",
-      "bytes": 27477,
-      "modId": "mountopacity",
-      "license": "LGPL-3.0",
-      "authors": [
-        "Microcontrollers"
-      ],
-      "contact": {
-        "homepage": "https://modrinth.com/mod/mountopacity",
-        "sources": "https://codeberg.org/MicrocontrollersDev/MountOpacity",
-        "issues": "https://discord.gg/QbNfaCHjUz"
-      }
-    },
-    {
-      "file": "ArcadiumLegacy-numericalenchantments-1.7.10.jar",
-      "sha1": "62f9e43a645109538682c0b99059e97f5e833c6b",
-      "sha256": "15743c8e2d4ff85de0af58bb3effba55f987f676c1916561a1eaa94918ce69bc",
-      "bytes": 13550,
-      "modId": "numericalenchantments",
-      "license": "LGPL-3.0",
-      "authors": [
-        "Microcontrollers"
-      ],
-      "contact": {
-        "sources": "https://codeberg.org/MicrocontrollersDev/Numerical-Enchantments",
-        "issues": "https://discord.gg/QbNfaCHjUz"
-      }
-    },
-    {
-      "file": "ArcadiumLegacy-overflowanimations-1.7.10.jar",
-      "sha1": "8302a2a54207377a3d15418bb8d7935b56da0e9a",
-      "sha256": "9f4b2748a1999319ddd2455e60d42d8eb58a3359e9704e29b59e0698cdd2abc5",
-      "bytes": 284923,
-      "modId": "overflowanimations",
-      "license": "GPL-3.0-with-linking-exception",
-      "authors": [
-        "Mixces",
-        "lowercasebtw"
-      ],
-      "contact": {
-        "sources": "https://github.com/Polyfrost/OverflowAnimationsV2",
-        "issues": "https://discord.gg/QbNfaCHjUz"
-      }
-    },
-    {
-      "file": "ArcadiumLegacy-overflowparticles-1.7.10.jar",
-      "sha1": "db150fafe51384d5dbd03d31eb953da32df4b712",
-      "sha256": "1a42502e212a8d0899d81eba55d1ca3d13b9d485b2595bb12e57e07ab719fd99",
-      "bytes": 102575,
-      "modId": "overflowparticles",
-      "license": "GPL-3.0-only",
-      "authors": [
-        "Polyfrost"
-      ],
-      "contact": {
-        "homepage": "https://github.com/Polyfrost/OverflowParticles",
-        "sources": "https://github.com/Polyfrost/OverflowParticles",
-        "issues": "https://discord.gg/QbNfaCHjUz"
-      }
-    },
-    {
-      "file": "ArcadiumLegacy-overlaytweaks-1.7.10.jar",
-      "sha1": "b9a074d77115aae3eef56edcf8cdc7f900a1d2fc",
-      "sha256": "a31f0962b70998756c3a54619411531d235461f95e85436b7aef11890802b33f",
-      "bytes": 19989,
-      "modId": "overlaytweaks",
-      "license": "LGPL-3.0",
-      "authors": [
-        "Microcontrollers"
-      ],
-      "contact": {
-        "homepage": "https://modrinth.com/mod/scrolltweaks",
-        "sources": "https://codeberg.org/MicrocontrollersDev/OverlayTweaks",
-        "issues": "https://discord.gg/QbNfaCHjUz"
-      }
-    },
-    {
-      "file": "ArcadiumLegacy-polyblur-1.7.10.jar",
-      "sha1": "f9141ae8d00eb798b114bedb26b7eafeaeb518e4",
-      "sha256": "1bd0d7185cf20affcdedb61d5f07270f7cd0c65a81fc97403ac31d76bcd8e363",
-      "bytes": 62683,
-      "modId": "polyblur",
-      "license": "GPL-3.0-or-later",
-      "authors": [
-        "Polyfrost"
-      ],
-      "contact": {
-        "issues": "https://discord.gg/QbNfaCHjUz",
-        "sources": "https://github.com/Polyfrost/PolyBlur"
-      }
-    },
-    {
-      "file": "ArcadiumLegacy-polyhitbox-1.7.10.jar",
-      "sha1": "2b6d67f1cf9f2097404586ba89253778552a2dd9",
-      "sha256": "c904dabd334b9d95051205f1f7bafbd8ed5185a6282722071cd7555a519fafad",
-      "bytes": 85093,
-      "modId": "polyhitbox",
-      "license": "GPL-3.0-only",
-      "authors": [
-        "Polyfrost"
-      ],
-      "contact": {
-        "homepage": "https://polyfrost.org",
-        "sources": "https://github.com/Polyfrost/PolyHitbox",
-        "issues": "https://discord.gg/QbNfaCHjUz"
-      }
-    },
-    {
-      "file": "ArcadiumLegacy-polynametag-1.7.10.jar",
-      "sha1": "b8e94fdfdaaea736bbde8b209a7bc002319b6e8f",
-      "sha256": "0146bfec196b3b47587ca9e5eb1734d6584bb1a2deb8dd3be44db480aca0a142",
-      "bytes": 42026,
-      "modId": "polynametag",
-      "license": "GPL-3.0",
-      "authors": [
-        "Polyfrost"
-      ],
-      "contact": {
-        "homepage": "https://github.com/Polyfrost/PolyNametag",
-        "sources": "https://github.com/Polyfrost/PolyNametag",
-        "issues": "https://discord.gg/QbNfaCHjUz"
-      }
-    },
-    {
-      "file": "ArcadiumLegacy-polytime-1.7.10.jar",
-      "sha1": "fa81c3545dc020307b4d2d8d7c1113ff522219fe",
-      "sha256": "dcf57bb95e21f38b9a57c5e5bb24f7eeca4d1bca22f11c56d9b84e92d503a658",
-      "bytes": 94771,
-      "modId": "polytime",
-      "license": "GPL 3.0",
-      "authors": [
-        "PolyFrost",
-        "DeDiamondPro"
-      ],
-      "contact": {
-        "homepage": "https://github.com/Polyfrost/PolyTime",
-        "sources": "https://github.com/Polyfrost/PolyTime",
-        "issues": "https://discord.gg/QbNfaCHjUz"
-      }
-    },
-    {
-      "file": "ArcadiumLegacy-polyweather-1.7.10.jar",
-      "sha1": "4d719a05bbcb3c03f580a833e30ba398c0f75e03",
-      "sha256": "1aa9f2254112e563439584b302bd29f6916f0b7be34736e8fea9a3814eb3047d",
-      "bytes": 49863,
-      "modId": "polyweather",
-      "license": "GPL 3.0",
-      "authors": [
-        "PolyFrost",
-        "DeDiamondPro"
-      ],
-      "contact": {
-        "homepage": "https://github.com/Polyfrost/PolyWeather",
-        "sources": "https://github.com/Polyfrost/PolyWeather",
-        "issues": "https://discord.gg/QbNfaCHjUz"
-      }
-    },
-    {
-      "file": "ArcadiumLegacy-polyzoom-1.7.10.jar",
-      "sha1": "6cbd5458d836c8fbdbe8dde3d260936c7ea67ad1",
-      "sha256": "c9b7e8169974eba6b6ca6427b48a12447315e00a56fe16b79e173ed24ce235ba",
-      "bytes": 17212,
-      "modId": "polyzoom",
-      "license": "GPL-3.0-or-later",
-      "authors": [
-        "Polyfrost"
-      ],
-      "contact": {
-        "issues": "https://discord.gg/QbNfaCHjUz",
-        "sources": "https://github.com/Polyfrost/PolyZoom"
-      }
-    },
-    {
-      "file": "ArcadiumLegacy-redaction-1.7.10.jar",
-      "sha1": "4b7c428f2cebaa8222a692c577f2206a95a73a03",
-      "sha256": "45cdcccb787d427f5724e03e9528e9d358f3dda73da9e9170e7a2072ff4afab1",
-      "bytes": 51223,
-      "modId": "redaction",
-      "license": "GPL-3.0-or-later",
-      "authors": [
-        "Polyfrost"
-      ],
-      "contact": {
-        "issues": "https://discord.gg/QbNfaCHjUz",
-        "sources": "https://github.com/Polyfrost/REDACTION"
-      }
-    },
-    {
-      "file": "ArcadiumLegacy-rendertweaks-1.7.10.jar",
-      "sha1": "292bf81206f4c33e76e663a681a7505b1f788ebc",
-      "sha256": "45742243e2f1034cfe8f492a16a532b0d0bd9a7f01e4797e07666b845b758cd3",
-      "bytes": 37527,
-      "modId": "rendertweaks",
-      "license": "LGPL-3.0",
-      "authors": [
-        "Microcontrollers"
-      ],
-      "contact": {
-        "sources": "https://codeberg.org/MicrocontrollersDev/Render-Tweaks",
-        "issues": "https://discord.gg/QbNfaCHjUz"
-      }
-    },
-    {
-      "file": "ArcadiumLegacy-sciophobia-1.7.10.jar",
-      "sha1": "f89e40b6b414e262e66ec738bf268b61e4171928",
-      "sha256": "d5c40dc68e10237c8b5c1dab5f8fdfc643a7698d3d7f4bccce4412d6ed3e3f09",
-      "bytes": 28898,
-      "modId": "sciophobia",
-      "license": "LGPL-3.0-only",
-      "authors": [
-        "Microcontrollers",
-        "Wyvest"
-      ],
-      "contact": {
-        "homepage": "https://modrinth.com/mod/sciophobia",
-        "sources": "https://codeberg.org/MicrocontrollersDev/Sciophobia",
-        "issues": "https://discord.gg/QbNfaCHjUz",
-        "discord": "https://discord.gg/QbNfaCHjUz"
-      }
-    },
-    {
-      "file": "ArcadiumLegacy-screenshots-1.7.10.jar",
-      "sha1": "728207c1199b66b366317823d8db664886015e85",
-      "sha256": "1c905aba83c8b3778ea801692c452631b83c3991c3a3d4bcab86d09e8e0f8533",
-      "bytes": 69751,
-      "modId": "screenshotmessageenhancer",
-      "license": "GPL-3.0",
-      "authors": [
-        "Tomeko"
-      ],
-      "contact": {
-        "homepage": "https://modrinth.com/mod/screenshotmessageenhancer",
-        "sources": "https://github.com/TomekoYT/ScreenshotMessageEnhancer",
-        "issues": "https://discord.gg/QbNfaCHjUz"
-      }
-    },
-    {
-      "file": "ArcadiumLegacy-scrolltweaks-1.7.10.jar",
-      "sha1": "6d403a9cd19d8fd3e5aaa2570797e0e6a9837af5",
-      "sha256": "d71ebc9ddb0b80f2462d5ad050aba469395c21d8d34da70fdd8e1f4c4e48abf4",
-      "bytes": 36932,
-      "modId": "scrolltweaks",
-      "license": "LGPLv3",
-      "authors": [
-        "Microcontrollers"
-      ],
-      "contact": {
-        "homepage": "https://modrinth.com/mod/scrolltweaks",
-        "sources": "https://codeberg.org/MicrocontrollersDev/Scroll-Tweaks",
-        "issues": "https://discord.gg/QbNfaCHjUz"
-      }
-    },
-    {
-      "file": "ArcadiumLegacy-shaketweaks-1.7.10.jar",
-      "sha1": "36059b98032cc2c1ec85ec5c20e39d9afa7915c9",
-      "sha256": "2edd7c8b34c7629e020cd9fd8e08045e84f349950f5dd24d39adf07e2a77818e",
-      "bytes": 14505,
-      "modId": "shaketweaks",
-      "license": "LGPL-3.0",
-      "authors": [
-        "Microcontrollers"
-      ],
-      "contact": {
-        "homepage": "https://modrinth.com/mod/shaketweaks",
-        "sources": "https://codeberg.org/MicrocontrollersDev/ShakeTweaks",
-        "issues": "https://discord.gg/QbNfaCHjUz"
-      }
-    },
-    {
-      "file": "ArcadiumLegacy-smoothscrolling-1.7.10.jar",
-      "sha1": "6c4a6e3a3280b91e0fafd25791163e60eda61771",
-      "sha256": "372464cb2a53b0ff643a861842b29298ae73ecd491ff024d4a6543eb6b75ed9e",
-      "bytes": 12528,
-      "modId": "smoothscrollingrefurbished",
-      "license": "MIT",
-      "authors": [
-        "JustAlittleWolf"
-      ],
-      "contact": {
-        "sources": "https://github.com/JustAlittleWolf/SmoothScrollingRefurbished",
-        "issues": "https://discord.gg/QbNfaCHjUz"
-      }
-    },
-    {
-      "file": "ArcadiumLegacy-smoothskies-1.7.10.jar",
-      "sha1": "8d78adfd532448e1a222233eb8f0944bfc1327aa",
-      "sha256": "94fb9c5f3967e2f6895ee3be4b234f304e9cd82c2ac30fdcc07748c32f6f59fd",
-      "bytes": 21442,
-      "modId": "smoothskies",
-      "license": "LGPL-3.0",
-      "authors": [
-        "Microcontrollers"
-      ],
-      "contact": {
-        "sources": "https://codeberg.org/MicrocontrollersDev/Smooth-Skies",
-        "issues": "https://discord.gg/QbNfaCHjUz"
-      }
-    },
-    {
-      "file": "ArcadiumLegacy-soundtweaks-1.7.10.jar",
-      "sha1": "b931ef1d7a908a211e062b7ea6ffaede8d2c206e",
-      "sha256": "415193224f45edde78af7a5571ebc97c9b4ffb11c8338de6567b9fb876af0827",
-      "bytes": 24903,
-      "modId": "soundtweaks",
-      "license": "GPL-3.0-only",
-      "authors": [
-        "Polyfrost"
-      ],
-      "contact": {}
-    },
-    {
-      "file": "ArcadiumLegacy-tooltipscroll-1.7.10.jar",
-      "sha1": "8fdcaaf3ec15e693c3f0765f24953258f83c878f",
-      "sha256": "a159871a57169ed66cc8a0332189d5aaadecaa7836639055883aecf30ce60a78",
-      "bytes": 27189,
-      "modId": "tooltipscroll",
-      "license": "MIT",
-      "authors": [
-        "Provismet"
-      ],
-      "contact": {
-        "homepage": "https://github.com/Provismet/Tooltip-Scroll-Fabric",
-        "sources": "https://github.com/Provismet/Tooltip-Scroll-Fabric",
-        "issues": "https://discord.gg/QbNfaCHjUz"
-      }
-    },
-    {
-      "file": "ArcadiumLegacy-vanillahud-1.7.10.jar",
-      "sha1": "d3e370b99c9f0377c7a259bf6e5f4bafff9cb4f3",
-      "sha256": "027962526abee82b6b0306d0d1bdb53971040b38d43aa9a1b9fb8476d80e23d6",
-      "bytes": 210101,
-      "modId": "vanillahud",
-      "license": "GPL-3.0",
-      "authors": [
-        "Polyfrost"
-      ],
-      "contact": {
-        "homepage": "https://polyfrost.org",
-        "sources": "https://github.com/Polyfrost/VanillaHUD"
-      }
-    },
-    {
-      "file": "ArcadiumBrand-1.7.10.jar",
-      "sha1": "d1eede99882c78e873ff541ced65615d07fb9b63",
-      "sha256": "7fe681ab418f96bb985fce3c8b0caca723164a1c4e0e9088b2e3883e4c8c21f0",
-      "bytes": 34665,
+      "file": "ArcadiumForge-1.7.10.jar",
+      "sha1": "ca16e64a6c8ef669fdb56a63cc61193d065d71c7",
+      "sha256": "766c9cc688b1dde4a554fed54ba0fcbbe9a414411143e60522c2088faf050989",
+      "bytes": 96903256,
       "modId": "arcadiumclient",
       "license": "GPL-3.0-only",
       "authors": [
-        "0aurorq3"
+        "Arcadium contributors"
       ],
-      "contact": {
-        "homepage": "https://arcadiumclient.com",
-        "sources": "https://github.com/0aurorq3/arcadiumclient",
-        "issues": "https://discord.gg/QbNfaCHjUz"
-      }
-    }
-  ],
-  "arcadiumBranding": {
-    "file": "ArcadiumBrand-1.7.10.jar",
-    "sha1": "d1eede99882c78e873ff541ced65615d07fb9b63",
-    "sha256": "7fe681ab418f96bb985fce3c8b0caca723164a1c4e0e9088b2e3883e4c8c21f0",
-    "bytes": 34665,
-    "modId": "arcadiumclient",
-    "license": "GPL-3.0-only",
-    "authors": [
-      "0aurorq3"
-    ],
-    "contact": {
-      "homepage": "https://arcadiumclient.com",
-      "sources": "https://github.com/0aurorq3/arcadiumclient",
-      "issues": "https://discord.gg/QbNfaCHjUz"
+      "contact": {}
     },
-    "source": "game-branding"
-  }
+    {
+      "file": "ArcadiumBootstrap-1.7.10.jar",
+      "sha1": "284dc2edc23ea7c58324845042b21bb5d0747a24",
+      "sha256": "65598d087617ff9157734c56db20d49fd430f4399ec992ff7ec9cfb78af03098",
+      "bytes": 21823,
+      "modId": "arcadium_forge_bootstrap",
+      "license": "GPL-3.0-only",
+      "authors": [
+        "Arcadium contributors"
+      ],
+      "contact": {},
+      "bootstrap": true
+    }
+  ]
 }

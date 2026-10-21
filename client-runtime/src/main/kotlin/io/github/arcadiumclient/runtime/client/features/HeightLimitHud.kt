@@ -9,13 +9,39 @@ import net.minecraft.client.Minecraft
 import org.polyfrost.oneconfig.api.config.v1.Property
 import org.polyfrost.oneconfig.api.config.v1.Tree
 import org.polyfrost.oneconfig.api.config.v1.annotations.Dropdown
+import org.polyfrost.oneconfig.api.config.v1.annotations.Color
+import org.polyfrost.oneconfig.api.config.v1.annotations.Slider
 import org.polyfrost.oneconfig.api.config.v1.annotations.Switch
+import org.polyfrost.oneconfig.api.config.v1.annotations.Text
 import org.polyfrost.oneconfig.api.hud.v1.HudManager
-import org.polyfrost.oneconfig.api.hud.v1.TextHud
 
-class HeightLimitHud : TextHud("arcadium-height-limit-hud.json", "Height Limit HUD", Category.INFO, "") {
-    @Dropdown(title = "Style", options = ["Classic", "Compact"])
+class HeightLimitHud : ColoredTextHud("arcadium-height-limit-hud.json", "Height Limit HUD", Category.INFO) {
+    @Dropdown(title = "Style", options = ["Classic", "Compact", "Custom"])
     var style = 0
+
+    @Text(title = "Format", description = "Use #current, #limit and #distance.")
+    var format = "#limit(#distance)"
+
+    @Color(title = "Height Limit Color", subcategory = "Colors", alpha = false)
+    var limitColor = 0xFFFFFFFF.toInt()
+
+    @Color(title = "Parentheses Color", subcategory = "Colors", alpha = false)
+    var parenthesesColor = 0xFFFFFFFF.toInt()
+
+    @Color(title = "Distance: 16+ Blocks", subcategory = "Distance Colors", alpha = false)
+    var distanceFarColor = 0xFFFFFFFF.toInt()
+
+    @Color(title = "Distance: 6 to 15 Blocks", subcategory = "Distance Colors", alpha = false)
+    var distanceWarningColor = 0xFFFFAA00.toInt()
+
+    @Color(title = "Distance: 0 to 5 Blocks", subcategory = "Distance Colors", alpha = false)
+    var distanceNearColor = 0xFFFF5555.toInt()
+
+    @Slider(title = "Warning Distance", description = "Use the warning color at this distance or closer.", min = 0f, max = 256f, step = 1f, subcategory = "Distance Colors")
+    var warningDistance = 15
+
+    @Slider(title = "Danger Distance", description = "Use the danger color at this distance or closer.", min = 0f, max = 256f, step = 1f, subcategory = "Distance Colors")
+    var dangerDistance = 5
 
     @Switch(title = "Show Y Limit", description = "Show the map's build limit in Compact style.")
     var showYLimit = true
@@ -33,8 +59,10 @@ class HeightLimitHud : TextHud("arcadium-height-limit-hud.json", "Height Limit H
         super.addCallbacks(tree)
         val compact = arrayOf("showYLimit", "showCurrentY", "showDistanceToLimit")
         compact.forEach { tree.getProp(it).addDisplayCondition { if (style == 1) Property.Display.SHOWN else Property.Display.HIDDEN } }
+        tree.getProp("format").addDisplayCondition { if (style == 2) Property.Display.SHOWN else Property.Display.HIDDEN }
         tree.getProp("style").addCallback {
             compact.forEach { tree.getProp(it).revaluateDisplay() }
+            tree.getProp("format").revaluateDisplay()
             false
         }
     }
@@ -53,15 +81,26 @@ class HeightLimitHud : TextHud("arcadium-height-limit-hud.json", "Height Limit H
         return value.supported && (value.maximum != null || showUnknown)
     }
 
-    override fun getText(): String {
+    override fun valueRuns(): List<Run> {
         val mc = Minecraft.getInstance()
         val value = HeightLimitSource.snapshot()
-        if (HudManager.isEditing && (!value.supported || mc.player == null)) {
-            return HeightLimitText.format(style, if (style == 1) 67 else 64, if (style == 1) 256 else 113,
-                showYLimit, showCurrentY, showDistanceToLimit)
+        val preview = HudManager.isEditing && (!value.supported || mc.player == null)
+        val height = if (preview) 67 else mc.player?.let { floor(it.y).toInt() } ?: 0
+        val limit = if (preview) 256 else value.maximum
+        val template = if (style == 2) format else HeightLimitText.template(style, showYLimit, showCurrentY, showDistanceToLimit)
+        val distanceColor = when (HeightLimitText.distanceRange(limit?.let { HeightLimitText.distance(height, it) } ?: Long.MAX_VALUE, warningDistance, dangerDistance)) {
+            2 -> distanceNearColor
+            1 -> distanceWarningColor
+            else -> distanceFarColor
         }
-        val height = mc.player?.let { floor(it.y).toInt() } ?: 0
-        return HeightLimitText.format(style, height, value.maximum, showYLimit, showCurrentY, showDistanceToLimit)
+        return HeightLimitText.parts(template, height, limit).map { part ->
+            Run(part.text(), when (part.kind()) {
+                HeightLimitText.Kind.LIMIT -> limitColor
+                HeightLimitText.Kind.PARENTHESES -> parenthesesColor
+                HeightLimitText.Kind.DISTANCE -> distanceColor
+                else -> null
+            })
+        }
     }
 }
 

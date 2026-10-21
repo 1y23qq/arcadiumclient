@@ -22,6 +22,7 @@ mod download;
 mod error;
 mod install;
 mod manifest;
+mod native_forge;
 mod profile;
 mod rules;
 

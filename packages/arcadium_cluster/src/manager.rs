@@ -141,11 +141,10 @@ impl ClusterManager {
                 "Arcadium supports Minecraft 1.8.9 and 1.7.10.".into(),
             ));
         }
-        if options.mc_version == "1.7.10"
-            && options.mc_loader != arcadium_common::GameLoader::Ornithe
+        if options.mc_version == "1.7.10" && options.mc_loader != arcadium_common::GameLoader::Forge
         {
             return Err(ClusterError::InvalidVersion(
-                "Arcadium 1.7.10 uses Ornithe. Forge mod compatibility is only available for Minecraft 1.8.9.".into(),
+                "Arcadium 1.7.10 requires Forge.".into(),
             ));
         }
         if options.user_created {

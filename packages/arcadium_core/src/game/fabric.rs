@@ -27,6 +27,11 @@ pub fn uses_cluster_mods_folder(
     loader_version: Option<&str>,
     custom_args: &str,
 ) -> bool {
+    if loader == GameLoader::Forge
+        && loader_version == Some(arcadium_common::distribution::FORGE_1710_VERSION)
+    {
+        return true;
+    }
     if !matches!(loader, GameLoader::Fabric | GameLoader::Ornithe) {
         return false;
     }
@@ -46,6 +51,9 @@ pub fn mods_folder_argument(
     custom_args: &str,
     mods_dir: &Path,
 ) -> Option<String> {
+    if loader == GameLoader::Forge {
+        return None;
+    }
     if !uses_cluster_mods_folder(loader, loader_version, custom_args) {
         return None;
     }
@@ -56,6 +64,13 @@ pub fn mods_folder_argument(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn native_forge_keeps_cluster_mods_without_a_fabric_property() {
+        let version = Some(arcadium_common::distribution::FORGE_1710_VERSION);
+        assert!(uses_cluster_mods_folder(GameLoader::Forge, version, ""));
+        assert!(mods_folder_argument(GameLoader::Forge, version, "", Path::new("mods")).is_none());
+    }
 
     #[test]
     fn versions_compare_by_component_not_by_string() {

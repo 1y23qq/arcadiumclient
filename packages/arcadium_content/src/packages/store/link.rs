@@ -15,9 +15,7 @@ use super::paths::artifact_absolute_path;
 const STAGING_SUFFIX: &str = ".arcadium-tmp";
 
 pub(crate) fn shares_content(cluster: &ClusterRow, content_type: ContentType) -> bool {
-    content_type.is_global()
-        && !cluster.is_isolated()
-        && !arcadium_common::distribution::requires_separate_game_dir(&cluster.mc_version)
+    content_type.is_global() && !cluster.kind().is_isolated()
 }
 
 /// What a live add actually did, so a caller can say so instead of promising

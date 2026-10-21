@@ -4,6 +4,7 @@ import argparse
 import hashlib
 import io
 import json
+import os
 from pathlib import Path, PurePosixPath
 import re
 import tomllib
@@ -112,6 +113,11 @@ def inspect_component(raw: bytes, label: str, expected_id: str | None = None) ->
     with zipfile.ZipFile(io.BytesIO(raw)) as archive:
         names = archive.namelist()
         metadata = json.loads(archive.read("fabric.mod.json")) if "fabric.mod.json" in names else {}
+        if "arcadium-forge-components.json" in names:
+            metadata = {"id": "arcadiumclient", "license": "GPL-3.0-only", "authors": ["Arcadium contributors"],
+                        "depends": {"minecraft": "1.7.10"}, "mixins": json.loads(archive.read("arcadium-forge-mixins.json")) + ["mixins.arcadium-forge.json"]}
+        elif "META-INF/rfb-plugin/arcadium-forge.properties" in names:
+            metadata = {"id": "arcadium_forge_bootstrap", "license": "GPL-3.0-only", "authors": ["Arcadium contributors"]}
         if expected_id is not None and metadata.get("id") != expected_id:
             raise RuntimeError(f"Incorrect mod identity for {label}: {metadata.get('id')}")
         if metadata.get("id") in EXTERNAL_ONLY_MOD_IDS:
@@ -155,8 +161,6 @@ def component_sources(root: Path, version: str, minecraft_version: str = "1.8.9"
     if minecraft_version == "1.8.9":
         result["ArcadiumForgeCompat-1.8.9.jar"] = (root / f"forge-compat/build/libs/ArcadiumForgeCompat-{version}.jar", "arcadium_forge_compat")
     else:
-        result[f"ArcadiumPerformance-{minecraft_version}.jar"] = (
-            root / f"client-legacy-performance/build/libs/ArcadiumLegacyPerformance-{version}-{minecraft_version}.jar", "arcadium-legacy-performance")
         for port in legacy_ports(root):
             directory = root / "client-legacy-mods" / port["directory"] / port["outputDirectory"]
             candidates = [path for path in directory.glob("*.jar")
@@ -239,7 +243,7 @@ def refresh_bundles(root: Path, version: str, minecraft_version: str = "1.8.9") 
     manifest_path = assets / "bundles.json"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     by_name = {entry["file"]: entry for entry in lock["bundles"]}
-    for bundle in manifest["versions"][minecraft_version]["ornithe"]:
+    for bundle in manifest["versions"][minecraft_version][lock.get("loader", "Ornithe").lower()]:
         bundle["sha1"] = by_name[PurePosixPath(bundle["path"]).name]["arcadiumSha1"]
     manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
     lock_path.write_text(json.dumps(lock, indent=2) + "\n", encoding="utf-8")
@@ -265,7 +269,9 @@ def shipped_components(root: Path = ROOT) -> list[dict]:
     for minecraft, lock in distribution_locks(root).items():
         kinds = ["Core", "Features", "Renderer", "ForgeCompat"] if minecraft == "1.8.9" else ["Core", "Features", "Renderer", "Performance", "Brand"]
         expected = {f"Arcadium{kind}-{minecraft}.jar" for kind in kinds}
-        if minecraft == "1.7.10":
+        if minecraft == "1.7.10" and lock.get("loader") == "Forge":
+            expected = {"ArcadiumForge-1.7.10.jar", "ArcadiumBootstrap-1.7.10.jar"}
+        elif minecraft == "1.7.10":
             expected.update(port["file"] for port in legacy_ports(root))
         components = lock.get("arcadiumComponents", [])
         if len(components) != len(expected) or {component["file"] for component in components} != expected:
@@ -293,6 +299,11 @@ def verify_components(root: Path = ROOT) -> dict:
 
 
 def package(root: Path = ROOT, minecraft_version: str = "1.8.9") -> list[dict]:
+    if minecraft_version == "1.7.10" and json.loads((root / LOCK_PATHS[minecraft_version]).read_text(encoding="utf-8")).get("loader") == "Forge":
+        if root.resolve() != ROOT.resolve(): raise RuntimeError("Forge source packaging must run in its source checkout.")
+        from build_forge1710 import build_from_sources, stage
+        output = build_from_sources(Path(os.environ["JAVA_HOME"]))
+        return stage(output)
     version = tomllib.loads((root / "Cargo.toml").read_text(encoding="utf-8"))["workspace"]["package"]["version"]
     sources = component_sources(root, version, minecraft_version)
     branding_source = root / (f"game-branding/build/libs/ArcadiumBrand-{version}.jar" if minecraft_version == "1.8.9"

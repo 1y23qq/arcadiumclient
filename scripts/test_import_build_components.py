@@ -32,6 +32,13 @@ class BuildComponentTests(unittest.TestCase):
         components.import_bundle(self.bundle, digest, self.root)
         self.assertEqual(self.asset.read_bytes(), self.raw)
 
+    def test_native_forge_catalog_does_not_need_a_separate_branding_jar(self):
+        entry = {"file": self.asset.name, "sha256": hashlib.sha256(self.raw).hexdigest()}
+        (self.root / "distribution/arcadium-1.7.10.lock.json").write_text(json.dumps({"loader": "Forge", "arcadiumComponents": [entry]}))
+        digest = components.write_bundle(self.bundle, self.root)
+        components.import_bundle(self.bundle, digest, self.root)
+        self.assertEqual(len(components.entries(self.root)), 1)
+
     def test_wrong_archive_checksum_cannot_write(self):
         components.write_bundle(self.bundle, self.root)
         with self.assertRaises(RuntimeError):

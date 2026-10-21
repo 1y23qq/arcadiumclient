@@ -39,26 +39,44 @@ public record WorldMetadata(String name, long lastPlayed, int gameMode, boolean 
             compound(input, "", 0, builder);
             if (!builder.dataFound) throw new IOException("World metadata has no Data compound");
             if (input.read() != -1) throw new IOException("World metadata contains trailing data");
+            if (builder.versionName.isBlank() && builder.worldBorder && builder.dataVersion == 0 && builder.versionId == 0) {
+                builder.versionName = "1.8";
+            }
             return new WorldMetadata(builder.name, builder.lastPlayed, builder.gameMode, builder.hardcore,
                 builder.cheats, Math.max(builder.dataVersion, builder.versionId), builder.versionName, false, true);
         }
     }
 
     public boolean newerThan189() {
+        return newerThan("1.8.9");
+    }
+
+    public boolean newerThan(String currentVersion) {
         if (dataVersion > 0) return true;
         if (versionName.isBlank()) return false;
-        var release = java.util.regex.Pattern.compile("^1\\.(\\d+)(?:\\D|$)").matcher(versionName);
-        if (!release.find()) return false;
+        var pattern = java.util.regex.Pattern.compile("^(\\d+)\\.(\\d+)(?:\\.(\\d+))?(?:\\D.*)?$");
+        var release = pattern.matcher(versionName);
+        var current = pattern.matcher(currentVersion);
+        if (!release.matches() || !current.matches()) return false;
         try {
-            return Integer.parseInt(release.group(1)) > 8;
+            for (int part = 1; part <= 3; part++) {
+                int saved = release.group(part) == null ? 0 : Integer.parseInt(release.group(part));
+                int running = current.group(part) == null ? 0 : Integer.parseInt(current.group(part));
+                if (saved != running) return saved > running;
+            }
+            return false;
         } catch (NumberFormatException ignored) {
             return true;
         }
     }
 
     public boolean needsWarning() {
-        return !readable || backup || newerThan189() || (!versionName.isBlank()
-            && !versionName.matches("1\\.[0-8](?:\\D.*)?"));
+        return needsWarning("1.8.9");
+    }
+
+    public boolean needsWarning(String currentVersion) {
+        return !readable || backup || newerThan(currentVersion) || (!versionName.isBlank()
+            && !versionName.matches("\\d+\\.\\d+(?:\\.\\d+)?(?:\\D.*)?"));
     }
 
     private static void compound(DataInputStream input, String path, int depth, Builder result) throws IOException {
@@ -79,6 +97,10 @@ public record WorldMetadata(String name, long lastPlayed, int gameMode, boolean 
             else if ((key.equals("Data/DataVersion") || key.equals("DataVersion")) && type == 3) result.dataVersion = input.readInt();
             else if (key.equals("Data/Version/Id") && type == 3) result.versionId = input.readInt();
             else if (key.equals("Data/Version/Name") && type == 8) result.versionName = input.readUTF();
+            else if (key.equals("Data/BorderSize") || key.equals("Data/BorderCenterX") || key.equals("Data/BorderCenterZ")) {
+                result.worldBorder = true;
+                skip(input, type, depth);
+            }
             else skip(input, type, depth + 1);
         }
     }
@@ -124,6 +146,7 @@ public record WorldMetadata(String name, long lastPlayed, int gameMode, boolean 
         int versionId;
         String versionName = "";
         boolean dataFound;
+        boolean worldBorder;
     }
 
     private static final class LimitedInputStream extends FilterInputStream {

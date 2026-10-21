@@ -13,7 +13,8 @@ ROOT = Path(__file__).resolve().parents[1]
 def entries(root=ROOT):
     components = {}
     for catalog in distribution_locks(root).values():
-        for entry in [*catalog["arcadiumComponents"], catalog["arcadiumBranding"]]:
+        branding = catalog.get("arcadiumBranding")
+        for entry in [*catalog["arcadiumComponents"], *([branding] if branding else [])]:
             if entry["file"] in components and entry["sha256"] != components[entry["file"]]["sha256"]:
                 raise RuntimeError("Conflicting source component: " + entry["file"])
             components[entry["file"]] = entry

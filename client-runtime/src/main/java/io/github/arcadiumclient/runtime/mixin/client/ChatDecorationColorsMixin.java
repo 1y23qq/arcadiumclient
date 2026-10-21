@@ -16,7 +16,6 @@ public abstract class ChatDecorationColorsMixin {
     private int arcadium$decoratedColors(String text, float x, float y, int color, boolean shadow, Operation<Integer> original) {
         if (text == null || text.indexOf(ChatTextMarks.COUNTER) < 0 && text.indexOf(ChatTextMarks.TIMESTAMP) < 0)
             return original.call(ChatTextMarks.strip(text), x, y, color, shadow);
-        TextRenderer font = (TextRenderer) (Object) this;
         int begin = 0, marker = 0;
         float cursor = x;
         for (int i = 0; i <= text.length(); i++) {
@@ -28,15 +27,15 @@ public abstract class ChatDecorationColorsMixin {
                 java.awt.Color selected = marker == ChatTextMarks.COUNTER ? ChatTweaksConfig.getCompactChatColor() : ChatTweaksConfig.getTimestampsColor();
                 int rgb = selected == null ? 0xAAAAAA : selected.getRGB();
                 paint = ((color & 0xFC000000) == 0 ? 0xFF000000 : color & 0xFF000000) | rgb & 0xFFFFFF;
-                inherited = "§r" + ChatTextMarks.withoutColors(inherited);
+                inherited = "§r";
                 segment = ChatTextMarks.withoutColors(segment);
             }
-            original.call(inherited + segment, cursor, y, paint, shadow);
-            cursor += font.getWidth(segment);
+            int end = original.call(inherited + segment, cursor, y, paint, shadow);
+            cursor = Math.max(cursor, end - (shadow ? 1 : 0));
             if (i < text.length()) marker = text.charAt(i) == ChatTextMarks.END ? 0 : text.charAt(i);
             begin = i + 1;
         }
-        return (int) cursor;
+        return (int) cursor + (shadow ? 1 : 0);
     }
 
     @WrapMethod(method = "getWidth(Ljava/lang/String;)I")

@@ -486,12 +486,18 @@ pub fn classpaths(
         }
     }
 
-    let mut classpaths = chosen
-        .values()
-        .map(|(_, name)| get_library(libraries_path, name, false))
-        .collect::<Result<HashSet<_>, _>>()?;
-
-    classpaths.insert(
+    let mut classpaths = Vec::new();
+    let mut seen = HashSet::new();
+    for library in libraries {
+        if !chosen.values().any(|(_, name)| *name == library.name) {
+            continue;
+        }
+        let path = get_library(libraries_path, &library.name, false)?;
+        if seen.insert(path.clone()) {
+            classpaths.push(path);
+        }
+    }
+    classpaths.push(
         arcadium_io::canonicalize(client_path)?
             .display()
             .to_string(),
@@ -499,10 +505,7 @@ pub fn classpaths(
 
     tracing::debug!(entries = classpaths.len(), "classpath resolved");
 
-    Ok(classpaths
-        .into_iter()
-        .collect::<Vec<_>>()
-        .join(constants::CLASSPATH_SEPARATOR))
+    Ok(classpaths.join(constants::CLASSPATH_SEPARATOR))
 }
 
 type ClasspathRank = (bool, Vec<u64>);

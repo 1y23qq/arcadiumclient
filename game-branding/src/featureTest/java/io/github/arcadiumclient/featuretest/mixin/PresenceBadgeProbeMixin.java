@@ -14,5 +14,6 @@ public class PresenceBadgeProbeMixin {
     private static void arcadium$badge(float x, float y, int textColor, CallbackInfo ci) {
         PresenceQa.tabIcon(Math.round(x), Math.round(y));
         PresenceQa.inlineIcon();
+        io.github.arcadiumclient.featuretest.Rendering042Qa.badge(x, y);
     }
 }

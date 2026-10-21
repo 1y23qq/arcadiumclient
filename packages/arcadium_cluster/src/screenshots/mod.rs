@@ -42,7 +42,7 @@ fn ensure_in_clusters(path: &Path) -> ClusterResult<PathBuf> {
 
 #[tracing::instrument(level = "debug", skip(cluster), fields(cluster_id = cluster.id))]
 pub fn list_cluster_screenshots(cluster: &Cluster) -> ClusterResult<Vec<ScreenshotInfo>> {
-    let dir = cluster.game_dir()?.join("screenshots");
+    let dir = cluster.user_game_dir()?.join("screenshots");
     let mut out = Vec::new();
 
     let Ok(entries) = std::fs::read_dir(&dir) else {

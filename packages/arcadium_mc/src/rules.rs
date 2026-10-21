@@ -54,11 +54,22 @@ pub fn validate_os_rule(rule: &OsRule, java_arch: &str, updated: bool) -> bool {
     let mut rule_match = true;
 
     if let Some(ref arch) = rule.arch {
-        rule_match &= !matches!(arch.as_str(), "x86" | "arm");
+        let canonical = match java_arch {
+            "amd64" | "x64" => "x86_64",
+            "arm64" => "aarch64",
+            value => value,
+        };
+        rule_match &= regex::Regex::new(&format!("^(?:{arch})$"))
+            .is_ok_and(|pattern| pattern.is_match(java_arch) || pattern.is_match(canonical));
     }
 
     if let Some(name) = &rule.name {
-        if updated && (name != &Os::LinuxArm64 || name != &Os::LinuxArm32) {
+        if (updated || rule.arch.is_some())
+            && !matches!(
+                name,
+                Os::LinuxArm64 | Os::LinuxArm32 | Os::OsxArm64 | Os::WindowsArm64
+            )
+        {
             rule_match &= Os::native() == name.get_os() || &Os::native_arch(java_arch) == name;
         } else {
             rule_match &= &Os::native_arch(java_arch) == name;
@@ -66,4 +77,28 @@ pub fn validate_os_rule(rule: &OsRule, java_arch: &str, updated: bool) -> bool {
     }
 
     rule_match
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn lwjgl_native_architectures_are_selected_independently() {
+        for (required, java, expected) in [
+            ("aarch64", "amd64", false),
+            ("aarch64", "aarch64", true),
+            ("x86_64", "amd64", true),
+            ("x86", "amd64", false),
+            ("aarch64", "arm64", true),
+        ] {
+            let rule: OsRule =
+                serde_json::from_value(serde_json::json!({"arch":required})).unwrap();
+            assert_eq!(
+                validate_os_rule(&rule, java, true),
+                expected,
+                "{required} vs {java}"
+            );
+        }
+    }
 }
