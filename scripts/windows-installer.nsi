@@ -305,19 +305,43 @@ Function ExtractPayload
     !insertmacro ArcadiumManagedPayloadFiles VerifyStagedFile
 FunctionEnd
 
-Function PrepareTransaction
-    Call CheckDiskSpace
+Function CheckUpdatePath
+    Pop $R0
+    StrLen $R1 $R0
+    ${GetParent} "$R0" $R2
+    StrLen $R2 $R2
+    ${If} $R1 > 259
+    ${OrIf} $R2 > 247
+        StrCpy $TransactionError "The installation path is too long to update safely. Choose a shorter folder, such as C:\ArcadiumClient."
+    ${EndIf}
+FunctionEnd
+
+!macro CheckManagedPath relativePath
+    Push "$StageDir\${relativePath}"
+    Call CheckUpdatePath
+    Push "$BackupDir\${relativePath}"
+    Call CheckUpdatePath
+    Push "$INSTDIR\${relativePath}"
+    Call CheckUpdatePath
     ${If} $TransactionError != ""
         Return
     ${EndIf}
+!macroend
+
+Function PrepareTransaction
     System::Call 'kernel32::GetCurrentProcessId() i .r0'
     System::Call 'kernel32::GetTickCount64() l .r1'
     StrCpy $TransactionDir "$INSTDIR\.arcadium-update-$0-$1"
-    StrCpy $StageDir "$TransactionDir\payload"
-    StrCpy $BackupDir "$TransactionDir\backup"
+    StrCpy $StageDir "$TransactionDir\p"
+    StrCpy $BackupDir "$TransactionDir\b"
     ${If} ${FileExists} "$TransactionDir"
         StrCpy $TransactionDir ""
         StrCpy $TransactionError "The update staging directory is already in use."
+        Return
+    ${EndIf}
+    !insertmacro ArcadiumManagedUpdateFiles CheckManagedPath
+    Call CheckDiskSpace
+    ${If} $TransactionError != ""
         Return
     ${EndIf}
     ClearErrors

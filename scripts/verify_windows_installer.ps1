@@ -8,8 +8,8 @@ $installer = Join-Path $projectRoot "build/installers/ArcadiumClientSetup-$Versi
 if ($manifest.launcherVersion -ne $Version -or (Get-FileHash -LiteralPath $installer -Algorithm SHA256).Hash.ToLowerInvariant() -ne $manifest.installerSha256) {
     throw 'Installer version or checksum mismatch'
 }
-$fixtureRoot = Join-Path $projectRoot 'build/installer-checks'
-$target = [IO.Path]::GetFullPath((Join-Path $fixtureRoot ([guid]::NewGuid().ToString('N'))))
+$fixtureRoot = [IO.Path]::GetFullPath((Join-Path ([IO.Path]::GetTempPath()) 'ArcadiumInstallerChecks'))
+$target = [IO.Path]::GetFullPath((Join-Path $fixtureRoot ([IO.Path]::GetRandomFileName())))
 if (!$target.StartsWith($fixtureRoot + [IO.Path]::DirectorySeparatorChar) -or (Test-Path -LiteralPath $target)) {
     throw 'Invalid installer fixture'
 }

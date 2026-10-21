@@ -17,6 +17,8 @@ import tomllib
 import uuid
 
 ROOT = Path(__file__).resolve().parents[1]
+PAYLOAD_DIRECTORY = "p"
+BACKUP_DIRECTORY = "b"
 CRT = ("concrt140.dll", "msvcp140.dll", "msvcp140_1.dll", "msvcp140_2.dll",
        "msvcp140_atomic_wait.dll", "msvcp140_codecvt_ids.dll", "vccorlib140.dll",
        "vcruntime140.dll", "vcruntime140_1.dll", "vcruntime140_threads.dll")
@@ -84,6 +86,8 @@ def manifest(stage: Path, target: Path, declared_bytes: int | None = None, incom
 def fixture(directory: Path, makensis: Path, kind: str):
     stage = directory / "source-stage"
     target = directory / "installed app"
+    if kind == "long_path":
+        target = directory / ("installed app " + "x" * max(1, 200 - len(str(directory))))
     stage.mkdir(parents=True)
     target.mkdir()
     payload = {"Arcadium.exe": b"MZ-new-fixture-payload\n", "LICENSE": b"new license\n",
@@ -168,7 +172,7 @@ def run_case(root: Path, makensis: Path, kind: str):
             try:
                 while not stop_watcher.is_set():
                     for transaction in target.glob(".arcadium-update-*"):
-                        stage = transaction / "payload"
+                        stage = transaction / PAYLOAD_DIRECTORY
                         if (stage / "Arcadium.exe").exists():
                             (stage / "concrt140.dll").mkdir()
                             watch_result.set()
@@ -189,7 +193,7 @@ def run_case(root: Path, makensis: Path, kind: str):
         if handoff:
             transaction = next(target.glob(".arcadium-update-*"))
             if kind in ("partial_commit", "restore_failure"):
-                locks.append(ReadLock(transaction / "payload/Arcadium.exe"))
+                locks.append(ReadLock(transaction / PAYLOAD_DIRECTORY / "Arcadium.exe"))
             if kind == "restore_failure":
                 def block_restore():
                     try:
@@ -213,7 +217,7 @@ def run_case(root: Path, makensis: Path, kind: str):
         code = process.wait(timeout=90)
         if watcher_failure:
             raise AssertionError(watcher_failure)
-        expected_handoff = kind not in ("low_space", "incomplete_payload", "extraction_io")
+        expected_handoff = kind not in ("low_space", "long_path", "incomplete_payload", "extraction_io")
         if handoff != expected_handoff:
             raise AssertionError(f"Unexpected handoff for {kind}: {handoff}, exit {code}")
         if kind == "success":
@@ -230,7 +234,7 @@ def run_case(root: Path, makensis: Path, kind: str):
             if code == 0 or not watch_result.is_set() or transaction is None:
                 raise AssertionError("The intended restore failure was not exercised")
             for name in ("Arcadium.exe", "components/a-primary.jar"):
-                if (transaction / "backup" / name).read_bytes() != old[name]:
+                if (transaction / BACKUP_DIRECTORY / name).read_bytes() != old[name]:
                     raise AssertionError("A failed restore lost its preserved backup: " + name)
             if not (transaction / "failure.txt").exists():
                 raise AssertionError("A failed restore did not preserve its recovery record")
@@ -247,6 +251,8 @@ def run_case(root: Path, makensis: Path, kind: str):
                 raise AssertionError("The original parent exited before a failed staging handoff")
             if kind == "extraction_io" and not watch_result.is_set():
                 raise AssertionError("The intended extraction write failure was not exercised")
+            if kind == "long_path" and "installation path is too long" not in Path(str(ready) + ".error").read_text():
+                raise AssertionError("The long destination was not rejected by the path preflight")
         if (target / "userdata/keep.txt").read_bytes() != old["userdata/keep.txt"]:
             raise AssertionError("User data was changed")
         result = {"case": kind, "passed": True, "handoff": handoff, "exitCode": code,
@@ -389,7 +395,7 @@ def main():
     parser = argparse.ArgumentParser(description="Exercise the actual NSIS update transaction in fresh isolated directories.")
     parser.add_argument("--makensis", type=Path)
     parser.add_argument("--output", type=Path)
-    parser.add_argument("--case", action="append", choices=("manual_install", "success", "low_space", "incomplete_payload",
+    parser.add_argument("--case", action="append", choices=("manual_install", "success", "low_space", "long_path", "incomplete_payload",
                         "extraction_io", "locked_old_file", "partial_commit", "restore_failure"))
     parser.add_argument("--old-installer", type=Path)
     parser.add_argument("--stage", type=Path)
@@ -406,7 +412,7 @@ def main():
     if output.exists():
         raise RuntimeError("The test output directory must be new")
     output.mkdir(parents=True)
-    cases = [] if args.full_only else args.case or ["manual_install", "success", "low_space", "incomplete_payload", "extraction_io",
+    cases = [] if args.full_only else args.case or ["manual_install", "success", "low_space", "long_path", "incomplete_payload", "extraction_io",
                                                    "locked_old_file", "partial_commit", "restore_failure"]
     results = []
     for case in cases:
