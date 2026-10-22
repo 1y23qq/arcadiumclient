@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 import shutil
 import subprocess
+import tomllib
 
 from prepare_forge1710 import ROOT
 
@@ -17,9 +18,10 @@ def launch(directory: Path, java_home: Path, shared: Path | None = None, debug_m
     build = ROOT / "build/forge1710"
     shutil.copy2(build / "ArcadiumForge-1.7.10.jar", directory / "mods/ArcadiumForge-1.7.10.jar")
     if qa or menus or world:
-        candidates = list((ROOT / "client-forge1710/build/libs").glob("ArcadiumForgeQa-*.jar"))
-        if len(candidates) != 1: raise RuntimeError("Build the Forge QA fixture before launching with --qa.")
-        shutil.copy2(candidates[0], directory / "mods/ArcadiumForgeQa.jar")
+        version = tomllib.loads((ROOT / "Cargo.toml").read_text(encoding="utf-8"))["workspace"]["package"]["version"]
+        fixture = ROOT / f"client-forge1710/build/libs/ArcadiumForgeQa-{version}.jar"
+        if not fixture.is_file(): raise RuntimeError("Build the Forge QA fixture before launching with --qa.")
+        shutil.copy2(fixture, directory / "mods/ArcadiumForgeQa.jar")
     profile = json.loads((directory / "launch.json").read_text(encoding="utf-8"))
     arguments = profile["javaArguments"]
     cp_index = arguments.index("-cp") + 1

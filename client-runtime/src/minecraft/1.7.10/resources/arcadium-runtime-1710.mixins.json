@@ -29,6 +29,7 @@
     "client.MixinKillEffectsDeath",
     "client.MixinKillEffectsRender",
     "client.MixinLightLevelOverlay",
+    "client.MixinMenuPanoramaReload",
     "client.MixinNickHiderTextRenderer",
     "client.MixinNoRenderBlocks",
     "client.MixinNoRenderCamera",

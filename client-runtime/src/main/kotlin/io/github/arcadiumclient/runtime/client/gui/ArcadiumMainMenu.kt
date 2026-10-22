@@ -37,20 +37,21 @@ import net.minecraft.client.Session
 import net.minecraft.client.gui.screen.menu.options.OptionsScreen
 import org.polyfrost.oneconfig.api.config.v1.ConfigManager
 import org.polyfrost.oneconfig.api.ui.v1.OneConfigUI
-import org.polyfrost.oneconfig.internal.OneConfigConfig
 import org.polyfrost.oneconfig.internal.ui.components.Icon
-import org.polyfrost.oneconfig.internal.ui.compose.BlurRenderer
 import org.polyfrost.oneconfig.internal.ui.compose.ComposeScreen
 import org.polyfrost.oneconfig.internal.ui.themes.*
 import io.github.arcadiumclient.runtime.ClientBuild
 import io.github.arcadiumclient.runtime.client.ClientPreferences
+import io.github.arcadiumclient.runtime.client.MenuPreferences
+import io.github.arcadiumclient.runtime.client.background.PanoramaCatalog
 import io.github.arcadiumclient.runtime.client.launcher.AccountRepository
 import io.github.arcadiumclient.runtime.client.launcher.NativeAccountBridge
 import io.github.arcadiumclient.runtime.mixin.client.access.SessionAccess
 
 class ArcadiumMainMenu : ComposeScreen(RenderMode.CONTINUOUS) {
     override val panoramaBlurRadius: Float
-        get() = if (OneConfigConfig.enableBackgroundBlur) BlurRenderer.FULLSCREEN_RADIUS else 0f
+        get() = PanoramaCatalog.blurRadius(MenuPreferences.titleBlurPercent)
+    override val shadesPanorama: Boolean get() = MenuPreferences.titleGradient
     private var setup by mutableStateOf(!ClientPreferences.setupComplete)
     private var page by mutableIntStateOf(0)
 
@@ -83,6 +84,10 @@ class ArcadiumMainMenu : ComposeScreen(RenderMode.CONTINUOUS) {
                     Row(Modifier.align(Alignment.BottomStart).padding(16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         UiButton("Licenses") { legal = true }
                         UiButton("Discord") { browse(ClientBuild.SUPPORT_URL) }
+                    }
+                    UiButton("Background", Modifier.align(Alignment.BottomEnd).padding(16.dp),
+                        icon = MENU_ICONS + "paintbrush.svg") {
+                        mc.openScreen(TitleBackgroundScreen(this@ArcadiumMainMenu))
                     }
                     if (legal) UiModalScrim({ legal = false }) {
                         ModalPanel(440.dp) {

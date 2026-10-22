@@ -52,6 +52,10 @@ Arcadium brand assets are supplied by the project owner. Minecraft game files,
 default skin textures and third-party restricted client code are not part of
 this source distribution.
 
+The additional title panoramas in `client-runtime/src/main/resources/assets/arcadium/panoramas/`
+are recordings supplied by the project owner. Their source-set identifiers and
+original image hashes are retained in the accompanying `provenance.json`.
+
 The optional Forge compatibility runtime retrieves the original official Forge
 artifact locally when Forge mods are used. Game patches and MCP mapping data
 are derived only in local build/test or game caches and are not conveyed in the

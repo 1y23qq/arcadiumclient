@@ -1,3 +1,9 @@
+## 0.4.3
+
+- Added title background settings with 15 panorama previews, blur and gradient controls.
+- Set Lakeside Morning as the new default background.
+- Added an optional resource pack panorama setting.
+
 ## 0.4.2
 
 - Rebuilt Minecraft 1.7.10 with native Forge mod loading and Angelica rendering.

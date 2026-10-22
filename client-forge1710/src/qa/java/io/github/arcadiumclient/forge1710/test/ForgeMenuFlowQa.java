@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import io.github.arcadiumclient.runtime.client.gui.ArcadiumMainMenu;
+import io.github.arcadiumclient.runtime.client.MenuPreferences;
 import io.github.arcadiumclient.runtime.client.gui.VideoSetting;
 import io.github.arcadiumclient.runtime.client.gui.VideoSettingsModel;
 import java.lang.reflect.Method;
@@ -55,6 +56,24 @@ public final class ForgeMenuFlowQa {
                 case 8 -> {
                     require(hasText("Resource Packs"), "The Arcadium resource pack menu did not open.");
                     ForgeRuntimeQa.capture(mc, "forge-packs", frames);
+                    mc.func_147108_a(new ArcadiumMainMenu());
+                }
+                case 9 -> click("Background");
+                case 10 -> {
+                    require(hasText("Blur strength") && hasText("Use resourcepack's panorama image"), "The background controls did not open.");
+                    require(MenuPreferences.getTitlePanorama().equals("lakeside-morning"), "The new default panorama was not applied.");
+                    ForgeRuntimeQa.capture(mc, "forge-background", frames);
+                    click("Aurora Village");
+                }
+                case 11 -> {
+                    require(MenuPreferences.getTitlePanorama().equals("aurora-village"), "The panorama card did not apply its selection.");
+                    click("Gradient overlay");
+                    ForgeRuntimeQa.capture(mc, "forge-background-selected", frames);
+                    click("Done");
+                }
+                case 12 -> {
+                    require(hasText("Singleplayer"), "The background editor did not return to the main menu.");
+                    ForgeRuntimeQa.capture(mc, "forge-title-customized", frames);
                     report(mc, true, null);
                     mc.func_71400_g(); done = true;
                 }
@@ -73,6 +92,7 @@ public final class ForgeMenuFlowQa {
         report.put("processId", ProcessHandle.current().pid()); report.put("capturedAt", java.time.Instant.now().toString());
         report.put("screen", mc.field_71462_r == null ? null : mc.field_71462_r.getClass().getName());
         report.put("videoSettings", video);
+        report.put("backgroundControls", stage >= 12);
         report.put("configs", ConfigRegistry.INSTANCE.getConfigs().stream().map(config -> Map.of("id", config.getId(), "title", config.getTitle().toString())).toList());
         Files.writeString(mc.field_71412_D.toPath().resolve("forge-menu-flow.json"), new GsonBuilder().setPrettyPrinting().create().toJson(report));
     }
