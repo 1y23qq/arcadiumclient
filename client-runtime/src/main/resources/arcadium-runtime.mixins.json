@@ -27,6 +27,7 @@
     "client.MixinBedwarsTabStats",
     "client.MixinChatFilters",
     "client.MixinContainerBackground",
+    "client.MixinConnectingServerCaption",
     "client.MixinCrosshairTweaksVisibility",
     "client.MixinCustomCrosshair",
     "client.MixinCuteVisualsPacket",

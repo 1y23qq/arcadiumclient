@@ -43,6 +43,10 @@ public final class HeightLimitText {
     }
 
     public static String template(int style, boolean showLimit, boolean showCurrent, boolean showDistance) {
+        return template(style, showLimit, showCurrent, showDistance, false);
+    }
+
+    public static String template(int style, boolean showLimit, boolean showCurrent, boolean showDistance, boolean spaceBeforeDistance) {
         if (style != 1) return "#current / #limit";
         StringBuilder text = new StringBuilder();
         if (showCurrent) text.append("#current");
@@ -50,13 +54,21 @@ public final class HeightLimitText {
             if (!text.isEmpty()) text.append(" / ");
             text.append("#limit");
         }
-        if (showDistance) text.append("(#distance)");
+        if (showDistance) {
+            if (spaceBeforeDistance && !text.isEmpty()) text.append(' ');
+            text.append("(#distance)");
+        }
         return text.toString();
     }
 
     public static String format(int style, int height, Integer limit, boolean showLimit,
                                 boolean showCurrent, boolean showDistance) {
-        return parts(template(style, showLimit, showCurrent, showDistance), height, limit).stream()
+        return format(style, height, limit, showLimit, showCurrent, showDistance, false);
+    }
+
+    public static String format(int style, int height, Integer limit, boolean showLimit,
+                                boolean showCurrent, boolean showDistance, boolean spaceBeforeDistance) {
+        return parts(template(style, showLimit, showCurrent, showDistance, spaceBeforeDistance), height, limit).stream()
                 .map(Part::text).collect(java.util.stream.Collectors.joining());
     }
 }

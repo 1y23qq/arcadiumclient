@@ -208,7 +208,8 @@ def build(java_home: Path, calamus: Path, components: Path) -> Path:
     for name, lines in services.items(): entries[name] = ("\n".join(sorted(lines)) + "\n").encode()
     for name in configs:
         config = entries[name].decode("utf-8")
-        for mixin in ("SdlCaptureMixin", "events.Mixin_ModernWindowFocusEvent", "events.Mixin_HudRenderEvent"):
+        for mixin in ("SdlCaptureMixin", "events.Mixin_ModernWindowFocusEvent", "events.Mixin_HudRenderEvent",
+                      "events.Mixin_KeyInputEvent", "events.Mixin_MouseInputEvent"):
             config = config.replace('"' + mixin + '",', "")
         entries[name] = config.encode("utf-8")
     tooltip_config = json.loads(entries["toolscroll.mixins.json"])
@@ -281,7 +282,7 @@ def build(java_home: Path, calamus: Path, components: Path) -> Path:
         jar.writestr("arcadium-minecraft-versions.json", (BUILD / "minecraft-versions.json").read_bytes())
         jar.writestr("arcadium-forge-access.json", json.dumps(access))
         jar.writestr("arcadium-forge-mixins.json", json.dumps(list(dict.fromkeys(configs))))
-        jar.writestr("mixins.arcadium-forge.json", json.dumps({"required": True, "minVersion": "0.8", "package": "io.github.arcadiumclient.forge1710.mixin", "compatibilityLevel": "JAVA_25", "client": ["ForgeTooltipScrollMixin", "ForgeHeartBlinkMixin", "ForgeHudRenderMixin", "ForgeAnimationsHudMixin", "ForgeWeatherMixin", "ForgeMinecraftExecutorMixin", "ForgeSkiaStateMixin", "ForgeVideoSettingsMixin", "ForgeGuiScaleHudMixin", "AngelicaNoRenderMixin"]}))
+        jar.writestr("mixins.arcadium-forge.json", json.dumps({"required": True, "minVersion": "0.8", "package": "io.github.arcadiumclient.forge1710.mixin", "compatibilityLevel": "JAVA_25", "client": ["ForgeTooltipScrollMixin", "ForgeHeartBlinkMixin", "ForgeHudRenderMixin", "ForgeAnimationsHudMixin", "ForgeWeatherMixin", "ForgeMinecraftExecutorMixin", "ForgeMinecraftInputMixin", "ForgeScreenInputMixin", "ForgeUnfocusedFpsMixin", "ForgeSkiaStateMixin", "ForgeVideoSettingsMixin", "ForgeGuiScaleHudMixin", "AngelicaNoRenderMixin"]}))
     print(f"Forge client built: {output} ({output.stat().st_size} bytes)")
     bootstrap = BUILD / "ArcadiumBootstrap-1.7.10.jar"
     with zipfile.ZipFile(bootstrap, "w", zipfile.ZIP_DEFLATED) as jar:

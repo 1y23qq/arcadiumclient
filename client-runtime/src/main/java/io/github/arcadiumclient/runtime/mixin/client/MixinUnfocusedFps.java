@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.Mixin;
 public abstract class MixinUnfocusedFps {
     @WrapMethod(method = "getMaxFramerate")
     private int arcadium$unfocusedFps(Operation<Integer> original) {
-        if (!Display.isCreated() || Display.isActive()) return original.call();
+        if (!OneConfigConfig.limitUnfocusedFps || !Display.isCreated() || Display.isActive()) return original.call();
         Minecraft client = Minecraft.getInstance();
         int activeLimit = client.options == null ? original.call() : client.options.fpsLimit;
         return UnfocusedFrameLimit.apply(activeLimit, false, OneConfigConfig.unfocusedFps);

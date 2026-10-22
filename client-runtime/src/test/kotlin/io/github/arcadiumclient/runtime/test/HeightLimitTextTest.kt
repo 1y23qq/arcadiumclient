@@ -9,6 +9,15 @@ import io.github.arcadiumclient.runtime.client.features.HeightLimitText
 
 class HeightLimitTextTest {
     @Test
+    fun compactSpacingIsOptionalWithoutAddingLeadingOrTrailingSpaces() {
+        assertEquals("#limit(#distance)", HeightLimitText.template(1, true, false, true, false))
+        assertEquals("#limit (#distance)", HeightLimitText.template(1, true, false, true, true))
+        assertEquals("(#distance)", HeightLimitText.template(1, false, false, true, true))
+        assertEquals("#limit", HeightLimitText.template(1, true, false, false, true))
+        assertEquals(HeightLimitText.template(0, true, false, true), HeightLimitText.template(0, true, false, true, true))
+    }
+
+    @Test
     fun compactMatchesTheReferenceAndSupportsAllValueCombinations() {
         val expected = listOf("", "256", "67", "67 / 256", "(189)", "256(189)", "67(189)", "67 / 256(189)")
         for (flags in 0..7) {

@@ -66,7 +66,9 @@ public class FreelookHandler {
     }
 
     public void setKeyDown(boolean down) {
+        if (keyDown == down) return;
         keyDown = down;
+        tick(Minecraft.getInstance());
     }
 
     public void handlePressAndHold(boolean pressed) {

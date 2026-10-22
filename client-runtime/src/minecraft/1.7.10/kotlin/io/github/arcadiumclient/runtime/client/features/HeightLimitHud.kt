@@ -26,12 +26,15 @@ class HeightLimitHud : TextHud("arcadium-height-limit-hud.json", "Height Limit H
     @Switch(title = "Show Distance to Limit", description = "Show the remaining blocks in parentheses in Compact style.")
     var showDistanceToLimit = true
 
+    @Switch(title = "Space Before Distance", description = "Add a space before the distance in Compact style.")
+    var spaceBeforeDistance = false
+
     @Switch(title = "Show Unknown Limit", description = "Display ? while this map's height limit is unavailable.")
     var showUnknown = false
 
     override fun addCallbacks(tree: Tree) {
         super.addCallbacks(tree)
-        val compact = arrayOf("showYLimit", "showCurrentY", "showDistanceToLimit")
+        val compact = arrayOf("showYLimit", "showCurrentY", "showDistanceToLimit", "spaceBeforeDistance")
         compact.forEach { tree.getProp(it).addDisplayCondition { if (style == 1) Property.Display.SHOWN else Property.Display.HIDDEN } }
         tree.getProp("style").addCallback {
             compact.forEach { tree.getProp(it).revaluateDisplay() }
@@ -58,10 +61,10 @@ class HeightLimitHud : TextHud("arcadium-height-limit-hud.json", "Height Limit H
         val value = HeightLimitSource.snapshot()
         if (HudManager.isEditing && (!value.supported || mc.player == null)) {
             return HeightLimitText.format(style, if (style == 1) 67 else 64, if (style == 1) 256 else 113,
-                showYLimit, showCurrentY, showDistanceToLimit)
+                showYLimit, showCurrentY, showDistanceToLimit, spaceBeforeDistance)
         }
         val height = mc.player?.let { floor(it.shape.minY).toInt() } ?: 0
-        return HeightLimitText.format(style, height, value.maximum, showYLimit, showCurrentY, showDistanceToLimit)
+        return HeightLimitText.format(style, height, value.maximum, showYLimit, showCurrentY, showDistanceToLimit, spaceBeforeDistance)
     }
 }
 

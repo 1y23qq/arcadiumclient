@@ -22,7 +22,7 @@ plugins {
 }
 
 group = "io.github.arcadiumclient"
-version = "0.4.3"
+version = "0.4.4"
 base.archivesName = "ArcadiumForgeCompat"
 
 repositories {

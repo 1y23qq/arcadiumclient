@@ -283,6 +283,9 @@ public class GuiMixinScoreboard {
 
     @Unique
     private int vanillahud$draw(Font font, String text, int x, int y, int color, Operation<Integer> original) {
+        //? if = 1.7.10 {
+        if (color == 0x20FFFFFF) color = 0xFFFFFFFF;
+        //?}
         if (Huds.INSTANCE.getScoreboard().getTextShadow()) {
             return font.drawWithShadow(text, x, y, color);
         }

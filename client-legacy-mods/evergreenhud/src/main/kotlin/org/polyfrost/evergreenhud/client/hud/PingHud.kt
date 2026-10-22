@@ -122,9 +122,12 @@ class PingHud : CachedTextHud(
         //? if > 1.8.9 {
         /*val ping = if (isReal) measuredPing() ?: serverReportedPing() else null
         *///?} else
-        val ping = if (isReal) ping else null
+        val ping = if (isReal) ping ?: serverReportedPing() else null
         lastPing = ping
         if (ping == null) return formatString.replace("#ping", "-1").replace("#avg", "-1").replace("#high", "-1")
+        //? if <= 1.8.9 {
+        if (this.ping == null) recordSample(ping)
+        //?}
         //? if > 1.8.9
         //recordSample(ping)
         return render(ping)
@@ -169,6 +172,16 @@ class PingHud : CachedTextHud(
     private fun serverReportedPing(): Long? =
         mc.player?.uuid?.let { mc.connection?.getPlayerInfo(it)?.latency?.toLong() }
     *///?} else {
+    private fun serverReportedPing(): Long? {
+        //? if = 1.7.10 {
+        val name = mc.player?.name ?: return null
+        return mc.networkHandler?.onlinePlayers?.filterIsInstance<net.minecraft.client.network.PlayerInfo>()
+            ?.firstOrNull { it.name == name }?.ping?.takeIf { it >= 0 }?.toLong()
+        //?} else {
+        /*return mc.player?.uuid?.let { mc.networkHandler?.getPlayerInfo(it)?.ping?.takeIf { it >= 0 }?.toLong() }
+        *///?}
+    }
+
     private fun requestPing(addressString: String) {
         requestStarted = now()
         val requestGeneration = generation

@@ -1,3 +1,10 @@
+## 0.4.4
+
+- Fixed 1.7.10 Zoom, menu keybinds, scoreboard text and fullscreen focus handling.
+- Improved Perspective input and Ping reliability.
+- Fixed the connecting screen to show the actual server.
+- Added Height Limit HUD spacing and an Unfocused FPS toggle.
+
 ## 0.4.3
 
 - Added title background settings with 15 panorama previews, blur and gradient controls.
