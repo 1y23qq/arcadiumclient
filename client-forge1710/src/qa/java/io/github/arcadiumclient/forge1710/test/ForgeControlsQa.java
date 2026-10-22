@@ -82,6 +82,9 @@ public final class ForgeControlsQa {
                     scoreboard.func_96529_a("\u00a7aGreen scoreboard text", objective).func_96647_c(2);
                     scoreboard.func_96529_a("\u00a7bCyan scoreboard text", objective).func_96647_c(1);
                     scoreboard.func_96530_a(1, objective);
+                    var sidebar = org.polyfrost.vanillahud.hud.Huds.INSTANCE.getScoreboard();
+                    sidebar.setScoreboardPoints(2);
+                    sidebar.setScorePointsColor(new org.polyfrost.compose.render.PolyColor(0x20FFFFFF));
                     key(Keyboard.KEY_C, true);
                 }
                 case 2 -> {

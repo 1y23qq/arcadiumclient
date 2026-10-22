@@ -269,7 +269,9 @@ def build(java_home: Path, calamus: Path, components: Path) -> Path:
     overrides = {file.relative_to(mixins_base).as_posix() for file in mixins_base.rglob("*.class")}
     with zipfile.ZipFile(reobfuscated) as source, zipfile.ZipFile(output, "w", zipfile.ZIP_DEFLATED) as jar:
         for name in source.namelist():
-            if not name.startswith("io/github/arcadiumclient/forge1710/") and name not in overrides: jar.writestr(name, source.read(name))
+            if not name.startswith("io/github/arcadiumclient/forge1710/") and name not in overrides and name != "version.properties": jar.writestr(name, source.read(name))
+        version_properties = source.read("version.properties").decode("utf-8") if "version.properties" in source.namelist() else ""
+        jar.writestr("version.properties", version_properties + "\narcadiumclient.version=" + version + "\n")
         base = ROOT / "client-forge1710/build/classes/java/main"
         for file in sorted(base.rglob("*.class")):
             if any(part in {"build", "tool"} for part in file.relative_to(base).parts): continue

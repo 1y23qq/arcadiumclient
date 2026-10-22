@@ -283,9 +283,6 @@ public class GuiMixinScoreboard {
 
     @Unique
     private int vanillahud$draw(Font font, String text, int x, int y, int color, Operation<Integer> original) {
-        //? if = 1.7.10 {
-        if (color == 0x20FFFFFF) color = 0xFFFFFFFF;
-        //?}
         if (Huds.INSTANCE.getScoreboard().getTextShadow()) {
             return font.drawWithShadow(text, x, y, color);
         }
@@ -338,6 +335,9 @@ public class GuiMixinScoreboard {
             target = "Lnet/minecraft/client/gui/Font;draw(Ljava/lang/String;III)I", ordinal = 0))
     private int vanillahud$entryName(Font font, String text, int x, int y, int color,
                                      Operation<Integer> original) {
+        //? if = 1.7.10 {
+        color |= 0xFF000000;
+        //?}
         return vanillahud$draw(font, text, x, y, color, original);
     }
 
@@ -357,6 +357,9 @@ public class GuiMixinScoreboard {
     private int vanillahud$title(Font font, String text, int x, int y, int color,
                                  Operation<Integer> original) {
         if (!Huds.INSTANCE.getScoreboard().getScoreboardTitle()) return 0;
+        //? if = 1.7.10 {
+        color |= 0xFF000000;
+        //?}
         return vanillahud$draw(font, text, x, y, color, original);
     }
     //?}

@@ -84,9 +84,9 @@
   "arcadiumComponents": [
     {
       "file": "ArcadiumForge-1.7.10.jar",
-      "sha1": "7636765e972cbaf8e37c6c0f1f1172ffe182a4d8",
-      "sha256": "e22be6b9c7a11047fefab19508d5639e9edd0212a1972fa685ac6b77ede36aa8",
-      "bytes": 117875744,
+      "sha1": "49dc85085b935ad24ec4f99cad6b639d95c8d70c",
+      "sha256": "40aa8db150fce8dfbe90d845b37d8cfd39e7d8849d6c3250182f3ba929b9d116",
+      "bytes": 117875871,
       "modId": "arcadiumclient",
       "license": "GPL-3.0-only",
       "authors": [
@@ -96,8 +96,8 @@
     },
     {
       "file": "ArcadiumBootstrap-1.7.10.jar",
-      "sha1": "d4a5d7f3350d059093e06c29d229e3d244d71c7b",
-      "sha256": "3028cd791be3db376c322a50011ec7faa4b081aaf23f841831cb88a66c6e8148",
+      "sha1": "3edab1e8ffc4ab29d641f435cf32489b9aa47797",
+      "sha256": "158219456ea711d59bee3b39111f1385f049d17bcd978cfe9750ada634e6b7f1",
       "bytes": 21823,
       "modId": "arcadium_forge_bootstrap",
       "license": "GPL-3.0-only",

@@ -10,7 +10,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import org.apache.logging.log4j.LogManager;
 
-@Mod(modid = "arcadiumclient", name = "Arcadium Client", version = "0.4.1", acceptedMinecraftVersions = "[1.7.10]", acceptableRemoteVersions = "*")
+@Mod(modid = "arcadiumclient", name = "Arcadium Client", acceptedMinecraftVersions = "[1.7.10]", acceptableRemoteVersions = "*")
 public final class ArcadiumForgeMod {
     @Mod.EventHandler
     public void initialize(FMLPreInitializationEvent event) {
