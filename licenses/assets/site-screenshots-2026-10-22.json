@@ -1,0 +1,31 @@
+{
+  "providedBy": "project owner",
+  "providedOn": "2026-10-22",
+  "modified": false,
+  "files": [
+    {
+      "path": "sites/arcadium-official/public/assets/launcher-home-f640f51643fe.png",
+      "source": "owner-supplied: launcher.png",
+      "sha256": "f640f51643fe8e76f79a44e696d2ebba7b09e7fef9c0af4bb082fa94467cb50f",
+      "bytes": 1368368,
+      "width": 1263,
+      "height": 865
+    },
+    {
+      "path": "sites/arcadium-official/public/assets/client-main-menu-d39da5ba1e1d.png",
+      "source": "owner-supplied: main menu.png",
+      "sha256": "d39da5ba1e1d933223ca31f525aa33c35d96e49ba5c3c20b2abd724b5c4f414a",
+      "bytes": 1125142,
+      "width": 1612,
+      "height": 940
+    },
+    {
+      "path": "sites/arcadium-official/public/assets/client-mod-menu-1b4da1abc2e1.png",
+      "source": "owner-supplied: ingame mod menu.png",
+      "sha256": "1b4da1abc2e1b51b5596f0fa9e7c6cfbdbb6fc0d819b094abec5405d41f77979",
+      "bytes": 750231,
+      "width": 1920,
+      "height": 1080
+    }
+  ]
+}

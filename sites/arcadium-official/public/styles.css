@@ -161,14 +161,7 @@ h3 { font-size: 16px; line-height: 1.45; font-weight: 600; letter-spacing: -.35p
 .showcase-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 13px 20px; border-bottom: 1px solid #303646; }
 .showcase-label { display: flex; align-items: center; gap: 9px; font-size: 12px; color: #cbd1e1; }
 .showcase-label svg { width: 16px; height: 16px; color: #9ca6c1; }
-.theme-tabs { display: flex; padding: 3px; border: 1px solid #303749; border-radius: 7px; gap: 3px; }
-.theme-tabs button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; border: 0; border-radius: 4px; padding: 5px 11px; min-height: 29px; background: none; color: #a2acc3; font-size: 11px; transition: background 160ms, color 160ms; }
-.theme-tabs button svg { width: 14px; height: 14px; }
-.theme-tabs button:hover { color: #fff; }
-.theme-tabs button[aria-selected='true'] { color: #e5e8ff; background: #2c354c; }
 .theme-image { border-radius: 0; }
-.theme-panel:not([hidden]) { animation: preview-in 180ms ease-out; }
-@keyframes preview-in { from { opacity: .55; } to { opacity: 1; } }
 .showcase-caption { display: flex; align-items: center; gap: 8px; font-size: 11px; color: #9faac0; border-top: 1px solid #303646; margin: 0; padding: 15px 20px; }
 .showcase-caption > span[aria-hidden] { color: #69768e; }
 .full-image-link { margin-left: auto; color: #c7d0ee; }
@@ -392,8 +385,6 @@ h3 { font-size: 16px; line-height: 1.45; font-weight: 600; letter-spacing: -.35p
   .hero-showcase { margin-top: 33px; }
   h2, .launcher-layout h2 { font-size: 30px; }
   .showcase-label { font-size: 11px; gap: 7px; }
-  .theme-tabs button { font-size: 10px; gap: 5px; padding-inline: 8px; }
-  .theme-tabs button svg { width: 12px; height: 12px; }
   .showcase-caption { column-gap: 6px; row-gap: 5px; }
   .full-image-link { flex-basis: 100%; margin-left: 0; margin-top: 3px; }
   .client-details { grid-template-columns: 1fr; gap: 24px; }

@@ -10,40 +10,6 @@
     document.addEventListener('visibilitychange', updateAnimation);
   }
 
-  for (const showcase of document.querySelectorAll('[data-tabs]')) {
-    const tabs = [...showcase.querySelectorAll('[role="tab"]')];
-    function selectTab(tab) {
-      for (const item of tabs) {
-        const selected = item === tab;
-        item.setAttribute('aria-selected', String(selected));
-        item.tabIndex = selected ? 0 : -1;
-        document.getElementById(item.getAttribute('aria-controls')).hidden = !selected;
-      }
-      const image = document.getElementById(tab.getAttribute('aria-controls')).querySelector('img');
-      showcase.querySelector('[data-active-theme]').textContent = `Glass ${tab.textContent.trim()}`;
-      showcase.querySelector('[data-theme-image-link]').href = image.getAttribute('src');
-    }
-    for (const tab of tabs) {
-      const preloadImage = () => {
-        document.getElementById(tab.getAttribute('aria-controls')).querySelector('img').loading = 'eager';
-      };
-      tab.addEventListener('pointerenter', preloadImage, {once: true});
-      tab.addEventListener('focus', preloadImage, {once: true});
-      tab.addEventListener('click', () => selectTab(tab));
-      tab.addEventListener('keydown', event => {
-        let index = tabs.indexOf(tab);
-        if (event.key === 'ArrowRight') index = (index + 1) % tabs.length;
-        else if (event.key === 'ArrowLeft') index = (index + tabs.length - 1) % tabs.length;
-        else if (event.key === 'Home') index = 0;
-        else if (event.key === 'End') index = tabs.length - 1;
-        else return;
-        event.preventDefault();
-        tabs[index].focus();
-        selectTab(tabs[index]);
-      });
-    }
-  }
-
   function setupPicker(name, panelAttribute) {
     const choices = [...document.querySelectorAll(`input[name="${name}"]`)];
     if (!choices.length) return;
