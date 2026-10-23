@@ -231,7 +231,9 @@ def cracked_and_session_smoke(executable, directory):
         selected = service.request("switch", account=offline["id"])
         assert selected["access_token"] == "0" and selected["kind"] == "offline"
         assert "refresh_token" not in selected
-        service.expect_error("session", "Enter a valid Minecraft access token", access_token="fixture\rprivate-token")
+        for token_type in ("access", "refresh"):
+            service.expect_error("session", "Enter a valid token and select its token type",
+                                 access_token="fixture\rprivate-token", token_type=token_type)
         current = service.request("list")
         require_metadata_only(current)
         assert len(current["users"]) == 1 and current["default_user"] == offline["id"]
