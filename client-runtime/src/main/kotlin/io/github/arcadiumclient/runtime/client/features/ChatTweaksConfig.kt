@@ -13,8 +13,13 @@ import org.polyfrost.oneconfig.api.config.v1.annotations.Switch
 import org.polyfrost.oneconfig.api.config.v1.annotations.Text
 import org.polyfrost.oneconfig.api.event.v1.eventHandler
 import org.polyfrost.oneconfig.api.event.v1.events.TickEvent
+import org.polyfrost.oneconfig.internal.emoji.EmojiText
 
 object ChatTweaksConfig : Config("chattweaks.json", "Chat Tweaks", Category.QOL) {
+    @JvmStatic @Switch(title = "Enable Emoji", description = "Render emoji shortcodes and supported Unicode emoji. Plain chat sends ASCII shortcodes for legacy servers.", subcategory = "Emoji")
+    var emoji = true
+    @JvmStatic @Switch(title = "Show Emoji Picker", description = "Open the picker in chat with the Emoji button or Ctrl+Space.", subcategory = "Emoji")
+    var showEmojiPicker = true
     @JvmStatic @Switch(title = "Remove Blank Messages", subcategory = "Cleanup") var removeBlankMessages = false
     @JvmStatic @Slider(title = "Chat History Limit", min = 100f, max = 16384f, step = 1f, subcategory = "History")
     var increaseChatHistoryLimit = 1000
@@ -62,6 +67,12 @@ object ChatTweaksConfig : Config("chattweaks.json", "Chat Tweaks", Category.QOL)
     override fun initialize(byConfigManager: Boolean) {
         super.initialize(byConfigManager)
         val tree = tree ?: return
+        EmojiText.setEnabled(emoji)
+        tree.getProp("emoji")?.addCallback { value ->
+            EmojiText.setEnabled(value == true)
+            ChatTweaks.requestRefresh()
+            false
+        }
         listOf("removeBlankMessages", "compactChat", "consecutiveCompactChat", "dontCompactScreenshots", "compactChatTime", "compactChatLimit", "compactChatLines",
             "compactChatFormat", "hideDuplicateCount", "timestamps", "timestampsFormat", "timestampsStyle", "timestampsBrackets",
             "timestampsLeftBracket", "timestampsRightBracket", "onlyNewTimestamps", "secondsOnTimestamps").forEach { key ->
@@ -76,6 +87,7 @@ object ChatTweaksConfig : Config("chattweaks.json", "Chat Tweaks", Category.QOL)
 
     @JvmStatic fun initialize() {
         preload()
+        EmojiText.setEnabled(emoji)
         ChatFilterPolicy.setHistoryLimit(increaseChatHistoryLimit)
         eventHandler { _: TickEvent.End -> ChatTweaks.tick(); ChatHistory.tick() }
     }

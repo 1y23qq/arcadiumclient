@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "io.github.arcadiumclient"
-version = "0.4.4"
+version = "0.4.5"
 base.archivesName = "ArcadiumRuntime"
 val minecraftVersion = providers.gradleProperty("minecraftVersion").getOrElse("1.8.9")
 require(minecraftVersion in setOf("1.7.10", "1.8.9")) { "Unsupported Minecraft version: $minecraftVersion" }
@@ -108,7 +108,10 @@ if (minecraftVersion == "1.7.10") {
             nativeSources.asFile.resolve("kotlin").walkTopDown().filter { it.isFile }
                 .map { it.relativeTo(nativeSources.asFile.resolve("kotlin")).invariantSeparatorsPath }.toList()
         from("src/main") {
-            exclude("**/client/bedwars/**", "**/features/NoHitDelayConfig.kt", "**/client/MixinNoHitDelay.java",
+            exclude {
+                it.path.contains("/client/bedwars/") && it.file.name !in setOf("BedwarsData.java", "BedwarsStats.java", "OverlayHttp.java", "PlayerNameUtil.java", "HypixelDataService.java")
+            }
+            exclude("**/features/NoHitDelayConfig.kt", "**/client/MixinNoHitDelay.java",
                 "**/client/MixinBedwars*.java", "**/client/MixinArcadiumPrefixTextRenderer.java",
                 "**/client/MixinBadlionEntityAnimations.java", "**/client/MixinGuiScaleSpectatorHud.java",
                 "**/client/MixinBadlionTitleAnimations.java", "**/client/MixinNickHiderTextWrapping.java",

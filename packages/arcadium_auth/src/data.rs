@@ -17,6 +17,7 @@ pub struct MinecraftAccount {
     pub username: String,
     pub access_token: String,
     pub refresh_token: String,
+    pub oauth_client_id: Option<String>,
     pub expires: DateTime<Utc>,
     #[serde(default = "default_account_kind")]
     pub kind: AccountKind,
@@ -29,6 +30,8 @@ struct StoredAccount {
     username: String,
     access_token: String,
     refresh_token: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    oauth_client_id: Option<String>,
     expires: DateTime<Utc>,
     #[serde(default = "default_account_kind")]
     kind: AccountKind,
@@ -48,6 +51,7 @@ impl From<MinecraftAccount> for StoredAccount {
             username: account.username,
             access_token: account.access_token,
             refresh_token: account.refresh_token,
+            oauth_client_id: account.oauth_client_id,
             expires: account.expires,
             kind: if session_token {
                 AccountKind::Microsoft
@@ -69,6 +73,7 @@ impl From<StoredAccount> for MinecraftAccount {
             username: account.username,
             access_token: account.access_token,
             refresh_token: account.refresh_token,
+            oauth_client_id: account.oauth_client_id,
             expires: account.expires,
             kind: if session {
                 AccountKind::Session
@@ -214,5 +219,25 @@ mod tests {
         let offline = serde_json::to_value(crate::offline_account("OfflineUser".into())).unwrap();
         assert_eq!(offline["kind"], "offline");
         assert!(offline.get("session_token").is_none());
+    }
+
+    #[test]
+    fn imported_refresh_registration_survives_storage_without_changing_legacy_accounts() {
+        let mut account = crate::offline_account("MicrosoftUser".into());
+        account.kind = AccountKind::Microsoft;
+        account.refresh_token = "refresh-fixture".into();
+        account.oauth_client_id = Some("00000000402b5328".into());
+        let stored = serde_json::to_value(&account).unwrap();
+        let legacy: LegacyAccount = serde_json::from_value(stored.clone()).unwrap();
+        assert!(matches!(legacy.kind, LegacyKind::Microsoft));
+        let loaded: MinecraftAccount = serde_json::from_value(stored.clone()).unwrap();
+        assert_eq!(loaded.oauth_client_id.as_deref(), Some("00000000402b5328"));
+        let mut old_stored = stored;
+        old_stored
+            .as_object_mut()
+            .unwrap()
+            .remove("oauth_client_id");
+        let old: MinecraftAccount = serde_json::from_value(old_stored).unwrap();
+        assert!(old.oauth_client_id.is_none());
     }
 }

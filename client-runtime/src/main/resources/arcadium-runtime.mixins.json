@@ -5,6 +5,9 @@
   "plugin": "com.moulberry.mixinconstraints.ConstraintsMixinPlugin",
   "mixins": [],
   "client": [
+    "client.EmojiSendMixin",
+    "client.EmojiFontMixin",
+    "client.EmojiChatPickerMixin",
     "client.ChatClickTweaksMixin",
     "client.ChatDecorationColorsMixin",
     "client.ChatInputTweaksMixin",

@@ -403,8 +403,17 @@ pub async fn refresh_microsoft_account(
     creds: &MinecraftAccount,
 ) -> Result<MinecraftAccount, MinecraftAuthError> {
     tracing::debug!("refreshing Microsoft account token");
-    let msa = refresh_msa_token(client, &creds.refresh_token).await?;
+    let msa = refresh_msa_token_for(
+        client,
+        &creds.refresh_token,
+        creds
+            .oauth_client_id
+            .as_deref()
+            .unwrap_or(MICROSOFT_CLIENT_ID),
+    )
+    .await?;
     let mut account = account_from_msa_token(client, msa, |_, _, _| {}).await?;
+    account.oauth_client_id = creds.oauth_client_id.clone();
     account.id = creds.id;
     Ok(account)
 }
@@ -513,21 +522,57 @@ async fn poll_device_token(
     }
 }
 
+fn legacy_client(client_id: &str) -> bool {
+    client_id.len() == 16 && client_id.bytes().all(|value| value.is_ascii_hexdigit())
+}
+
+fn refresh_endpoint(client_id: &str) -> &'static str {
+    if legacy_client(client_id) || client_id == "42a60a84-599d-44b2-a7c6-b00cdef1d6a2" {
+        "https://login.live.com/oauth20_token.srf"
+    } else {
+        "https://login.microsoftonline.com/consumers/oauth2/v2.0/token"
+    }
+}
+
 #[tracing::instrument(level = "debug", skip_all)]
-async fn refresh_msa_token(
+async fn refresh_msa_token_for(
     client: &Client,
     refresh_token: &str,
+    client_id: &str,
 ) -> Result<MsaToken, MinecraftAuthError> {
+    refresh_msa_token_at(
+        client,
+        refresh_token,
+        client_id,
+        refresh_endpoint(client_id),
+    )
+    .await
+}
+
+async fn refresh_msa_token_at(
+    client: &Client,
+    refresh_token: &str,
+    client_id: &str,
+    endpoint: &str,
+) -> Result<MsaToken, MinecraftAuthError> {
+    let legacy = legacy_client(client_id);
     let body = [
-        ("client_id", MICROSOFT_CLIENT_ID),
+        ("client_id", client_id),
         ("refresh_token", refresh_token),
         ("grant_type", "refresh_token"),
-        ("scope", MINECRAFT_SCOPES),
+        (
+            "scope",
+            if legacy {
+                "service::user.auth.xboxlive.com::MBI_SSL"
+            } else {
+                MINECRAFT_SCOPES
+            },
+        ),
     ];
 
     let res = auth_retry(|| {
         client
-            .post(token_url())
+            .post(endpoint)
             .header("Accept", "application/json")
             .form(&body)
             .send()
@@ -538,9 +583,23 @@ async fn refresh_msa_token(
         source,
     })?;
 
-    parse_json_response(res, MinecraftAuthStep::RefreshToken)
-        .await
-        .map(MsaToken::from_response)
+    let status = res.status();
+    if status == reqwest::StatusCode::BAD_REQUEST || status == reqwest::StatusCode::UNAUTHORIZED {
+        return Err(MinecraftAuthError::RefreshAuthorizationFailed);
+    }
+    if !status.is_success() {
+        return Err(MinecraftAuthError::ServiceError {
+            step: MinecraftAuthStep::RefreshToken,
+            status_code: status,
+        });
+    }
+    let mut token =
+        MsaToken::from_response(parse_json_response(res, MinecraftAuthStep::RefreshToken).await?);
+    if token.refresh_token.is_empty() {
+        token.refresh_token = refresh_token.to_string();
+    }
+    token.legacy_rps = legacy;
+    Ok(token)
 }
 
 struct MsaToken {
@@ -548,6 +607,7 @@ struct MsaToken {
     refresh_token: String,
     expires_in: u64,
     obtained_at: DateTime<Utc>,
+    legacy_rps: bool,
 }
 
 impl MsaToken {
@@ -557,6 +617,15 @@ impl MsaToken {
             refresh_token: raw.refresh_token,
             expires_in: raw.expires_in,
             obtained_at: Utc::now(),
+            legacy_rps: false,
+        }
+    }
+
+    fn rps_ticket(&self) -> String {
+        if self.legacy_rps {
+            self.access_token.clone()
+        } else {
+            format!("d={}", self.access_token)
         }
     }
 }
@@ -567,7 +636,7 @@ async fn account_from_msa_token(
     msa: MsaToken,
     on_progress: impl Fn(&str, u64, u64),
 ) -> Result<MinecraftAccount, MinecraftAuthError> {
-    let rps_ticket = format!("d={}", msa.access_token);
+    let rps_ticket = msa.rps_ticket();
     on_progress("Authenticating with Xbox Live", 1, AUTH_STEPS);
     let xbl = xbl_authenticate(client, &rps_ticket).await?;
     on_progress("Authorizing access (XSTS)", 2, AUTH_STEPS);
@@ -594,10 +663,50 @@ async fn account_from_msa_token(
         username: profile.name,
         access_token: minecraft_token.access_token,
         refresh_token: msa.refresh_token,
+        oauth_client_id: None,
         #[allow(clippy::cast_possible_wrap)]
         expires: msa.obtained_at + chrono::TimeDelta::seconds(msa.expires_in as i64),
         kind: AccountKind::Microsoft,
     })
+}
+
+fn normalize_refresh_import<'a>(
+    token: &'a str,
+    client_id: &str,
+) -> Result<(&'a str, String), crate::SessionLoginError> {
+    let token = token.trim();
+    if token.is_empty()
+        || token.len() > 16384
+        || !token.bytes().all(|value| value.is_ascii_graphic())
+    {
+        return Err(crate::SessionLoginError::InvalidToken);
+    }
+    let client_id = client_id.trim();
+    let client_id = if client_id.is_empty() {
+        MICROSOFT_CLIENT_ID.to_string()
+    } else if legacy_client(client_id) {
+        client_id.to_ascii_lowercase()
+    } else {
+        Uuid::parse_str(client_id)
+            .ok()
+            .filter(|id| !id.is_nil())
+            .ok_or(crate::SessionLoginError::InvalidClientId)?
+            .to_string()
+    };
+    Ok((token, client_id))
+}
+
+#[tracing::instrument(level = "debug", skip_all)]
+pub(crate) async fn import_refresh_token(
+    client: &Client,
+    token: &str,
+    client_id: &str,
+) -> AuthResult<MinecraftAccount> {
+    let (token, client_id) = normalize_refresh_import(token, client_id)?;
+    let msa = refresh_msa_token_for(client, token, &client_id).await?;
+    let mut account = account_from_msa_token(client, msa, |_, _, _| {}).await?;
+    account.oauth_client_id = Some(client_id);
+    Ok(account)
 }
 
 #[tracing::instrument(level = "debug", skip_all)]
@@ -763,6 +872,7 @@ struct OAuthErrorResponse {
 #[derive(Deserialize)]
 struct MsaTokenResponse {
     access_token: String,
+    #[serde(default)]
     refresh_token: String,
     expires_in: u64,
 }
@@ -881,6 +991,162 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn refresh_import_validates_tokens_and_keeps_the_issuing_registration() {
+        let (token, client_id) = normalize_refresh_import("  fixture.refresh-token  ", "").unwrap();
+        assert_eq!(token, "fixture.refresh-token");
+        assert_eq!(client_id, MICROSOFT_CLIENT_ID);
+        assert_eq!(
+            normalize_refresh_import(token, "00000000402B5328")
+                .unwrap()
+                .1,
+            "00000000402b5328"
+        );
+        assert_eq!(
+            normalize_refresh_import(token, "42A60A84-599D-44B2-A7C6-B00CDEF1D6A2")
+                .unwrap()
+                .1,
+            "42a60a84-599d-44b2-a7c6-b00cdef1d6a2"
+        );
+        for invalid in ["", "Bearer fixture", "line\r\nsecret", "not\u{200b}ascii"] {
+            assert!(normalize_refresh_import(invalid, "").is_err());
+        }
+        assert!(normalize_refresh_import(&"x".repeat(16385), "").is_err());
+        for invalid in [
+            "not-a-client",
+            "https://example.com",
+            "00000000-0000-0000-0000-000000000000",
+        ] {
+            assert!(matches!(
+                normalize_refresh_import(token, invalid),
+                Err(crate::SessionLoginError::InvalidClientId)
+            ));
+        }
+        assert!(refresh_endpoint(MICROSOFT_CLIENT_ID).starts_with("https://"));
+        assert_eq!(
+            refresh_endpoint("00000000402b5328"),
+            "https://login.live.com/oauth20_token.srf"
+        );
+        assert_eq!(
+            refresh_endpoint("42a60a84-599d-44b2-a7c6-b00cdef1d6a2"),
+            "https://login.live.com/oauth20_token.srf"
+        );
+    }
+
+    async fn refresh_reply(
+        client_id: &str,
+        status: &str,
+        body: &str,
+    ) -> (
+        Result<MsaToken, MinecraftAuthError>,
+        std::collections::HashMap<String, String>,
+    ) {
+        use std::io::{Read, Write};
+        let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        let endpoint = format!("http://{}/token", listener.local_addr().unwrap());
+        let response = format!(
+            "HTTP/1.1 {status}\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}",
+            body.len()
+        );
+        let server = std::thread::spawn(move || {
+            let (mut stream, _) = listener.accept().unwrap();
+            stream
+                .set_read_timeout(Some(Duration::from_secs(5)))
+                .unwrap();
+            let mut request = Vec::new();
+            let mut buffer = [0; 4096];
+            let header_end = loop {
+                let count = stream.read(&mut buffer).unwrap();
+                assert!(count > 0);
+                request.extend_from_slice(&buffer[..count]);
+                if let Some(end) = request.windows(4).position(|value| value == b"\r\n\r\n") {
+                    break end + 4;
+                }
+            };
+            let headers = String::from_utf8_lossy(&request[..header_end]);
+            assert!(headers.starts_with("POST /token HTTP/1.1"));
+            let length = headers
+                .lines()
+                .find_map(|line| {
+                    line.to_ascii_lowercase()
+                        .strip_prefix("content-length:")
+                        .and_then(|value| value.trim().parse::<usize>().ok())
+                })
+                .unwrap();
+            while request.len() < header_end + length {
+                let count = stream.read(&mut buffer).unwrap();
+                assert!(count > 0);
+                request.extend_from_slice(&buffer[..count]);
+            }
+            stream.write_all(response.as_bytes()).unwrap();
+            url::form_urlencoded::parse(&request[header_end..header_end + length])
+                .into_owned()
+                .collect()
+        });
+        let client = Client::builder()
+            .no_proxy()
+            .redirect(reqwest::redirect::Policy::none())
+            .build()
+            .unwrap();
+        let result = refresh_msa_token_at(&client, "fixture-refresh", client_id, &endpoint).await;
+        (result, server.join().unwrap())
+    }
+
+    #[tokio::test]
+    async fn refresh_exchange_uses_original_client_rotates_tokens_and_selects_the_correct_rps_ticket()
+     {
+        let (result, form) = refresh_reply(
+            MICROSOFT_CLIENT_ID, "200 OK",
+            r#"{"access_token":"fixture-access","refresh_token":"fixture-rotated","expires_in":3600}"#,
+        ).await;
+        let token = result.unwrap();
+        assert_eq!(form["client_id"], MICROSOFT_CLIENT_ID);
+        assert_eq!(form["scope"], MINECRAFT_SCOPES);
+        assert_eq!(form["grant_type"], "refresh_token");
+        assert_eq!(form["refresh_token"], "fixture-refresh");
+        assert_eq!(token.refresh_token, "fixture-rotated");
+        assert_eq!(token.rps_ticket(), "d=fixture-access");
+
+        let (result, form) = refresh_reply(
+            "00000000402b5328",
+            "200 OK",
+            r#"{"access_token":"fixture-legacy-ticket","expires_in":86400}"#,
+        )
+        .await;
+        let token = result.unwrap();
+        assert_eq!(form["client_id"], "00000000402b5328");
+        assert_eq!(form["scope"], "service::user.auth.xboxlive.com::MBI_SSL");
+        assert_eq!(token.rps_ticket(), "fixture-legacy-ticket");
+        assert_eq!(token.refresh_token, "fixture-refresh");
+    }
+
+    #[tokio::test]
+    async fn refresh_errors_never_echo_private_provider_responses() {
+        for status in [
+            "400 Bad Request",
+            "401 Unauthorized",
+            "429 Too Many Requests",
+            "500 Internal Server Error",
+        ] {
+            let (result, _) = refresh_reply(
+                MICROSOFT_CLIENT_ID,
+                status,
+                r#"{"error":"invalid_grant","error_description":"private-provider-response"}"#,
+            )
+            .await;
+            let error = result.err().unwrap();
+            assert!(!error.to_string().contains("private-provider-response"));
+            assert!(!format!("{error:?}").contains("private-provider-response"));
+            if status.starts_with("400") || status.starts_with("401") {
+                assert!(matches!(
+                    error,
+                    MinecraftAuthError::RefreshAuthorizationFailed
+                ));
+                assert!(error.to_string().contains("OAuth client ID"));
+            }
+        }
+    }
 
     #[test]
     fn loopback_callback_checks_state_before_denial_and_rejects_duplicates() {

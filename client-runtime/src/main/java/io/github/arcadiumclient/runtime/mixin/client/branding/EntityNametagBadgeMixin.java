@@ -16,7 +16,10 @@ public abstract class EntityNametagBadgeMixin {
     private void arcadium$nametagLayout(Entity entity, String name, double x, double y, double z, int distance,
                                         Operation<Void> original) {
         NametagLayout.Scope previous = NametagLayout.begin(entity, name);
-        try { original.call(entity, name, x, y, z, distance); }
+        try {
+            original.call(entity, NametagLayout.display(name), x, y, z, distance);
+            io.github.arcadiumclient.runtime.client.features.LevelHead.render(entity, name, x, y, z);
+        }
         finally { NametagLayout.end(previous); }
     }
 }

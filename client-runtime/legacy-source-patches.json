@@ -362,5 +362,25 @@
       "from": "String text, float x, float y",
       "to": "String text, int x, int y"
     }
+  ],
+  "java/io/github/arcadiumclient/runtime/client/features/LevelHead.java": [
+    {
+      "from": "mc.textRenderer.draw(text, x, 0,",
+      "to": "mc.textRenderer.draw(text, (int) x, 0,"
+    }
+  ],
+  "java/io/github/arcadiumclient/runtime/mixin/client/EmojiFontMixin.java": [
+    {
+      "from": "draw(Ljava/lang/String;FFIZ)I",
+      "to": "draw(Ljava/lang/String;IIIZ)I"
+    },
+    {
+      "from": "String text, float x, float y",
+      "to": "String text, int x, int y"
+    },
+    {
+      "from": "float cursor = x;",
+      "to": "int cursor = x;"
+    }
   ]
 }

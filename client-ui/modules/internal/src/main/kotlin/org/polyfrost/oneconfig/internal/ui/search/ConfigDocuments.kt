@@ -11,6 +11,7 @@ import org.polyfrost.oneconfig.api.hud.v1.HudManager
 import org.polyfrost.oneconfig.internal.ui.api.ConfigData
 import org.polyfrost.oneconfig.internal.ui.api.ConfigRegistry
 import org.polyfrost.oneconfig.internal.ui.api.TreeConfigData
+import org.polyfrost.oneconfig.internal.ui.api.ChatModuleGroup
 import org.polyfrost.oneconfig.internal.ui.components.asRenderText
 import org.polyfrost.oneconfig.internal.ui.components.localizedDescription
 import org.polyfrost.oneconfig.internal.ui.components.localizedGroup
@@ -29,6 +30,7 @@ private const val ID_SEPARATOR = "::"
 object ConfigDocumentSource : SearchDocumentSource {
     override fun documents(): List<SearchDocument<*>> {
         val documents = ArrayList<SearchDocument<*>>()
+        if (ConfigRegistry.configs.any { ChatModuleGroup.contains(it.id) }) documents += modDocument(ChatModuleGroup)
         ConfigRegistry.configs.toList().forEach { config ->
             val searchable = ConfigRegistry.shouldShowInSearch(config)
             if (searchable && ConfigRegistry.shouldShowModCard(config)) {

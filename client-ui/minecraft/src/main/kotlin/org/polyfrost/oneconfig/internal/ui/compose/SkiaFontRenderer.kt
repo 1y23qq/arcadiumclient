@@ -16,6 +16,7 @@ import org.jetbrains.skia.impl.RefCnt
 import org.polyfrost.compose.mc.McFontQueue
 import org.polyfrost.compose.mc.MinecraftTextStyle
 import org.polyfrost.compose.render.FontManager
+import org.polyfrost.oneconfig.internal.emoji.EmojiText
 import org.polyfrost.oneconfig.internal.FontPreferences
 import org.slf4j.LoggerFactory
 
@@ -145,6 +146,7 @@ object SkiaFontRenderer : PreparableReloadListener {
     }
 
     private fun advanceOf(cp: Int, bold: Boolean): Float {
+        if (EmojiText.enabled() && EmojiText.isGlyph(cp)) return EmojiText.ADVANCE + if (bold) 1f else 0f
         if (FontPreferences.modSource() == FontPreferences.Source.INTER) {
             return (interAdvance(cp) ?: unifontAdvance(cp) ?: MISSING_ADVANCE) + if (bold) DEFAULT_OFFSET else 0f
         }
@@ -178,7 +180,8 @@ object SkiaFontRenderer : PreparableReloadListener {
         return advance
     }
 
-    fun measureWidth(text: String): Float {
+    fun measureWidth(input: String): Float {
+        val text = EmojiText.display(input)
         ensureLoaded()
         var w = 0f
         var widest = 0f
@@ -230,7 +233,8 @@ object SkiaFontRenderer : PreparableReloadListener {
     internal var reloadFailed = false
         private set
 
-    private fun drawGlyphs(canvas: Canvas, text: String, x: Float, y: Float, color: Int, scale: Float, isShadow: Boolean) {
+    private fun drawGlyphs(canvas: Canvas, input: String, x: Float, y: Float, color: Int, scale: Float, isShadow: Boolean) {
+        val text = EmojiText.display(input)
         var curX = x
         var curY = y
         val style = MinecraftTextStyle(color)
@@ -275,6 +279,15 @@ object SkiaFontRenderer : PreparableReloadListener {
 
     private fun drawCodepoint(canvas: Canvas, cp: Int, x: Float, y: Float, color: Int, scale: Float,
             shadow: Boolean, bold: Boolean, italic: Boolean) {
+        if (EmojiText.enabled() && EmojiText.isGlyph(cp)) {
+            val image = emojiImage() ?: return
+            val index = EmojiText.index(cp)
+            val shift = if (shadow) scale else 0f
+            val tint = (color and 0xFF000000.toInt()) or if (shadow) 0 else 0xFFFFFF
+            blit(canvas, image, (index % 8 * 64).toFloat(), (index / 8 * 64).toFloat(), 64f, 64f,
+                x + shift, y + shift, 8f * scale, 8f * scale, tint, false, italic, 0f)
+            return
+        }
         if (FontPreferences.modSource() == FontPreferences.Source.INTER) {
             val inter = interAdvance(cp) != null
             drawVectorGlyph(canvas, cp, x, y, color, scale, shadow, bold, italic,
@@ -302,6 +315,23 @@ object SkiaFontRenderer : PreparableReloadListener {
         } else if (unifontAdvance(cp) != null) {
             drawVectorGlyph(canvas, cp, x, y, color, scale, shadow, bold, italic, UNIFONT_KEY, UNIFONT_SIZE)
         }
+    }
+
+    private var emojiAtlas: Image? = null
+    private var emojiAttempted = false
+
+    private fun emojiImage(): Image? {
+        if (!emojiAttempted) {
+            emojiAttempted = true
+            try {
+                EmojiText::class.java.getResourceAsStream(EmojiText.ATLAS)?.use {
+                    emojiAtlas = Image.makeFromEncoded(it.readBytes())
+                }
+            } catch (failure: Exception) {
+                LOGGER.warn("Could not load emoji atlas", failure)
+            }
+        }
+        return emojiAtlas
     }
 
     private fun drawVectorGlyph(canvas: Canvas, cp: Int, x: Float, y: Float, color: Int, scale: Float,

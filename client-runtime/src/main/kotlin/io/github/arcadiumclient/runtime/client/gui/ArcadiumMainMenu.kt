@@ -121,6 +121,8 @@ private fun AccountMenu(modifier: Modifier, onSkins: () -> Unit) {
     var add by remember { mutableStateOf(false) }
     var method by remember { mutableStateOf<String?>(null) }
     var input by remember { mutableStateOf("") }
+    var refreshToken by remember { mutableStateOf(false) }
+    var oauthClientId by remember { mutableStateOf("") }
     var busy by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     var progress by remember { mutableStateOf("") }
@@ -150,6 +152,8 @@ private fun AccountMenu(modifier: Modifier, onSkins: () -> Unit) {
         add = false
         method = null
         input = ""
+        oauthClientId = ""
+        refreshToken = false
     }
     LaunchedEffect(Unit) { runCatching { refresh() }.onFailure { error = "Open the Arcadium launcher to manage accounts." } }
     DisposableEffect(Unit) { onDispose { if (busy) NativeAccountBridge.cancelLogin() } }
@@ -181,7 +185,9 @@ private fun AccountMenu(modifier: Modifier, onSkins: () -> Unit) {
                     }
                 }
             }
-            UiButton("Add account", Modifier.fillMaxWidth(), enabled = !busy) { add = true; method = null }
+            UiButton("Add account", Modifier.fillMaxWidth(), enabled = !busy) {
+                add = true; method = null; input = ""; oauthClientId = ""; refreshToken = false
+            }
         }
         if (expanded || add) error?.let { UiText(it, 11.sp, color = UiDangerColor, maxLines = 3) }
         if (busy) UiText(progress.ifBlank { "Working..." }, 12.sp, color = UiTextSecondary)
@@ -202,18 +208,33 @@ private fun AccountMenu(modifier: Modifier, onSkins: () -> Unit) {
         }
         if (add && method in listOf("Cracked", "Session")) {
             val offline = method == "Cracked"
-            UiTextField(input, { input = it }, Modifier.fillMaxWidth(),
-                if (offline) "Username" else "Session token", maxLength = if (offline) 16 else 16384, password = !offline)
+            if (!offline) {
+                UiDropdown("", listOf(false, true), refreshToken,
+                    { if (it) "Microsoft refresh token" else "Minecraft access token" }, Modifier.fillMaxWidth()) { if (!busy) refreshToken = it }
+                if (refreshToken) {
+                    UiTextField(oauthClientId, { if (!busy) oauthClientId = it }, Modifier.fillMaxWidth(), "OAuth client ID (optional)", maxLength = 36)
+                    UiText("Use the issuing app's client ID. Leave empty for an Arcadium token.", 11.sp, color = UiTextSecondary, maxLines = 3)
+                }
+            }
+            UiTextField(input, { if (!busy) input = it }, Modifier.fillMaxWidth(),
+                if (offline) "Username" else if (refreshToken) "Microsoft refresh token" else "Minecraft access token",
+                maxLength = if (offline) 16 else 16384, password = !offline)
             UiButton("Add", Modifier.fillMaxWidth(), filled = true, enabled = !busy && input.isNotBlank()) {
+                val value = input
+                val refresh = refreshToken
+                val clientId = oauthClientId
+                if (!offline) input = ""
                 run {
                     val result = withContext(Dispatchers.IO) {
-                        if (offline) NativeAccountBridge.addOffline(input) else NativeAccountBridge.importSession(input)
+                        if (offline) NativeAccountBridge.addOffline(value) else NativeAccountBridge.importSession(value, refresh, clientId)
                     }
                     activate(result)
                 }
             }
         }
-        if (add) UiButton("Cancel", Modifier.fillMaxWidth()) { NativeAccountBridge.cancelLogin(); add = false; method = null; input = "" }
+        if (add) UiButton("Cancel", Modifier.fillMaxWidth()) {
+            NativeAccountBridge.cancelLogin(); add = false; method = null; input = ""; oauthClientId = ""; refreshToken = false
+        }
         UiButton("Skins", Modifier.fillMaxWidth().height(34.dp), icon = UI_ASSETS + "icons/shirt.svg", onClick = onSkins)
     }
 }

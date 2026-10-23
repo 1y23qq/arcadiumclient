@@ -127,6 +127,12 @@ public final class Rendering042Qa {
         var value = source.getDeclaredField("value"); value.setAccessible(true);
         value.set(null, Class.forName(FEATURES + "HeightLimitSource$Snapshot").getConstructor(boolean.class, String.class, Integer.class, boolean.class).newInstance(true, "QA", 113, true));
         dummy = new QaPlayer(mc.world, new GameProfile(PLAYER, "ArcadiumDummy"));
+        if (Boolean.getBoolean("arcadium.nametag045")) {
+            var team = mc.world.getScoreboard().addTeam("nametag045");
+            team.setPrefix("§b[MVP§9++§b] ");
+            team.setSuffix(" §7[QUEST]   ");
+            mc.world.getScoreboard().addMemberToTeam("ArcadiumDummy", "nametag045");
+        }
         mc.world.forceEntity(4242, dummy);
         stat(FEATURES + "ChatTweaksConfig", "setCompactChat", true);
         stat(FEATURES + "ChatTweaksConfig", "setCompactChatFormat", 4);

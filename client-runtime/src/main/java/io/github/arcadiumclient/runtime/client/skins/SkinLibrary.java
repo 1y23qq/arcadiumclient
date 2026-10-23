@@ -16,7 +16,9 @@ import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
@@ -38,7 +40,16 @@ public final class SkinLibrary {
     }
 
     public record Image(byte[] png, int height) {}
-    private static final class Index { List<Entry> skins = new ArrayList<>(); }
+    private static final class LocalSelection {
+        String id;
+        String variant;
+
+        LocalSelection(String id, String variant) { this.id = id; this.variant = variant; }
+    }
+    private static final class Index {
+        List<Entry> skins = new ArrayList<>();
+        Map<String, LocalSelection> localSelections = new HashMap<>();
+    }
     private final Path root;
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
     private Index index;
@@ -78,9 +89,11 @@ public final class SkinLibrary {
         load();
         Entry entry = find(id);
         Path target = imagePath(entry.id);
+        Map<String, LocalSelection> previousSelections = new HashMap<>(index.localSelections);
         index.skins.remove(entry);
+        index.localSelections.entrySet().removeIf(value -> value.getValue().id.equals(id));
         try { save(); }
-        catch (IOException failure) { index.skins.add(entry); throw failure; }
+        catch (IOException failure) { index.skins.add(entry); index.localSelections = previousSelections; throw failure; }
         Files.deleteIfExists(target);
     }
 
@@ -90,6 +103,34 @@ public final class SkinLibrary {
         if (!Files.isRegularFile(file, LinkOption.NOFOLLOW_LINKS) || Files.size(file) > MAX_BYTES)
             throw new IOException("The saved skin image is missing or invalid. Import it again.");
         return canonicalize(Files.readAllBytes(file)).png;
+    }
+
+    public synchronized Entry localSelection(UUID account) throws IOException {
+        load();
+        LocalSelection selection = index.localSelections.get(account.toString());
+        if (selection == null) return null;
+        Entry entry = find(selection.id).copy();
+        entry.variant = entry.height == 32 ? "classic" : variant(selection.variant);
+        return entry;
+    }
+
+    public synchronized void selectLocal(UUID account, String id) throws IOException {
+        load();
+        selectLocal(account, id, id == null ? null : find(id).variant);
+    }
+
+    public synchronized void selectLocal(UUID account, String id, String model) throws IOException {
+        load();
+        Entry entry = id == null ? null : find(id);
+        String key = account.toString();
+        LocalSelection previous = index.localSelections.get(key);
+        if (id == null) index.localSelections.remove(key);
+        else index.localSelections.put(key, new LocalSelection(id, entry.height == 32 ? "classic" : variant(model)));
+        try { save(); }
+        catch (IOException failure) {
+            if (previous == null) index.localSelections.remove(key); else index.localSelections.put(key, previous);
+            throw failure;
+        }
     }
 
     private Entry find(String id) throws IOException {
@@ -117,6 +158,13 @@ public final class SkinLibrary {
                 clean.add(entry);
             }
             loaded.skins = clean;
+            if (loaded.localSelections == null) loaded.localSelections = new HashMap<>();
+            loaded.localSelections.entrySet().removeIf(entry -> {
+                try { UUID.fromString(entry.getKey()); }
+                catch (RuntimeException invalid) { return true; }
+                LocalSelection selection = entry.getValue();
+                return selection == null || clean.stream().noneMatch(skin -> skin.id.equals(selection.id));
+            });
             index = loaded;
         } catch (RuntimeException invalid) { throw new IOException("The saved skin index is invalid. Your PNG files have been kept."); }
     }

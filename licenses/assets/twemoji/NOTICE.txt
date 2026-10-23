@@ -1,0 +1,9 @@
+Twemoji graphics by Twitter, Inc. and contributors.
+Copyright (c) 2014-2021 Twitter.
+Copyright (c) 2022-present Jason Sofonia & Justine De Caires.
+Source: https://github.com/jdecked/twemoji
+Graphics licensed under Creative Commons Attribution 4.0 International:
+https://creativecommons.org/licenses/by/4.0/
+Arcadium selected 64 PNGs, resized them from 72x72 to 64x64 and combined
+them in a 512x512 RGBA atlas. No upstream JavaScript code is included.
+Contributor names are retained in AUTHORS.md.

@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.Mixin;
 public abstract class NametagFontLayoutMixin {
     @WrapMethod(method = "getWidth(Ljava/lang/String;)I")
     private int arcadium$nametagWidth(String text, Operation<Integer> original) {
-        return original.call(text) + (NametagLayout.badge(text) ? PlayerBadgeRenderer.ADVANCE : 0);
+        return original.call(NametagLayout.display(text)) + (NametagLayout.badge(text) ? PlayerBadgeRenderer.ADVANCE : 0);
     }
 
     @WrapMethod(method = "draw(Ljava/lang/String;FFIZ)I")
@@ -23,6 +23,6 @@ public abstract class NametagFontLayoutMixin {
             PlayerBadgeRenderer.draw(x, y, color);
             x += PlayerBadgeRenderer.ADVANCE;
         }
-        return original.call(text, x, y, color, shadow);
+        return original.call(NametagLayout.display(text), x, y, color, shadow);
     }
 }

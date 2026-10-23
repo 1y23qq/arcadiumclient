@@ -46,6 +46,7 @@ pub fn offline_account(username: String) -> MinecraftAccount {
         username,
         access_token: "0".into(),
         refresh_token: String::new(),
+        oauth_client_id: None,
         expires: Utc::now() + Duration::days(3650),
         kind: AccountKind::Offline,
     }

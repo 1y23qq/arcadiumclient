@@ -20,6 +20,7 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BooleanSupplier;
+import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 
 public final class OverlayHttp implements AutoCloseable {
@@ -44,6 +45,7 @@ public final class OverlayHttp implements AutoCloseable {
 
     public interface Transport { Response exchange(URI uri, Map<String, String> headers, String body) throws IOException; }
     private final Transport transport;
+    private final LongSupplier clock;
     private final ThreadPoolExecutor workers = new ThreadPoolExecutor(3, 3, 30, TimeUnit.SECONDS,
             new ArrayBlockingQueue<>(128), task -> {
                 Thread thread = new Thread(task, "arcadium-bedwars-http");
@@ -54,7 +56,8 @@ public final class OverlayHttp implements AutoCloseable {
     private final Map<String, Integer> failures = new ConcurrentHashMap<>();
 
     public OverlayHttp() { this(OverlayHttp::exchange); }
-    public OverlayHttp(Transport transport) { this.transport = transport; }
+    public OverlayHttp(Transport transport) { this(transport, System::currentTimeMillis); }
+    public OverlayHttp(Transport transport, LongSupplier clock) { this.transport = transport; this.clock = clock; }
 
     public <T> CompletableFuture<T> submit(BooleanSupplier active, Supplier<T> action) {
         CompletableFuture<T> result = new CompletableFuture<>();
@@ -78,6 +81,19 @@ public final class OverlayHttp implements AutoCloseable {
     }
 
     public Response request(String address, Credential credential, String key, String body, BooleanSupplier active) {
+        return request(address, credential, key, body, active, 2);
+    }
+
+    public Response requestOnce(String address, Credential credential, String key, BooleanSupplier active) {
+        return request(address, credential, key, null, active, 1);
+    }
+
+    public void resetHypixelBackoff() {
+        blockedUntil.remove("api.hypixel.net");
+        failures.remove("api.hypixel.net");
+    }
+
+    private Response request(String address, Credential credential, String key, String body, BooleanSupplier active, int attempts) {
         URI uri;
         try { uri = URI.create(address); }
         catch (IllegalArgumentException ignored) { return new Response(0, ""); }
@@ -86,31 +102,33 @@ public final class OverlayHttp implements AutoCloseable {
         if (credential == Credential.HYPIXEL && !"api.hypixel.net".equalsIgnoreCase(host)) throw new IllegalArgumentException("Hypixel credential host");
         if (credential == Credential.SERAPH && !"api.seraph.si".equalsIgnoreCase(host)) throw new IllegalArgumentException("Seraph credential host");
         if (!active.getAsBoolean()) throw new CancellationException();
-        if (System.currentTimeMillis() < blockedUntil.getOrDefault(host, 0L)) return new Response(429, "");
+        if (clock.getAsLong() < blockedUntil.getOrDefault(host, 0L)) return new Response(429, "");
         Map<String, String> headers = new HashMap<>();
         headers.put("Accept", "application/json,text/html;q=0.8");
-        headers.put("User-Agent", "Arcadium/0.3.3 BedwarsOverlay");
+        headers.put("User-Agent", "Arcadium Hypixel Stats (+https://arcadiumclient.com)");
         if (credential != Credential.NONE && key != null && !key.isEmpty()) {
             headers.put(credential == Credential.HYPIXEL ? "API-Key" : "seraph-api-key", key);
         }
-        for (int attempt = 0; attempt < 2; attempt++) {
+        for (int attempt = 0; attempt < attempts; attempt++) {
             if (!active.getAsBoolean() || Thread.currentThread().isInterrupted()) throw new CancellationException();
             try {
                 Response response = transport.exchange(uri, Collections.unmodifiableMap(headers), body);
                 if (!active.getAsBoolean()) throw new CancellationException();
                 if (response.status == 429) {
                     block(host, Math.max(30, response.retryAfterSeconds));
-                } else if (response.status >= 500 && attempt == 0 && body == null) {
+                } else if (credential == Credential.HYPIXEL && (response.status == 401 || response.status == 403)) {
+                    return response;
+                } else if (response.status >= 500 && attempt + 1 < attempts && body == null) {
                     continue;
                 } else if (response.status >= 400 && response.status != 404) {
-                    block(host, Math.min(300, 15L << Math.min(4, failures.merge(host, 1, Integer::sum))));
+                    block(host, Math.min(60, 5L << Math.min(4, failures.merge(host, 1, Integer::sum) - 1)));
                 } else if (response.status >= 200 && response.status < 300) {
                     failures.remove(host);
                     if (response.rateRemaining == 0) block(host, Math.max(1, response.rateResetSeconds));
                 }
                 return response;
             } catch (IOException ignored) {
-                if (attempt == 1 || body != null) {
+                if (attempt + 1 == attempts || body != null) {
                     block(host, 30);
                     return new Response(0, "");
                 }
@@ -120,14 +138,14 @@ public final class OverlayHttp implements AutoCloseable {
     }
 
     private void block(String host, long seconds) {
-        blockedUntil.merge(host, System.currentTimeMillis() + Math.min(300, seconds) * 1000L, Math::max);
+        blockedUntil.merge(host, clock.getAsLong() + Math.min(300, seconds) * 1000L, Math::max);
     }
 
     private static Response exchange(URI uri, Map<String, String> headers, String body) throws IOException {
         HttpURLConnection connection = (HttpURLConnection) uri.toURL().openConnection();
         connection.setInstanceFollowRedirects(false);
-        connection.setConnectTimeout(4000);
-        connection.setReadTimeout(5000);
+        connection.setConnectTimeout(2000);
+        connection.setReadTimeout(3000);
         connection.setRequestMethod(body == null ? "GET" : "POST");
         headers.forEach(connection::setRequestProperty);
         try {

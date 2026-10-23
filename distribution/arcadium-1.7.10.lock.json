@@ -6,7 +6,7 @@
   "bundles": [
     {
       "file": "core-1.7.10-forge.mrpack",
-      "arcadiumSha1": "683b0232fd2457213f6cad78e964b0a996f54c64",
+      "arcadiumSha1": "966e60b3bca2f39fa40eb87b2920039e6762debb",
       "mods": [
         {
           "path": "mods/angelica-2.2.35.jar",
@@ -84,9 +84,9 @@
   "arcadiumComponents": [
     {
       "file": "ArcadiumForge-1.7.10.jar",
-      "sha1": "49dc85085b935ad24ec4f99cad6b639d95c8d70c",
-      "sha256": "40aa8db150fce8dfbe90d845b37d8cfd39e7d8849d6c3250182f3ba929b9d116",
-      "bytes": 117875871,
+      "sha1": "38b5be23c1599d72e410b9e8d0662344d30dab3f",
+      "sha256": "a66308717aed9e2ca998891303abb1a1d09dbbdd0bac9b48ccebd165c4b5deb2",
+      "bytes": 118293168,
       "modId": "arcadiumclient",
       "license": "GPL-3.0-only",
       "authors": [
@@ -96,8 +96,8 @@
     },
     {
       "file": "ArcadiumBootstrap-1.7.10.jar",
-      "sha1": "3edab1e8ffc4ab29d641f435cf32489b9aa47797",
-      "sha256": "158219456ea711d59bee3b39111f1385f049d17bcd978cfe9750ada634e6b7f1",
+      "sha1": "ce004f3421aa108a0e952a99a7434169da4933d6",
+      "sha256": "699b9b159efa8ee4ebb422041591f8bae07fef3781acf9ae362dab1158baf931",
       "bytes": 21823,
       "modId": "arcadium_forge_bootstrap",
       "license": "GPL-3.0-only",

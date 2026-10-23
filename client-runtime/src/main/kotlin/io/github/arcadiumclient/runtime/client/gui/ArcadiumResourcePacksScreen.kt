@@ -93,6 +93,7 @@ import org.polyfrost.oneconfig.internal.ui.themes.Theme
 import org.polyfrost.oneconfig.utils.v1.Multithreading
 import io.github.arcadiumclient.runtime.mixin.client.access.ResourcePackEntryAccessor
 import io.github.arcadiumclient.runtime.client.resourcepack.ResourcePackSearch
+import io.github.arcadiumclient.runtime.client.resourcepack.CustomPackMaker
 
 private const val PACK_ICONS = "assets/oneconfig/ico/"
 private val PACK_FORMATTING = Regex("§[0-9a-fk-or]", RegexOption.IGNORE_CASE)
@@ -391,6 +392,14 @@ class ArcadiumResourcePacksScreen(private val parent: Screen?) : ComposeScreen(R
                             Multithreading.submit { DesktopHelper.open(repository.directory) }
                         }
                         UiIconButton(PACK_ICONS + "refresh.svg", tooltip = "Refresh packs") { if (!applying) refresh() }
+                        UiButton("Create pack", enabled = !applying && packs.isNotEmpty()) {
+                            val sources = packs.filter { it.format >= 0 }.map {
+                                CustomPackMaker.Source(it.id.removePrefix("file/"), it.file.toPath())
+                            }
+                            val initial = sources.firstOrNull { it.path().toFile() == byId[active.firstOrNull()]?.file }
+                            client.tell { client.openScreen(CustomTexturePackScreen(this@ArcadiumResourcePacksScreen,
+                                repository.directory.toPath(), sources, initial) { refresh() }) }
+                        }
                         Spacer(Modifier.weight(1f))
                         UiButton("Apply", enabled = active != applied && !applying) { finish(false) }
                         UiButton("Done", filled = true, enabled = !applying, modifier = Modifier.width(100.dp)) { finish(true) }

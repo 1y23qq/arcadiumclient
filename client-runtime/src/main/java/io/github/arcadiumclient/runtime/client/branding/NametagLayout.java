@@ -8,15 +8,14 @@ import net.minecraft.entity.Entity;
 import net.minecraft.text.Formatting;
 
 public final class NametagLayout {
-    public record Scope(String label, String visibleLabel, boolean badge) { }
+    public record Scope(String label, String displayLabel, String visibleLabel, boolean badge) { }
     private static final ThreadLocal<Scope> CURRENT = new ThreadLocal<>();
     private NametagLayout() { }
 
     public static Scope begin(Entity entity, String label) {
         Scope previous = CURRENT.get();
-        if (PlayerBadgeRenderer.onNametag(entity, label))
-            CURRENT.set(new Scope(label, Formatting.strip(NickHider.display(label)), true));
-        else CURRENT.remove();
+        String display = NametagText.withoutTrailingPadding(NickHider.display(label));
+        CURRENT.set(new Scope(label, display, Formatting.strip(display), PlayerBadgeRenderer.onNametag(entity, label)));
         return previous;
     }
 
@@ -27,7 +26,16 @@ public final class NametagLayout {
 
     public static boolean badge(String text) {
         Scope scope = CURRENT.get();
-        return scope != null && scope.badge && text != null &&
-                (text.equals(scope.label) || Formatting.strip(text).equals(scope.visibleLabel));
+        return scope != null && scope.badge && matches(scope, text);
+    }
+
+    public static String display(String text) {
+        Scope scope = CURRENT.get();
+        return scope != null && matches(scope, text) ? scope.displayLabel : text;
+    }
+
+    private static boolean matches(Scope scope, String text) {
+        return text != null && (text.equals(scope.label) || text.equals(scope.displayLabel)
+                || NametagText.withoutTrailingPadding(Formatting.strip(text)).equals(scope.visibleLabel));
     }
 }

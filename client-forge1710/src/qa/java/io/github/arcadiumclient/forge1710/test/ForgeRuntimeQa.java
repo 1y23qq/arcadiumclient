@@ -31,6 +31,7 @@ public final class ForgeRuntimeQa {
         if (Boolean.getBoolean("arcadium.qa.menuFlow")) FMLCommonHandler.instance().bus().register(new ForgeMenuFlowQa());
         if (Boolean.getBoolean("arcadium.qa.worldFlow")) FMLCommonHandler.instance().bus().register(new ForgeWorldFlowQa());
         if (Boolean.getBoolean("arcadium.qa.controls")) FMLCommonHandler.instance().bus().register(new ForgeControlsQa());
+        if (Boolean.getBoolean("arcadium.qa.features045")) FMLCommonHandler.instance().bus().register(new ForgeFeature045Qa());
     }
 
     @SubscribeEvent public void frame(TickEvent.RenderTickEvent event) {

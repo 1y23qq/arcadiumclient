@@ -1,3 +1,11 @@
+## 0.4.5
+
+- Added custom texture pack creation and BLC-style LevelHead.
+- Restored chat emoji with Twemoji and grouped chat settings.
+- Added saved local skins for Cracked accounts and refresh-token login.
+- Improved Bedwars Overlay caching and keyless lookups.
+- Improved nametag background alignment.
+
 ## 0.4.4
 
 - Fixed 1.7.10 Zoom, menu keybinds, scoreboard text and fullscreen focus handling.

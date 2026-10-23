@@ -52,6 +52,15 @@ abstract class ModIdStore(private val fileName: String) {
         persist()
     }
 
+    internal fun mergeAliases(id: String, aliases: Collection<String>) {
+        ensureLoaded()
+        if (aliases.none { it in ids }) return
+        ids.removeAll(aliases.toSet())
+        ids.add(id)
+        revision++
+        persist()
+    }
+
     private val writeSeq = AtomicLong()
 
     private val writeLock = Any()

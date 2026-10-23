@@ -28,8 +28,8 @@ public final class BedwarsOverlay {
     private final BedwarsOverlayConfig config = BedwarsOverlayConfig.INSTANCE;
     private final AtomicBoolean initialized = new AtomicBoolean();
     private final AtomicLong generation = new AtomicLong();
-    private final OverlayHttp http = new OverlayHttp();
-    private final BedwarsData data = new BedwarsData(http);
+    private final OverlayHttp http = HypixelDataService.http();
+    private final BedwarsData data = HypixelDataService.data();
     private final DenickEvidence denick = new DenickEvidence();
     private final NickBotController nickBot = new NickBotController(config, this::message);
     private final ArrayBlockingQueue<Runnable> updates = new ArrayBlockingQueue<>(256);
@@ -75,7 +75,6 @@ public final class BedwarsOverlay {
         EventManager.register(TickEvent.End.class, INSTANCE::tick);
         EventManager.register(ChatEvent.Receive.class, INSTANCE::receive);
         EventManager.register(ChatEvent.Send.class, INSTANCE::send);
-        Runtime.getRuntime().addShutdownHook(new Thread(INSTANCE.http::close, "arcadium-bedwars-shutdown"));
     }
 
     public static boolean isInBedwars() { return INSTANCE.hypixel && INSTANCE.context; }
@@ -99,6 +98,7 @@ public final class BedwarsOverlay {
         Object nowWorld = BedwarsRuntime.world();
         String nowServer = BedwarsRuntime.server();
         if (world != nowWorld || !server.equals(nowServer)) {
+            if (!server.equals(nowServer) || !onHypixel(nowServer)) data.releaseMatch();
             world = nowWorld;
             server = nowServer;
             hypixel = nowWorld != null && onHypixel(nowServer);
@@ -107,6 +107,7 @@ public final class BedwarsOverlay {
         BedwarsData.Policy policy = new BedwarsData.Policy(config.keyless, config.useHypixelApiKey, config.hypixelApiKey);
         if (!policy.same(lastPolicy) || lastSeraph != config.seraphAlerts || !safe(config.seraphApiKey).equals(lastSeraphKey)
                 || lastDenick != config.denick || lastEnabled != config.enabled) {
+            if (!policy.same(lastPolicy)) data.retryUnavailable();
             invalidate();
             lastPolicy = policy;
             lastSeraph = config.seraphAlerts;
@@ -131,7 +132,7 @@ public final class BedwarsOverlay {
         scanTicks = 0;
         if (BedwarsRuntime.sidebar().toUpperCase(Locale.ROOT).contains("BED WARS")) context = true;
         if (!config.enabled) { tabLines.clear(); return; }
-        if (data.invalidKey() && config.useHypixelApiKey && !config.hideInvalidKeyWarning && !invalidKeyWarned) {
+        if (data.invalidKey(policy.hypixelKey) && config.useHypixelApiKey && !config.hideInvalidKeyWarning && !invalidKeyWarned) {
             invalidKeyWarned = true;
             message("§cHypixel rejected the API key. Update it or switch to API Key-Less.");
         }
@@ -151,7 +152,6 @@ public final class BedwarsOverlay {
 
     private void invalidate() {
         generation.incrementAndGet();
-        data.clear();
         tabLines.clear(); announced.clear(); seraphAt.clear(); seraphDone.clear();
         skinDone.clear(); skinDelay.clear(); uuidRequested.clear(); cosmeticAt.clear();
         denick.clear(); invalidKeyWarned = false;
@@ -159,13 +159,14 @@ public final class BedwarsOverlay {
     }
 
     private void scanRoster(List<BedwarsRuntime.Entry> roster, BedwarsData.Policy policy) {
+        if (data.hasMatch()) data.retainForMatch(roster.stream().map(entry -> entry.id).toList());
         tabLines.clear();
         UUID local = BedwarsRuntime.localId();
         for (BedwarsRuntime.Entry entry : roster) {
             String text = entry.vanilla;
             if (config.hasStatsProvider() && (config.tabStats || config.chatStats)) {
-                data.get(entry.id, entry.name, policy);
                 BedwarsStats stats = data.present(entry.id);
+                if (stats == null && data.pendingCount() < 24) data.get(entry.id, entry.name, policy);
                 if (stats != null && !stats.isUnavailable() && (stats.isNicked() || PlayerNameUtil.sameAccountName(entry.name, stats.getName()))) {
                     if (config.tabStats) text = BedwarsTabLineFormatter.format(stats, entry.name,
                             BedwarsTabLineFormatter.resolveTabNameColor(entry.vanilla, entry.name, entry.teamPrefix));
@@ -230,6 +231,9 @@ public final class BedwarsOverlay {
     }
 
     private void reloadNow() {
+        String gameServer = location != null && location.isBedwarsGameEligible() ? location.getServer() : null;
+        data.clear();
+        data.beginMatch(gameServer);
         invalidate();
         announceReady = true;
         if (hypixel && context && config.enabled) {
@@ -239,6 +243,7 @@ public final class BedwarsOverlay {
     }
 
     private void applyLocation(HypixelLocraw locraw) {
+        data.beginMatch(locraw.isBedwarsGameEligible() ? locraw.getServer() : null);
         location = locraw;
         context = "BEDWARS".equalsIgnoreCase(locraw.getGametype()) || match;
         if (!locraw.isBedwarsGameEligible()) return;

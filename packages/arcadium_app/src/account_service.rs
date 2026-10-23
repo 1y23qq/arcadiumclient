@@ -372,6 +372,9 @@ fn auth_error(error: AuthError) -> anyhow::Error {
             MinecraftAuthError::BrowserAuthorizationExpired
             | MinecraftAuthError::DeviceAuthorizationExpired,
         ) => "Sign-in timed out. Add the account again to retry".to_string(),
+        AuthError::Minecraft(error @ MinecraftAuthError::RefreshAuthorizationFailed) => {
+            error.to_string()
+        }
         AuthError::Minecraft(MinecraftAuthError::XboxError { error_code, .. }) => {
             match error_code {
                 2_148_916_233 => {
@@ -401,7 +404,7 @@ async fn serve() -> Result<()> {
     std::thread::spawn(move || {
         for line in std::io::stdin().lock().lines() {
             let Ok(line) = line else { break };
-            if line.len() > 16384 || sender.blocking_send(line).is_err() {
+            if line.len() > 65536 || sender.blocking_send(line).is_err() {
                 break;
             }
         }
@@ -448,15 +451,37 @@ async fn serve() -> Result<()> {
                 };
                 let cancel = CancellationToken::new();
                 let flow_cancel = cancel.clone();
+                let refresh_token = match request["token_type"].as_str() {
+                    None | Some("access") => false,
+                    Some("refresh") => true,
+                    _ => {
+                        response(
+                            &output,
+                            id,
+                            Err(anyhow::anyhow!(
+                                "Choose Minecraft access token or Microsoft refresh token"
+                            )),
+                        );
+                        continue;
+                    }
+                };
+                let client_id = request["client_id"]
+                    .as_str()
+                    .unwrap_or_default()
+                    .to_string();
                 let auth = auth.clone();
                 let output = output.clone();
                 login = Some(ActiveLogin {
                     state: Arc::new(Mutex::new(None)),
                     cancel,
                     task: tokio::spawn(async move {
-                        let result = auth
-                            .add_session_account(&token, &flow_cancel)
-                            .await
+                        let imported = if refresh_token {
+                            auth.add_refresh_token_account(&token, &client_id, &flow_cancel)
+                                .await
+                        } else {
+                            auth.add_session_account(&token, &flow_cancel).await
+                        };
+                        let result = imported
                             .map(|account| metadata(&account))
                             .map_err(auth_error);
                         response(&output, id, result);
@@ -761,6 +786,7 @@ mod tests {
             username: "ArcadiumTest".into(),
             access_token: "test-access-secret".into(),
             refresh_token: "test-refresh-secret".into(),
+            oauth_client_id: None,
             expires: chrono::Utc::now(),
             kind: AccountKind::Microsoft,
         };

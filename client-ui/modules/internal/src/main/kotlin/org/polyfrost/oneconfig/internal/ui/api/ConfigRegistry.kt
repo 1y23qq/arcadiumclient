@@ -71,7 +71,8 @@ object ConfigRegistry {
         get() {
             val hudCards = hudModCardConfigs()
             val superseded = cardsSupersededByHudCards(hudCards)
-            return configs.filter { shouldShowModCard(it) && it !in superseded } + hudCards
+            val cards = configs.filter { shouldShowModCard(it) && it !in superseded } + hudCards
+            return if (configs.any { ChatModuleGroup.contains(it.id) }) cards + ChatModuleGroup else cards
         }
 
     var revision by mutableIntStateOf(0)
@@ -106,10 +107,11 @@ object ConfigRegistry {
     }
 
     fun shouldShowModCard(config: ConfigData): Boolean =
-        config.id.lowercase() !in hiddenModCardIds && config.title.asRenderText().lowercase() !in hiddenModCardTitles
+        !ChatModuleGroup.contains(config.id) && config.id.lowercase() !in hiddenModCardIds && config.title.asRenderText().lowercase() !in hiddenModCardTitles
 
     fun shouldShowModCardId(id: String): Boolean {
         val lower = id.lowercase()
+        if (ChatModuleGroup.contains(lower)) return false
         return lower !in hiddenModCardIds && lower.removeSuffix(".json") !in hiddenModCardIds
     }
 
@@ -122,6 +124,7 @@ object ConfigRegistry {
      * Call this after [ConfigManager.initialize] during OneConfig startup
      */
     fun loadFrom(manager: ConfigManager, source: ConfigSource) {
+        ModFavorites.mergeAliases(ChatModuleGroup.id, ChatModuleGroup.ids.flatMap { listOf(it, it.removeSuffix(".json")) })
         val seenIds = HashSet<String>()
         var changed = false
         manager.trees().forEach { tree ->
@@ -159,7 +162,7 @@ object ConfigRegistry {
         }
     }
 
-    fun findById(id: String): ConfigData? = configs.find { it.id == id }
+    fun findById(id: String): ConfigData? = if (id == ChatModuleGroup.id) ChatModuleGroup else configs.find { it.id == id }
 
     fun findTree(id: String): Tree? = (findById(id) as? TreeConfigData)?.uiTree
 

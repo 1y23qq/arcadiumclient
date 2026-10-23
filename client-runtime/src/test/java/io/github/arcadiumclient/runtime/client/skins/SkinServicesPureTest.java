@@ -24,8 +24,44 @@ public final class SkinServicesPureTest {
     public static void main(String[] args) throws Exception {
         Path testRoot = Path.of("build", "skin-services-pure", "library-" + UUID.randomUUID()).toAbsolutePath().normalize();
         library(testRoot);
+        localSkins(testRoot.resolve("local"));
         protocol();
-        System.out.println("Skin service checks passed: PNG validation, library, multipart upload, account guards, HTTP errors, redirect refusal");
+        System.out.println("Skin service checks passed: PNG validation, library, per-account local skin persistence and reset, multipart upload, account guards, HTTP errors, redirect refusal");
+    }
+
+    private static void localSkins(Path root) throws Exception {
+        Files.createDirectories(root);
+        Path source = root.resolve("source.png");
+        Files.write(source, png(64, 64));
+        Path saved = root.resolve("saved");
+        SkinLibrary library = new SkinLibrary(saved);
+        SkinLibrary.Entry entry = library.add(source, "Local", "classic");
+        UUID first = UUID.nameUUIDFromBytes("OfflinePlayer:First".getBytes(StandardCharsets.UTF_8));
+        UUID second = UUID.nameUUIDFromBytes("OfflinePlayer:Second".getBytes(StandardCharsets.UTF_8));
+        library.selectLocal(first, entry.id, "slim");
+        library.selectLocal(second, entry.id, "classic");
+        SkinLibrary reloaded = new SkinLibrary(saved);
+        check(reloaded.localSelection(first).variant.equals("slim"), "Applied unsaved Slim model survives restart");
+        check(reloaded.localSelection(second).variant.equals("classic"), "Accounts using the same PNG retain separate model choices");
+        check(reloaded.list().get(0).variant.equals("classic"), "Applying a local model preserves the saved library model");
+        check(reloaded.localSelection(ACCOUNT) == null, "Local skin does not leak to another account");
+        check(SkinLibrary.canonicalize(reloaded.png(reloaded.localSelection(first).id)).height() == 64, "Persisted local PNG remains readable");
+        reject(() -> reloaded.selectLocal(first, "../../outside", "slim"), "found");
+        check(reloaded.localSelection(first).variant.equals("slim"), "Invalid selection preserves the previous local skin");
+        reloaded.selectLocal(first, null);
+        SkinLibrary reset = new SkinLibrary(saved);
+        check(reset.localSelection(first) == null && reset.localSelection(second) != null, "Reset removes only the chosen account's local skin");
+        reset.delete(entry.id);
+        check(new SkinLibrary(saved).localSelection(second) == null, "Deleting a saved skin clears its account selections");
+        check(Files.exists(source), "Deleting local skins keeps the original PNG");
+
+        Path legacy = root.resolve("legacy.png");
+        Files.write(legacy, png(64, 32));
+        SkinLibrary.Entry legacyEntry = reset.add(legacy, "Legacy", "classic");
+        reset.selectLocal(first, legacyEntry.id, "slim");
+        check(new SkinLibrary(saved).localSelection(first).variant.equals("classic"), "Legacy PNGs stay Classic when restored");
+        String index = Files.readString(saved.resolve("index.json"));
+        check(!index.contains("access_token") && !index.contains("refresh_token"), "Local selections persist no account credentials");
     }
 
     private static void library(Path root) throws Exception {

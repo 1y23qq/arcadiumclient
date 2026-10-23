@@ -12,7 +12,7 @@ const MAX_PROFILE_BYTES: usize = 64 * 1024;
 
 #[derive(Debug, thiserror::Error)]
 pub enum SessionLoginError {
-    #[error("Enter a valid Minecraft access token")]
+    #[error("Enter a valid token and select its token type")]
     InvalidToken,
     #[error("This session has expired or was revoked. Add a new token or sign in with Microsoft")]
     Expired,
@@ -22,6 +22,8 @@ pub enum SessionLoginError {
     Unavailable,
     #[error("Minecraft returned an invalid profile")]
     InvalidProfile,
+    #[error("Enter the Microsoft OAuth client ID that issued this refresh token")]
+    InvalidClientId,
 }
 
 #[derive(Deserialize)]
@@ -93,6 +95,7 @@ async fn validate_session_at(
         username: profile.name,
         access_token: token.to_string(),
         refresh_token: String::new(),
+        oauth_client_id: None,
         expires,
         kind: AccountKind::Session,
     })

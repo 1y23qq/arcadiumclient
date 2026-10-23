@@ -49,7 +49,10 @@
     "NoHitDelayProbeAccess",
     "NoHitDelayPacketProbeMixin",
     "MinemenMinecraftAccess",
-    "SharedSettings041Mixin"
+    "SharedSettings041Mixin",
+    "LevelHead045RenderProbe",
+    "LevelHead045FontProbe",
+    "LevelHead045HttpProbe"
   ],
   "injectors": {
     "defaultRequire": 1

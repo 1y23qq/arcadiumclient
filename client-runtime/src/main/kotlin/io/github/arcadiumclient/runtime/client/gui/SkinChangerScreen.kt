@@ -154,10 +154,10 @@ class SkinChangerScreen(private val parent: Screen?) : ComposeScreen(RenderMode.
         val mc = Minecraft.getInstance()
         val session = mc.session
         if (session.profile.id != targetId) { error = "Your active account changed. Open Skins again."; return }
-        val offline = UUID.nameUUIDFromBytes("OfflinePlayer:$targetName".toByteArray(Charsets.UTF_8))
+        val offline = SkinChanger.isOffline()
         val token = session.accessToken
-        if (targetId == null || targetId == offline || token.isBlank() || token == "0" || token == "null") {
-            error = "Sign in to your Minecraft account before changing skins."
+        if (targetId == null) {
+            error = "Your active account has no player ID. Sign in again."
             return
         }
         if (!SkinChanger.beginUpload()) { error = "A skin change is already in progress."; return }
@@ -169,21 +169,50 @@ class SkinChangerScreen(private val parent: Screen?) : ComposeScreen(RenderMode.
             try { runCatching {
                 val png = withContext(Dispatchers.IO) {
                     val bytes = SkinChanger.library.png(id)
-                    SkinUploadClient().upload(token, targetId, bytes, model) { sameAccount(targetId, token) }
+                    if (offline) {
+                        check(sameAccount(targetId, token)) { "Your active account changed. Open Skins again." }
+                        SkinChanger.library.selectLocal(targetId, id, model)
+                    } else SkinUploadClient().upload(token, targetId, bytes, model) { sameAccount(targetId, token) }
                     bytes
                 }
                 mc.tell {
                     busy = null
                     if (!sameAccount(targetId, token)) {
-                        message = "Skin updated for $targetName. Your active account changed, so its local preview was kept."
+                        message = if (offline) "Local skin saved for $targetName. Your active account changed."
+                            else "Skin updated for $targetName. Your active account changed, so its local preview was kept."
                     } else {
                         val refreshed = runCatching { SkinChanger.refresh(targetId, png, model) }.isSuccess
-                        message = if (refreshed) "Skin updated for $targetName. Rejoin if other players still see your previous skin."
+                        message = if (offline && refreshed) "Local skin applied to $targetName. Other players see the server's skin."
+                            else if (offline) "Local skin saved for $targetName. Reopen Skins to refresh the preview."
+                            else if (refreshed) "Skin updated for $targetName. Rejoin if other players still see your previous skin."
                             else "Skin updated for $targetName. Rejoin to refresh the preview."
                     }
                 }
             }.onFailure { failure -> mc.tell { busy = null; error = failure.message ?: "Could not reach Minecraft. Try again." } }
             } finally { SkinChanger.finishUpload() }
+        }
+    }
+
+    private fun resetLocalSkin() {
+        val mc = Minecraft.getInstance()
+        val session = mc.session
+        val uuid = targetId ?: return
+        if (busy != null) return
+        if (session.profile.id != uuid || !SkinChanger.isOffline()) {
+            error = "Your active account changed. Open Skins again."
+            return
+        }
+        busy = "Resetting local skin..."
+        error = null
+        message = null
+        RuntimeServices.SCOPE.launch {
+            runCatching { SkinChanger.library.selectLocal(uuid, null) }.onSuccess {
+                mc.tell {
+                    if (mc.session === session) SkinChanger.clearSkinPreview()
+                    busy = null
+                    message = "Local skin reset for $targetName."
+                }
+            }.onFailure { failure -> mc.tell { busy = null; error = failure.message ?: "Could not reset the local skin." } }
         }
     }
 
@@ -360,6 +389,9 @@ class SkinChangerScreen(private val parent: Screen?) : ComposeScreen(RenderMode.
                         }
                         UiButton("Apply to $targetName", filled = true, enabled = saved != null && busy == null,
                             modifier = Modifier.fillMaxWidth(), onClick = ::applySkin)
+                        if (SkinChanger.isOffline()) {
+                            UiButton("Reset local skin", enabled = busy == null, modifier = Modifier.fillMaxWidth(), onClick = ::resetLocalSkin)
+                        }
                     }
                 }
                 }

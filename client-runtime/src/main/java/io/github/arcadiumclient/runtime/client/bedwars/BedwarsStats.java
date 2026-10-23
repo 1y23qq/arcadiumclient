@@ -20,6 +20,9 @@ public final class BedwarsStats {
     private final String rankPlusColor;
     private final String monthlyRankColor;
     private final String prefix;
+    private final int networkLevel;
+
+    public int getNetworkLevel() { return networkLevel; }
 
     public BedwarsStats(
             UUID uuid,
@@ -37,6 +40,14 @@ public final class BedwarsStats {
             String monthlyRankColor,
             String prefix
     ) {
+        this(uuid, name, star, fkdr, finalKills, finalDeaths, nicked, unavailable, packageRank, newPackageRank,
+                monthlyPackageRank, rankPlusColor, monthlyRankColor, prefix, -1);
+    }
+
+    public BedwarsStats(UUID uuid, String name, int star, double fkdr, int finalKills, int finalDeaths,
+                        boolean nicked, boolean unavailable, String packageRank, String newPackageRank,
+                        String monthlyPackageRank, String rankPlusColor, String monthlyRankColor, String prefix,
+                        int networkLevel) {
         this.uuid = uuid;
         this.name = name;
         this.star = star;
@@ -51,6 +62,7 @@ public final class BedwarsStats {
         this.rankPlusColor = rankPlusColor;
         this.monthlyRankColor = monthlyRankColor;
         this.prefix = prefix;
+        this.networkLevel = networkLevel;
     }
 
     public static BedwarsStats nicked(UUID uuid, String name) {

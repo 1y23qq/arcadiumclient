@@ -282,6 +282,7 @@ fn preserve_refresh_credentials(
     {
         session.kind = AccountKind::Microsoft;
         session.refresh_token = existing.refresh_token.clone();
+        session.oauth_client_id = existing.oauth_client_id.clone();
     }
     session
 }
@@ -295,13 +296,16 @@ mod session_store_tests {
         let mut existing = offline_account("Steve".into());
         existing.kind = AccountKind::Microsoft;
         existing.refresh_token = "refresh-fixture".into();
+        existing.oauth_client_id = Some("00000000402b5328".into());
         let mut imported = existing.clone();
         imported.kind = AccountKind::Session;
         imported.access_token = "access-fixture".into();
         imported.refresh_token.clear();
+        imported.oauth_client_id = None;
         let merged = preserve_refresh_credentials(imported, Some(&existing));
         assert_eq!(merged.kind, AccountKind::Microsoft);
         assert_eq!(merged.refresh_token, "refresh-fixture");
+        assert_eq!(merged.oauth_client_id.as_deref(), Some("00000000402b5328"));
         assert_eq!(merged.access_token, "access-fixture");
         assert!(!format!("{merged:?}").contains("fixture"));
     }

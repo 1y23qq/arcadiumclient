@@ -58,6 +58,10 @@ pub enum MinecraftAuthError {
     BrowserLoginNotFound,
     #[error("browser authorization failed: {error}")]
     BrowserAuthorizationFailed { error: String },
+    #[error(
+        "Microsoft could not refresh this token. Check that it is current and that the OAuth client ID matches the app that issued it, or sign in with Microsoft again."
+    )]
+    RefreshAuthorizationFailed,
     #[error("failed to read user hash from Xbox token")]
     HashError,
     #[error("{message}")]

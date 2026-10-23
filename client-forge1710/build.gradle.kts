@@ -1,7 +1,7 @@
 plugins { java }
 
 group = "io.github.arcadiumclient"
-version = "0.4.4"
+version = "0.4.5"
 
 repositories {
     mavenCentral()
@@ -39,7 +39,9 @@ val forgeMixins by sourceSets.creating {
     compileClasspath = files("../build/forge1710/forge-srg-api.jar", "../build/forge1710/minecraft-srg-api.jar", "../build/forge1710/arcadium-srg.jar") +
         sourceSets.main.get().compileClasspath + sourceSets.main.get().output
 }
-val qa by sourceSets.creating { compileClasspath = forgeMixins.compileClasspath }
+val qa by sourceSets.creating {
+    compileClasspath = forgeMixins.compileClasspath + fileTree("../build/forge1710/cache/libraries/com/mojang/authlib") { include("**/*.jar") }
+}
 tasks.register<Jar>("qaJar") {
     archiveBaseName = "ArcadiumForgeQa"
     from(qa.output)

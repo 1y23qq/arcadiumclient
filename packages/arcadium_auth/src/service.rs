@@ -420,6 +420,24 @@ impl AuthService {
         store.list_accounts()
     }
 
+    pub async fn add_refresh_token_account(
+        &self,
+        token: &str,
+        client_id: &str,
+        cancel: &CancellationToken,
+    ) -> AuthResult<MinecraftAccount> {
+        let account = tokio::select! {
+            biased;
+            () = cancel.cancelled() => return Err(AuthError::LoginCancelled),
+            result = msa::import_refresh_token(self.net.http(), token, client_id) => result?,
+        };
+        let mut store = self.store.lock().await;
+        if cancel.is_cancelled() {
+            return Err(AuthError::LoginCancelled);
+        }
+        store.commit_account(account, &self.events).await
+    }
+
     pub async fn get_account(&self, id: Uuid) -> Option<MinecraftAccount> {
         let mut store = self.store.lock().await;
         if let Ok(current) = CredentialsStore::load().await {

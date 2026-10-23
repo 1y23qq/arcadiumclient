@@ -56,13 +56,22 @@ object NativeAccountBridge {
     }
 
     suspend fun login(): AccountRepository.StoredAccount =
-        AccountRepository.decode(request("login").await())
+        addedAccount(request("login").await())
 
     suspend fun importCookies(onProgress: ((String) -> Unit)? = null): AccountRepository.StoredAccount? =
-        request("cookie", onProgress = onProgress).await().takeUnless { it == JsonNull }?.let(AccountRepository::decode)
+        request("cookie", onProgress = onProgress).await().takeUnless { it == JsonNull }?.let { addedAccount(it) }
 
-    suspend fun importSession(accessToken: String): AccountRepository.StoredAccount =
-        AccountRepository.decode(request("session", mapOf("access_token" to accessToken)).await())
+    suspend fun importSession(accessToken: String, refresh: Boolean = false, clientId: String = ""): AccountRepository.StoredAccount =
+        addedAccount(request("session", buildMap {
+            put("access_token", accessToken)
+            put("token_type", if (refresh) "refresh" else "access")
+            if (clientId.isNotBlank()) put("client_id", clientId.trim())
+        }).await())
+
+    private suspend fun addedAccount(metadata: JsonElement): AccountRepository.StoredAccount {
+        val id = AccountRepository.decode(metadata).id
+        return AccountRepository.decode(request("switch", mapOf("account" to id)).await())
+    }
 
     fun cancelLogin() {
         if (connection != null) request("cancel")
@@ -70,6 +79,7 @@ object NativeAccountBridge {
 
     fun addOffline(username: String): AccountRepository.StoredAccount =
         AccountRepository.decode(request("offline", mapOf("username" to username)).get(30, TimeUnit.SECONDS))
+            .let { switchAccount(it.id) }
 
     fun close() {
         val owned = synchronized(lock) {

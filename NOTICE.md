@@ -56,6 +56,11 @@ The additional title panoramas in `client-runtime/src/main/resources/assets/arca
 are recordings supplied by the project owner. Their source-set identifiers and
 original image hashes are retained in the accompanying `provenance.json`.
 
+The bundled emoji atlas contains selected Twemoji graphics by Twitter, Inc.
+and contributors, under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/).
+The PNGs were resized and combined into an atlas. Source hashes, changes and
+original authors and license are in [licenses/assets/twemoji/](licenses/assets/twemoji/).
+
 The optional Forge compatibility runtime retrieves the original official Forge
 artifact locally when Forge mods are used. Game patches and MCP mapping data
 are derived only in local build/test or game caches and are not conveyed in the

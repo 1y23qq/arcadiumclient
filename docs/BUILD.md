@@ -21,13 +21,13 @@ compatibility layer and game branding. It then generates the launcher's componen
 catalog and copies the exact built JARs into its distribution assets. Original
 third-party author, copyright and license metadata is preserved.
 
-Minecraft 1.7.10 also builds the independent renderer optimizations in
-`client-legacy-performance` and the dependency source ports in `client-legacy-mods`.
-Their pinned upstream commits and original license hashes are recorded in
-`client-legacy-mods/ports.json`. The same installer contains both Minecraft
-versions; 1.7.10 keeps its game settings, packs and worlds in a separate directory.
-It uses Java 25 and Ornithe 0.19.5. Forge compatibility is available only on 1.8.9.
-Bedwars Overlay, NoHitDelay and Hypixel-specific modules are available on 1.8.9.
+Minecraft 1.7.10 uses Forge with Angelica, GTNHLib and LWJGL3ify on Java 25.
+Its source ports are in `client-legacy-mods`; pinned commits and original license
+hashes are recorded in `client-legacy-mods/ports.json`. The same installer contains
+both Minecraft versions. Game settings, packs, worlds and Arcadium preferences
+use the shared game directory; added mods and loader caches remain version-specific.
+Minecraft 1.8.9 uses Ornithe with its Forge compatibility layer. Bedwars Overlay
+and NoHitDelay are available on 1.8.9; LevelHead supports both versions.
 
 The runtime build refreshes Loom's remapped dependencies after publishing the
 local configuration library, so changes to its API are picked up by cached builds.
