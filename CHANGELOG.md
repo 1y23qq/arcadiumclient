@@ -5,6 +5,7 @@
 - Added saved local skins for Cracked accounts and refresh-token login.
 - Improved Bedwars Overlay caching and keyless lookups.
 - Improved nametag background alignment.
+- Moved official repositories to 1y23qq. Install this release manually when upgrading from 0.4.4 or earlier.
 
 ## 0.4.4
 

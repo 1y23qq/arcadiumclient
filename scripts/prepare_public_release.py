@@ -13,7 +13,7 @@ from build_macos import MACOS_MINIMUMS
 from check_macos_compatibility import inspect_macho
 
 ROOT = Path(__file__).resolve().parents[1]
-PUBLIC_REPOSITORY = "https://github.com/0aurorq3/arcadium-public"
+PUBLIC_REPOSITORY = "https://github.com/1y23qq/arcadium-public"
 PLATFORMS = ("windows-x64", "macos-arm64", "macos-x64")
 APP_NAME = "Arcadium Client.app"
 
@@ -216,7 +216,7 @@ def update_site(version, stable, platforms):
             for key, value in values.items():
                 pattern = rf'(\bdata-release-{key}="{platform}"(?:\s[^>]*)?>)[^<]*(</[a-zA-Z][^>]*>)'
                 content = re.sub(pattern, lambda match: match[1] + escape(value) + match[2], content)
-        content = re.sub(r'href="https://github.com/0aurorq3/arcadium-public/releases/tag/v[0-9.]+"',
+        content = re.sub(r'href="https://github.com/1y23qq/arcadium-public/releases/tag/v[0-9.]+"',
                          f'href="{PUBLIC_REPOSITORY}/releases/tag/v{version}"', content)
         page.write_text(content, encoding="utf-8")
 
@@ -253,7 +253,7 @@ def prepare(stable, advance_site=False):
         "# Arcadium Client\n\n"
         "Minecraft 1.7.10 and 1.8.9 client and launcher.\n\n"
         "[Official website and downloads](https://arcadiumclient.com/)\n\n"
-        "[Source code](https://github.com/0aurorq3/arcadiumclient)\n\n"
+        "[Source code](https://github.com/1y23qq/arcadiumclient)\n\n"
         "This repository hosts official installer releases.\n", encoding="utf-8")
     binaries = []
     manifests = []

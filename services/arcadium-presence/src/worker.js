@@ -82,7 +82,7 @@ export class ArcadiumPresence extends DurableObject {
         headers: {
           Authorization: `Bearer ${minecraftToken}`,
           Accept: 'application/json',
-          'User-Agent': 'Arcadium 0.2.8 (https://github.com/0aurorq3/arcadiumclient)'
+          'User-Agent': 'Arcadium 0.2.8 (https://github.com/1y23qq/arcadiumclient)'
         },
         redirect: 'manual', signal: AbortSignal.timeout(10_000)
       });

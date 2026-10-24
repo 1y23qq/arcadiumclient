@@ -96,7 +96,7 @@ class ArcadiumMainMenu : ComposeScreen(RenderMode.CONTINUOUS) {
                             UiText("Launcher and configuration interface derived from OneLauncher and OneConfig. Copyright Polyfrost and contributors. Arcadium modifications copyright 2026 0aurorq3 and contributors.", 12.sp)
                             UiText("GPL version 3. This software comes with no warranty. You may redistribute and modify it under its license. Dependencies retain their own licenses.", 12.sp)
                             UiButton("Source and license notices", Modifier.fillMaxWidth()) {
-                                browse("https://github.com/0aurorq3/arcadiumclient/blob/main/NOTICE.md")
+                                browse("https://github.com/1y23qq/arcadiumclient/blob/main/NOTICE.md")
                             }
                             UiButton("Done", Modifier.fillMaxWidth(), filled = true) { legal = false }
                         }

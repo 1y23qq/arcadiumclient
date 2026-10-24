@@ -201,8 +201,8 @@ def write_legacy_notices(destination: Path, root: Path = ROOT) -> None:
     (destination / "README.txt").write_text(
         "Minecraft 1.7.10 dependency ports retain their original authors and licenses.\n"
         "The complete modified corresponding sources and build scripts are included in the same version's source archive.\n"
-        "Source: https://github.com/0aurorq3/arcadiumclient\n"
-        "Releases: https://github.com/0aurorq3/arcadium-public/releases\n", encoding="utf-8")
+        "Source: https://github.com/1y23qq/arcadiumclient\n"
+        "Releases: https://github.com/1y23qq/arcadium-public/releases\n", encoding="utf-8")
 
 
 def clean_bundle(raw: bytes, version: str) -> bytes:

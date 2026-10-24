@@ -134,7 +134,7 @@ fun Credits() {
             )
             Text("Conveyed under GNU GPL version 3. No warranty. Original copyright notices, licenses and OneConfig Additional Terms are retained.", color = theme.textColorSecondary, fontSize = 13.sp)
             listOf(
-                "Arcadium source and notices" to "https://github.com/0aurorq3/arcadiumclient",
+                "Arcadium source and notices" to "https://github.com/1y23qq/arcadiumclient",
                 "Original OneConfig source" to "https://github.com/Polyfrost/OneConfig",
                 "OneConfig Additional Terms" to "https://polyfrost.org/legal/oneconfig/additional-terms",
                 "Arcadium support" to "https://discord.gg/QbNfaCHjUz",

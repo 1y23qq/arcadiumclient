@@ -7,12 +7,12 @@ resolver = "3"
 
 [workspace.package]
 authors = ["0aurorq3"]
-documentation = "https://github.com/0aurorq3/arcadiumclient"
+documentation = "https://github.com/1y23qq/arcadiumclient"
 edition = "2024"
-homepage = "https://github.com/0aurorq3/arcadiumclient"
+homepage = "https://github.com/1y23qq/arcadiumclient"
 license = "GPL-3.0-only"
 readme = "README.md"
-repository = "https://github.com/0aurorq3/arcadiumclient"
+repository = "https://github.com/1y23qq/arcadiumclient"
 rust-version = "1.97"
 version = "0.4.5"
 

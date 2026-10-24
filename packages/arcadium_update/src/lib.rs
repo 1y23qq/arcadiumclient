@@ -13,8 +13,8 @@ mod platform;
 pub use platform::UpdatePlatform;
 
 pub const RELEASES_API: &str =
-    "https://api.github.com/repos/0aurorq3/arcadium-public/releases?per_page=100";
-const DOWNLOAD_BASE: &str = "https://github.com/0aurorq3/arcadium-public/releases/download/";
+    "https://api.github.com/repos/1y23qq/arcadium-public/releases?per_page=100";
+const DOWNLOAD_BASE: &str = "https://github.com/1y23qq/arcadium-public/releases/download/";
 const MAX_INSTALLER_BYTES: u64 = 1024 * 1024 * 1024;
 
 #[derive(Debug, Deserialize)]
@@ -389,6 +389,40 @@ mod tests {
         let mut incomplete = release("0.2.6");
         incomplete.assets[0].state = "new".into();
         assert!(select_release(&current, vec![draft, foreign, incomplete]).is_none());
+    }
+    #[test]
+    fn official_updates_use_the_new_owner_for_every_platform() {
+        assert_eq!(
+            RELEASES_API,
+            "https://api.github.com/repos/1y23qq/arcadium-public/releases?per_page=100"
+        );
+        let current = Version::parse("0.4.4").unwrap();
+        for platform in [
+            UpdatePlatform::WindowsX64,
+            UpdatePlatform::MacArm64,
+            UpdatePlatform::MacX64,
+        ] {
+            let candidate = select_release_for_platform(
+                &current,
+                vec![multiplatform_release("0.4.5")],
+                platform,
+            )
+            .unwrap();
+            assert!(
+                candidate
+                    .installer
+                    .browser_download_url
+                    .starts_with(DOWNLOAD_BASE)
+            );
+            let mut retired = multiplatform_release("0.4.5");
+            for asset in &mut retired.assets {
+                asset.browser_download_url = asset.browser_download_url.replace(
+                    "github.com/1y23qq/arcadium-public/",
+                    "github.com/0aurorq3/arcadium-public/",
+                );
+            }
+            assert!(select_release_for_platform(&current, vec![retired], platform).is_none());
+        }
     }
     #[test]
     fn redirects_require_https_and_an_official_download_host() {

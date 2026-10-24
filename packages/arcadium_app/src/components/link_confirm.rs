@@ -122,5 +122,5 @@ fn is_first_party(url: &str) -> bool {
         .split(['/', '?', '#', ':'])
         .next()
         .unwrap_or_default();
-    host == "github.com" && url.starts_with("https://github.com/0aurorq3/arcadiumclient")
+    host == "github.com" && url.starts_with("https://github.com/1y23qq/arcadiumclient")
 }

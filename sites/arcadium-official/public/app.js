@@ -124,7 +124,7 @@
         }
       }
       document.querySelectorAll('[data-release-notes]').forEach(link => {
-        link.href = `https://github.com/0aurorq3/arcadium-public/releases/tag/v${release.version}`;
+        link.href = `https://github.com/1y23qq/arcadium-public/releases/tag/v${release.version}`;
       });
     })
     .catch(() => {});

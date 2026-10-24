@@ -147,7 +147,7 @@ fn navbar_center(is_small: bool) -> impl IntoElement {
         })
         .child(NavLink {
             active: false,
-            target: NavTarget::External("https://github.com/0aurorq3/arcadiumclient"),
+            target: NavTarget::External("https://github.com/1y23qq/arcadiumclient"),
             nav_label: "Project",
         })
 }

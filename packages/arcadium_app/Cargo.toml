@@ -104,7 +104,7 @@ identifier = "io.github.arcadiumclient.launcher"
 category = "Game"
 publisher = "0aurorq3"
 copyright = "Copyright 2026 0aurorq3"
-homepage = "https://github.com/0aurorq3/arcadiumclient"
+homepage = "https://github.com/1y23qq/arcadiumclient"
 long-description = "Arcadium Client for Minecraft 1.8.9."
 formats = ["nsis"]
 binaries = [{ path = "Arcadium", main = true }]
