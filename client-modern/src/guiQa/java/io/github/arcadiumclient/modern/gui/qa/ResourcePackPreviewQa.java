@@ -156,7 +156,8 @@ public final class ResourcePackPreviewQa {
         private final Map<String, Object> report = new LinkedHashMap<>();
         private final long started = System.nanoTime();
         private List<String> initialActive;
-        private int phase, ticks, clicks;
+        private int phase, ticks, clicks, scrolls;
+        private final java.util.Set<String> revealed = new java.util.HashSet<>();
         private boolean complete, waiting;
 
         private PointerProof(Minecraft minecraft, Path output) {
@@ -177,58 +178,86 @@ public final class ResourcePackPreviewQa {
                     report.putAll(verify(screen));
                     initialActive = List.copyOf(active());
                     state(screen, "expanded").setValue(java.util.Set.of("QA Previews", "QA Previews/Favorites"));
-                    state(screen, "query").setValue("Large");
+                    state(screen, "query").setValue("Large Folder");
                     next();
                 }
                 case 1 -> {
-                    var cards = List.of(card(FOLDER, false), card(ZIP, false));
-                    capture("packs-large-icons", cards, new int[]{0x24b248, 0xd77e1d});
+                    Rect bounds = visibleCard(FOLDER, false);
+                    if (bounds == null) return;
+                    capture("packs-large-folder-icon", List.of(bounds), new int[]{0x24b248});
                     next();
                 }
-                case 2 -> { click("Only compatible packs"); next(); }
+                case 2 -> { state(screen, "query").setValue("Large Zip"); next(); }
                 case 3 -> {
+                    Rect bounds = visibleCard(ZIP, false);
+                    if (bounds == null) return;
+                    capture("packs-large-zip-icon", List.of(bounds), new int[]{0xd77e1d});
+                    next();
+                }
+                case 4 -> { click("Only compatible packs"); next(); }
+                case 5 -> {
                     require(Boolean.FALSE.equals(state(screen, "onlyCompatible").getValue()), "Native click did not disable the compatibility filter");
                     require(!MenuPreferences.getCompatibleResourcePacksOnly(), "Compatibility filter choice was not persisted");
                     state(screen, "query").setValue("Legacy Format");
                     next();
                 }
-                case 4 -> { capture("packs-filter-off", List.of(card(OLD, false)), null); next(); }
-                case 5 -> { click("Enable pack"); next(); }
                 case 6 -> {
+                    Rect bounds = visibleCard(OLD, false);
+                    if (bounds == null) return;
+                    capture("packs-filter-off", List.of(bounds), null); next();
+                }
+                case 7 -> { if (visibleCard(OLD, false) == null) return; click("Enable pack"); next(); }
+                case 8 -> {
                     require(state(screen, "pending").getValue() != null, "Incompatible pack did not request confirmation");
                     click("Use pack"); next();
                 }
-                case 7 -> {
+                case 9 -> {
                     require(active().contains(OLD), "Native pack confirmation did not activate the pack");
                     click("Only compatible packs"); next();
                 }
-                case 8 -> {
+                case 10 -> {
                     require(Boolean.TRUE.equals(state(screen, "onlyCompatible").getValue()), "Native click did not restore the compatibility filter");
                     require(MenuPreferences.getCompatibleResourcePacksOnly(), "Restored filter choice was not persisted");
-                    capture("packs-filter-on-active", List.of(card(OLD, true)), null); next();
+                    Rect bounds = visibleCard(OLD, true);
+                    if (bounds == null) return;
+                    capture("packs-filter-on-active", List.of(bounds), null); next();
                 }
-                case 9 -> { click("Disable pack"); next(); }
-                case 10 -> {
+                case 11 -> { if (visibleCard(OLD, true) == null) return; click("Disable pack"); next(); }
+                case 12 -> {
                     require(active().equals(initialActive), "Native remove did not restore the original active selection");
                     report.put("nativePointerClicks", clicks);
+                    report.put("nativeWheelScrolls", scrolls);
                     report.put("filterToggledAndPersisted", true);
                     report.put("filteredActivePackRemovedWithNativePointer", true);
                     state(screen, "query").setValue("");
                     next();
                 }
-                case 11 -> finish(null);
+                case 13 -> finish(null);
                 default -> throw new IllegalStateException("Unexpected pack pointer phase " + phase);
             }
         }
         @SuppressWarnings("unchecked") private List<String> active() throws Exception { return (List<String>) state(screen, "active").getValue(); }
-        private Rect card(String id, boolean active) throws Exception {
+        private Rect visibleCard(String id, boolean active) throws Exception {
             var type = Class.forName("io.github.arcadiumclient.modern.gui.PackDrag");
             var constructor = type.getDeclaredConstructor(String.class, boolean.class);
             constructor.setAccessible(true);
             var cards = (Map<?, ?>) field(screen, "cardBounds");
             var bounds = (Rect) cards.get(constructor.newInstance(id, active));
-            require(bounds != null && bounds.getWidth() > 0 && bounds.getHeight() > 0, "Native pack card is not visible: " + id);
-            return bounds;
+            var viewport = (Rect) field(screen, active ? "activeListBounds" : "availableListBounds");
+            require(viewport.getWidth() > 0 && viewport.getHeight() > 0, "Native pack list has no viewport");
+            // Compose reports clipped card bounds, so reveal the final matching row first.
+            boolean revealLastRow = !active && revealed.add(id);
+            if (!revealLastRow && bounds != null && bounds.getWidth() > 0 && bounds.getHeight() > 0
+                    && bounds.getTop() >= viewport.getTop() - 1 && bounds.getBottom() <= viewport.getBottom() + 1) return bounds;
+            double direction = revealLastRow ? -64 : bounds != null && bounds.getTop() < viewport.getTop() ? 1 : -1;
+            var mouse = (MouseQaAccess) minecraft.mouseHandler;
+            long window = minecraft.getWindow().handle();
+            mouse.arcadium$nativeMove(window, (viewport.getLeft() + viewport.getRight()) / 2,
+                    (viewport.getTop() + viewport.getBottom()) / 2);
+            mouse.arcadium$nativeScroll(window, 0, direction);
+            require(++scrolls <= 60, "Native wheel did not reveal pack card " + id + ": " + bounds + " viewport " + viewport);
+            ticks = 6;
+            return null;
         }
         private SemanticsNode root() throws Exception {
             Object scene = field(screen, "sceneOrNull");
@@ -278,7 +307,7 @@ public final class ResourcePackPreviewQa {
                                         && Math.abs((color >>> 8 & 255) - (colors[i] >>> 8 & 255)) < 16
                                         && Math.abs((color & 255) - (colors[i] & 255)) < 16) count++;
                             }
-                        require(count >= 30, "Large native resource-pack icon pixels are missing: " + name + " index " + i + " count " + count);
+                        require(count >= 650, "Complete native resource-pack icon pixels are missing: " + name + " index " + i + " count " + count);
                         pixels.add(count);
                     }
                     image.writeToFile(output.resolve(name + ".png"));

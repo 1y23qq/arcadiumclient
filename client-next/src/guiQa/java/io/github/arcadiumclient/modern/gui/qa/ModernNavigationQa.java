@@ -121,17 +121,31 @@ final class ModernNavigationQa {
             case 15 -> { require(screen() instanceof io.github.arcadiumclient.modern.gui.TitleBackgroundScreen, "Background button did not open settings"); alive(); escape(); next(); }
             case 16 -> { title(); click("Background"); next(); }
             case 17 -> { require(screen() instanceof io.github.arcadiumclient.modern.gui.TitleBackgroundScreen, "Background settings did not reopen"); alive(); click("Back"); next(); }
-            case 18 -> {
+            case 18 -> { title(); openChatShortcuts(); next(); }
+            case 19 -> { require(screen().getClass().getName().equals("org.polyfrost.chatting.config.shortcut.ChatShortcutManagerScreen"), "Native chat shortcuts did not open"); alive(); escape(); next(); }
+            case 20 -> {
+                if (screen() instanceof OneConfigUIScreen) {
+                    if (ticks == 12) { alive(); escape(); }
+                    require(ticks < 100, "The native Chatting parent did not close after Escape");
+                    return;
+                }
+                title(); openChatShortcuts(); next();
+            }
+            case 21 -> { require(screen().getClass().getName().equals("org.polyfrost.chatting.config.shortcut.ChatShortcutManagerScreen"), "Native chat shortcuts did not reopen"); alive(); display(new TitleScreen()); next(); }
+            case 22 -> {
                 title();
                 if (++cycle < 2) { phase = 0; ticks = 0; }
                 else next();
             }
-            case 19 -> { report.put("repeatCycles", cycle); report.put("nativeDisconnectBack", true); report.put("backgroundEscapeAndClose", true); finish(null); }
+            case 23 -> { report.put("repeatCycles", cycle); report.put("nativeDisconnectBack", true); report.put("backgroundEscapeAndClose", true); report.put("upstreamRemovedCloseAndEscape", true); finish(null); }
             default -> throw new IllegalStateException("Unknown navigation phase " + phase);
         }
     }
 
     private void title() throws Exception { require(screen() instanceof ArcadiumMainMenu, "Return reached a vanilla or absent title: " + screen()); alive(); }
+    private void openChatShortcuts() throws Exception {
+        display((Screen) Class.forName("org.polyfrost.chatting.config.shortcut.ChatShortcutManagerScreen").getConstructor().newInstance());
+    }
     private void alive() throws Exception {
         require(screen() instanceof ComposeScreen, "Expected a Compose screen");
         require(field(screen(), "sceneOrNull") != null && Boolean.TRUE.equals(field(screen(), "showing"))

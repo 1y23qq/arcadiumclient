@@ -13,6 +13,9 @@ public interface MouseQaAccess {
     @Invoker("onMove")
     void arcadium$nativeMove(long window, double x, double y);
 
+    @Invoker("onScroll")
+    void arcadium$nativeScroll(long window, double horizontal, double vertical);
+
     @Invoker("onButton")
     void arcadium$nativeButton(long window, MouseButtonInfo button, int action);
 }
