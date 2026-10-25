@@ -130,7 +130,7 @@ final class ModernPauseQa {
                 List.of(button.getX(), button.getY(), button.getWidth(), button.getHeight()))).toList());
     }
     private Button disconnect() { return ((PauseScreenAccessor) (Object) screen).getDisconnectButton(); }
-    private static List<Button> buttons(Screen screen) { return screen.children().stream().filter(Button.class::isInstance).map(Button.class::cast).toList(); }
+    private static List<Button> buttons(Screen screen) { return screen.children().stream().filter(Button.class::isInstance).map(Button.class::cast).filter(button -> button.visible).toList(); }
     private Button named(String name) { return buttons(screen).stream().filter(button -> button.getMessage().getString().equals(name)).findFirst().orElseThrow(); }
     private void click(Button button) {
         var mouse = (MouseQaAccess) minecraft.mouseHandler;
