@@ -10,6 +10,11 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+//? if > 1.8.9 {
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import org.polyfrost.oneconfig.internal.ui.compose.ComposeScreen;
+//?}
 
 //~ if >= 26.2 'Minecraft' -> 'gui.Gui'
 import net.minecraft.client.gui.Gui;
@@ -29,5 +34,16 @@ public class Mixin_ScreenOpenEvent_Fabric {
             ci.cancel();
         }
     }
+
+    //? if > 1.8.9 {
+    @WrapOperation(method = "setScreen", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/Screen;removed()V"))
+    private void removeComposeScreen(Screen screen, Operation<Void> original) {
+        if (screen instanceof ComposeScreen compose) {
+            compose.beginNativeRemoval();
+            try { original.call(screen); }
+            finally { compose.endNativeRemoval(); }
+        } else original.call(screen);
+    }
+    //?}
 }
 //?}

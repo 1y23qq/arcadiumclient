@@ -2423,9 +2423,9 @@
   "arcadiumComponents": [
     {
       "file": "ArcadiumCore-26.2.jar",
-      "sha1": "e25f9c6d42180085c9a2b611fb2b7d99d07d1f48",
-      "sha256": "b840428e55a7612c1c57de672d532290b341c834e86857f0afb1e62d7db0bf74",
-      "bytes": 12385466,
+      "sha1": "5225bfd39acc321b1f5d1a8b74fa0840e1decac0",
+      "sha256": "3b294331a855873eb5c6c8564502dc02527dd6bbfa0c150a6615b98f952197fb",
+      "bytes": 12385980,
       "modId": "oneconfig",
       "license": "GPL-3.0-only",
       "authors": [

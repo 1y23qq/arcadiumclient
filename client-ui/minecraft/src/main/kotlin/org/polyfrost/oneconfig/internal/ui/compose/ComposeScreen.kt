@@ -161,6 +161,12 @@ abstract class ComposeScreen(
     /** Whether this screen is open. Retained scenes stay alive after it closes */
     private var showing = false
 
+    private var nativeRemovalInProgress = false
+
+    fun beginNativeRemoval() { nativeRemovalInProgress = true }
+
+    fun endNativeRemoval() { nativeRemovalInProgress = false }
+
     private var scenePoisoned = false
 
     private var sceneRebuilds = 0
@@ -600,7 +606,11 @@ abstract class ComposeScreen(
     //? if > 1.8.9 {
     override fun onClose() {
         ComposeSceneContextImpl.resetPointerIcon()
-        super.onClose()
+        if (nativeRemovalInProgress) {
+            showing = false
+            sceneContextOrNull?.sync()
+            releaseScene()
+        } else super.onClose()
     }
     //?}
 
