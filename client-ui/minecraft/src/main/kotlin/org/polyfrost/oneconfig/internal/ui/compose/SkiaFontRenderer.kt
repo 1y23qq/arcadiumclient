@@ -18,6 +18,7 @@ import org.polyfrost.compose.mc.MinecraftTextStyle
 import org.polyfrost.compose.render.FontManager
 import org.polyfrost.oneconfig.internal.emoji.EmojiText
 import org.polyfrost.oneconfig.internal.FontPreferences
+import org.polyfrost.oneconfig.internal.MinecraftFontProviderType
 import org.slf4j.LoggerFactory
 
 //? if > 1.8.9 {
@@ -511,6 +512,12 @@ object SkiaFontRenderer : PreparableReloadListener {
 
 
     private fun read(rm: ResourceManager, id: Identifier, options: Int): ByteArray? {
+        //? if >= 1.21.11 && < 26.3 {
+        /*if (options and OPTION_VANILLA != 0) return runCatching {
+            Minecraft.getInstance().vanillaPackResources.getResource(net.minecraft.server.packs.PackType.CLIENT_RESOURCES, id)
+                ?.get()?.use { it.readBytes() }
+        }.getOrNull()
+        *///?}
         //? if <= 1.8.9 {
         /*if (options and OPTION_VANILLA != 0) return runCatching {
             val input = if (id.namespace() == "oneconfig") {
@@ -567,7 +574,7 @@ object SkiaFontRenderer : PreparableReloadListener {
             for (element in providers) {
                 val provider = element.asJsonObject
                 if (!filterPasses(provider, options)) continue
-                when (provider.get("type")?.asString) {
+                when (MinecraftFontProviderType.builtinName(provider.get("type")?.asString)) {
                     "reference" -> provider.get("id")?.asString?.let { collectProviders(rm, it, out, visited, options) }
                     else -> out.add(provider)
                 }
@@ -601,7 +608,7 @@ object SkiaFontRenderer : PreparableReloadListener {
         var prepared = false
         try {
             for (provider in providers) {
-                when (provider.get("type")?.asString) {
+                when (MinecraftFontProviderType.builtinName(provider.get("type")?.asString)) {
                     "space" -> {
                         val advances = provider.getAsJsonObject("advances") ?: continue
                         for ((key, value) in advances.entrySet()) {

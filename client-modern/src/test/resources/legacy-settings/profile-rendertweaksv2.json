@@ -1,0 +1,53 @@
+{
+	"disableLightning": false,
+	"disableWorldBorderStationary": false,
+	"disableWorldBorderGrowing": false,
+	"fishingLineWidthMultiplier": 1.0,
+	"worldBorderGrowingColor": {
+		"value": [
+			64, 
+			255, 
+			128, 
+			255
+		],
+		"class": "org.polyfrost.compose.render.PolyColor"
+	},
+	"lightningColor": {
+		"value": [
+			114, 
+			114, 
+			127, 
+			76
+		],
+		"class": "org.polyfrost.compose.render.PolyColor"
+	},
+	"fishingLineColor": {
+		"value": [
+			0, 
+			0, 
+			0, 
+			255
+		],
+		"class": "org.polyfrost.compose.render.PolyColor"
+	},
+	"disableWorldBorderShrinking": false,
+	"worldBorderShrinkingColor": {
+		"value": [
+			255, 
+			48, 
+			48, 
+			255
+		],
+		"class": "org.polyfrost.compose.render.PolyColor"
+	},
+	"worldBorderStationaryColor": {
+		"value": [
+			32, 
+			160, 
+			255, 
+			255
+		],
+		"class": "org.polyfrost.compose.render.PolyColor"
+	},
+	"disableFishingLine": false
+}

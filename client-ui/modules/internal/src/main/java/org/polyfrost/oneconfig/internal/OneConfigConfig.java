@@ -26,6 +26,12 @@ import org.polyfrost.oneconfig.internal.ui.shell.ShellState;
 import org.polyfrost.oneconfig.internal.ui.sound.UiSounds;
 
 public class OneConfigConfig extends Config {
+    @Switch(title = "Show Notifications", subcategory = "Notifications")
+    public static boolean enableNotifications = true;
+
+    @Switch(title = "Notification Sounds", subcategory = "Notifications")
+    public static boolean enableNotificationSounds = true;
+
     @Dropdown(title = "GUI Mode", description = "Choose the layout for the client menu.",
         subcategory = "oneconfig.preferences.category.gui", subcategoryTranslation = true,
         options = {"Modern", "Simple"})

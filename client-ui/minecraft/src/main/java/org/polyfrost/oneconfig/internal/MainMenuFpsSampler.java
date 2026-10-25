@@ -38,6 +38,7 @@ import org.polyfrost.oneconfig.internal.ui.compose.ComposeScreen;
 
 public final class MainMenuFpsSampler {
     private static final String ARCADIUM_MENU = "io.github.arcadiumclient.runtime.client.gui.ArcadiumMainMenu";
+    private static final String ARCADIUM_MODERN_MENU = "io.github.arcadiumclient.modern.gui.ArcadiumMainMenu";
 
     private static final long MAX_TICK_GAP_NANOS = 250L * 1_000_000L;
 
@@ -63,7 +64,8 @@ public final class MainMenuFpsSampler {
 
     private boolean tick() {
         Object screen = Platform.screen().current();
-        boolean mainMenu = screen instanceof TitleScreen || screen != null && screen.getClass().getName().equals(ARCADIUM_MENU);
+        boolean mainMenu = screen instanceof TitleScreen || screen != null &&
+            (screen.getClass().getName().equals(ARCADIUM_MENU) || screen.getClass().getName().equals(ARCADIUM_MODERN_MENU));
         Minecraft mc = Minecraft.getInstance();
         long now = System.nanoTime();
         long gap = Math.min(now - lastTickNanos, MAX_TICK_GAP_NANOS);

@@ -4,6 +4,7 @@ enum class UiSoundEvent {
     OPEN,
     CLOSE,
     CLICK,
+    NOTIFICATION,
     SLIDER_TICK,
     HUD_SELECT,
     HUD_DRAG_START,

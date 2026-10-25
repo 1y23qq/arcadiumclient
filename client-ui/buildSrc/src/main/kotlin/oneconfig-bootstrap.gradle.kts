@@ -42,7 +42,11 @@ repositories {
 }
 
 group = "${rootProject.group}.bootstrap"
-version = rootProject.version
+version = when (versionedCatalog.versions["minecraft"].requiredVersion) {
+    "1.21.11" -> "1.4.4-arcadium"
+    "26.2" -> "1.5.0+arcadium"
+    else -> rootProject.version
+}
 
 val node = project.name
 val isOrnithe = node.endsWith("-ornithe")

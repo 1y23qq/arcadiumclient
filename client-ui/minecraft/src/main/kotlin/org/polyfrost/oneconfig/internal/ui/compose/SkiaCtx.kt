@@ -356,6 +356,15 @@ object SkiaCtx {
         postComposeRender = block?.let { r -> { r.run() } }
     }
 
+    private val additionalPostComposeRenderers = CopyOnWriteArrayList<Runnable>()
+
+    fun addPostComposeRenderer(block: Runnable) { additionalPostComposeRenderers.add(block) }
+
+    private fun renderPostCompose() {
+        additionalPostComposeRenderers.forEach(Runnable::run)
+        postComposeRender?.invoke()
+    }
+
     @Volatile
     private var postComposeRender: (() -> Unit)? = null
 
@@ -465,7 +474,7 @@ object SkiaCtx {
         *///? }
         val queued = queuedDraws.toList()
         queuedDraws.clear()
-        val post = postComposeRender
+        val post = if (postComposeRender != null || additionalPostComposeRenderers.isNotEmpty()) ::renderPostCompose else null
         val draws = if (post != null) queued + { block.run() } + post else queued + { block.run() }
         val surface = resolveComposeSurface() ?: return
         if (composeRealIsGeneral) {
@@ -790,7 +799,7 @@ object SkiaCtx {
                 }
             }
 
-            postComposeRender?.invoke()
+            renderPostCompose()
 
             notifDraw?.invoke()
 

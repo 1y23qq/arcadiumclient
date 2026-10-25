@@ -1,0 +1,19 @@
+{
+  "required": true,
+  "package": "io.github.arcadiumclient.modern.client.glint.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "client": [
+    "GlintStateMixin",
+    "GlintResolveMixin",
+    "GlintSubmitMixin",
+    "GlintFeatureMixin",
+    "GlintItemMixin",
+    "GlintArmorMixin",
+    "ShinyPotionGuiMixin",
+    "OverflowArmorGlintMixin",
+    "GlintModelMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

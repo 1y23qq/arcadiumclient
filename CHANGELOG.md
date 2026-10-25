@@ -1,3 +1,11 @@
+## 0.5.0
+
+- Added Minecraft 1.21.11 and 26.2 support with updated bundled mods.
+- Added optional Nvidium setup for compatible NVIDIA GPUs on 26.2.
+- Added resource pack version filtering and fixed missing pack icons.
+- Matched Arcadium badges across versions.
+- Fixed screen closing, input recovery and menu navigation.
+
 ## 0.4.5
 
 - Added custom texture pack creation and BLC-style LevelHead.

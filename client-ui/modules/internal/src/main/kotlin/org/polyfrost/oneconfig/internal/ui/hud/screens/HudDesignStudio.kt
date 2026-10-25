@@ -444,6 +444,7 @@ private fun hitTestAnchorPoint(
 }
 
 private fun drawHudContents(sk: Canvas, mcToScreen: Float) {
+    if (!HudManager.inWorld && !HudManager.isEditorOpen) return
     HudManager.renderRevision.intValue
     HudManager.instancesRevision.intValue
     HudManager.revision
@@ -2486,6 +2487,7 @@ fun HudDragLayer(modifier: Modifier = Modifier) {
         modifier = modifier
             .fillMaxSize()
             .safePointerEvent(PointerEventType.Press) { event ->
+                if (!HudManager.inWorld) return@safePointerEvent
                 if (event.changes.any { it.isConsumed }) return@safePointerEvent
                 if (event.buttons.isSecondaryPressed) return@safePointerEvent
                 val pos = event.changes.firstOrNull()?.position ?: return@safePointerEvent
@@ -2521,6 +2523,12 @@ fun HudDragLayer(modifier: Modifier = Modifier) {
                 }
             }
             .safePointerEvent(PointerEventType.Move) { event ->
+                if (!HudManager.inWorld) {
+                    hoveredHud = null
+                    lockedPressHud = null
+                    if (isDragging) endDrag()
+                    return@safePointerEvent
+                }
                 val pos = event.changes.firstOrNull()?.position ?: return@safePointerEvent
                 if (isDragging) {
                     if (event.changes.none { it.pressed }) {
@@ -2582,6 +2590,7 @@ fun HudDragLayer(modifier: Modifier = Modifier) {
                 endDrag()
             }
             .drawWithContent {
+                if (!HudManager.inWorld) return@drawWithContent
                 // HUD contents go under the children because the action bar is a child of this Box and
                 // drawing it first would put it behind every HUD painted here
                 HudEditorViewport.observe()

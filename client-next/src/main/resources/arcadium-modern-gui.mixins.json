@@ -1,0 +1,7 @@
+{
+  "required": true,
+  "package": "io.github.arcadiumclient.modern.mixin.gui",
+  "compatibilityLevel": "JAVA_25",
+  "client": ["MixinModernScreens", "MixinMenuBlur", "MixinRecursivePacks", "CreateWorldAccess", "MixinComposePanorama", "ScreenBackgroundAccess", "MixinPanoramaRender"],
+  "injectors": { "defaultRequire": 1 }
+}

@@ -15,7 +15,12 @@ public final class FontPreferences {
     }
 
     public static Source modSource() {
-        return source(OneConfigConfig.useInterForModText, OneConfigConfig.useVanillaFontForModText);
+        return modSource(OneConfigConfig.useInterForModText,
+            OneConfigConfig.useVanillaFontForModText, OneConfigConfig.useVanillaFontInGame);
+    }
+
+    public static Source modSource(boolean inter, boolean vanilla, boolean gameVanilla) {
+        return source(inter, vanilla || gameVanilla);
     }
 
     public static Source nativeSource() {

@@ -85,6 +85,14 @@ public class OneConfigMixinInit implements IMixinConfigPlugin {
         mixins.add("fixes.Mixin_RememberUnknownOptions");
         *///?}
 
+        //? if >= 1.21.11 && < 26.3 {
+        /*mixins.add("render.Mixin_ModernFontResources");
+        mixins.add("render.Mixin_ModernGameFont");
+        mixins.add("render.Mixin_HideModernPlayerArmor");
+        mixins.add("skia.Mixin_ModernOptionsChat");
+        mixins.add("skia.ModernChatGuiAccess");
+        *///?}
+
         //? if = 1.7.10 {
         /*mixins.add("skia.Mixin_LegacyHudAlpha");
         *///?}

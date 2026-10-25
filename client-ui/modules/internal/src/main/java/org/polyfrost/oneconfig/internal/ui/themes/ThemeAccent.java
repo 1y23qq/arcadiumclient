@@ -52,6 +52,7 @@ public final class ThemeAccent {
     }
 
     private static volatile Snapshot current = new Snapshot(true, "Arcadium", false, 0xFF3AA0FF, 0xFF36F1B0, 0xFF2B4BFF, true);
+    private static volatile boolean animatedChatPrefix = true;
     private static final GradientClock CLOCK = new GradientClock(System.nanoTime(), 1);
     private static final ScheduledExecutorService WRITER = Executors.newSingleThreadScheduledExecutor(task -> {
         Thread thread = new Thread(task, "Arcadium theme sync");
@@ -74,6 +75,9 @@ public final class ThemeAccent {
     }
 
     public static Snapshot snapshot() { return current; }
+
+    public static boolean animatedChatPrefix() { return animatedChatPrefix; }
+    public static void setAnimatedChatPrefix(boolean enabled) { animatedChatPrefix = enabled; }
 
     public static double phaseAt(long nanos) { return CLOCK.at(nanos); }
 

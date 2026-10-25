@@ -14,7 +14,10 @@ SetCompressor /SOLID lzma
 SetCompressorDictSize 32
 Icon "${ICON}"
 UninstallIcon "${ICON}"
-VIProductVersion "${ARCADIUM_VERSION}.0"
+!ifndef ARCADIUM_NUMERIC_VERSION
+!define ARCADIUM_NUMERIC_VERSION "${ARCADIUM_VERSION}.0"
+!endif
+VIProductVersion "${ARCADIUM_NUMERIC_VERSION}"
 VIAddVersionKey "ProductName" "Arcadium Client"
 VIAddVersionKey "CompanyName" "0aurorq3"
 VIAddVersionKey "FileDescription" "Arcadium Client Installer"

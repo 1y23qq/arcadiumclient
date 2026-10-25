@@ -1,0 +1,1519 @@
+{
+  "schemaVersion": 1,
+  "minecraftVersion": "26.2",
+  "plannedClientVersion": "0.5.0",
+  "sourceMinecraftVersion": "1.8.9",
+  "sourceClientVersion": "0.4.5",
+  "review": {
+    "completedAt": "2026-10-24T11:40:18+00:00",
+    "catalogSha256": "360da5a98d4dc13ab2d59616863b9ee5ee7ae4b2b9382ba33856d6071668ce86",
+    "resultSha256": "f8795bdadddf5c255cdeb3686b9e7881149e53785f0850f368b56b0176863e03",
+    "selected": 197,
+    "excluded": 16
+  },
+  "baseline": "OneClient26.2 Fabric HUD, Performance, QoL, Utility and optional SkyBlock; upstream default states and existing Arcadium exclusions are retained.",
+  "optionalOptimizerSelector": false,
+  "features": [
+    {
+      "id": "hud.fps",
+      "category": "HUD / 数値・情報",
+      "title": "FPS",
+      "description": "FPS表示。更新間隔や表示形式などの設定を含む。",
+      "port": true
+    },
+    {
+      "id": "hud.ping",
+      "category": "HUD / 数値・情報",
+      "title": "Ping",
+      "description": "応答時間の表示。0msでも表示し、値の範囲ごとの色をカスタム可能。",
+      "port": true
+    },
+    {
+      "id": "hud.tps",
+      "category": "HUD / 数値・情報",
+      "title": "TPS",
+      "description": "サーバーTPSの推定表示。緑・黄・赤の範囲別カラーを含む。",
+      "port": true
+    },
+    {
+      "id": "hud.cps",
+      "category": "HUD / 数値・情報",
+      "title": "CPS",
+      "description": "左右のクリック数を表示するHUD。",
+      "port": true
+    },
+    {
+      "id": "hud.combo",
+      "category": "HUD / 数値・情報",
+      "title": "Combo",
+      "description": "連続ヒット数を表示するHUD。",
+      "port": true
+    },
+    {
+      "id": "hud.reach",
+      "category": "HUD / 数値・情報",
+      "title": "Reach",
+      "description": "攻撃が当たった距離を表示するHUD。攻撃距離を変更する機能ではない。",
+      "port": true
+    },
+    {
+      "id": "hud.position",
+      "category": "HUD / 数値・情報",
+      "title": "Position",
+      "description": "座標表示。座標の書式・軸・表示内容のカスタマイズを含む。",
+      "port": true
+    },
+    {
+      "id": "hud.facing",
+      "category": "HUD / 数値・情報",
+      "title": "Facing",
+      "description": "向いている方角・方向の文字表示。",
+      "port": true
+    },
+    {
+      "id": "hud.direction",
+      "category": "HUD / 数値・情報",
+      "title": "Direction",
+      "description": "方位を視覚的に表示するHUD。",
+      "port": true
+    },
+    {
+      "id": "hud.biome",
+      "category": "HUD / 数値・情報",
+      "title": "Biome",
+      "description": "現在のバイオーム名。バイオーム別の文字色を含む。",
+      "port": true
+    },
+    {
+      "id": "hud.speed",
+      "category": "HUD / 数値・情報",
+      "title": "Speed",
+      "description": "移動速度を表示するHUD。",
+      "port": true
+    },
+    {
+      "id": "hud.memory",
+      "category": "HUD / 数値・情報",
+      "title": "Memory",
+      "description": "メモリ使用量の表示。",
+      "port": true
+    },
+    {
+      "id": "hud.entity-counter",
+      "category": "HUD / 数値・情報",
+      "title": "Entity Counter",
+      "description": "周囲で描画されているエンティティ数の表示。",
+      "port": true
+    },
+    {
+      "id": "hud.block-above",
+      "category": "HUD / 数値・情報",
+      "title": "Block Above",
+      "description": "頭上のブロックまでの残り高さを表示。チェックする高さと音による通知を設定。",
+      "port": true
+    },
+    {
+      "id": "hud.place-count",
+      "category": "HUD / 数値・情報",
+      "title": "Block Place Count",
+      "description": "ブロックの設置数を数えるHUD。",
+      "port": true
+    },
+    {
+      "id": "hud.server-address",
+      "category": "HUD / 数値・情報",
+      "title": "Server Address",
+      "description": "接続しているサーバーのアドレス表示。",
+      "port": true
+    },
+    {
+      "id": "hud.resource-pack",
+      "category": "HUD / 数値・情報",
+      "title": "Resource Pack",
+      "description": "使用しているリソースパックの情報を表示。",
+      "port": true
+    },
+    {
+      "id": "hud.item-lore",
+      "category": "HUD / 数値・情報",
+      "title": "Item Lore",
+      "description": "手持ちアイテムの説明・Loreを表示するHUD。",
+      "port": true
+    },
+    {
+      "id": "hud.social-stats",
+      "category": "HUD / 数値・情報",
+      "title": "Social Media Stats",
+      "description": "設定したソーシャルサービスの統計情報を表示するHUD。",
+      "port": true
+    },
+    {
+      "id": "hud.armor",
+      "category": "HUD / プレイヤー・アイテム",
+      "title": "Armor Status",
+      "description": "装備と耐久値などの表示。配置・向き・表示項目の設定を含む。",
+      "port": true
+    },
+    {
+      "id": "hud.potions",
+      "category": "HUD / プレイヤー・アイテム",
+      "title": "Potion Effects",
+      "description": "有効なポーション効果・残り時間。効果ごとの文字色を含む。",
+      "port": true
+    },
+    {
+      "id": "hud.inventory",
+      "category": "HUD / プレイヤー・アイテム",
+      "title": "Inventory",
+      "description": "インベントリの内容を画面上に表示するHUD。",
+      "port": true
+    },
+    {
+      "id": "hud.item-counter",
+      "category": "HUD / プレイヤー・アイテム",
+      "title": "Item Counter",
+      "description": "複数種類のアイテム数を表示。横向き・縦向きの配置を含む。",
+      "port": true
+    },
+    {
+      "id": "hud.item-tracker",
+      "category": "HUD / プレイヤー・アイテム",
+      "title": "Item Tracker",
+      "description": "インベントリのアイテムの増減を表示。表示時間・最大件数・同じアイテムの統合・コンテナ内の移動も数える設定。",
+      "port": true
+    },
+    {
+      "id": "hud.saturation",
+      "category": "HUD / プレイヤー・アイテム",
+      "title": "Saturation",
+      "description": "隠し満腹度の表示。",
+      "port": true
+    },
+    {
+      "id": "hud.keystrokes",
+      "category": "HUD / プレイヤー・アイテム",
+      "title": "Keystrokes",
+      "description": "WASD・ジャンプ・マウスなどの入力状態を表示。",
+      "port": true
+    },
+    {
+      "id": "hud.mouse-strokes",
+      "category": "HUD / プレイヤー・アイテム",
+      "title": "Mouse Strokes",
+      "description": "マウスの動きを視覚的に表示するHUD。",
+      "port": true
+    },
+    {
+      "id": "hud.player-head",
+      "category": "HUD / プレイヤー・アイテム",
+      "title": "Player Head",
+      "description": "自分のスキンの頭を表示するHUD。",
+      "port": true
+    },
+    {
+      "id": "hud.player-preview",
+      "category": "HUD / プレイヤー・アイテム",
+      "title": "Player Preview",
+      "description": "自分のプレイヤーモデルを表示するHUD。",
+      "port": true
+    },
+    {
+      "id": "hud.clock",
+      "category": "HUD / 時計・装飾",
+      "title": "Clock",
+      "description": "アナログ時計のHUD。",
+      "port": true
+    },
+    {
+      "id": "hud.digital-clock",
+      "category": "HUD / 時計・装飾",
+      "title": "Digital Clock",
+      "description": "デジタル時計。時刻の書式などの設定を含む。",
+      "port": true
+    },
+    {
+      "id": "hud.in-game-time",
+      "category": "HUD / 時計・装飾",
+      "title": "In Game Time",
+      "description": "Minecraft内の時刻を表示。",
+      "port": true
+    },
+    {
+      "id": "hud.day",
+      "category": "HUD / 時計・装飾",
+      "title": "Day",
+      "description": "ワールド内の日数を表示。",
+      "port": true
+    },
+    {
+      "id": "hud.play-time",
+      "category": "HUD / 時計・装飾",
+      "title": "Play Time",
+      "description": "プレイ時間を表示。",
+      "port": true
+    },
+    {
+      "id": "hud.real-weather",
+      "category": "HUD / 時計・装飾",
+      "title": "Weather HUD",
+      "description": "実際の天気情報を表示するHUD。ワールドの天候変更とは別の機能。",
+      "port": true
+    },
+    {
+      "id": "hud.custom-text",
+      "category": "HUD / 時計・装飾",
+      "title": "Custom Text",
+      "description": "好きなテキストを配置できるHUD。",
+      "port": true
+    },
+    {
+      "id": "hud.custom-image",
+      "category": "HUD / 時計・装飾",
+      "title": "Custom Image",
+      "description": "好きな画像を配置できるHUD。",
+      "port": true
+    },
+    {
+      "id": "hud.shape",
+      "category": "HUD / 時計・装飾",
+      "title": "Shape",
+      "description": "図形を配置できるHUD。",
+      "port": true
+    },
+    {
+      "id": "hud.battery",
+      "category": "HUD / 時計・装飾",
+      "title": "Battery (対応環境のみ)",
+      "description": "対応するOS・機器でバッテリー残量を表示。環境によってはメニューに表示されない。",
+      "port": true
+    },
+    {
+      "id": "hud.shader",
+      "category": "HUD / 時計・装飾",
+      "title": "Shader (対応環境のみ)",
+      "description": "対応するシェーダーModがある場合に使用中のシェーダー情報を表示。",
+      "port": true
+    },
+    {
+      "id": "hud.health",
+      "category": "HUD / Arcadium追加",
+      "title": "Health",
+      "description": "赤いハートと現在体力を表示。HP基準・ハート基準を切り替え可能。",
+      "port": true
+    },
+    {
+      "id": "hud.height-limit",
+      "category": "HUD / Arcadium追加",
+      "title": "Height Limit HUD",
+      "description": "現在高度・上限・残り距離を表示。Lunar型表示、#current/#limit/#distance、色分け、スペースの有無、距離の0固定を含む。",
+      "port": true
+    },
+    {
+      "id": "hud.toggle-sprint",
+      "category": "HUD / Arcadium追加",
+      "title": "Toggle Sprint HUD",
+      "description": "Toggle Sprint / Sneakの状態を表示するHUD。操作機能とは別に選択。",
+      "port": true
+    },
+    {
+      "id": "vanilla-hud.hotbar",
+      "category": "HUD / バニラ要素のカスタマイズ",
+      "title": "Hotbar",
+      "description": "ホットバーと体力・満腹度・経験値などの配置、サイズ、画面端、アニメーションを変更。",
+      "port": true
+    },
+    {
+      "id": "vanilla-hud.scoreboard",
+      "category": "HUD / バニラ要素のカスタマイズ",
+      "title": "Scoreboard",
+      "description": "スコアボードの位置・サイズ・背景・文字などを変更。",
+      "port": true
+    },
+    {
+      "id": "vanilla-hud.tab-list",
+      "category": "HUD / バニラ要素のカスタマイズ",
+      "title": "Tab List / Tab Background",
+      "description": "Tabプレイヤーリストの配置・表示、Pingの色、背景の透明度(0で非表示)をカスタマイズ。",
+      "port": true
+    },
+    {
+      "id": "vanilla-hud.boss-bar",
+      "category": "HUD / バニラ要素のカスタマイズ",
+      "title": "Boss Bar",
+      "description": "ボスバーの位置・サイズ・テキストや体力表示を変更。",
+      "port": true
+    },
+    {
+      "id": "vanilla-hud.action-bar",
+      "category": "HUD / バニラ要素のカスタマイズ",
+      "title": "Action Bar",
+      "description": "アクションバーの位置や表示を変更。",
+      "port": true
+    },
+    {
+      "id": "vanilla-hud.item-tooltip",
+      "category": "HUD / バニラ要素のカスタマイズ",
+      "title": "Held Item Tooltip",
+      "description": "手持ちアイテム名の表示位置・サイズなどを変更。",
+      "port": true
+    },
+    {
+      "id": "vanilla-hud.titles",
+      "category": "HUD / バニラ要素のカスタマイズ",
+      "title": "Title & Subtitle",
+      "description": "画面中央のタイトル・サブタイトル表示を移動・調整。",
+      "port": true
+    },
+    {
+      "id": "visual.skin-3d",
+      "category": "見た目 / プレイヤー・ワールド",
+      "title": "3D Skin",
+      "description": "スキンの外側レイヤーを立体的に描画。部位別のオンオフ、描画距離を含む。",
+      "port": true
+    },
+    {
+      "id": "visual.name-tags",
+      "category": "見た目 / プレイヤー・ワールド",
+      "title": "Name Tags",
+      "description": "ネームタグの位置・大きさ・文字色・影・背景・余白・角丸・自分の名前の表示を調整。",
+      "port": true
+    },
+    {
+      "id": "visual.hit-color",
+      "category": "見た目 / プレイヤー・ワールド",
+      "title": "Hit Color",
+      "description": "被ダメージ時の色を変更。ダメージ種別ごとの色、フェード設定を含む。",
+      "port": true
+    },
+    {
+      "id": "visual.hitboxes",
+      "category": "見た目 / プレイヤー・ワールド",
+      "title": "Hitboxes",
+      "description": "本来のヒットボックスを可視化。対象別の線・面・視線・目の高さ・色などを調整。",
+      "port": true
+    },
+    {
+      "id": "visual.block-overlay",
+      "category": "見た目 / プレイヤー・ワールド",
+      "title": "Block Overlay",
+      "description": "選択ブロックの輪郭・塗り・色などをカスタマイズ。",
+      "port": true
+    },
+    {
+      "id": "visual.light-level",
+      "category": "見た目 / プレイヤー・ワールド",
+      "title": "Light Level",
+      "description": "足元のブロックに明るさの数値や低照度の枠を表示。範囲・光源の設定を含む。",
+      "port": true
+    },
+    {
+      "id": "visual.fullbright",
+      "category": "見た目 / プレイヤー・ワールド",
+      "title": "FullBright",
+      "description": "暗い場所を明るく見せる表示機能。",
+      "port": true
+    },
+    {
+      "id": "visual.night-vision",
+      "category": "見た目 / プレイヤー・ワールド",
+      "title": "Better Night Vision",
+      "description": "暗視の表示や効果が切れる際の点滅を調整。",
+      "port": true
+    },
+    {
+      "id": "visual.time",
+      "category": "見た目 / プレイヤー・ワールド",
+      "title": "Time",
+      "description": "クライアント側の時刻・月相を変更。実時刻連動と操作キーを含む。",
+      "port": true
+    },
+    {
+      "id": "visual.weather",
+      "category": "見た目 / プレイヤー・ワールド",
+      "title": "Weather",
+      "description": "クライアント側の雨・雪・雷と強さ・音を変更。実際の天気との連動を含む。",
+      "port": true
+    },
+    {
+      "id": "visual.smooth-skies",
+      "category": "見た目 / プレイヤー・ワールド",
+      "title": "Smooth Skies",
+      "description": "虚空の暗さ・黒い箱・朝焼けや夕焼けの色などを調整。",
+      "port": true
+    },
+    {
+      "id": "visual.color-saturation",
+      "category": "見た目 / プレイヤー・ワールド",
+      "title": "ColorSaturation",
+      "description": "彩度・コントラスト・明るさ・色相の補正。",
+      "port": true
+    },
+    {
+      "id": "visual.motion-blur",
+      "category": "見た目 / プレイヤー・ワールド",
+      "title": "Motion Blur",
+      "description": "移動時のモーションブラー。",
+      "port": true
+    },
+    {
+      "id": "visual.particles",
+      "category": "見た目 / プレイヤー・ワールド",
+      "title": "Particles / OverflowParticles",
+      "description": "パーティクルの大きさ・量・色・フェード・表示条件を種類ごとに変更。",
+      "port": true
+    },
+    {
+      "id": "visual.glint",
+      "category": "見た目 / プレイヤー・ワールド",
+      "title": "Glint Colorizer",
+      "description": "エンチャントの光沢・色・速度・回転・サイズ、装備やポーションの光沢を調整。",
+      "port": true
+    },
+    {
+      "id": "visual.item-physics",
+      "category": "見た目 / プレイヤー・ワールド",
+      "title": "ItemPhysicLite",
+      "description": "地面に落ちたアイテムの回転や置かれ方を変更。",
+      "port": true
+    },
+    {
+      "id": "visual.dropped-items",
+      "category": "見た目 / プレイヤー・ワールド",
+      "title": "Dropped Item Tweaks",
+      "description": "落ちたアイテムの静止・スタック数の見せ方・共通またはアイテム別のサイズを調整。",
+      "port": true
+    },
+    {
+      "id": "visual.mount-opacity",
+      "category": "見た目 / プレイヤー・ワールド",
+      "title": "Mount Opacity",
+      "description": "騎乗しているエンティティの透明度・視線に応じた見え方を変更。",
+      "port": true
+    },
+    {
+      "id": "visual.render-tweaks",
+      "category": "見た目 / プレイヤー・ワールド",
+      "title": "Render Tweaks",
+      "description": "雷の表示・色、釣り糸の表示・太さ、ワールド境界の表示を調整。",
+      "port": true
+    },
+    {
+      "id": "visual.vignette",
+      "category": "見た目 / プレイヤー・ワールド",
+      "title": "Vignette Tweaks",
+      "description": "画面周辺の暗さ・ビネットを調整。",
+      "port": true
+    },
+    {
+      "id": "visual.overlay-tweaks",
+      "category": "見た目 / プレイヤー・ワールド",
+      "title": "Overlay Tweaks",
+      "description": "炎・水中・窒息・ポータルなどの画面オーバーレイの高さ・透明度・表示条件を調整。",
+      "port": true
+    },
+    {
+      "id": "visual.shake-tweaks",
+      "category": "見た目 / プレイヤー・ワールド",
+      "title": "Shake Tweaks",
+      "description": "画面・手・マップの揺れ、ダメージ時の傾き、手の追従を個別に調整。",
+      "port": true
+    },
+    {
+      "id": "visual.hurt-camera",
+      "category": "見た目 / プレイヤー・ワールド",
+      "title": "BetterHurtCam",
+      "description": "ダメージ時のカメラ揺れの種類・強さ、体力バーの点滅を調整。",
+      "port": true
+    },
+    {
+      "id": "visual.cute-visuals",
+      "category": "見た目 / プレイヤー・ワールド",
+      "title": "Cute Visuals",
+      "description": "ベッド破壊時の音・バースト、虹の軌跡、ハート・ドット・パルスのエフェクト。",
+      "port": false
+    },
+    {
+      "id": "visual.kill-effects",
+      "category": "見た目 / プレイヤー・ワールド",
+      "title": "Kill Effects",
+      "description": "倒した相手への視覚・音エフェクト。種類・色・数・寿命・対象を設定。",
+      "port": true
+    },
+    {
+      "id": "visual.hide-armor",
+      "category": "見た目 / プレイヤー・ワールド",
+      "title": "防具の部位別非表示",
+      "description": "PreferencesのHide Helmet / Chestplate / Leggings / Boots。",
+      "port": true
+    },
+    {
+      "id": "animations.overflow",
+      "category": "見た目 / アニメーション・手持ち",
+      "title": "Animations: Overflow Animations",
+      "description": "旧バージョン風の持ち方・使用・振り・装備・投射物・落下アイテム・釣り糸・スニーク・ケープなどの細かな設定。",
+      "port": true
+    },
+    {
+      "id": "animations.badlion",
+      "category": "見た目 / アニメーション・手持ち",
+      "title": "Animations: Badlion Animations",
+      "description": "Badlionモードの持ち方・切り替え・ブロックヒット・食事・弓・釣り竿・スニーク・旧グリント・ダメージ演出など。",
+      "port": true
+    },
+    {
+      "id": "animations.item-transform",
+      "category": "見た目 / アニメーション・手持ち",
+      "title": "手持ちアイテムのサイズ・位置・回転",
+      "description": "手持ちアイテムのXYZサイズ、位置・回転のカスタマイズ。モードごとの設定を含む。",
+      "port": true
+    },
+    {
+      "id": "crosshair.tweaks",
+      "category": "クロスヘア",
+      "title": "Crosshair Tweaks",
+      "description": "透明度・色のブレンド・各画面での表示条件。前方/後方の三人称やPerspectiveでの表示設定を含む。",
+      "port": true
+    },
+    {
+      "id": "crosshair.custom",
+      "category": "クロスヘア",
+      "title": "Custom Crosshair / Presets",
+      "description": "形・サイズ・線・色などのカスタム照準とプリセット。",
+      "port": true
+    },
+    {
+      "id": "crosshair.canvas",
+      "category": "クロスヘア",
+      "title": "Crosshair Canvas",
+      "description": "ピクセル単位で描けるクロスヘアエディター。保存・切り替え・ミラー・PNG画像の取込を含む。",
+      "port": true
+    },
+    {
+      "id": "utility.zoom",
+      "category": "操作・ユーティリティ",
+      "title": "Zoom",
+      "description": "ズームキー・スクロール・滑らかな遷移・感度・セカンダリズームなど。",
+      "port": true
+    },
+    {
+      "id": "utility.perspective",
+      "category": "操作・ユーティリティ",
+      "title": "Perspective / Freelook",
+      "description": "移動方向を保ちながら周りを見る機能。キー/マウス、ホールド/トグル、感度など。",
+      "port": true
+    },
+    {
+      "id": "utility.snaplook",
+      "category": "操作・ユーティリティ",
+      "title": "BehindYou / SnapLook",
+      "description": "前方/後方への素早い視点切り替え。視点別のキー・距離・FOV・遷移を設定。",
+      "port": true
+    },
+    {
+      "id": "utility.toggle-sprint",
+      "category": "操作・ユーティリティ",
+      "title": "Toggle Sprint / Toggle Sneak",
+      "description": "スプリント・スニークのトグル、専用キー、飛行時の挙動など。",
+      "port": true
+    },
+    {
+      "id": "utility.no-hit-delay",
+      "category": "操作・ユーティリティ",
+      "title": "NoHitDelay",
+      "description": "空振り後のヒット待ち時間を除く1.8.9向け機能。新版の戦闘仕様への適用可否は移植時に検討。",
+      "port": false
+    },
+    {
+      "id": "utility.fov-changer",
+      "category": "操作・ユーティリティ",
+      "title": "FOVChanger / Dynamic FOV",
+      "description": "スプリント・飛行・弓・速度効果などのFOV変化とDynamic FOVの強さを調整。",
+      "port": true
+    },
+    {
+      "id": "utility.gui-scale",
+      "category": "操作・ユーティリティ",
+      "title": "GUI Scale",
+      "description": "ホットバー・照準・インベントリ・チェスト・各種コンテナの拡大率や位置調整を個別に設定。",
+      "port": true
+    },
+    {
+      "id": "utility.nick-hider",
+      "category": "操作・ユーティリティ",
+      "title": "Nick Hider",
+      "description": "自分の表示名を設定したニックネームに置き換える。",
+      "port": true
+    },
+    {
+      "id": "utility.confirm-disconnect",
+      "category": "操作・ユーティリティ",
+      "title": "Confirm Disconnect",
+      "description": "切断前の確認画面。",
+      "port": true
+    },
+    {
+      "id": "utility.confirm-reset-keys",
+      "category": "操作・ユーティリティ",
+      "title": "Confirm Reset Keys",
+      "description": "操作キーをリセットする前の確認。",
+      "port": true
+    },
+    {
+      "id": "utility.scroll-tweaks",
+      "category": "操作・ユーティリティ",
+      "title": "Scroll Tweaks",
+      "description": "ホットバーのスクロール無効化・反転・端からのループ防止。",
+      "port": true
+    },
+    {
+      "id": "utility.tooltip-scroll",
+      "category": "操作・ユーティリティ",
+      "title": "Tooltip Scroll",
+      "description": "画面からはみ出す長いツールチップをスクロール。",
+      "port": true
+    },
+    {
+      "id": "utility.smooth-scrolling",
+      "category": "操作・ユーティリティ",
+      "title": "Smooth Scrolling",
+      "description": "リストのスクロールを滑らかにする。強さ・摩擦・端での反発など。",
+      "port": true
+    },
+    {
+      "id": "utility.numerical-enchantments",
+      "category": "操作・ユーティリティ",
+      "title": "Numerical Enchantments",
+      "description": "エンチャントレベルをローマ数字から普通の数字に変更。",
+      "port": true
+    },
+    {
+      "id": "utility.sound-tweaks",
+      "category": "操作・ユーティリティ",
+      "title": "Sound Tweaks",
+      "description": "音の種類ごとの音量を個別に変更。音量の上限を外す設定を含む。",
+      "port": true
+    },
+    {
+      "id": "utility.text-shadow",
+      "category": "操作・ユーティリティ",
+      "title": "Text Shadow / Sciophobia",
+      "description": "文字の影を非表示・強制表示したり描き方を変更する。",
+      "port": true
+    },
+    {
+      "id": "utility.key-repeat",
+      "category": "操作・ユーティリティ",
+      "title": "Keyyyyyyyy / キーリピート",
+      "description": "旧版でのキー長押しの繰り返し入力を補う機能。新版の標準挙動で満たせる場合はそれを使う。",
+      "port": true
+    },
+    {
+      "id": "utility.smart-search",
+      "category": "操作・ユーティリティ",
+      "title": "SmartSearch",
+      "description": "Mod・設定項目の検索。通常検索に加え意味による検索やあいまい検索の設定を含む。",
+      "port": true
+    },
+    {
+      "id": "utility.tnt-countdown",
+      "category": "操作・ユーティリティ",
+      "title": "TNT Countdown",
+      "description": "着火済みTNTの残り時間を表示。時間単位・書式・小数・色を設定。",
+      "port": true
+    },
+    {
+      "id": "utility.screenshot-tools",
+      "category": "操作・ユーティリティ",
+      "title": "Screenshot Message Enhancer",
+      "description": "撮影後メッセージからコピー・開く・フォルダー・削除・アップロード。自動コピー・圧縮も含む。",
+      "port": true
+    },
+    {
+      "id": "no-render.blocks",
+      "category": "NoRender",
+      "title": "NoRender: 草・植物・各種ブロック",
+      "description": "草・背の高い草・花・葉・ツタ・作物・クモの巣・松明・雪・カーペット・レール・赤石などの個別非表示。",
+      "port": true
+    },
+    {
+      "id": "no-render.entities",
+      "category": "NoRender",
+      "title": "NoRender: エンティティ",
+      "description": "プレイヤー・各種Mob・防具立て・額縁・絵画・落下アイテム・経験値・投射物・TNT・乗り物などの個別非表示。",
+      "port": true
+    },
+    {
+      "id": "no-render.particles",
+      "category": "NoRender",
+      "title": "NoRender: パーティクル",
+      "description": "煙・爆発・花火・水・クリティカル・ポーション・ポータル・炎・溶岩・赤石・ハート・ブロック破壊などの個別非表示。",
+      "port": true
+    },
+    {
+      "id": "no-render.environment",
+      "category": "NoRender",
+      "title": "NoRender: 空・天候・境界",
+      "description": "雲・空・太陽・月・星・雨雪・ワールド境界・選択枠・採掘オーバーレイの個別非表示。",
+      "port": true
+    },
+    {
+      "id": "no-render.overlays",
+      "category": "NoRender",
+      "title": "NoRender: 画面効果・プレイヤー描画",
+      "description": "手・炎・水中・窒息・カボチャ・ポータル・ビネット・ダメージ揺れ・歩行揺れ・影・燃焼・ネームタグを個別非表示。Enabledの誤操作防止も含む。",
+      "port": true
+    },
+    {
+      "id": "chat.group",
+      "category": "Chat",
+      "title": "Chatグループ画面",
+      "description": "Chatting / Chat Tweaks / Chat Filters / AutoTextをChatの中にまとめるUI。各機能の選択は以下で個別に可能。",
+      "port": true
+    },
+    {
+      "id": "chat.window",
+      "category": "Chat",
+      "title": "Chatting: ウィンドウ・表示・アニメーション",
+      "description": "チャットHUDの位置・サイズ・背景・フェード・滑らかな表示/スクロール・リンクの下線など。",
+      "port": true
+    },
+    {
+      "id": "chat.peek",
+      "category": "Chat",
+      "title": "Chatting: Chat Peek",
+      "description": "キーでチャットを一時表示し、履歴をスクロールする。",
+      "port": true
+    },
+    {
+      "id": "chat.message-actions",
+      "category": "Chat",
+      "title": "Chatting: コピー・削除・撮影・検索",
+      "description": "チャットごとのコピーボタン・右クリックコピー・削除・履歴削除・チャット撮影・検索。",
+      "port": true
+    },
+    {
+      "id": "chat.heads",
+      "category": "Chat",
+      "title": "Chatting: Chat Heads",
+      "description": "プレイヤーの顔/3Dの頭・影・連続メッセージ時の省略をチャットに表示。",
+      "port": true
+    },
+    {
+      "id": "chat.tabs",
+      "category": "Chat",
+      "title": "Chatting: Chat Tabs",
+      "description": "チャットをタブに分ける機能。Hypixelでのみ有効にする設定を含む。",
+      "port": false
+    },
+    {
+      "id": "chat.shortcuts",
+      "category": "Chat",
+      "title": "Chatting: Chat Shortcuts",
+      "description": "チャットのショートカットと編集。Hypixel限定設定を含む。AutoTextとは別の機能。",
+      "port": true
+    },
+    {
+      "id": "chat.compact",
+      "category": "Chat",
+      "title": "Compact Chat",
+      "description": "同じメッセージをまとめる。時間・行数・連続のみ・回数表示/非表示・色/書式・スクショ分離を含む。",
+      "port": true
+    },
+    {
+      "id": "chat.timestamps",
+      "category": "Chat",
+      "title": "Chat Timestamps",
+      "description": "時刻・日付・秒・括弧・色・時刻が変わった時だけ表示などの設定。",
+      "port": true
+    },
+    {
+      "id": "chat.history",
+      "category": "Chat",
+      "title": "チャット履歴の保存・保持",
+      "description": "履歴上限・切断時の保持・定期ファイル保存・セッション区切り・空白メッセージの除去。",
+      "port": true
+    },
+    {
+      "id": "chat.input-tools",
+      "category": "Chat",
+      "title": "チャット入力・プレビュー",
+      "description": "Shift+Enterで開いたまま送信、長いローカルコマンド、クリック前プレビュー、コマンド履歴、画像プレビュー。",
+      "port": true
+    },
+    {
+      "id": "chat.emoji",
+      "category": "Chat",
+      "title": "Twemoji絵文字",
+      "description": "Twemoji表示、Unicode/ショートコード、絵文字ピッカーとCtrl+Space。",
+      "port": true
+    },
+    {
+      "id": "chat.filters",
+      "category": "Chat",
+      "title": "Chat Filters",
+      "description": "指定したワードを含むメッセージを隠す。大文字小文字・単語一致の設定を含む。",
+      "port": true
+    },
+    {
+      "id": "chat.auto-text",
+      "category": "Chat",
+      "title": "AutoText",
+      "description": "任意のテキストやコマンドをキーで即送信。複数登録・キー編集・エントリーごとの有効化。",
+      "port": true
+    },
+    {
+      "id": "chat.in-options",
+      "category": "Chat",
+      "title": "Arcadium Options中のチャット表示",
+      "description": "クライアントのメニューを開いていてもチャットを確認できるようにする。",
+      "port": true
+    },
+    {
+      "id": "hypixel.bedwars-overlay",
+      "category": "Hypixel / Bedwars・Bridge",
+      "title": "Bedwars Overlay: Tab Stats / Chat Stats",
+      "description": "スター・FKDRなどをTabやチャットに表示。閾値、ニックプレイヤー判定、同一試合中の結果保持を含む。",
+      "port": false
+    },
+    {
+      "id": "hypixel.keyless-stats",
+      "category": "Hypixel / Bedwars・Bridge",
+      "title": "Bedwars Overlay: キーレス統計取得",
+      "description": "APIキーなしの複数プロバイダー・フォールバック・再試行・共有キャッシュによる取得。",
+      "port": false
+    },
+    {
+      "id": "hypixel.api-key",
+      "category": "Hypixel / Bedwars・Bridge",
+      "title": "Bedwars Overlay: Hypixel APIキー",
+      "description": "任意でHypixel APIキーを登録した場合だけ公式APIを利用する設定。",
+      "port": false
+    },
+    {
+      "id": "hypixel.seraph",
+      "category": "Hypixel / Bedwars・Bridge",
+      "title": "Bedwars Overlay: Seraph Alerts",
+      "description": "Seraphの報告タグを出典とともに表示。APIキー設定を含む。",
+      "port": false
+    },
+    {
+      "id": "hypixel.auto-queue",
+      "category": "Hypixel / Bedwars・Bridge",
+      "title": "Bedwars Overlay: AutoQueue / Map Dodge",
+      "description": "勝利/敗北後の自動再キュー、遅延、マップのブラックリストと回避。",
+      "port": false
+    },
+    {
+      "id": "hypixel.nick-bot",
+      "category": "Hypixel / Bedwars・Bridge",
+      "title": "Bedwars Overlay: Nick Bot",
+      "description": "条件に合うニックを探す。文字数・母音・前後/含む/完全一致ルール、自動取得、ロビー変更、ルール取込を含む。",
+      "port": false
+    },
+    {
+      "id": "hypixel.denick",
+      "category": "Hypixel / Bedwars・Bridge",
+      "title": "Bedwars Overlay: Denick",
+      "description": "スキン・UUID・Bedwarsコスメの情報から元のプロフィールを調べる。Tab表示・外部検索URLの設定を含む。",
+      "port": false
+    },
+    {
+      "id": "hypixel.animated-prefix",
+      "category": "Hypixel / Bedwars・Bridge",
+      "title": "Arcadiumチャットプレフィックス",
+      "description": "ローカルメッセージのArcadium > 表示。Arcadium部分をThemesと同じアニメーショングラデーションにする設定。",
+      "port": true
+    },
+    {
+      "id": "hypixel.levelhead",
+      "category": "Hypixel / Bedwars・Bridge",
+      "title": "LevelHead",
+      "description": "ネームタグの上にHypixel LevelまたはBedwars Levelを表示。背景・色・影・自分表示・大きさ・距離などを設定。",
+      "port": false
+    },
+    {
+      "id": "hypixel.bedwars-height",
+      "category": "Hypixel / Bedwars・Bridge",
+      "title": "Height Overlay: Hypixel Bedwars",
+      "description": "Bedwarsの高度上限に近いブロックの色を変更。マップ判定・色/透明度を含む。HUD自体は別の項目。",
+      "port": false
+    },
+    {
+      "id": "hypixel.bridge-height",
+      "category": "Hypixel / Bedwars・Bridge",
+      "title": "Height Overlay: Hypixel Bridge",
+      "description": "Bridgeの高度上限のブロックを可視化する機能。",
+      "port": false
+    },
+    {
+      "id": "hypixel.minemen-height",
+      "category": "Hypixel / Bedwars・Bridge",
+      "title": "Height Overlay: Minemen自動100",
+      "description": "minemen.clubおよびas/na/euサブドメインで上限を自動的に100にする設定。",
+      "port": true
+    },
+    {
+      "id": "hypixel.resource-display",
+      "category": "Hypixel / Bedwars・Bridge",
+      "title": "Bedwars Resource Display",
+      "description": "Bedwarsのリソース表示HUD。",
+      "port": false
+    },
+    {
+      "id": "hypixel.middle-click",
+      "category": "Hypixel / Bedwars・Bridge",
+      "title": "Hypixelメニューの中クリック",
+      "description": "Bedwarsショップ・ロビーのGUIアイテムを中クリックで操作する機能。",
+      "port": true
+    },
+    {
+      "id": "hypixel.auto-greetings",
+      "category": "Hypixel / チャット・ロビー補助",
+      "title": "HyChatter: AutoGG / AutoGL / AutoWB",
+      "description": "GG・GL・おかえりメッセージの自動送信。内容・遅延・条件・クールダウンなどの設定。",
+      "port": false
+    },
+    {
+      "id": "hypixel.chat-cleanup",
+      "category": "Hypixel / チャット・ロビー補助",
+      "title": "HyChatter: チャットの整理",
+      "description": "広告・ロビー入退場・クエスト・コイン/経験値・Karma・チップ・ゲーム案内などを種類ごとに非表示/簡略化。",
+      "port": true
+    },
+    {
+      "id": "hypixel.chat-format",
+      "category": "Hypixel / チャット・ロビー補助",
+      "title": "HyChatter: 表示形式・チャンネル",
+      "description": "PM/チャンネル名の短縮、白文字化、ゲーム状態・人数・ステータス表示、MVP絵文字など。",
+      "port": true
+    },
+    {
+      "id": "hypixel.social-actions",
+      "category": "Hypixel / チャット・ロビー補助",
+      "title": "HyChatter: フレンド・パーティー・通知",
+      "description": "自動フレンド、パーティーワープ確認、キック通知、レベル/実績通知、Watchdog関連などの補助設定。",
+      "port": true
+    },
+    {
+      "id": "hypixel.waypoints",
+      "category": "Hypixel / チャット・ロビー補助",
+      "title": "HyChatter: 座標共有・ウェイポイント",
+      "description": "座標送信や共有座標のマーカー。ビーム・箱・距離・所有者・色・描画距離の設定を含む。",
+      "port": true
+    },
+    {
+      "id": "hypixel.silent-lobby",
+      "category": "Hypixel / チャット・ロビー補助",
+      "title": "HyLobby: Silent Lobby",
+      "description": "ロビーで花火・爆発・ポータル・Mob・足音・アイテムなどの音を種類ごとに無効化。",
+      "port": true
+    },
+    {
+      "id": "hypixel.auto-tip",
+      "category": "Hypixel / チャット・ロビー補助",
+      "title": "Tipper",
+      "description": "Hypixelの自動Tip。メッセージ表示などの設定を含む。",
+      "port": true
+    },
+    {
+      "id": "menus.title",
+      "category": "メニュー・画面",
+      "title": "Arcadiumタイトルメニュー",
+      "description": "Arcadiumのタイトル画面、Alt Manager/Skinsへの導線、右上の全画面・終了ボタン。",
+      "port": true
+    },
+    {
+      "id": "menus.title-background",
+      "category": "メニュー・画面",
+      "title": "タイトル背景のカスタマイズ",
+      "description": "名前・プレビュー付きパノラマ一覧、背景選択・ぼかし・グラデーション、リソースパックのパノラマ利用。",
+      "port": true
+    },
+    {
+      "id": "menus.onboarding",
+      "category": "メニュー・画面",
+      "title": "ゲーム初回チュートリアル",
+      "description": "初回起動時のゲーム内セットアップ案内。",
+      "port": true
+    },
+    {
+      "id": "menus.pause",
+      "category": "メニュー・画面",
+      "title": "ArcadiumのESCメニュー",
+      "description": "ゲーム中のポーズメニューとArcadium Options・アカウント・Skin Changerなどへの導線。",
+      "port": true
+    },
+    {
+      "id": "menus.world-list",
+      "category": "メニュー・画面",
+      "title": "Arcadiumシングルプレイヤー画面",
+      "description": "ワールド一覧・作成などのArcadiumテーマUI。",
+      "port": true
+    },
+    {
+      "id": "menus.hide-newer-worlds",
+      "category": "メニュー・画面",
+      "title": "新しいバージョンのワールドを隠す",
+      "description": "現在のMinecraftより新しい形式で保存されたワールドを一覧から隠す設定。",
+      "port": true
+    },
+    {
+      "id": "menus.server-list",
+      "category": "メニュー・画面",
+      "title": "Arcadiumマルチプレイヤー画面",
+      "description": "サーバーカード・検索などのArcadiumテーマUI。",
+      "port": true
+    },
+    {
+      "id": "menus.server-drag",
+      "category": "メニュー・画面",
+      "title": "サーバーのドラッグ並べ替え",
+      "description": "サーバーカードをドラッグして好きな位置に移動。",
+      "port": true
+    },
+    {
+      "id": "menus.server-start",
+      "category": "メニュー・画面",
+      "title": "サーバー一覧の初期スクロール位置",
+      "description": "一覧を開く際に一番上/一番下から表示する設定。",
+      "port": true
+    },
+    {
+      "id": "menus.server-preview",
+      "category": "メニュー・画面",
+      "title": "Direct Connectのサーバープレビュー",
+      "description": "直接接続画面でのサーバー情報プレビュー。",
+      "port": true
+    },
+    {
+      "id": "menus.last-server",
+      "category": "メニュー・画面",
+      "title": "Last Server Joined",
+      "description": "最後に接続したサーバーへ戻る導線。",
+      "port": true
+    },
+    {
+      "id": "menus.video-settings",
+      "category": "メニュー・画面",
+      "title": "Arcadiumビデオ設定画面",
+      "description": "二列レイアウトとDetails / Quality / Animations / Performance / Display / Other、適用・戻すなどのUI。新版の設定項目に合わせる前提。",
+      "port": true
+    },
+    {
+      "id": "menus.gui-blur",
+      "category": "メニュー・画面",
+      "title": "GUI Blur",
+      "description": "コンテナ・各種画面の背景ぼかし、画面別除外、強さ・色・グラデーション・遷移の設定。",
+      "port": true
+    },
+    {
+      "id": "menus.container-opacity",
+      "category": "メニュー・画面",
+      "title": "コンテナ背景・テクスチャの透明度",
+      "description": "インベントリなどを開いた際の背景の暗さ(0でオフ)、コンテナ自体の透明度・ラベル色。",
+      "port": true
+    },
+    {
+      "id": "menus.container-behavior",
+      "category": "メニュー・画面",
+      "title": "Better Screens: 操作の調整",
+      "description": "画面が閉じるのを防ぐ、カーソル位置保持、ポーションによる横ずれ抑制、枠外クリックなどの設定。",
+      "port": true
+    },
+    {
+      "id": "menus.inventory-snow",
+      "category": "メニュー・画面",
+      "title": "REDACTION: インベントリ内の雪",
+      "description": "インベントリ内に雪のパーティクルと線を描画。数・色・線幅を設定。",
+      "port": true
+    },
+    {
+      "id": "menus.blackbar",
+      "category": "メニュー・画面",
+      "title": "REDACTION: Blackbar",
+      "description": "ホットバーを色付きのバーに置き換え、スロット番号や選択色を調整。",
+      "port": true
+    },
+    {
+      "id": "menus.hand-fov",
+      "category": "メニュー・画面",
+      "title": "REDACTION: 手持ちFOV・ライティング",
+      "description": "手持ちアイテム専用のFOVと手のライティングをカスタマイズ。",
+      "port": true
+    },
+    {
+      "id": "packs.browser",
+      "category": "リソースパック",
+      "title": "Arcadiumリソースパック画面",
+      "description": "Available/Activeの二列UI、検索・ソート・アイコン・適用・フォルダーを開く機能。Minecraft書式の色付き名前・説明に対応。",
+      "port": true
+    },
+    {
+      "id": "packs.folders",
+      "category": "リソースパック",
+      "title": "フォルダー型・入れ子パック",
+      "description": "ZIPとフォルダー型パック、フォルダー内のパックを再帰検出。フォルダーツリーの開閉・検索を含む。",
+      "port": true
+    },
+    {
+      "id": "packs.drag-drop",
+      "category": "リソースパック",
+      "title": "リソースパックのドラッグ移動",
+      "description": "Available/Active間の移動とActive内の優先順位変更。",
+      "port": true
+    },
+    {
+      "id": "packs.maker",
+      "category": "リソースパック",
+      "title": "Custom Texture Pack Maker",
+      "description": "ベースと各パーツの出典パックを選んで合成。剣・道具・ブロック・空・火球・防具・Mob・粒子・炎・液体・GUI・フォント・音、必要ファイルの収集とZIP保存。",
+      "port": true
+    },
+    {
+      "id": "packs.vanilla-font-game",
+      "category": "リソースパック",
+      "title": "Use vanilla font in-game",
+      "description": "リソースパックのカスタムフォントをゲーム内で使わず、バニラのフォントを強制する設定。",
+      "port": true
+    },
+    {
+      "id": "packs.vanilla-font-mod",
+      "category": "リソースパック",
+      "title": "Use vanilla font for mod text",
+      "description": "Arcadiumのモジュール文字だけ、パックのフォントを使わずバニラにする設定。",
+      "port": true
+    },
+    {
+      "id": "options.modern",
+      "category": "Arcadium Options / 設定・HUD編集",
+      "title": "GUI Mode: Modern",
+      "description": "サイドバー付きのModernモジュールメニュー。",
+      "port": true
+    },
+    {
+      "id": "options.simple",
+      "category": "Arcadium Options / 設定・HUD編集",
+      "title": "GUI Mode: Simple",
+      "description": "カードのトグル部分でオンオフ、それ以外をクリックして設定を開くSimpleメニュー。",
+      "port": true
+    },
+    {
+      "id": "options.mod-discovery",
+      "category": "Arcadium Options / 設定・HUD編集",
+      "title": "Mod検索・カテゴリ・お気に入り",
+      "description": "モジュールの検索、カテゴリ絞り込み、お気に入り、並び順など。",
+      "port": true
+    },
+    {
+      "id": "options.hud-editor",
+      "category": "Arcadium Options / 設定・HUD編集",
+      "title": "HUDエディター",
+      "description": "ドラッグ配置、画面リサイズ対応、スナップ/整列、ロック、複数選択、複製、コピー/貼り付け、Undo/Redo、編集ショートカット。",
+      "port": true
+    },
+    {
+      "id": "options.hud-style",
+      "category": "Arcadium Options / 設定・HUD編集",
+      "title": "HUD共通カスタマイズ",
+      "description": "フォント・大きさ・色・影・背景・角丸・余白・Text Align・スケールなどをHUDごとに設定。",
+      "port": true
+    },
+    {
+      "id": "options.hud-global-style",
+      "category": "Arcadium Options / 設定・HUD編集",
+      "title": "HUDの一括スタイル設定",
+      "description": "EvergreenHUDの共通テキスト・背景・影・スケールを複数HUDへ反映。",
+      "port": true
+    },
+    {
+      "id": "options.profiles",
+      "category": "Arcadium Options / 設定・HUD編集",
+      "title": "設定プロファイル",
+      "description": "Mod/HUD設定の作成・切り替え・複製・名前変更・削除・お気に入り・インポート/エクスポート。プロファイル別操作キーも含む。",
+      "port": true
+    },
+    {
+      "id": "options.keybinds",
+      "category": "Arcadium Options / 設定・HUD編集",
+      "title": "キー割り当て画面",
+      "description": "Arcadiumの機能キー、修飾キー、ホールド/トグルなどの割り当て管理。",
+      "port": true
+    },
+    {
+      "id": "options.themes",
+      "category": "Arcadium Options / 設定・HUD編集",
+      "title": "Themes / 単色アクセント",
+      "description": "テーマの切り替えと単色のアクセントカラー。",
+      "port": true
+    },
+    {
+      "id": "options.gradient",
+      "category": "Arcadium Options / 設定・HUD編集",
+      "title": "Themes / 流れるグラデーション",
+      "description": "256プリセット、好きな2色、速度・柔らかさ、全アクセント部へのアニメーション適用。ランチャーとも共有。",
+      "port": true
+    },
+    {
+      "id": "options.ui-preferences",
+      "category": "Arcadium Options / 設定・HUD編集",
+      "title": "UIの細かなPreferences",
+      "description": "スクロール速度、背景/ページ/サイドバー/グローの透明度、メニューを開いた際のポーズ、最後のページを覚える、遷移・検索など。",
+      "port": true
+    },
+    {
+      "id": "options.inter-game",
+      "category": "Arcadium Options / 設定・HUD編集",
+      "title": "Use Inter in-game",
+      "description": "Minecraft側の文字をInterで描画する設定。",
+      "port": true
+    },
+    {
+      "id": "options.inter-mod",
+      "category": "Arcadium Options / 設定・HUD編集",
+      "title": "Use Inter for mod text",
+      "description": "Arcadium HUDやモジュールの文字をInterで描画する設定。",
+      "port": true
+    },
+    {
+      "id": "options.ui-sounds",
+      "category": "Arcadium Options / 設定・HUD編集",
+      "title": "UIサウンド・通知",
+      "description": "クライアントUIの操作音や通知表示。",
+      "port": true
+    },
+    {
+      "id": "skins.library",
+      "category": "スキン・アカウント",
+      "title": "Skin Changer / 保存スキン",
+      "description": "PNGの取込、複数保存、プレビュー、Classic/Slim、切り替え・リセット。",
+      "port": true
+    },
+    {
+      "id": "skins.online",
+      "category": "スキン・アカウント",
+      "title": "オンラインアカウントのスキン変更",
+      "description": "Minecraftアカウント側へスキンをアップロードして変更する機能。",
+      "port": true
+    },
+    {
+      "id": "skins.offline",
+      "category": "スキン・アカウント",
+      "title": "Crackedアカウントのローカルスキン",
+      "description": "オフラインアカウントごとに保存したカスタムスキンを自分のクライアントへ適用。",
+      "port": true
+    },
+    {
+      "id": "skins.capes",
+      "category": "スキン・アカウント",
+      "title": "Capeの切り替え",
+      "description": "アカウントが所有するMinecraft Capeの一覧・選択・非表示。",
+      "port": true
+    },
+    {
+      "id": "accounts.alt-manager",
+      "category": "スキン・アカウント",
+      "title": "ゲーム内Alt Manager",
+      "description": "ゲームを終了せずアカウントを追加・切り替える画面。",
+      "port": true
+    },
+    {
+      "id": "accounts.microsoft",
+      "category": "スキン・アカウント",
+      "title": "Microsoftログイン",
+      "description": "通常のMicrosoft認証でアカウントを追加。",
+      "port": true
+    },
+    {
+      "id": "accounts.cookie",
+      "category": "スキン・アカウント",
+      "title": "Cookieログイン",
+      "description": "Cookieファイル選択と、そのログイン状態を使ったMicrosoft認証・同意。",
+      "port": true
+    },
+    {
+      "id": "accounts.cracked",
+      "category": "スキン・アカウント",
+      "title": "Crackedログイン",
+      "description": "ユーザー名を指定してオフラインアカウントを追加する機能。",
+      "port": true
+    },
+    {
+      "id": "accounts.session",
+      "category": "スキン・アカウント",
+      "title": "Sessionログイン",
+      "description": "MinecraftアクセストークンまたはMicrosoft refresh tokenでアカウント追加。任意の元OAuthクライアントIDを含む。",
+      "port": true
+    },
+    {
+      "id": "performance.renderer-controls",
+      "category": "描画・パフォーマンス・連携",
+      "title": "高速描画・細かなパフォーマンス設定",
+      "description": "1.8.9のArgentum/Ceraと関連設定が提供する描画・チャンク・カリング等の調整。新版ではOneClient同梱の新版向け構成を前提に機能を対応付ける。",
+      "port": true
+    },
+    {
+      "id": "performance.dynamic-lights",
+      "category": "描画・パフォーマンス・連携",
+      "title": "Dynamic Lights",
+      "description": "手持ちアイテムやエンティティ由来の動的光源。モード/品質の選択を含む。",
+      "port": true
+    },
+    {
+      "id": "performance.unfocused",
+      "category": "描画・パフォーマンス・連携",
+      "title": "Unfocused FPS",
+      "description": "別のウィンドウを操作中のFPS制限。オンオフ、5～200のスライダーと数値入力。",
+      "port": true
+    },
+    {
+      "id": "performance.idle",
+      "category": "描画・パフォーマンス・連携",
+      "title": "Dynamic FPS / アイドル時の負荷制御",
+      "description": "非アクティブ・最小化・待機などの状態に応じた負荷や音量の制御。Unfocused FPSの直接設定とは別に選択。",
+      "port": true
+    },
+    {
+      "id": "performance.legacy-fixes",
+      "category": "描画・パフォーマンス・連携",
+      "title": "1.8.9向け性能修正の見直し",
+      "description": "Sarcio・Explointなど旧版固有の修正を、新版にも必要か確認して同等の問題があれば引き継ぐ。旧JARを新版へそのまま入れる意味ではない。",
+      "port": true
+    },
+    {
+      "id": "performance.async-logging",
+      "category": "描画・パフォーマンス・連携",
+      "title": "Async Logger",
+      "description": "ログ書き込みによる待ち時間を抑える機能。新版で必要な同等機能を検討。",
+      "port": true
+    },
+    {
+      "id": "performance.profiler",
+      "category": "描画・パフォーマンス・連携",
+      "title": "spark / 性能プロファイラー",
+      "description": "負荷の計測・原因調査に使うプロファイラー。",
+      "port": true
+    },
+    {
+      "id": "integration.forge-189",
+      "category": "描画・パフォーマンス・連携",
+      "title": "Forge 1.8.9 Mod互換",
+      "description": "1.8.9用Forge Modを動かす互換レイヤー。1.21.11での実現可否は別途検証が必要なため、今回は希望として記録。",
+      "port": false
+    },
+    {
+      "id": "integration.badge",
+      "category": "描画・パフォーマンス・連携",
+      "title": "Arcadium Badge",
+      "description": "Arcadium利用者を識別してバッジを表示。表示場所などの設定を含む。",
+      "port": true
+    },
+    {
+      "id": "integration.online-count",
+      "category": "描画・パフォーマンス・連携",
+      "title": "オンライン人数への参加",
+      "description": "ランチャー起動中/ゲーム中の利用者を重複させずカウントしサイトに反映する連携。",
+      "port": true
+    },
+    {
+      "id": "integration.medal",
+      "category": "描画・パフォーマンス・連携",
+      "title": "録画ソフト向けゲーム識別",
+      "description": "MedalなどがMinecraftとして認識しやすい実行・ウィンドウ情報への対応。",
+      "port": true
+    },
+    {
+      "id": "launcher.accounts",
+      "category": "ランチャー / 共通機能",
+      "title": "ランチャーのアカウント管理",
+      "description": "アカウント一覧・追加・選択・削除、ゲームへの引き渡し。ログイン方式はスキン・アカウントの各項目で選択。",
+      "port": true
+    },
+    {
+      "id": "launcher.setup-import",
+      "category": "ランチャー / 共通機能",
+      "title": "初回セットアップ・既存データの移行",
+      "description": "保存先の選択、.minecraftから設定・ワールド・サーバー・リソースパックなどのデータを取り込む機能。",
+      "port": true
+    },
+    {
+      "id": "launcher.shared-data",
+      "category": "ランチャー / 共通機能",
+      "title": "バージョン間の共通データ",
+      "description": "Mod/HUD設定と位置、ワールド、パック、サーバーなどをMinecraftのバージョン間で共有する扱い。形式差のあるデータは移植時に互換性を検討。",
+      "port": true
+    },
+    {
+      "id": "launcher.instances",
+      "category": "ランチャー / 共通機能",
+      "title": "バージョン選択・インスタンス管理",
+      "description": "バージョンを選んで起動し、ゲームごとの構成や起動設定を管理する機能。",
+      "port": true
+    },
+    {
+      "id": "launcher.runtime",
+      "category": "ランチャー / 共通機能",
+      "title": "Java・メモリ・起動設定",
+      "description": "Javaの自動導入/手動選択、メモリ、JVM引数、解像度・全画面、GPU、起動前/終了後のコマンド、ゲームごとの設定。",
+      "port": true
+    },
+    {
+      "id": "launcher.update",
+      "category": "ランチャー / 共通機能",
+      "title": "アップデート確認・キャンセル",
+      "description": "新バージョンの案内、更新するかの確認・キャンセルとインストール。",
+      "port": true
+    },
+    {
+      "id": "launcher.theme",
+      "category": "ランチャー / 共通機能",
+      "title": "ランチャーの見た目",
+      "description": "テーマ・アクセント/グラデーション共有、UIアニメーションなどの外観設定。",
+      "port": true
+    },
+    {
+      "id": "launcher.discord",
+      "category": "ランチャー / 共通機能",
+      "title": "Discord Rich Presence",
+      "description": "Discordのアクティビティにランチャー/ゲームの状態を表示。",
+      "port": true
+    },
+    {
+      "id": "launcher.logs",
+      "category": "ランチャー / 共通機能",
+      "title": "ログ・エラー・起動状態の表示",
+      "description": "ゲーム出力、起動/終了状態、エラーの表示や診断に関するUI。",
+      "port": true
+    },
+    {
+      "id": "launcher.storage",
+      "category": "ランチャー / 共通機能",
+      "title": "ストレージ管理・保存先の移動",
+      "description": "保存先変更、使用容量の確認、不要キャッシュの整理。",
+      "port": true
+    },
+    {
+      "id": "launcher.languages",
+      "category": "ランチャー / 共通機能",
+      "title": "ランチャーの言語・基本設定",
+      "description": "言語、起動後のランチャーの挙動、同時ダウンロードなどの基本設定。",
+      "port": true
+    },
+    {
+      "id": "launcher.content",
+      "category": "ランチャー / 共通機能",
+      "title": "Mod・パック等のコンテンツ管理",
+      "description": "既存ランチャーのMod/パック等の管理UIを新版でも使えるようにする希望。Nvidium等を選別して追加する新機能は今回の実装対象外。",
+      "port": true
+    }
+  ],
+  "selectionInheritedFrom": {
+    "path": "distribution/port-scope-1.21.11.json",
+    "sha256": "09e7bcb6b49e38e6fe7519ae4987e0b644f2e039e260984873a84a3245a78b5a",
+    "minecraftVersion": "1.21.11"
+  },
+  "nvidiumRecommendation": {
+    "firstLaunch": true,
+    "eligibility": "At least one supported NVIDIA GPU in the complete adapter inventory",
+    "installRequiresUserChoice": true
+  }
+}

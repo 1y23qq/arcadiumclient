@@ -47,8 +47,11 @@ def import_bundle(source, expected, root=ROOT):
         names = archive.namelist()
         if len(names) != len(components) or set(names) != set(components):
             raise RuntimeError("Build input archive has unexpected components")
-        if sum(entry.file_size for entry in archive.infolist()) > 256 * 1024 * 1024:
+        uncompressed = sum(entry.file_size for entry in archive.infolist())
+        if uncompressed > 512 * 1024 * 1024:
             raise RuntimeError("Build input archive is too large")
+        if uncompressed != sum(entry["bytes"] for entry in components.values()):
+            raise RuntimeError("Build input archive sizes do not match the source catalogs")
         prepared = {name: archive.read(name) for name in components}
         for name, raw in prepared.items():
             validate(raw, components[name])

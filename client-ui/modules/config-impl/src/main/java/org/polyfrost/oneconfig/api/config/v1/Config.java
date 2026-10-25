@@ -146,7 +146,11 @@ public abstract class Config {
                 ConfigManager.reportResetOptions(this, resetOptions);
             }
             runDeferredSetup();
+            onInitialized(tree);
         }
+    }
+
+    protected void onInitialized(Tree tree) {
     }
 
     private void runDeferredSetup() {
@@ -377,6 +381,19 @@ public abstract class Config {
 
     protected void addDependency(String option, String condition) {
         addDependency(option, condition, false);
+    }
+
+    protected void disableAllUnless(String option) {
+        whenInitialized(() -> {
+            Property<?> condition = getProperty(option);
+            if (condition.type != boolean.class && condition.type != Boolean.class) {
+                throw new IllegalArgumentException("Master toggle must be boolean");
+            }
+            @SuppressWarnings("unchecked") Property<Boolean> master = (Property<Boolean>) condition;
+            tree.onAllProps((path, property) -> {
+                if (property != master) property.addDisplayCondition(master, false);
+            });
+        });
     }
 
     protected void hideIf(String option, BooleanSupplier condition) {

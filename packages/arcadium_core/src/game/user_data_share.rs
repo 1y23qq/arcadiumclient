@@ -62,7 +62,10 @@ fn copy_entry(source: &Path, target: &Path) -> io::Result<()> {
     Ok(())
 }
 
-fn import_user_data(native: &Path, primary: &Path) -> io::Result<()> {
+fn import_user_data(native: &Path, primary: &Path, version: &str) -> io::Result<()> {
+    if !arcadium_common::distribution::supports_version(version) {
+        return Err(io::Error::other("Unsupported Minecraft data version."));
+    }
     fs::create_dir_all(native)?;
     fs::create_dir_all(primary)?;
     let native = fs::canonicalize(native)?;
@@ -173,9 +176,9 @@ fn import_user_data(native: &Path, primary: &Path) -> io::Result<()> {
                             .extension()
                             .map(|value| format!(".{}", value.to_string_lossy()))
                             .unwrap_or_default();
-                        format!("{stem} (1.7.10{suffix}){extension}")
+                        format!("{stem} ({version}{suffix}){extension}")
                     } else {
-                        format!("{name} (1.7.10{suffix})")
+                        format!("{name} ({version}{suffix})")
                     };
                     destination = relative.with_file_name(adjusted);
                     if !primary.join(&destination).exists() {
@@ -207,10 +210,11 @@ fn import_user_data(native: &Path, primary: &Path) -> io::Result<()> {
     Ok(())
 }
 
-pub async fn share_user_data(native: &Path, primary: &Path) -> io::Result<()> {
+pub async fn share_user_data(native: &Path, primary: &Path, version: &str) -> io::Result<()> {
     let native = native.to_owned();
     let primary = primary.to_owned();
-    tokio::task::spawn_blocking(move || import_user_data(&native, &primary))
+    let version = version.to_owned();
+    tokio::task::spawn_blocking(move || import_user_data(&native, &primary, &version))
         .await
         .map_err(io::Error::other)?
 }
@@ -245,7 +249,7 @@ mod tests {
         write(&primary, "saves/Same/region/r.0.0.mca", b"primary region");
         write(&primary, "screenshots/same.png", b"primary screenshot");
         write(&primary, "options.txt", b"primary controls");
-        import_user_data(&native, &primary).unwrap();
+        import_user_data(&native, &primary, "1.7.10").unwrap();
         assert_eq!(
             fs::read(primary.join("saves/Native/level.dat")).unwrap(),
             b"native world"
@@ -276,14 +280,14 @@ mod tests {
             fs::read(native.join("saves/Native/level.dat")).unwrap(),
             b"native world"
         );
-        import_user_data(&native, &primary).unwrap();
+        import_user_data(&native, &primary, "1.7.10").unwrap();
         assert!(!primary.join("saves/Same (1.7.10 2)").exists());
         assert!(!primary.join("screenshots/same (1.7.10 2).png").exists());
         let deleted = primary.join("saves/Native");
         assert!(deleted.starts_with(temp.path()));
         fs::remove_dir_all(&deleted).unwrap();
         fs::remove_file(primary.join("servers.dat")).unwrap();
-        import_user_data(&native, &primary).unwrap();
+        import_user_data(&native, &primary, "1.7.10").unwrap();
         assert!(
             !deleted.exists(),
             "A deleted shared world must not be restored from its old native copy"
@@ -306,7 +310,7 @@ mod tests {
         arcadium_io::symlink_dir(&outside, primary.join("saves"))
             .await
             .unwrap();
-        assert!(import_user_data(&native, &primary).is_err());
+        assert!(import_user_data(&native, &primary, "1.7.10").is_err());
         assert_eq!(fs::read_dir(outside).unwrap().count(), 0);
         assert_eq!(
             fs::read(native.join("saves/World/level.dat")).unwrap(),
@@ -330,14 +334,34 @@ mod tests {
             ..Imports::default()
         };
         fs::write(native.join(JOURNAL), serde_json::to_vec(&journal).unwrap()).unwrap();
-        assert!(import_user_data(&native, &primary).is_err());
+        assert!(import_user_data(&native, &primary, "1.7.10").is_err());
         assert!(!temp.path().join("outside.png").exists());
     }
 
     #[test]
     fn runtime_and_user_directories_cannot_overlap() {
         let temp = arcadium_io::testing::ScratchDir::new("shared_user_data_overlap");
-        assert!(import_user_data(temp.path(), &temp.path().join("nested")).is_err());
-        assert!(import_user_data(temp.path(), temp.path()).is_ok());
+        assert!(import_user_data(temp.path(), &temp.path().join("nested"), "1.7.10").is_err());
+        assert!(import_user_data(temp.path(), temp.path(), "1.7.10").is_ok());
+    }
+
+    #[test]
+    fn modern_conflicts_keep_both_worlds_and_label_the_source_version() {
+        let temp = arcadium_io::testing::ScratchDir::new("modern_shared_data");
+        let native = temp.path().join("modern");
+        let primary = temp.path().join("primary");
+        write(&native, "saves/World/level.dat", b"modern world");
+        write(&primary, "saves/World/level.dat", b"primary world");
+        import_user_data(&native, &primary, "1.21.11").unwrap();
+        assert_eq!(
+            fs::read(primary.join("saves/World/level.dat")).unwrap(),
+            b"primary world"
+        );
+        assert_eq!(
+            fs::read(primary.join("saves/World (1.21.11)/level.dat")).unwrap(),
+            b"modern world"
+        );
+        import_user_data(&native, &primary, "1.21.11").unwrap();
+        assert!(!primary.join("saves/World (1.21.11 2)").exists());
     }
 }

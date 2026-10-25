@@ -1,0 +1,20 @@
+{
+	"secondaryZoomKey": {
+		"class": "org.polyfrost.oneconfig.api.ui.v1.keybind.BindNotInScreen",
+		"keyCodes": [
+			"key.keyboard.f6"
+		]
+	},
+	"zoomInKey": {
+		"class": "org.polyfrost.oneconfig.api.ui.v1.keybind.BindNotInScreen"
+	},
+	"zoomKey": {
+		"class": "org.polyfrost.oneconfig.api.ui.v1.keybind.BindNotInScreen",
+		"keyCodes": [
+			"key.keyboard.c"
+		]
+	},
+	"zoomOutKey": {
+		"class": "org.polyfrost.oneconfig.api.ui.v1.keybind.BindNotInScreen"
+	}
+}

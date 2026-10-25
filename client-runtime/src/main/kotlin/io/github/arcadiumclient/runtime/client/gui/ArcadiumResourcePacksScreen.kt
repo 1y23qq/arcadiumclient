@@ -74,9 +74,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.zIndex
 import kotlin.math.roundToInt
 import java.awt.image.BufferedImage
-import java.io.ByteArrayOutputStream
 import java.io.File
-import javax.imageio.ImageIO
 import kotlinx.coroutines.delay
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.screen.Screen
@@ -93,6 +91,9 @@ import org.polyfrost.oneconfig.internal.ui.themes.Theme
 import org.polyfrost.oneconfig.utils.v1.Multithreading
 import io.github.arcadiumclient.runtime.mixin.client.access.ResourcePackEntryAccessor
 import io.github.arcadiumclient.runtime.client.resourcepack.ResourcePackSearch
+import io.github.arcadiumclient.runtime.client.resourcepack.ResourcePackCompatibility
+import io.github.arcadiumclient.runtime.client.resourcepack.ResourcePackImages
+import io.github.arcadiumclient.runtime.client.MenuPreferences
 import io.github.arcadiumclient.runtime.client.resourcepack.CustomPackMaker
 
 private const val PACK_ICONS = "assets/oneconfig/ico/"
@@ -106,6 +107,7 @@ class ArcadiumResourcePacksScreen(private val parent: Screen?) : ComposeScreen(R
     private var expanded by mutableStateOf(setOf<String>())
     private var query by mutableStateOf("")
     private var sort by mutableStateOf(PackSort.NAME)
+    private var onlyCompatible by mutableStateOf(MenuPreferences.compatibleResourcePacksOnly)
     private var pending by mutableStateOf<PackView?>(null)
     private var pendingIndex = 0
     private var dragging by mutableStateOf<PackDrag?>(null)
@@ -144,7 +146,7 @@ class ArcadiumResourcePacksScreen(private val parent: Screen?) : ComposeScreen(R
 
     private fun add(pack: PackView, index: Int = 0) {
         if (pack.format < 0 || pack.id in active) return
-        if (pack.format == 1 || pack.id in client.options.incompatibleResourcePacks) {
+        if (pack.compatible || pack.id in client.options.incompatibleResourcePacks) {
             active = active.toMutableList().apply { add(index.coerceIn(0, size), pack.id) }
         } else {
             pending = pack
@@ -301,8 +303,8 @@ class ArcadiumResourcePacksScreen(private val parent: Screen?) : ComposeScreen(R
                 }
             }
             val byId = remember(packs) { packs.associateBy { it.id } }
-            val tree = remember(packs, active, expanded, query, sort) {
-                packRows(packs.filter { it.id !in active }, expanded, query, sort)
+            val tree = remember(packs, active, expanded, query, sort, onlyCompatible) {
+                packRows(packs.filter { it.id !in active && (!onlyCompatible || it.compatible) }, expanded, query, sort)
             }
             val activeResults = remember(packs, active, query) {
                 val terms = ResourcePackSearch.terms(query)
@@ -338,6 +340,11 @@ class ArcadiumResourcePacksScreen(private val parent: Screen?) : ComposeScreen(R
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 UiTextField(query, { query = it }, Modifier.weight(1f), "Search packs", PACK_ICONS + "search.svg", 160)
                                 UiDropdown("", PackSort.entries, sort, { it.label }, Modifier.width(112.dp)) { sort = it }
+                            }
+                            UiToggle("Only compatible packs", onlyCompatible, Modifier.fillMaxWidth()) {
+                                onlyCompatible = !onlyCompatible
+                                MenuPreferences.compatibleResourcePacksOnly = onlyCompatible
+                                MenuPreferences.save()
                             }
                             PackScrollList(tree, { it.key }, query, availableList, { availableListBounds = it }) { row ->
                                 when (row) {
@@ -419,7 +426,11 @@ class ArcadiumResourcePacksScreen(private val parent: Screen?) : ComposeScreen(R
                             UiText("Use this pack?", 19.sp, fontWeight = FontWeight.SemiBold)
                             MinecraftText(pack.formattedTitle, fontSize = 14.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
                             UiText(
-                                "This pack was made for ${if (pack.format > 1) "a newer" else "an older"} version of Minecraft. Some textures may not work correctly.",
+                                when (pack.compatibility) {
+                                    ResourcePackCompatibility.Status.TOO_NEW -> "This pack was made for a newer version of Minecraft. Some textures may not work correctly."
+                                    ResourcePackCompatibility.Status.TOO_OLD -> "This pack was made for an older version of Minecraft. Some textures may not work correctly."
+                                    else -> "This pack does not declare compatibility with this version of Minecraft. Some textures may not work correctly."
+                                },
                                 13.sp, color = UiTextSecondary,
                             )
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -456,7 +467,12 @@ private class PackView(val entry: ResourcePacks.UnopenedPack) {
     val searchText: String = ResourcePackSearch.text(id, title, description)
     val modified: Long = file.lastModified()
     val format: Int = runCatching { entry.format }.getOrDefault(-1)
-    val icon: ImageBitmap? by lazy { runCatching { access.`arcadium$icon`().toPackBitmap() }.getOrNull() }
+    val compatibility = ResourcePackCompatibility.read(file.toPath(), 1, 0)
+    val compatible: Boolean = compatibility == ResourcePackCompatibility.Status.COMPATIBLE
+    val icon: ImageBitmap? by lazy {
+        ResourcePackImages.read(file.toPath())?.let { SkiaImage.makeFromEncoded(it).toComposeImageBitmap() }
+            ?: runCatching { access.`arcadium$icon`().toPackBitmap() }.getOrNull()
+    }
 }
 
 private enum class PackSort(val label: String) {
@@ -553,7 +569,7 @@ private fun PackCard(pack: PackView, depth: Int, modifier: Modifier = Modifier, 
     Row(
         modifier.fillMaxWidth().padding(start = (depth.coerceAtMost(6) * 12).dp)
             .clip(uiShape(6.dp)).background(UiCardBackground)
-            .border(1.dp, if (pack.format != 1) UiWarnColor.copy(alpha = 0.7f) else border, uiShape(6.dp))
+            .border(1.dp, if (!pack.compatible) UiWarnColor.copy(alpha = 0.7f) else border, uiShape(6.dp))
             .hoverable(interaction).padding(9.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -608,7 +624,5 @@ private fun PackAction(icon: String, label: String, enabled: Boolean = true, com
     }
 }
 
-private fun BufferedImage.toPackBitmap(): ImageBitmap = ByteArrayOutputStream().use {
-    ImageIO.write(this, "png", it)
-    SkiaImage.makeFromEncoded(it.toByteArray()).toComposeImageBitmap()
-}
+private fun BufferedImage.toPackBitmap(): ImageBitmap =
+    SkiaImage.makeFromEncoded(ResourcePackImages.encode(this)).toComposeImageBitmap()

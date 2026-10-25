@@ -87,7 +87,7 @@ pub(crate) fn import_exclusions<'a>(
     minecraft_version: Option<&str>,
 ) -> Vec<&'a str> {
     let mut excluded = base.to_vec();
-    if minecraft_version.is_some_and(arcadium_common::distribution::requires_separate_game_dir) {
+    if minecraft_version.is_some_and(arcadium_common::distribution::uses_native_forge) {
         excluded.extend(["saves", "backups"]);
     }
     excluded
@@ -177,6 +177,9 @@ mod tests {
         assert!(!excluded.contains(&"resourcepacks"));
         assert!(!excluded.contains(&"screenshots"));
         assert!(!import_exclusions(&["mods"], Some("1.8.9")).contains(&"saves"));
+        let modern = import_exclusions(&["mods"], Some("1.21.11"));
+        assert!(!modern.contains(&"saves"));
+        assert!(!modern.contains(&"backups"));
         assert!(!import_exclusions(&["mods"], None).contains(&"saves"));
     }
 

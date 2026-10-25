@@ -6,6 +6,7 @@ mod heal;
 mod launch;
 mod log_replay;
 mod native_forge;
+mod nvidium;
 mod process;
 mod reattach;
 mod session;

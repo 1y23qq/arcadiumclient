@@ -51,3 +51,5 @@ ArcadiumLauncher.iml
 !/packages/arcadium_cluster/src/logs/
 !/packages/arcadium_cluster/src/logs/*.rs
 **/.pytest_cache/
+/client-ui/modules/hud/arcadium/
+/client-ui/modules/internal/arcadium/

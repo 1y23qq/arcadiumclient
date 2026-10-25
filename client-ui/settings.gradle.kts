@@ -59,6 +59,8 @@ val versions = buildList {
     }
 
     both("26.3")
+    fabric("26.2")
+    fabric("1.21.11")
     ornithe("1.8.9")
     ornithe("1.7.10")
 }

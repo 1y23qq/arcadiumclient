@@ -1,11 +1,13 @@
 package org.polyfrost.compose.mc
 
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
 import org.jetbrains.skia.Canvas
 
 object McFontQueue {
+    val modText = compositionLocalOf { false }
     data class Line(val text: String, val width: Float)
 
     var revision by mutableIntStateOf(0)

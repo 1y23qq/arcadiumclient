@@ -77,6 +77,13 @@ fun PolyText(
     font: String? = null,
     modifier: PolyModifier = PolyModifier,
 ) {
+    val overrideFont = McFontQueue.modText.current && McFontQueue.revision.let {
+        McFontQueue.overrideModFont?.invoke() == true
+    }
+    if (overrideFont) {
+        PolyMcText(text, color, shadow, fontSize / 8f, modifier)
+        return
+    }
     ComposeNode<TextNode, PolyApplier>(
         factory = { TextNode() },
         update = {

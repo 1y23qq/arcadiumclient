@@ -1,0 +1,43 @@
+{
+	"NOTIFIED_SCHEMA_VERSION": 3,
+	"isEnabled": false,
+	"Animation": {
+		"back": {
+			"class": "org.polyfrost.behindyou.client.AnimationMode",
+			"value": "Both"
+		},
+		"enabled": true,
+		"speed": 0.4,
+		"front": {
+			"class": "org.polyfrost.behindyou.client.AnimationMode",
+			"value": "Both"
+		}
+	},
+	"Keybinds": {
+		"backKeybindHandleMode": {
+			"class": "org.polyfrost.behindyou.client.KeybindHandleMode",
+			"value": "Hold"
+		},
+		"frontKeybind": {
+			"class": "org.polyfrost.oneconfig.api.ui.v1.keybind.BindNotInScreen"
+		},
+		"frontKeybindHandleMode": {
+			"class": "org.polyfrost.behindyou.client.KeybindHandleMode",
+			"value": "Hold"
+		},
+		"enableF5": false,
+		"backKeybind": {
+			"class": "org.polyfrost.oneconfig.api.ui.v1.keybind.BindNotInScreen"
+		}
+	},
+	"Fov": {
+		"back": 90.0,
+		"enabled": true,
+		"front": 90.0
+	},
+	"Distance": {
+		"back": 4.0,
+		"front": 4.0
+	},
+	"SCHEMA_VERSION": 3
+}

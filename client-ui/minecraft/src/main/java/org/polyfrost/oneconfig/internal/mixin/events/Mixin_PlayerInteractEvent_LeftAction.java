@@ -2,8 +2,8 @@ package org.polyfrost.oneconfig.internal.mixin.events;
 
 import net.minecraft.client.Minecraft;
 //? if = 1.7.10 {
-import net.minecraft.client.entity.living.player.LocalClientPlayerEntity;
-//?} else {
+/*import net.minecraft.client.entity.living.player.LocalClientPlayerEntity;
+*///?} else {
 import net.minecraft.client.player.LocalPlayer;
 //?}
 import net.minecraft.world.phys.HitResult;
@@ -23,8 +23,8 @@ public abstract class Mixin_PlayerInteractEvent_LeftAction {
 
     @Shadow public HitResult hitResult;
     //? if = 1.7.10 {
-    @Shadow public LocalClientPlayerEntity player;
-    //?} else {
+    /*@Shadow public LocalClientPlayerEntity player;
+    *///?} else {
     @Shadow public LocalPlayer player;
     //?}
 

@@ -251,7 +251,7 @@ def prepare(stable, advance_site=False):
         raise RuntimeError("Add the release's changes to CHANGELOG.md before preparing notes.")
     (checkout / "README.md").write_text(
         "# Arcadium Client\n\n"
-        "Minecraft 1.7.10 and 1.8.9 client and launcher.\n\n"
+        "Minecraft client and launcher.\n\n"
         "[Official website and downloads](https://arcadiumclient.com/)\n\n"
         "[Source code](https://github.com/1y23qq/arcadiumclient)\n\n"
         "This repository hosts official installer releases.\n", encoding="utf-8")

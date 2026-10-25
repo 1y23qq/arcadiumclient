@@ -33,6 +33,31 @@ CrashPatch are excluded from the generated distribution. Existing configuration
 identifiers are retained where needed for migration; they are not claims of
 upstream authorship or endorsement.
 
+The modern runtimes are in `client-modern/` and `client-next/`. Their Glint Colorizer configuration
+adapts Polyfrost's GPL-3.0 GlintColorizer definitions; the original license is in
+`client-legacy-mods/glintcolorizer/LICENSE`. The modern rendering code and
+shaders are independently implemented. BetterHurtCam's MIT notice is retained
+in `client-modern/src/main/resources/META-INF/arcadium-modern-notices.txt`.
+The selected Idle/FPS feature uses Dynamic FPS 3.11.6 and 3.11.9 under MIT. Its artwork is
+replaced with Arcadium assets derived from MIT-licensed Feather geometry;
+the code and asset notices are retained in the nested component and in
+`client-modern/src/idleAssets/licenses/`.
+
+The Minecraft 1.21.11 bundle metadata is adapted from Polyfrost's
+[DataStorageV2](https://github.com/Polyfrost/DataStorageV2/tree/a8e6ec3ce5c80ca7a69245f43912adefdd1b862f),
+copyright Polyfrost and contributors, under GPL version 3. Original dependency
+download URLs, hashes and default states are retained in
+`distribution/oneclient-1.21.11.lock.json`, with Arcadium's exclusions recorded
+there. This metadata contains no third-party mod or shader binaries; downloaded
+dependencies retain their respective licenses.
+
+The Minecraft 26.2 bundle metadata follows
+[DataStorageV2](https://github.com/Polyfrost/DataStorageV2/tree/45403497daf6ebfcd284c05ac1252d02a427dca8)
+under the same GPL-3.0 terms. Exact versions and defaults are recorded in
+`distribution/oneclient-26.2.lock.json`. Optional Nvidium is downloaded separately
+and unmodified under LGPL-3.0-only; its license and source reference remain in
+the downloaded JAR and the lock file.
+
 Exact external download versions, hashes, authors, source references and
 original notices are recorded in [licenses/bundled/](licenses/bundled/).
 Argentum, Argentum Extras and Cera retain their reserved-rights terms and are

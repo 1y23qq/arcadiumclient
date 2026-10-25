@@ -4,7 +4,8 @@
 pub const BUNDLE_POLICY: &[u8] = include_bytes!("../../../distribution/bundle-policy.json");
 
 pub const MINECRAFT_VERSION: &str = "1.8.9";
-pub const MINECRAFT_VERSIONS: &[&str] = &["1.8.9", "1.7.10"];
+pub const MINECRAFT_VERSIONS: &[&str] = &["1.8.9", "1.7.10", "1.21.11", "26.2"];
+pub const MODERN_262_LOCK: &[u8] = include_bytes!("../../../distribution/oneclient-26.2.lock.json");
 pub const CLIENT_COMPONENTS: &[u8] =
     include_bytes!("../assets/distribution/client-components.json");
 pub const VERSIONS: &[u8] = include_bytes!("../assets/distribution/versions.json");
@@ -36,13 +37,28 @@ pub fn supports_version(version: &str) -> bool {
 }
 
 #[must_use]
+pub fn default_loader(version: &str) -> Option<crate::GameLoader> {
+    match version {
+        "1.7.10" => Some(crate::GameLoader::Forge),
+        "1.8.9" => Some(crate::GameLoader::Ornithe),
+        "1.21.11" | "26.2" => Some(crate::GameLoader::Fabric),
+        _ => None,
+    }
+}
+
+#[must_use]
 pub fn requires_separate_game_dir(version: &str) -> bool {
-    version == "1.7.10"
+    matches!(version, "1.7.10" | "1.21.11" | "26.2")
 }
 
 #[must_use]
 pub fn supports_forge_compat(version: &str) -> bool {
-    supports_version(version)
+    matches!(version, "1.8.9" | "1.7.10")
+}
+
+#[must_use]
+pub fn uses_modern_fabric(version: &str) -> bool {
+    matches!(version, "1.21.11" | "26.2")
 }
 
 #[must_use]
@@ -53,6 +69,11 @@ pub fn uses_native_forge(version: &str) -> bool {
 #[must_use]
 pub fn default_ornithe_loader(_version: &str) -> Option<&'static str> {
     None
+}
+
+#[must_use]
+pub fn default_fabric_loader(version: &str) -> Option<&'static str> {
+    (version == "26.2").then_some("0.20.1")
 }
 
 pub fn components(version: &str) -> Option<&'static [ClientComponent]> {
@@ -82,18 +103,45 @@ pub fn bundle(path: &str) -> Option<&'static [u8]> {
         "utility-1.8.9-ornithe.mrpack" => Some(include_bytes!(
             "../assets/distribution/utility-1.8.9-ornithe.mrpack"
         )),
+        "hud-1.21.11-fabric.mrpack" => Some(include_bytes!(
+            "../assets/distribution/hud-1.21.11-fabric.mrpack"
+        )),
+        "performance-1.21.11-fabric.mrpack" => Some(include_bytes!(
+            "../assets/distribution/performance-1.21.11-fabric.mrpack"
+        )),
+        "qol-1.21.11-fabric.mrpack" => Some(include_bytes!(
+            "../assets/distribution/qol-1.21.11-fabric.mrpack"
+        )),
+        "utility-1.21.11-fabric.mrpack" => Some(include_bytes!(
+            "../assets/distribution/utility-1.21.11-fabric.mrpack"
+        )),
+        "hud-26.2-fabric.mrpack" => Some(include_bytes!(
+            "../assets/distribution/hud-26.2-fabric.mrpack"
+        )),
+        "performance-26.2-fabric.mrpack" => Some(include_bytes!(
+            "../assets/distribution/performance-26.2-fabric.mrpack"
+        )),
+        "qol-26.2-fabric.mrpack" => Some(include_bytes!(
+            "../assets/distribution/qol-26.2-fabric.mrpack"
+        )),
+        "skyblock-26.2-fabric.mrpack" => Some(include_bytes!(
+            "../assets/distribution/skyblock-26.2-fabric.mrpack"
+        )),
+        "utility-26.2-fabric.mrpack" => Some(include_bytes!(
+            "../assets/distribution/utility-26.2-fabric.mrpack"
+        )),
         _ => None,
     }
 }
 
 pub const BRANDING_MOD: &[u8] = include_bytes!("../assets/distribution/ArcadiumBrand-1.8.9.jar");
-pub const BRANDING_SHA1: &str = "e1c951baed7afac49916538c2be0dc67dbc3a00b";
+pub const BRANDING_SHA1: &str = "575f97a2ef2fdf160924d7ed838ab63a36628877";
 
 pub const COMPONENTS: &[(&str, &str)] = &[
-    ("ArcadiumCore-1.8.9.jar", "39cd27196340dd80af51449215760ae97d51aba7"),
-    ("ArcadiumFeatures-1.8.9.jar", "4f74ceb31de457a10b764b7a782fd4af3a1a3fb2"),
+    ("ArcadiumCore-1.8.9.jar", "521107f0719b65dce47819455fb3913bf0fb0faf"),
+    ("ArcadiumFeatures-1.8.9.jar", "709a75c08eab06ca3a727ffd5f2a9a78939a3035"),
     ("ArcadiumRenderer-1.8.9.jar", "a93ef441f12e02add2c756c3b1dedad0454bc616"),
-    ("ArcadiumForgeCompat-1.8.9.jar", "efbbd39b5fff36a877b9136acc62da3cb24c7e69"),
+    ("ArcadiumForgeCompat-1.8.9.jar", "930214faef5c91c5b8f22cb6f6573224d2eb98af"),
 ];
 
 #[cfg(test)]
@@ -107,6 +155,8 @@ mod tests {
         for &version in super::MINECRAFT_VERSIONS {
             let loader = if super::uses_native_forge(version) {
                 "forge"
+            } else if super::uses_modern_fabric(version) {
+                "fabric"
             } else {
                 "ornithe"
             };
@@ -122,11 +172,39 @@ mod tests {
     fn legacy_worlds_and_bootstraps_are_separate() {
         assert!(super::supports_version("1.8.9"));
         assert!(super::supports_version("1.7.10"));
+        assert!(super::supports_version("1.21.11"));
+        assert!(super::supports_version("26.2"));
+        assert!(super::requires_separate_game_dir("26.2"));
+        assert!(super::uses_modern_fabric("26.2"));
+        assert!(!super::supports_forge_compat("26.2"));
+        assert_eq!(
+            super::default_loader("26.2"),
+            Some(crate::GameLoader::Fabric)
+        );
         assert!(super::requires_separate_game_dir("1.7.10"));
         assert!(!super::requires_separate_game_dir("1.8.9"));
+        assert!(super::requires_separate_game_dir("1.21.11"));
         assert!(super::supports_forge_compat("1.7.10"));
         assert!(super::supports_forge_compat("1.8.9"));
+        assert!(!super::supports_forge_compat("1.21.11"));
+        assert!(super::uses_modern_fabric("1.21.11"));
+        assert!(!super::uses_modern_fabric("1.8.9"));
+        assert_eq!(
+            super::default_loader("1.21.11"),
+            Some(crate::GameLoader::Fabric)
+        );
+        assert_eq!(
+            super::default_loader("1.8.9"),
+            Some(crate::GameLoader::Ornithe)
+        );
+        assert_eq!(
+            super::default_loader("1.7.10"),
+            Some(crate::GameLoader::Forge)
+        );
+        assert_eq!(super::default_loader("1.21.10"), None);
         assert_eq!(super::default_ornithe_loader("1.7.10"), None);
+        assert_eq!(super::default_fabric_loader("26.2"), Some("0.20.1"));
+        assert_eq!(super::default_fabric_loader("1.21.11"), None);
         assert!(super::uses_native_forge("1.7.10"));
         assert!(!super::uses_native_forge("1.8.9"));
         for unsupported in ["1.7.9", "1.8.8", "1.12.2", "1.7.10-forge", ""] {

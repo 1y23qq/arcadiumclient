@@ -39,6 +39,7 @@ import org.polyfrost.compose.composables.background
 import org.polyfrost.compose.layout.PolyAlign
 import org.polyfrost.compose.render.PolyColor
 import org.polyfrost.compose.runtime.PolyComposeRuntime
+import org.polyfrost.compose.mc.McFontQueue
 import org.polyfrost.oneconfig.api.config.v1.Config
 import org.polyfrost.oneconfig.api.config.v1.ConfigManager
 import org.polyfrost.oneconfig.api.config.v1.Properties.ktProperty
@@ -931,6 +932,15 @@ abstract class Hud(id: String, title: String, val category: Category) : Cloneabl
             return if (gui > 0f) customScale / gui else customScale
         }
 
+    @get:ApiStatus.Internal
+    val frameScale: Float get() = effectiveScale
+
+    @get:ApiStatus.Internal
+    val frameX: Float get() = x
+
+    @get:ApiStatus.Internal
+    val frameY: Float get() = y
+
     fun getPoppinsFontName(): String {
         val base = when {
             textBold || textWeight == Weight.Bold -> "poppins-bold"
@@ -1053,7 +1063,7 @@ abstract class Hud(id: String, title: String, val category: Category) : Cloneabl
         get() = _runtime ?: PolyComposeRuntime().also {
             _runtime = it
             it.setContent {
-                CompositionLocalProvider(LocalHud provides this) {
+                CompositionLocalProvider(LocalHud provides this, McFontQueue.modText provides true) {
                     Content()
                 }
             }
@@ -1166,6 +1176,7 @@ abstract class Hud(id: String, title: String, val category: Category) : Cloneabl
             if (with == null) LOGGER.info("generated new HUD config for $title -> ${tree.id}")
             Config.captureDefaults(tree)
             if (out.capturedDefaults == null) out.capturedDefaults = tree
+            ConfigManager.active().unregister(treeId)
             ConfigManager.active().register(tree)
             sanitizeHudCapturedDefaults(tree)
             this.tree = tree

@@ -1,5 +1,8 @@
+mod inventory;
 #[cfg(any(target_os = "linux", test))]
 mod linux;
+
+pub use inventory::{inventory, supports_nvidium};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Gpu {

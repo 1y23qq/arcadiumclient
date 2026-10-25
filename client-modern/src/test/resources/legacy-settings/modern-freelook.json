@@ -1,0 +1,24 @@
+{
+	"pressMode": 0,
+	"onCycleChange": 1,
+	"activationKey": {
+		"class": "org.polyfrost.oneconfig.api.ui.v1.keybind.BindNotInScreen"
+	},
+	"holdThreshold": 300.0,
+	"cinematicCamera": 0.0,
+	"enabled": true,
+	"Yaw": {
+		"enabled": true,
+		"invert": false
+	},
+	"smoothCamera": true,
+	"Pitch": {
+		"invert": false,
+		"lock": true,
+		"enabled": true
+	},
+	"perspectiveType": 1,
+	"sensitivity": 100.0,
+	"migratedDefaults": true,
+	"migratedVanillaKeybind": true
+}

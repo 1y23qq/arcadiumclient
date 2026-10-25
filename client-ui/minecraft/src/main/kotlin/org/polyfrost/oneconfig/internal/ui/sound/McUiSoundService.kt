@@ -53,6 +53,7 @@ class McUiSoundService : UiSoundService {
             UiSoundEvent.OPEN -> playModernSound("ui.open", 1f, volume)
             UiSoundEvent.CLOSE -> playModernSound("ui.close", 1f, volume)
             UiSoundEvent.CLICK -> playModernSound("ui.click", 1f, volume)
+            UiSoundEvent.NOTIFICATION -> playModernSound("ui.click", 1.2f, 0.6f * volume)
             UiSoundEvent.SLIDER_TICK -> playModernSound("ui.slider", 1f, volume)
             UiSoundEvent.HUD_SELECT -> playModernSound("ui.click", 1.0f, volume)
             UiSoundEvent.HUD_DRAG_START -> playModernSound("ui.click", 0.9f, volume)
@@ -73,6 +74,7 @@ class McUiSoundService : UiSoundService {
     private fun playMinecraft(event: UiSoundEvent, volume: Float) {
         when (event) {
             UiSoundEvent.CLICK -> playVanilla(SoundEvents.UI_BUTTON_CLICK, 1f, 0.5f * volume)
+            UiSoundEvent.NOTIFICATION -> playVanilla(SoundEvents.UI_BUTTON_CLICK, 1.2f, 0.3f * volume)
             UiSoundEvent.OPEN -> playModernSound("ui.open", 1f, volume)
             UiSoundEvent.CLOSE -> playModernSound("ui.close", 1f, volume)
             UiSoundEvent.SLIDER_TICK -> {

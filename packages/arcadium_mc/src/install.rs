@@ -790,7 +790,10 @@ pub async fn download_version_info(
 }
 
 fn apply_distribution_java(info: &mut VersionInfo, version: &str, loader: GameLoader) {
-    if version == "1.7.10" && loader == GameLoader::Ornithe {
+    if (version == "1.7.10" && loader == GameLoader::Ornithe)
+        || (arcadium_common::distribution::uses_modern_fabric(version)
+            && loader == GameLoader::Fabric)
+    {
         info.java_version = Some(
             serde_json::from_value(serde_json::json!({
                 "component": "java-runtime-epsilon", "majorVersion": 25
@@ -1517,10 +1520,10 @@ fn requested_loader_version<'a>(
     loader: GameLoader,
     requested: Option<&'a str>,
 ) -> Option<&'a str> {
-    requested.or_else(|| {
-        (loader == GameLoader::Ornithe)
-            .then(|| arcadium_common::distribution::default_ornithe_loader(mc_version))
-            .flatten()
+    requested.or_else(|| match loader {
+        GameLoader::Ornithe => arcadium_common::distribution::default_ornithe_loader(mc_version),
+        GameLoader::Fabric => arcadium_common::distribution::default_fabric_loader(mc_version),
+        _ => None,
     })
 }
 
@@ -1627,6 +1630,8 @@ pub async fn get_loaders_for_version(
     let mut loaders = metadata.get_loaders_for_version(ctx, mc_version).await?;
     if mc_version == "1.7.10" {
         loaders.retain(|loader| *loader == GameLoader::Ornithe);
+    } else if arcadium_common::distribution::uses_modern_fabric(mc_version) {
+        loaders.retain(|loader| *loader == GameLoader::Fabric);
     }
     Ok(loaders)
 }
@@ -1646,6 +1651,8 @@ pub async fn get_versions_for_loader(
                 .filter(|version| {
                     arcadium_common::distribution::supports_version(version)
                         && (version != "1.7.10" || loader == GameLoader::Ornithe)
+                        && (!arcadium_common::distribution::uses_modern_fabric(version)
+                            || loader == GameLoader::Fabric)
                 })
                 .collect()
         }))
@@ -1756,6 +1763,12 @@ mod tests {
         let mut legacy = make_info();
         apply_distribution_java(&mut legacy, "1.7.10", GameLoader::Ornithe);
         assert_eq!(legacy.java_version.unwrap().major_version, 25);
+        let mut modern = make_info();
+        apply_distribution_java(&mut modern, "1.21.11", GameLoader::Fabric);
+        assert_eq!(modern.java_version.unwrap().major_version, 25);
+        let mut modern = make_info();
+        apply_distribution_java(&mut modern, "26.2", GameLoader::Fabric);
+        assert_eq!(modern.java_version.unwrap().major_version, 25);
         for (version, loader) in [
             ("1.7.10", GameLoader::Forge),
             ("1.8.9", GameLoader::Ornithe),
@@ -1949,6 +1962,29 @@ mod tests {
         assert!(
             !saw && resolved.is_none(),
             "fabric publishes no intermediary below 1.14 so the wildcard must not claim 1.8.9"
+        );
+    }
+
+    #[test]
+    fn calendar_version_uses_the_bundled_fabric_pin_even_when_an_older_release_is_stable() {
+        let manifest = serde_json::from_str::<interfrost::api::modded::Manifest>(
+            r#"{"gameVersions":[{"id":"26.2","stable":true,"loaders":[
+                {"id":"0.19.5","url":"https://meta.example/old.json","stable":true},
+                {"id":"0.20.1","url":"https://meta.example/pinned.json","stable":false}
+            ]}]}"#,
+        )
+        .unwrap();
+        let requested = requested_loader_version("26.2", GameLoader::Fabric, None);
+        assert_eq!(requested, Some("0.20.1"));
+        let (_, selected) = resolve_loader_from_manifest(&manifest, "26.2", requested);
+        assert_eq!(selected.unwrap().id, "0.20.1");
+        assert_eq!(
+            requested_loader_version("26.2", GameLoader::Fabric, Some("0.20.2")),
+            Some("0.20.2")
+        );
+        assert_eq!(
+            requested_loader_version("1.21.11", GameLoader::Fabric, None),
+            None
         );
     }
 

@@ -1,0 +1,14 @@
+{
+	"staticItems": false,
+	"uhcItemListLegacy": [
+		"minecraft:apple", 
+		"minecraft:golden_apple", 
+		"minecraft:gold_ingot", 
+		"minecraft:gold_nugget", 
+		"minecraft:gold_block", 
+		"minecraft:skull"
+	],
+	"itemScale": 1.0,
+	"dropStackCount": 0,
+	"uhcOverlay": 0.0
+}

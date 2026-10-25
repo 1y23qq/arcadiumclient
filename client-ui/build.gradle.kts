@@ -79,8 +79,10 @@ tasks.register<Sync>("buildAndCollect") {
 
     // loom keeps the unmapped jar in build/devlibs so build/libs holds only the shippable one
     // version filter skips stale jars from earlier project versions
-    from(bootstrapNodes.map { it.layout.buildDirectory.dir("libs") }) {
-        include("*-${rootProject.version}.jar")
+    bootstrapNodes.forEach { node ->
+        from(node.layout.buildDirectory.dir("libs")) {
+            include("*-${node.version}.jar")
+        }
     }
     from(composeBundle.tasks.named<Jar>("jar").flatMap { it.archiveFile })
     into(layout.buildDirectory.dir("libs"))

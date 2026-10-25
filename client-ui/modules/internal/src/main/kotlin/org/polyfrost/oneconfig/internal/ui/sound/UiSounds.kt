@@ -31,6 +31,7 @@ object UiSounds {
         UiSoundEvent.OPEN,
         UiSoundEvent.CLOSE -> OneConfigConfig.enableUIMenuSounds
         UiSoundEvent.CLICK -> OneConfigConfig.enableUIClickSounds
+        UiSoundEvent.NOTIFICATION -> OneConfigConfig.enableNotificationSounds
         UiSoundEvent.SLIDER_TICK -> OneConfigConfig.enableUISliderSounds
         UiSoundEvent.HUD_SELECT,
         UiSoundEvent.HUD_DRAG_START,

@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -32,10 +33,12 @@ import androidx.compose.ui.unit.sp
 import org.apache.logging.log4j.LogManager
 import org.jetbrains.skia.Rect
 import org.polyfrost.compose.render.RenderContext
+import org.polyfrost.compose.mc.McFontQueue
 import org.polyfrost.compose.runtime.PolyComposeHost
 import org.polyfrost.compose.runtime.PolyComposeRuntime
 import org.polyfrost.oneconfig.api.hud.v1.Hud
 import org.polyfrost.oneconfig.api.hud.v1.HudManager
+import org.polyfrost.oneconfig.api.hud.v1.LocalHud
 import org.polyfrost.oneconfig.internal.ui.components.Text
 import org.polyfrost.oneconfig.internal.ui.components.localizedValue
 import org.polyfrost.oneconfig.internal.ui.themes.LocalTheme
@@ -97,7 +100,11 @@ internal fun rememberHudPreview(hud: Hud): HudPreviewState {
             hud.update()
             HudPreviewState(
                 PolyComposeRuntime(PolyComposeHost.previews).also { rt ->
-                    rt.setContent { hud.Content() }
+                    rt.setContent {
+                        CompositionLocalProvider(LocalHud provides hud, McFontQueue.modText provides true) {
+                            hud.Content()
+                        }
+                    }
                 }
             )
         }

@@ -1,0 +1,31 @@
+{
+	"containerBackgroundOpacity": 81.56863,
+	"containerScale": -1,
+	"removeStatusEffectsShift": true,
+	"lastServerIP": "",
+	"replaceOpenToLan": true,
+	"containerLabelColor": {
+		"value": [
+			64, 
+			64, 
+			64, 
+			0
+		],
+		"class": "org.polyfrost.compose.render.PolyColor"
+	},
+	"preventClosingScreens": false,
+	"cursorResetTimer": 150,
+	"playerInventoryLabelColor": {
+		"value": [
+			64, 
+			64, 
+			64, 
+			0
+		],
+		"class": "org.polyfrost.compose.render.PolyColor"
+	},
+	"dontResetCursor": false,
+	"clickOutOfContainers": false,
+	"containerTextureOpacity": 100.0,
+	"showServerPreview": true
+}

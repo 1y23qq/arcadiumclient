@@ -43,6 +43,7 @@ import org.polyfrost.oneconfig.api.config.v1.Properties;
 import org.polyfrost.oneconfig.api.config.v1.Property;
 import org.polyfrost.oneconfig.api.config.v1.Tree;
 import org.polyfrost.oneconfig.api.config.v1.ValueFormatter;
+import org.polyfrost.oneconfig.api.config.v1.Visualizer;
 import org.polyfrost.oneconfig.api.config.v1.annotations.*;
 import org.polyfrost.oneconfig.utils.v1.MHUtils;
 
@@ -75,11 +76,29 @@ public class OneConfigCollector extends ReflectiveCollector {
                 } else throw new IllegalArgumentException("Property " + p.getID() + " is dependant on property " + cond + ", but it is not annotation boolean property");
             }
         });
+        String masterId = tree.getMetadata("mod_card_toggle");
+        Property<?> master = masterId == null ? null : tree.getProp(masterId);
+        if (master != null) {
+            @SuppressWarnings("unchecked") Property<Boolean> enabled = (Property<Boolean>) master;
+            tree.onAllProps((path, property) -> {
+                if (property != enabled) property.addDisplayCondition(enabled, false);
+            });
+        }
         return tree;
     }
 
     @Override
     protected void handleField(@NotNull Field f, @NotNull Object src, @NotNull Tree tree) {
+        if (f.isAnnotationPresent(MasterToggle.class)) {
+            if (f.getType() != boolean.class && f.getType() != Boolean.class) {
+                throw new IllegalArgumentException("@MasterToggle field must be boolean: " + f.getName());
+            }
+            Property<?> enabled = Properties.field("Enabled", null, f, src);
+            enabled.addMetadata("visualizer", Visualizer.SwitchVisualizer.class);
+            tree.put(enabled);
+            tree.addMetadata("mod_card_toggle", f.getName());
+            return;
+        }
         for (Annotation a : f.getDeclaredAnnotations()) {
             Class<? extends Annotation> type = a.annotationType();
             if (type == Include.class) {

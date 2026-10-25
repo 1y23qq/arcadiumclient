@@ -183,6 +183,17 @@ mod minecraft_version_paths_tests {
             super::cluster_game_dir(name, true, "1.7.10").unwrap(),
             legacy
         );
+        let modern = super::cluster_game_dir(name, false, "1.21.11").unwrap();
+        assert_eq!(
+            modern,
+            super::cluster_dir(name).unwrap().join("minecraft-1.21.11")
+        );
+        assert_ne!(modern, primary);
+        assert_ne!(modern, legacy);
+        assert_eq!(
+            super::cluster_game_dir(name, true, "1.21.11").unwrap(),
+            modern
+        );
     }
 }
 

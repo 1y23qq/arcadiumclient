@@ -1,0 +1,18 @@
+{
+  "required": true,
+  "package": "io.github.arcadiumclient.modern.client.migration.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "client": [
+    "BlurPersistenceMixin",
+    "BlurCompatCardMixin",
+    "SmoothScrollBoundsMixin",
+    "GammaPersistenceMixin",
+    "GammaAutoConfigSaveMixin",
+    "GammaTransitionMixin",
+    "SmoothScrollDurationMixin",
+    "SmoothScrollSaveMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

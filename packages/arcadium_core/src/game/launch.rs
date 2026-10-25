@@ -96,15 +96,24 @@ async fn start(
         existing = state.clusters.get(cluster_id).await?;
     }
     if !arcadium_common::distribution::supports_version(&existing.mc_version) {
-        return Err(crate::ClusterError::InvalidVersion(
-            "Arcadium supports Minecraft 1.8.9 and 1.7.10.".into(),
-        )
+        return Err(crate::ClusterError::InvalidVersion(format!(
+            "Arcadium supports Minecraft {}.",
+            arcadium_common::distribution::MINECRAFT_VERSIONS.join(", ")
+        ))
         .into());
     }
     if existing.mc_version == "1.7.10" && existing.mc_loader != arcadium_common::GameLoader::Forge {
         return Err(crate::LauncherError::Minecraft(
             "This Minecraft 1.7.10 installation still uses the retired renderer. Restart Arcadium to migrate it to Forge.".into(),
         ));
+    }
+    if arcadium_common::distribution::uses_modern_fabric(&existing.mc_version)
+        && existing.mc_loader != arcadium_common::GameLoader::Fabric
+    {
+        return Err(crate::LauncherError::Minecraft(format!(
+            "Arcadium {} requires Fabric.",
+            existing.mc_version
+        )));
     }
 
     let components = arcadium_common::distribution::components(&existing.mc_version).ok_or_else(|| {
@@ -318,7 +327,9 @@ async fn start(
     let cwd = game_dir;
     arcadium_io::create_dir_all(&cwd).await.ok();
 
-    if cluster.uses_bundles() && cluster.mc_version == "1.7.10" {
+    if cluster.uses_bundles()
+        && arcadium_common::distribution::requires_separate_game_dir(&cluster.mc_version)
+    {
         let primary = paths::shared_minecraft_dir()?;
         let backups = Box::pin(crate::game::share_client_settings(&cwd, &primary))
             .await
@@ -334,7 +345,9 @@ async fn start(
             );
         }
         Box::pin(crate::game::user_data_share::share_user_data(
-            &cwd, &primary,
+            &cwd,
+            &primary,
+            &cluster.mc_version,
         ))
         .await
         .map_err(|error| {
@@ -391,6 +404,30 @@ async fn start(
     {
         tracing::warn!(cluster_id, error = %err, "failed to materialize cluster content");
     }
+    let nvidium_gpu = if cluster.uses_bundles() {
+        match super::nvidium::prepare(
+            &state.services,
+            &cluster,
+            &user_game_dir,
+            &cwd,
+            mods_in_cluster,
+        )
+        .await
+        {
+            Ok(gpu) => gpu,
+            Err(error) => {
+                tracing::warn!(%error, "Nvidium recommendation did not complete");
+                events
+                    .notify("Could not enable Nvidium")
+                    .body(error.to_string())
+                    .error()
+                    .send();
+                None
+            }
+        }
+    } else {
+        None
+    };
     remove_retired_hyinfo(&cwd, &mods_dir, RETIRED_HYINFO_SHA1).await?;
     if !dedicated {
         crate::game::link_cluster_logs(&cluster, &cwd).await;
@@ -567,7 +604,7 @@ async fn start(
 
     let (mut command, wrapper) = base_command(&profile, &java.absolute_path);
 
-    if let Some(gpu) = profile.gpu() {
+    if let Some(gpu) = profile.gpu().or(nvidium_gpu.as_deref()) {
         crate::game::gpu::select(&mut command, &java.absolute_path, gpu).await;
     }
 

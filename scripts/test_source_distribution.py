@@ -28,6 +28,15 @@ class SourcePublicationTests(unittest.TestCase):
         self.assertTrue(gate.check_file(name, bundle()))
         self.assertTrue(gate.check_file(name, bundle({"mods/old.jar": b"data"}, "1.7.10")))
 
+    def test_modern_metadata_accepts_only_reviewed_overrides(self):
+        from modern_distribution import DISTRIBUTION_OVERRIDES
+        name = "packages/arcadium_common/assets/distribution/performance-1.21.11-fabric.mrpack"
+        override = json.dumps(DISTRIBUTION_OVERRIDES)
+        self.assertEqual(gate.check_file(name, bundle({"overrides/config/fabric_loader_dependencies.json": override}, "1.21.11")), [])
+        self.assertTrue(gate.check_file(name, bundle(minecraft_version="1.8.9")))
+        self.assertTrue(gate.check_file(name, bundle({"mods/embedded.jar": b"binary"}, "1.21.11")))
+        self.assertTrue(gate.check_file(name, bundle({"overrides/config/fabric_loader_dependencies.json": "{}"}, "1.21.11")))
+
     def test_game_mod_payload_or_unreviewed_override_cannot_enter_source_mrpack(self):
         for name in ["mods/forbidden.jar", "overrides/config/unreviewed.json", "overrides/saves/level.dat"]:
             with self.subTest(name=name):

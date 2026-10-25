@@ -2,9 +2,9 @@
   "1.8.9": [
     {
       "file": "ArcadiumCore-1.8.9.jar",
-      "sha1": "39cd27196340dd80af51449215760ae97d51aba7",
-      "sha256": "7be8dc6299031a7809e933837d87e9464066015d90c42aa23e7991e064b869c2",
-      "bytes": 10914614,
+      "sha1": "521107f0719b65dce47819455fb3913bf0fb0faf",
+      "sha256": "56dbb7889a1546bf7e299ec4ab80651d41099215e1e66383dcc96cbe65c7283e",
+      "bytes": 10948602,
       "modId": "oneconfig",
       "license": "GPL-3.0-only",
       "authors": [
@@ -19,9 +19,9 @@
     },
     {
       "file": "ArcadiumFeatures-1.8.9.jar",
-      "sha1": "4f74ceb31de457a10b764b7a782fd4af3a1a3fb2",
-      "sha256": "d6f662be448a8ab8a01572ebb557062b8419a2792118d6e9e63b3e480cc08f35",
-      "bytes": 26449334,
+      "sha1": "709a75c08eab06ca3a727ffd5f2a9a78939a3035",
+      "sha256": "88e6577288866b7cf1477fb286f9377a931b46737a9511f5af9c69412f44e4d4",
+      "bytes": 26460516,
       "modId": "arcadium_runtime",
       "license": "GPL-3.0-only",
       "authors": [
@@ -50,9 +50,9 @@
     },
     {
       "file": "ArcadiumForgeCompat-1.8.9.jar",
-      "sha1": "efbbd39b5fff36a877b9136acc62da3cb24c7e69",
-      "sha256": "dd4bf0b7d96ab61b48e2ea5b68564696b70c2d2361ffb377ef3aec48157268d1",
-      "bytes": 3288955,
+      "sha1": "930214faef5c91c5b8f22cb6f6573224d2eb98af",
+      "sha256": "979d9a3477b59fb9dd46ca6975da2a8a76e16f1d88b5c23b797844a1642cc992",
+      "bytes": 3289544,
       "modId": "arcadium_forge_compat",
       "license": "GPL-3.0-only",
       "authors": [
@@ -68,9 +68,9 @@
   "1.7.10": [
     {
       "file": "ArcadiumForge-1.7.10.jar",
-      "sha1": "75b1afaa47e80044ced1314e7acee5d5ed0f17fb",
-      "sha256": "f1c787c3f48797a7070ef0e053a8abd72e4d1bf9f19a333f19965f9e16bfc30a",
-      "bytes": 118293177,
+      "sha1": "ece4592f69c9bcae607a62827f1e5a018ba8f0d3",
+      "sha256": "d7bff51319c1bc7429ce1e6cc726b06f8c6d1c23f8da925f24e2387d02447a46",
+      "bytes": 118343154,
       "modId": "arcadiumclient",
       "license": "GPL-3.0-only",
       "authors": [
@@ -80,8 +80,8 @@
     },
     {
       "file": "ArcadiumBootstrap-1.7.10.jar",
-      "sha1": "f13b8c918c12e01787c06cb63fe46e480242b942",
-      "sha256": "d9e51a868992be62fa49a1cc633ddadafce511f866f550c6e39711464a814ca6",
+      "sha1": "3baf01153f2c1217c15bdce9898612186c36effa",
+      "sha256": "41f0673d1c8a36d39b3346fec9147147ac9b08c3e16ed0d1d96b047611125149",
       "bytes": 21823,
       "modId": "arcadium_forge_bootstrap",
       "license": "GPL-3.0-only",
@@ -90,6 +90,106 @@
       ],
       "contact": {},
       "bootstrap": true
+    }
+  ],
+  "1.21.11": [
+    {
+      "file": "ArcadiumCore-1.21.11.jar",
+      "sha1": "7d671807872ca557a2eae58ca41944af5410db07",
+      "sha256": "d601ac7e5d84ef5c1fcdd1d2df30b11dcb2648d35ada9050ad04a5af6c95745d",
+      "bytes": 12434669,
+      "modId": "oneconfig",
+      "license": "GPL-3.0-only",
+      "authors": [
+        "Polyfrost",
+        "0aurorq3 (Arcadium modifications)"
+      ],
+      "contact": {
+        "homepage": "https://arcadiumclient.com",
+        "sources": "https://github.com/1y23qq/arcadiumclient",
+        "issues": "https://discord.gg/QbNfaCHjUz"
+      }
+    },
+    {
+      "file": "ArcadiumFeatures-1.21.11.jar",
+      "sha1": "d8b8840e873cf0e14d5038cbbd38d1c744a96d3d",
+      "sha256": "3b2c22e51c2d55f2df360415ea29928c3f9d2dd950b4a86e49c3a11d985fc03f",
+      "bytes": 25780798,
+      "modId": "arcadium_runtime",
+      "license": "GPL-3.0-only",
+      "authors": [
+        "Arcadium contributors"
+      ],
+      "contact": {
+        "homepage": "https://arcadiumclient.com",
+        "sources": "https://github.com/1y23qq/arcadiumclient",
+        "issues": "https://discord.gg/QbNfaCHjUz"
+      }
+    },
+    {
+      "file": "ArcadiumRenderer-1.21.11.jar",
+      "sha1": "a93ef441f12e02add2c756c3b1dedad0454bc616",
+      "sha256": "9327d6e3b7e49d2546e258cee389cf27af2250c0d2b68bbf5e79185675fbfb7b",
+      "bytes": 65462958,
+      "modId": "compose-multiplatform",
+      "license": "Apache-2.0",
+      "authors": [
+        "Polyfrost"
+      ],
+      "contact": {
+        "homepage": "https://polyfrost.org",
+        "sources": "https://github.com/Polyfrost/OneConfig"
+      }
+    }
+  ],
+  "26.2": [
+    {
+      "file": "ArcadiumCore-26.2.jar",
+      "sha1": "e25f9c6d42180085c9a2b611fb2b7d99d07d1f48",
+      "sha256": "b840428e55a7612c1c57de672d532290b341c834e86857f0afb1e62d7db0bf74",
+      "bytes": 12385466,
+      "modId": "oneconfig",
+      "license": "GPL-3.0-only",
+      "authors": [
+        "Polyfrost",
+        "0aurorq3 (Arcadium modifications)"
+      ],
+      "contact": {
+        "homepage": "https://arcadiumclient.com",
+        "sources": "https://github.com/1y23qq/arcadiumclient",
+        "issues": "https://discord.gg/QbNfaCHjUz"
+      }
+    },
+    {
+      "file": "ArcadiumFeatures-26.2.jar",
+      "sha1": "ef77272fe2ab5abe73219ee531c61268365c7917",
+      "sha256": "4867e59bd197e12fd2b3c4bb4e3295ef7a03b2bbc5bf24001fbd0513d3dcb9b1",
+      "bytes": 25783541,
+      "modId": "arcadium_runtime",
+      "license": "GPL-3.0-only",
+      "authors": [
+        "Arcadium contributors"
+      ],
+      "contact": {
+        "homepage": "https://arcadiumclient.com",
+        "sources": "https://github.com/1y23qq/arcadiumclient",
+        "issues": "https://discord.gg/QbNfaCHjUz"
+      }
+    },
+    {
+      "file": "ArcadiumRenderer-26.2.jar",
+      "sha1": "a93ef441f12e02add2c756c3b1dedad0454bc616",
+      "sha256": "9327d6e3b7e49d2546e258cee389cf27af2250c0d2b68bbf5e79185675fbfb7b",
+      "bytes": 65462958,
+      "modId": "compose-multiplatform",
+      "license": "Apache-2.0",
+      "authors": [
+        "Polyfrost"
+      ],
+      "contact": {
+        "homepage": "https://polyfrost.org",
+        "sources": "https://github.com/Polyfrost/OneConfig"
+      }
     }
   ]
 }

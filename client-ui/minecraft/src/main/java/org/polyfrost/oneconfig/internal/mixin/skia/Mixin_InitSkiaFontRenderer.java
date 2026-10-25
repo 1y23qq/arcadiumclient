@@ -29,5 +29,7 @@ public class Mixin_InitSkiaFontRenderer {
         SkiaFontRenderer.INSTANCE.init();
         //? if <= 1.8.9
         //org.polyfrost.oneconfig.internal.ui.compose.LegacyGameFont.initialize();
+        //? if >= 1.21.11 && < 26.3
+        //org.polyfrost.oneconfig.internal.ui.compose.ModernGameFonts.initialize();
     }
 }

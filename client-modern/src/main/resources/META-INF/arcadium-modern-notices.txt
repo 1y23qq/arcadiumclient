@@ -1,0 +1,15 @@
+BetterHurtCam compatibility
+Copyright (c) 2022 uku
+License: MIT (META-INF/licenses/betterhurtcam/LICENSE)
+Source: https://github.com/uku3lig/BetterHurtCam
+
+VignetteTweaks configuration and behavior compatibility
+Authors: chromatic, awruff
+License: GPL-3.0
+Source: https://codeberg.org/chromatic/VignetteTweaks
+
+Dynamic FPS 3.11.6 (selected idle-control counterpart)
+Authors: juliand665, LostLuma and Dynamic FPS contributors
+License: MIT (code and translations; exact upstream license retained in the derived JAR)
+Source: https://github.com/juliand665/Dynamic-FPS
+Upstream textures excluded; replacement assets use Feather/Arcadium MIT licenses.

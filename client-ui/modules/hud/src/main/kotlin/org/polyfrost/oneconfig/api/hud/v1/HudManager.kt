@@ -148,7 +148,7 @@ object HudManager {
     @Volatile @JvmField var targetPixelHeight: Int = 0
 
     @ApiStatus.Internal
-    @Volatile @JvmField var inWorld: Boolean = true
+    @Volatile @JvmField var inWorld: Boolean = false
 
     @ApiStatus.Internal
     @Volatile @JvmField var pendingSelection: Hud? = null
@@ -554,6 +554,7 @@ object HudManager {
 
     /** Everything [shouldDraw] checks apart from the HUD's own hidden flag */
     private fun isShown(hud: Hud): Boolean {
+        if (!inWorld && !isEditorOpen) return false
         if (isEditing) return true
         if (isGuiHidden) return false
         if (isDebugScreenVisible && !hud.showInF3) return false

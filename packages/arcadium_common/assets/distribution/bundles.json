@@ -4,19 +4,19 @@
       "ornithe": [
         {
           "path": "/arcadium/bundles/hud-1.8.9-ornithe.mrpack",
-          "sha1": "0af7215296e482260e352d678ee8b896b89d6739"
+          "sha1": "ffbf8b43db15c94d77f1fcda8dcf5fe06f399d2e"
         },
         {
           "path": "/arcadium/bundles/performance-1.8.9-ornithe.mrpack",
-          "sha1": "df8614077ff09521aef3a88c22787cca342d4700"
+          "sha1": "8e54531841a164e02553accc186123d5514f1c1b"
         },
         {
           "path": "/arcadium/bundles/qol-1.8.9-ornithe.mrpack",
-          "sha1": "607e6817aac2115a7a02e1767d39dec893b49f62"
+          "sha1": "51416d841549936594295e31cb6bc684f0018023"
         },
         {
           "path": "/arcadium/bundles/utility-1.8.9-ornithe.mrpack",
-          "sha1": "430a8673c596bad63b909d8d6d5ce1d59ba21c42"
+          "sha1": "8b7d3736df01d75847d5658c3130e7381b9ee1fc"
         }
       ]
     },
@@ -24,7 +24,51 @@
       "forge": [
         {
           "path": "/arcadium/bundles/core-1.7.10-forge.mrpack",
-          "sha1": "966e60b3bca2f39fa40eb87b2920039e6762debb"
+          "sha1": "b6951ea73b5a2cb66b585738614262c270a13298"
+        }
+      ]
+    },
+    "1.21.11": {
+      "fabric": [
+        {
+          "path": "/arcadium/bundles/hud-1.21.11-fabric.mrpack",
+          "sha1": "1609d309c2f1d1a66c5a64870cc493a941d31965"
+        },
+        {
+          "path": "/arcadium/bundles/performance-1.21.11-fabric.mrpack",
+          "sha1": "7e2f84162264da4f77c79c7a547502f05104d727"
+        },
+        {
+          "path": "/arcadium/bundles/qol-1.21.11-fabric.mrpack",
+          "sha1": "190789873a2593e503abafc8fbc26139db1e148c"
+        },
+        {
+          "path": "/arcadium/bundles/utility-1.21.11-fabric.mrpack",
+          "sha1": "2541597b347b3821a9e91ddf5b559bfb25c7de90"
+        }
+      ]
+    },
+    "26.2": {
+      "fabric": [
+        {
+          "path": "/arcadium/bundles/hud-26.2-fabric.mrpack",
+          "sha1": "ad98a0f82b3a5573b7f4d6bdad47d1181ee4c584"
+        },
+        {
+          "path": "/arcadium/bundles/performance-26.2-fabric.mrpack",
+          "sha1": "3dc4e084f7a0f68309fffca281ce5324988376e1"
+        },
+        {
+          "path": "/arcadium/bundles/qol-26.2-fabric.mrpack",
+          "sha1": "1d1ff0406c8f0f1ffbb6af3d6da9bd0ef7a6f123"
+        },
+        {
+          "path": "/arcadium/bundles/skyblock-26.2-fabric.mrpack",
+          "sha1": "f436016437c9cd00c687b01ca6a62f0098259ea8"
+        },
+        {
+          "path": "/arcadium/bundles/utility-26.2-fabric.mrpack",
+          "sha1": "065dd4752d527bffa271ea4e5f6d208d8e060d96"
         }
       ]
     }

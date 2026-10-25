@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "id": "arcadium_runtime",
+  "version": "${version}",
+  "name": "Arcadium Client",
+  "provides": [
+    "arcadiumclient"
+  ],
+  "icon": "assets/arcadiumclient/icon.png",
+  "license": "GPL-3.0-only",
+  "authors": [
+    "Arcadium contributors"
+  ],
+  "environment": "client",
+  "contact": {
+    "homepage": "https://arcadiumclient.com",
+    "sources": "https://github.com/1y23qq/arcadiumclient",
+    "issues": "https://discord.gg/QbNfaCHjUz"
+  },
+  "entrypoints": {
+    "preLaunch": [
+      "io.github.arcadiumclient.modern.ModernPreLaunch"
+    ],
+    "client": [
+      "io.github.arcadiumclient.modern.ModernRuntime"
+    ]
+  },
+  "mixins": [
+    "arcadium-modern.mixins.json",
+    "arcadium-modern-gui.mixins.json",
+    "arcadium-hypixel.mixins.json",
+    "arcadium-glint.mixins.json",
+    "arcadium-baseline-compat.mixins.json",
+    "arcadium-modern-profiles.mixins.json",
+    "arcadium-native-migration.mixins.json"
+  ],
+  "depends": {
+    "minecraft": "26.2",
+    "java": ">=25",
+    "fabricloader": ">=0.20.1",
+    "fabric-api": "*",
+    "oneconfigv1": ">=1.5.0",
+    "yet_another_config_lib_v3": ">=3.9.7",
+    "fabric-language-kotlin": ">=1.13.13"
+  }
+}

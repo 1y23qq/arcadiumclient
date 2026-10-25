@@ -10,6 +10,7 @@ import org.polyfrost.oneconfig.api.config.v1.annotations.Text;
 import org.polyfrost.oneconfig.internal.ui.themes.GradientPresets;
 import org.polyfrost.oneconfig.internal.ui.themes.ProviderKt;
 import org.polyfrost.oneconfig.internal.ui.themes.ThemeAccent;
+import org.polyfrost.oneconfig.internal.ui.themes.ThemeRegistry;
 
 public class ThemeConfig extends Config {
     @Text(title = "Active Theme")
@@ -67,5 +68,6 @@ public class ThemeConfig extends Config {
         }
         ThemeAccent.refresh();
         ProviderKt.updateAccent();
+        ThemeRegistry.INSTANCE.loadFromConfig();
     }
 }

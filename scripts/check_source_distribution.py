@@ -12,13 +12,15 @@ import tarfile
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE_DIRECTORIES = {".cargo", ".github", ".sqlx", "ci", "client-forge1710", "client-runtime", "client-legacy-performance", "client-legacy-mods", "client-ui", "distribution", "docs", "forge-compat", "game-branding", "licenses", "packages", "scripts", "services", "sites"}
+SOURCE_DIRECTORIES = {".cargo", ".github", ".sqlx", "ci", "client-forge1710", "client-runtime", "client-modern", "client-next", "client-legacy-performance", "client-legacy-mods", "client-ui", "distribution", "docs", "forge-compat", "game-branding", "licenses", "packages", "scripts", "services", "sites"}
 SOURCE_ROOT_FILES = {".editorconfig", ".gitattributes", ".gitignore", ".mailmap", "ATTRIBUTION.md", "CHANGELOG.md", "CODE_OF_CONDUCT.md", "CONTRIBUTING.md", "Cargo.lock", "Cargo.toml", "LICENSE", "NOTICE.md", "README.md", "clippy.toml", "rust-toolchain.toml", "rustfmt.toml"}
-WRAPPERS = {f"{project}/gradle/wrapper/gradle-wrapper.jar" for project in ["client-runtime", "client-legacy-performance", "client-ui", "game-branding"]}
+WRAPPERS = {f"{project}/gradle/wrapper/gradle-wrapper.jar" for project in ["client-runtime", "client-modern", "client-legacy-performance", "client-ui", "game-branding"]}
 WRAPPERS.add("client-legacy-mods/guiblur/gradle/wrapper/gradle-wrapper.jar")
 BUNDLES = {f"packages/arcadium_common/assets/distribution/{name}-1.8.9-ornithe.mrpack" for name in ["hud", "performance", "qol", "utility"]}
 BUNDLES.add("packages/arcadium_common/assets/distribution/core-1.7.10-ornithe.mrpack")
 BUNDLES.add("packages/arcadium_common/assets/distribution/core-1.7.10-forge.mrpack")
+BUNDLES.update(f"packages/arcadium_common/assets/distribution/{name}-1.21.11-fabric.mrpack" for name in ["hud", "performance", "qol", "utility"])
+BUNDLES.update(f"packages/arcadium_common/assets/distribution/{name}-26.2-fabric.mrpack" for name in ["hud", "performance", "qol", "skyblock", "utility"])
 GENERATED_PARTS = {".git", ".gradle", ".kotlin", "__pycache__", "node_modules", "build", "target", "run", "logs", "example-cookie", "forge-mod-test", "arcadium_polyplus", "client-features", "client-renderer"}
 NATIVE_LOG_SOURCES = {f"packages/arcadium_cluster/src/logs/{name}.rs" for name in ["error", "manage", "mclogs", "mod", "parse"]}
 BINARY_ASSETS = {".png", ".jpg", ".jpeg", ".webp", ".gif", ".ico", ".icns", ".tiff", ".ttf", ".otf", ".woff", ".woff2", ".ogg"}
@@ -52,12 +54,22 @@ def check_file(name: str, raw: bytes) -> list[str]:
                     if stat.S_ISLNK(entry.external_attr >> 16):
                         failures.append("MRPACK metadata is a link")
                 index = json.loads(archive.read("modrinth.index.json"))
-                expected_version = "1.7.10" if "-1.7.10-" in name else "1.8.9"
+                expected_version = "26.2" if "-26.2-" in name else "1.21.11" if "-1.21.11-" in name else "1.7.10" if "-1.7.10-" in name else "1.8.9"
                 if index.get("dependencies", {}).get("minecraft") != expected_version:
                     failures.append("Unexpected Minecraft version in source bundle index")
                 if metadata_override in archive.namelist():
                     override = json.loads(archive.read(metadata_override))
-                    if override != {"version": 1, "overrides": {"pylon": {"+breaks": {"lenis": "*"}}}}:
+                    if expected_version == "26.2":
+                        from modern_262_distribution import EXPECTED_OVERRIDES
+                        expected_override = {"version": 1, "overrides": {
+                            mod: rule for item in EXPECTED_OVERRIDES.values() for mod, rule in item["overrides"].items()
+                        }} if path.name in EXPECTED_OVERRIDES else None
+                    elif expected_version == "1.21.11":
+                        from modern_distribution import DISTRIBUTION_OVERRIDES, EXPECTED_OVERRIDES
+                        expected_override = DISTRIBUTION_OVERRIDES if path.name in EXPECTED_OVERRIDES else None
+                    else:
+                        expected_override = {"version": 1, "overrides": {"pylon": {"+breaks": {"lenis": "*"}}}}
+                    if override != expected_override:
                         failures.append("Fabric dependency metadata override needs explicit review")
         except (ValueError, KeyError, zipfile.BadZipFile):
             failures.append("Invalid MRPACK metadata")

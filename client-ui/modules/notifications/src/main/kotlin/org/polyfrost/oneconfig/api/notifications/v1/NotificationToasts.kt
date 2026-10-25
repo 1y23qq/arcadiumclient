@@ -144,7 +144,7 @@ private fun Toast(notification: Notification) {
                 while (!notification.dismissRequested) withFrameNanos { }
             }
             else -> {
-                val durationNanos = (notification.duration * 1_000_000L).toLong().coerceAtLeast(1L)
+                val durationNanos = (notification.effectiveDurationMillis * 1_000_000L).toLong().coerceAtLeast(1L)
                 var remaining = durationNanos
                 var last = withFrameNanos { it }
                 while (remaining > 0L && !notification.dismissRequested) {

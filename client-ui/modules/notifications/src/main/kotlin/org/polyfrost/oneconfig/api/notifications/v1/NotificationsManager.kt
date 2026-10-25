@@ -35,6 +35,10 @@ import org.jetbrains.annotations.ApiStatus
  */
 object NotificationsManager {
     private const val MAX_HISTORY = 50
+    private const val MAX_TOASTS = 5
+
+    @Volatile var toastsEnabled = java.util.function.BooleanSupplier { true }
+    @Volatile var onNotification: java.util.function.Consumer<Notification>? = null
 
     private val _active = mutableStateListOf<Notification>()
     private val _history = mutableStateListOf<Notification>()
@@ -68,11 +72,16 @@ object NotificationsManager {
      * after the toast dismisses
      */
     fun push(notification: Notification) {
+        val show = toastsEnabled.asBoolean
         mutate {
-            _active.add(notification)
+            if (show) {
+                _active.add(notification)
+                while (_active.size > MAX_TOASTS) _active.removeAt(0)
+            }
             _history.add(0, notification)
             while (_history.size > MAX_HISTORY) _history.removeAt(_history.lastIndex)
         }
+        if (show) runCatching { onNotification?.accept(notification) }
     }
 
     fun markAllRead() {

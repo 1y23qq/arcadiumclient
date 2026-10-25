@@ -38,6 +38,34 @@
           }
         }
       ]
+    },
+    {
+      "major_version": 21,
+      "name": "Arcadium 1.21.11",
+      "long_description": "",
+      "tags": [],
+      "entries": [
+        {
+          "minor_version": 11,
+          "loader": "fabric",
+          "java_version": 25,
+          "tags": []
+        }
+      ]
+    },
+    {
+      "major_version": 26,
+      "name": "Arcadium 26.2",
+      "long_description": "",
+      "tags": [],
+      "entries": [
+        {
+          "minor_version": 2,
+          "loader": "fabric",
+          "java_version": 25,
+          "tags": []
+        }
+      ]
     }
   ],
   "migrations": [

@@ -1,0 +1,14 @@
+{
+  "feature": "performance.idle",
+  "project": "Dynamic FPS",
+  "version": "3.11.6",
+  "minecraft": "1.21.11",
+  "modrinthVersion": "Fab7e5Th",
+  "source": "https://github.com/juliand665/Dynamic-FPS",
+  "license": "MIT",
+  "defaultEnabledForNewUsers": false,
+  "sourceJarSha512": "c45652252e2176cb8e2c44dfd9032c617135a100dcf161b9e6e6717803c14d1359d0f940fa10dc1aa6ad80669983f4b9c5636c0c2953d3314e06f893f0cdc736",
+  "assetPolicy": "All upstream textures excluded; replacements are derived from Feather v4.29.2 and Arcadium MIT artwork.",
+  "assetLicense": "MIT",
+  "assetSource": "https://github.com/feathericons/feather/tree/v4.29.2/icons"
+}

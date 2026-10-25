@@ -92,6 +92,7 @@ import org.polyfrost.oneconfig.internal.ui.compose.SkiaFontRenderer;
 *///?}
 
 //? if fabric {
+import org.polyfrost.oneconfig.internal.compat.ConfigEntrypoints;
 import org.polyfrost.oneconfig.internal.compat.ModMenuShimLoader;
 //?}
 
@@ -222,7 +223,7 @@ public class OneConfig
         HudManager.isTabListVisible = isTabListVisible();
         HudManager.isGuiScreenOpen = Platform.screen().current() != null;
         HudManager.isChatScreenOpen = Platform.screen().current() instanceof ChatScreen;
-        HudManager.inWorld = true;
+        HudManager.inWorld = Minecraft.getInstance().level != null && Minecraft.getInstance().player != null;
         HudManager.targetPixelWidth = Platform.screen().viewportWidth();
         HudManager.targetPixelHeight = Platform.screen().viewportHeight();
 
@@ -262,6 +263,9 @@ public class OneConfig
     }
 
     private static void installNotificationRenderer() {
+        //? if >= 1.21.11 && < 26.3 {
+        /*ModernNotifications.install();
+        *///? } else
         SkiaCtx.INSTANCE.setNotifRenderer(() -> {});
     }
 
@@ -299,7 +303,13 @@ public class OneConfig
         EventManager.register(
                 InitializationEvent.class, e -> {
                     ConfigManager.setProfileSwitchDispatcher(Platform.screen()::runOnUiThread);
+                    //? if fabric
+                    ConfigEntrypoints.register();
                     ConfigManager.initialize();
+                    //? if fabric
+                    ConfigEntrypoints.applyMetadata();
+                    //? if >= 1.21.11 && < 26.3
+                    //ModernPreferences.initialize();
                     KeybindConflicts.unbindMinecraftKeybinds();
                     CompatSnapshots.setDispatcher(r -> {
                         Minecraft mc = Minecraft.getInstance();

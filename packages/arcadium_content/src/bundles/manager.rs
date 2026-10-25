@@ -179,12 +179,7 @@ impl BundlesManager {
         mc_version: &str,
         loader: GameLoader,
     ) -> ContentResult<Vec<Bundle>> {
-        if arcadium_common::distribution::supports_version(mc_version) {
-            let expected = if arcadium_common::distribution::uses_native_forge(mc_version) {
-                GameLoader::Forge
-            } else {
-                GameLoader::Ornithe
-            };
+        if let Some(expected) = arcadium_common::distribution::default_loader(mc_version) {
             if loader != expected {
                 return Ok(Vec::new());
             }
@@ -210,11 +205,10 @@ impl BundlesManager {
             serde_json::from_slice(arcadium_common::distribution::BUNDLES)?;
         arcadium_io::create_dir_all(&bundles_root.join("bundles")).await?;
         let mut bundles = Vec::new();
-        let loader = if arcadium_common::distribution::uses_native_forge(mc_version) {
-            "forge"
-        } else {
-            "ornithe"
+        let Some(loader) = arcadium_common::distribution::default_loader(mc_version) else {
+            return Ok(Vec::new());
         };
+        let loader = loader.to_string().to_ascii_lowercase();
         for entry in manifest
             .remote_paths()
             .into_iter()
@@ -576,5 +570,25 @@ mod tests {
                 .unwrap()
                 .is_empty()
         );
+    }
+
+    #[tokio::test]
+    async fn modern_fabric_loads_all_four_pinned_archives() {
+        let temp = ScratchDir::new("modern-fabric-bundles");
+        let ctx = context(Default::default()).await;
+        let archives = BundlesManager::new()
+            .list_pinned_version(&ctx, temp.path(), "1.21.11")
+            .await
+            .unwrap();
+        assert_eq!(archives.len(), 4);
+        for bundle in archives {
+            let manifest = polymrpack::read_manifest_from_archive(&bundle.path)
+                .await
+                .unwrap();
+            assert_eq!(manifest.loader, GameLoader::Fabric);
+            assert_eq!(manifest.mc_version, "1.21.11");
+            assert!(!manifest.files.is_empty());
+            assert!(manifest.enabled);
+        }
     }
 }

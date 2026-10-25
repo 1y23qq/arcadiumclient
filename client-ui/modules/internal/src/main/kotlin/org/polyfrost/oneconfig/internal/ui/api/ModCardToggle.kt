@@ -9,6 +9,7 @@ import org.polyfrost.oneconfig.api.config.v1.Property
 import org.polyfrost.oneconfig.api.config.v1.Tree
 import org.polyfrost.oneconfig.api.hud.v1.Hud
 import org.polyfrost.oneconfig.api.hud.v1.HudManager
+import org.polyfrost.oneconfig.api.ui.v1.ModToggles
 import org.polyfrost.oneconfig.internal.ui.hud.HudModCardData
 
 internal interface ModCardToggle {
@@ -18,10 +19,27 @@ internal interface ModCardToggle {
     fun setEnabled(value: Boolean)
 }
 
-internal fun modCardToggle(mod: ConfigData): ModCardToggle? = when (mod) {
-    is TreeConfigData -> findModEnabledProperty(mod.uiTree)?.let { PropertyModCardToggle(it, mod.tree) }
-    is HudModCardData -> HudModCardToggle(mod.hud)
-    else -> null
+internal fun modCardToggle(mod: ConfigData): ModCardToggle? {
+    ModToggles.toggleFor(mod.id)?.let { return RegisteredModCardToggle(mod.id) }
+    return when (mod) {
+        is TreeConfigData -> findModEnabledProperty(mod.uiTree)?.let { PropertyModCardToggle(it, mod.tree) }
+        is HudModCardData -> HudModCardToggle(mod.hud)
+        else -> null
+    }
+}
+
+private class RegisteredModCardToggle(private val id: String) : ModCardToggle {
+    override val enabled: Boolean
+        get() {
+            ModToggles.revision
+            return ModToggles.isEnabled(id)
+        }
+    override val available get() = ModToggles.toggleFor(id)?.needsSetup() != true
+    override fun setEnabled(value: Boolean) {
+        if (!available) return
+        ModToggles.setEnabled(id, value)
+        (ConfigRegistry.findById(id) as? TreeConfigData)?.tree?.let { ConfigManager.active().save(it) }
+    }
 }
 
 internal fun findModEnabledProperty(tree: Tree): Property<Boolean>? {

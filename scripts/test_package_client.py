@@ -66,6 +66,15 @@ class PackagingTests(unittest.TestCase):
             "META-INF/jars/plugin.jar": jar("plugin_provider", files={"external/Plugin.class": b"fixture"})})
         self.assertEqual(package.inspect_component(raw, "native.jar")["id"], "example")
 
+    def test_mixin_config_and_class_can_be_supplied_by_nested_dependency(self):
+        nested = jar("shared", files={"shared.mixins.json": '{"package":"shared.mixin","client":["Accessor"]}',
+                                      "shared/mixin/Accessor.class": b"fixture"})
+        raw = jar(mixins=["shared.mixins.json"], files={"META-INF/jars/shared.jar": nested})
+        self.assertEqual(package.inspect_component(raw, "native.jar")["id"], "example")
+        raw = jar(mixins=["missing.mixins.json"], files={"META-INF/jars/shared.jar": nested})
+        with self.assertRaisesRegex(RuntimeError, "Missing Mixin configuration"):
+            package.inspect_component(raw, "native.jar")
+
     def test_component_inspection_preserves_license_author_and_exact_jar_bytes(self):
         raw = jar(authors=["Original author", "Another contributor"])
         metadata = package.inspect_component(raw, "library.jar", "example")

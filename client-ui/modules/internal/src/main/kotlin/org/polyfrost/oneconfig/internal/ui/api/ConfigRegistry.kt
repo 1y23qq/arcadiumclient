@@ -44,6 +44,8 @@ object ConfigRegistry {
         "cloth-config",
         "compose-bundle",
         "trender",
+        "skinlayers3d",
+        "simplenickhider",
         "libjf-config-core-v2",
         "libjf-config-network-v0",
         "libjf-web-v1",

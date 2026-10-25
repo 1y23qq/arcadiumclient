@@ -474,8 +474,12 @@ class OneConfigUIScreen @JvmOverloads constructor(
             BlurRenderer.drawBlur(fullscreenBlurRadius())
         }
         //? if > 1.8.9 {
+        //? if >= 1.21.11 && < 26.3
+        //org.polyfrost.oneconfig.internal.ui.compose.ModernOptionsChat.prepare()
         //~ if >= 26.1 'render' -> 'extractRenderState'
         super.extractRenderState(ctx, mouseX, mouseY, tickDelta)
+        //? if >= 1.21.11 && < 26.3
+        //org.polyfrost.oneconfig.internal.ui.compose.ModernOptionsChat.render(ctx)
         //?} else
         //super.render(mouseX, mouseY, tickDelta)
     }

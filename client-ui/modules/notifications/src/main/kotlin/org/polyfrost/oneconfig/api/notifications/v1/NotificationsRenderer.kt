@@ -59,6 +59,11 @@ object NotificationsRenderer {
      */
     @JvmStatic
     fun render(ctx: RenderContext, screenWidth: Float, screenHeight: Float) {
+        if (!NotificationsManager.toastsEnabled.asBoolean) {
+            NotificationsManager.clearAll()
+            ToastInput.clearHover()
+            return
+        }
         val guiScale = Platform.compatibility().options().guiScale
         val scale = guiScale * BASE_SCALE
         val viewWidth = screenWidth * guiScale / scale

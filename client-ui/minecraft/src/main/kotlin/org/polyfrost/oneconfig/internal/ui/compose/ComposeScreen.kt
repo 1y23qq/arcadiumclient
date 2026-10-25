@@ -600,7 +600,7 @@ abstract class ComposeScreen(
     //? if > 1.8.9 {
     override fun onClose() {
         ComposeSceneContextImpl.resetPointerIcon()
-        releaseScene()
+        super.onClose()
     }
     //?}
 

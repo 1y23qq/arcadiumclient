@@ -1,5 +1,5 @@
 {
-  "scope": "Minecraft 1.8.9 and 1.7.10 bundled distribution. Third-party notices and copyright remain with their respective authors.",
+  "scope": "Minecraft 1.8.9, 1.7.10 and 1.21.11 bundled distribution. Third-party notices and copyright remain with their respective authors.",
   "excluded": [
     {
       "id": "polyplus",

@@ -21,7 +21,7 @@ class BuildComponentTests(unittest.TestCase):
         self.asset = self.root / components.ASSET_PATH / "ArcadiumFeatures-1.8.9.jar"
         self.asset.parent.mkdir(parents=True)
         self.asset.write_bytes(self.raw)
-        entry = {"file": self.asset.name, "sha256": hashlib.sha256(self.raw).hexdigest()}
+        entry = {"file": self.asset.name, "sha256": hashlib.sha256(self.raw).hexdigest(), "bytes": len(self.raw)}
         (self.root / "distribution").mkdir()
         (self.root / "distribution/oneclient-1.8.9.lock.json").write_text(json.dumps({"arcadiumComponents": [], "arcadiumBranding": entry}))
         self.bundle = self.root / "inputs.zip"
@@ -33,7 +33,7 @@ class BuildComponentTests(unittest.TestCase):
         self.assertEqual(self.asset.read_bytes(), self.raw)
 
     def test_native_forge_catalog_does_not_need_a_separate_branding_jar(self):
-        entry = {"file": self.asset.name, "sha256": hashlib.sha256(self.raw).hexdigest()}
+        entry = {"file": self.asset.name, "sha256": hashlib.sha256(self.raw).hexdigest(), "bytes": len(self.raw)}
         (self.root / "distribution/arcadium-1.7.10.lock.json").write_text(json.dumps({"loader": "Forge", "arcadiumComponents": [entry]}))
         digest = components.write_bundle(self.bundle, self.root)
         components.import_bundle(self.bundle, digest, self.root)
@@ -57,6 +57,15 @@ class BuildComponentTests(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             components.import_bundle(self.bundle, hashlib.sha256(self.bundle.read_bytes()).hexdigest(), self.root)
         self.assertFalse((self.root.parent / "outside.jar").exists())
+
+    def test_uncompressed_size_must_match_pinned_catalog(self):
+        digest = components.write_bundle(self.bundle, self.root)
+        path = self.root / "distribution/oneclient-1.8.9.lock.json"
+        lock = json.loads(path.read_text())
+        lock["arcadiumBranding"]["bytes"] += 1
+        path.write_text(json.dumps(lock))
+        with self.assertRaisesRegex(RuntimeError, "sizes do not match"):
+            components.import_bundle(self.bundle, digest, self.root)
 
 
 if __name__ == "__main__":

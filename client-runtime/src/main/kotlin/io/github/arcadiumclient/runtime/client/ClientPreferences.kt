@@ -15,6 +15,7 @@ object ClientPreferences : Config("arcadium-client.json", "Client", Category.OTH
 
 object MenuPreferences : Config("arcadium-menus.json", "Menus", Category.OTHER) {
     @JvmStatic @Include var hideNewerWorlds = false
+    @JvmStatic @Include var compatibleResourcePacksOnly = true
     @JvmStatic @Include var titlePanorama = PanoramaCatalog.DEFAULT
     @JvmStatic @Include var titleBlurPercent = if (OneConfigConfig.enableBackgroundBlur) 40 else 0
     @JvmStatic @Include var titleGradient = true

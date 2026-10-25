@@ -12,9 +12,11 @@ import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
 ASSET_PATH = Path("packages/arcadium_common/assets/distribution")
-MINECRAFT_VERSIONS = ("1.8.9", "1.7.10")
+MINECRAFT_VERSIONS = ("1.8.9", "1.7.10", "1.21.11", "26.2")
 LOCK_PATHS = {"1.8.9": Path("distribution/oneclient-1.8.9.lock.json"),
-              "1.7.10": Path("distribution/arcadium-1.7.10.lock.json")}
+              "1.7.10": Path("distribution/arcadium-1.7.10.lock.json"),
+              "1.21.11": Path("distribution/oneclient-1.21.11.lock.json"),
+              "26.2": Path("distribution/oneclient-26.2.lock.json")}
 EXCLUDED_PREFIXES = ("chattweaks-", "crashpatch-", "polyplus-", "polysprint-", "newdefault+")
 REPLACED_LIBRARY_PREFIXES = ("oneconfig-", "compose-bundle-")
 EXCLUDED_MOD_IDS = {"chattweaks", "crashpatch", "polyplus", "polysprint"}
@@ -58,14 +60,26 @@ def component_classes(archive: zipfile.ZipFile) -> set[str]:
     return classes
 
 
+def component_resource(archive: zipfile.ZipFile, name: str) -> bytes | None:
+    if name in archive.namelist():
+        return archive.read(name)
+    for entry in archive.namelist():
+        if entry.startswith("META-INF/jars/") and entry.endswith(".jar"):
+            with zipfile.ZipFile(io.BytesIO(archive.read(entry))) as nested:
+                found = component_resource(nested, name)
+                if found is not None:
+                    return found
+    return None
+
+
 def verify_mixin_classes(archive: zipfile.ZipFile, metadata: dict, label: str) -> None:
-    names = set(archive.namelist())
     classes_available = component_classes(archive)
     for declared in metadata.get("mixins", []):
         path = declared if isinstance(declared, str) else declared["config"]
-        if path not in names:
+        resource = component_resource(archive, path)
+        if resource is None:
             raise RuntimeError(f"Missing Mixin configuration in {label}: {path}")
-        config = mixin_json(archive.read(path))
+        config = mixin_json(resource)
         prefix = config.get("package", "").replace(".", "/")
         classes = [value for category in ("mixins", "client", "server") for value in config.get(category, [])]
         if config.get("plugin"):
@@ -146,6 +160,9 @@ def inspect_component(raw: bytes, label: str, expected_id: str | None = None) ->
 
 
 def component_sources(root: Path, version: str, minecraft_version: str = "1.8.9") -> dict[str, tuple[Path, str]]:
+    if minecraft_version in {"1.21.11", "26.2"}:
+        from package_modern import component_sources as modern_sources
+        return modern_sources(root, minecraft_version)
     core = read_properties(root / "client-ui/gradle.properties")["version"]
     versions = tomllib.loads((root / "client-ui/gradle/libs.versions.toml").read_text(encoding="utf-8"))["versions"]
     compose = versions["compose"]
@@ -269,13 +286,15 @@ def shipped_components(root: Path = ROOT) -> list[dict]:
     for minecraft, lock in distribution_locks(root).items():
         kinds = ["Core", "Features", "Renderer", "ForgeCompat"] if minecraft == "1.8.9" else ["Core", "Features", "Renderer", "Performance", "Brand"]
         expected = {f"Arcadium{kind}-{minecraft}.jar" for kind in kinds}
-        if minecraft == "1.7.10" and lock.get("loader") == "Forge":
+        if minecraft in {"1.21.11", "26.2"}:
+            expected = {f"Arcadium{kind}-{minecraft}.jar" for kind in ("Core", "Features", "Renderer")}
+        elif minecraft == "1.7.10" and lock.get("loader") == "Forge":
             expected = {"ArcadiumForge-1.7.10.jar", "ArcadiumBootstrap-1.7.10.jar"}
         elif minecraft == "1.7.10":
             expected.update(port["file"] for port in legacy_ports(root))
         components = lock.get("arcadiumComponents", [])
         if len(components) != len(expected) or {component["file"] for component in components} != expected:
-            raise RuntimeError(f"Client components for Minecraft {minecraft} are incomplete. Build both Minecraft versions before packaging.")
+            raise RuntimeError(f"Client components for Minecraft {minecraft} are incomplete. Build all Minecraft versions before packaging.")
         result.extend(components)
     return result
 
@@ -283,7 +302,7 @@ def shipped_components(root: Path = ROOT) -> list[dict]:
 def verify_components(root: Path = ROOT) -> dict:
     locks = distribution_locks(root)
     if set(locks) != set(MINECRAFT_VERSIONS):
-        raise RuntimeError("Both Minecraft distribution catalogs are required.")
+        raise RuntimeError("All Minecraft distribution catalogs are required.")
     catalog = json.loads((root / ASSET_PATH / "client-components.json").read_text(encoding="utf-8"))
     if catalog != {minecraft: lock["arcadiumComponents"] for minecraft, lock in locks.items()}:
         raise RuntimeError("The launcher component catalog does not match the distribution locks.")
@@ -299,6 +318,9 @@ def verify_components(root: Path = ROOT) -> dict:
 
 
 def package(root: Path = ROOT, minecraft_version: str = "1.8.9") -> list[dict]:
+    if minecraft_version in {"1.21.11", "26.2"}:
+        from package_modern import stage
+        return stage(root, minecraft_version)
     if minecraft_version == "1.7.10" and json.loads((root / LOCK_PATHS[minecraft_version]).read_text(encoding="utf-8")).get("loader") == "Forge":
         if root.resolve() != ROOT.resolve(): raise RuntimeError("Forge source packaging must run in its source checkout.")
         from build_forge1710 import build_from_sources, stage

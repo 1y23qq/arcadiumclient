@@ -3,6 +3,8 @@ package org.polyfrost.oneconfig.internal.compat
 
 import java.awt.Color
 import java.lang.reflect.Method
+import java.util.IdentityHashMap
+import java.util.concurrent.ConcurrentHashMap
 import java.util.function.BiFunction
 import java.util.function.Consumer
 import java.util.function.Supplier
@@ -31,10 +33,12 @@ object YACLCompat {
     private val LOGGER = LogManager.getLogger("Arcadium Options/YACL-Compat")
 
     private const val FLAG_SETTLE_FRAMES = 20
+    private val contexts = ConcurrentHashMap<String, Ctx>()
 
     private class Ctx(val yacl: Any) {
         val usedIds = HashSet<String>()
         val properties = ArrayList<Property<*>>()
+        private val boundOptions = IdentityHashMap<Any, Method>()
 
         var cachedScreen: Any? = null
 
@@ -45,6 +49,22 @@ object YACLCompat {
 
         fun revaluateDisplays() {
             for (property in properties) property.revaluateDisplay()
+        }
+
+        fun trackBinding(option: Any) {
+            option.javaClass.methods.firstOrNull { it.name == "forgetPendingValue" && it.parameterCount == 0 }
+                ?.apply { isAccessible = true }?.let { boundOptions[option] = it }
+        }
+
+        fun refreshFromBindings(): Int {
+            var refreshed = 0
+            for ((option, forgetPending) in boundOptions) {
+                runCatching { forgetPending.invoke(option) }
+                    .onSuccess { refreshed++ }
+                    .onFailure { LOGGER.warn("Failed to refresh a YACL option from its binding", it) }
+            }
+            revaluateDisplays()
+            return refreshed
         }
 
         fun pendFlags(flags: Collection<Any>) {
@@ -99,6 +119,10 @@ object YACLCompat {
             (flag as Consumer<Any>).accept(client)
         }
     }
+
+    /** Call on the client thread after importing native profile values. Does not apply or save options. */
+    @JvmStatic
+    fun refreshFromBindings(modId: String): Int = contexts[modId]?.refreshFromBindings() ?: 0
 
     @JvmStatic
     fun parseYACL(yaclInstance: Any) {
@@ -159,6 +183,7 @@ object YACLCompat {
             parseCategory(category, tree, ctx)
         }
         ctx.revaluateDisplays()
+        contexts[tree.id] = ctx
 
         return tree
     }
@@ -762,6 +787,7 @@ object YACLCompat {
 
     private fun registerProperty(property: Property<*>, option: Any?, ctx: Ctx) {
         ctx.properties.add(property)
+        option?.takeUnless { isButtonOption(it.javaClass) }?.let(ctx::trackBinding)
         val availableMethod = option?.let {
             it::class.java.methods.firstOrNull { m ->
                 m.name == "available" && m.parameterCount == 0 &&

@@ -137,15 +137,24 @@ impl ClusterManager {
         options: CreateClusterOptions,
     ) -> ClusterResult<Cluster> {
         if !arcadium_common::distribution::supports_version(&options.mc_version) {
-            return Err(ClusterError::InvalidVersion(
-                "Arcadium supports Minecraft 1.8.9 and 1.7.10.".into(),
-            ));
+            return Err(ClusterError::InvalidVersion(format!(
+                "Arcadium supports Minecraft {}.",
+                arcadium_common::distribution::MINECRAFT_VERSIONS.join(", ")
+            )));
         }
         if options.mc_version == "1.7.10" && options.mc_loader != arcadium_common::GameLoader::Forge
         {
             return Err(ClusterError::InvalidVersion(
                 "Arcadium 1.7.10 requires Forge.".into(),
             ));
+        }
+        if arcadium_common::distribution::uses_modern_fabric(&options.mc_version)
+            && options.mc_loader != arcadium_common::GameLoader::Fabric
+        {
+            return Err(ClusterError::InvalidVersion(format!(
+                "Arcadium {} requires Fabric.",
+                options.mc_version
+            )));
         }
         if options.user_created {
             let limit = (!options.modpack).then_some(crate::naming::MAX_NAME_CHARS);

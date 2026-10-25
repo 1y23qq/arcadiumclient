@@ -103,6 +103,12 @@ class Notification @JvmOverloads constructor(
 
     val persistent: Boolean get() = duration <= 0f && progress == null
 
+    val effectiveDurationMillis: Float get() = when {
+        duration.isNaN() -> DEFAULT_DURATION
+        duration <= 0f -> 0f
+        else -> duration.coerceIn(250f, 60_000f)
+    }
+
     fun progressOrNull(): Float? {
         val p = progress ?: return null
         return runCatching { p.call() }.getOrNull()?.coerceIn(0f, 1f)

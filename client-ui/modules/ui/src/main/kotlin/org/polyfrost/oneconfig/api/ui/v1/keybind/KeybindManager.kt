@@ -162,6 +162,7 @@ object KeybindManager {
      */
     @JvmStatic
     fun notifyMenuEdit(bind: OneConfigKeybind) {
+        bridge?.sync(bind)
         for (listener in menuEditListeners) {
             try {
                 listener(bind)
@@ -184,7 +185,6 @@ object KeybindManager {
         old.mods = mods
         old.unresolvedKeyInputs = null
         old.unresolvedMouseInputs = null
-        bridge?.sync(old)
         notifyMenuEdit(old)
         for (listener in rebindListeners) {
             try {

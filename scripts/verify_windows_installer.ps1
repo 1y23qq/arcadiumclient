@@ -22,7 +22,7 @@ foreach ($entry in $manifest.files) {
     }
 }
 $components = @()
-foreach ($lockPath in @('distribution/oneclient-1.8.9.lock.json', 'distribution/arcadium-1.7.10.lock.json')) {
+foreach ($lockPath in @('distribution/oneclient-1.8.9.lock.json', 'distribution/arcadium-1.7.10.lock.json', 'distribution/oneclient-1.21.11.lock.json', 'distribution/oneclient-26.2.lock.json')) {
     $catalog = Get-Content -LiteralPath (Join-Path $projectRoot $lockPath) -Raw | ConvertFrom-Json
     $components += @($catalog.arcadiumComponents)
 }

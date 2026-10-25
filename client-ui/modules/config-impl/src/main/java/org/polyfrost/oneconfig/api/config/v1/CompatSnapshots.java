@@ -94,6 +94,32 @@ public final class CompatSnapshots implements ConfigManager.ProfileChangeListene
         INSTANCE.defaults.remove(treeId);
     }
 
+    public static void importSerializedValues(String profile, String treeId, Map<String, Object> values) {
+        if (treeId == null || treeId.isBlank() || values == null) throw new IllegalArgumentException("A snapshot tree and scalar values are required");
+        var folder = ConfigManager.profileDir(profile);
+        if (!profile.isEmpty() && !java.nio.file.Files.isDirectory(folder)) throw new IllegalArgumentException("The profile does not exist: " + profile);
+        Map<String, Object> incoming = new LinkedHashMap<>();
+        values.forEach((key, value) -> {
+            if (key == null || key.isBlank() || !(value instanceof String || value instanceof Boolean || value instanceof Number))
+                throw new IllegalArgumentException("Snapshot imports must contain serialized scalar values");
+            incoming.put(key, value);
+        });
+        if (incoming.isEmpty()) return;
+        CompatSnapshotStore target = INSTANCE.store;
+        synchronized (target) {
+            Map<String, Map<String, Object>> snapshot = target.load(profile);
+            Map<String, Object> previous = snapshot.get(treeId);
+            Map<String, Object> backup = previous == null ? null : new LinkedHashMap<>(previous);
+            incoming.forEach((key, value) -> target.putValueWithoutScheduling(profile, treeId, key, value));
+            try { flushForLifecycle(target, profile); }
+            catch (RuntimeException failure) {
+                if (backup == null) snapshot.remove(treeId);
+                else snapshot.put(treeId, new ConcurrentHashMap<>(backup));
+                throw failure;
+            }
+        }
+    }
+
     private Tree register0(Tree tree) {
         tree.addMetadata(Backend.UI_ONLY_METADATA, Boolean.TRUE);
         dropStaleRegistration(tree.getID());

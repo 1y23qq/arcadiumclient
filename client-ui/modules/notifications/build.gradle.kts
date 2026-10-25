@@ -36,4 +36,6 @@ dependencies {
     compileOnly(libs.jetbrains.compose.runtime)
     compileOnly(libs.jetbrains.skiko.awt)
     compileOnly(libs.kotlinx.coroutines)
+    testImplementation(libs.jetbrains.compose.runtime)
+    testImplementation(libs.jetbrains.skiko.awt)
 }

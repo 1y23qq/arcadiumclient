@@ -1,6 +1,6 @@
 # Build Arcadium
 
-The source supports Minecraft 1.8.9 and 1.7.10. Build the Java client components before
+The source supports Minecraft 1.8.9, 1.7.10, 1.21.11 and 26.2. Build the Java client components before
 compiling the native launcher. No prebuilt Arcadium client JAR is required.
 
 Install JDK 25, Python 3.12 or newer, Rust with Cargo, and the native build tools
@@ -16,7 +16,7 @@ On Windows, set `$env:JAVA_HOME = 'C:/path/to/jdk-25'` in PowerShell and use
 `python` in place of `python3`. Keep `JAVA_HOME` set for Cargo too: it compiles the
 checked-in `packages/arcadium_java/assets/java/JavaInfo.java` probe into Cargo's
 `OUT_DIR`. No prebuilt JavaInfo probe is required. The script builds the OneConfig
-fork and its local API, Arcadium Runtime, the Forge
+fork and its local API, Arcadium Runtime, the modern Fabric runtime, the Forge
 compatibility layer and game branding. It then generates the launcher's component
 catalog and copies the exact built JARs into its distribution assets. Original
 third-party author, copyright and license metadata is preserved.
@@ -24,13 +24,42 @@ third-party author, copyright and license metadata is preserved.
 Minecraft 1.7.10 uses Forge with Angelica, GTNHLib and LWJGL3ify on Java 25.
 Its source ports are in `client-legacy-mods`; pinned commits and original license
 hashes are recorded in `client-legacy-mods/ports.json`. The same installer contains
-both Minecraft versions. Game settings, packs, worlds and Arcadium preferences
+all four Minecraft versions. Game settings, packs, worlds and Arcadium preferences
 use the shared game directory; added mods and loader caches remain version-specific.
 Minecraft 1.8.9 uses Ornithe with its Forge compatibility layer. Bedwars Overlay
-and NoHitDelay are available on 1.8.9; LevelHead supports both versions.
+and NoHitDelay are available on 1.8.9; LevelHead supports the two legacy versions.
+
+Minecraft 1.21.11 uses Fabric. Its OneClient baseline, dependency hashes and
+default states are pinned in `distribution/oneclient-1.21.11.lock.json`; the
+approved feature selection is in `distribution/port-scope-1.21.11.json`.
+Forge compatibility and the optional optimizer selector are not part of this port.
+
+Minecraft 26.2 uses Fabric 0.20.1 and the separately built `client-next` runtime.
+Its five OneClient baseline groups are pinned in `distribution/oneclient-26.2.lock.json`;
+SkyBlock and individually disabled mods retain their upstream default states.
+The 26.2 scope inherits the approved 1.21.11 choices. On the first launch, a supported
+NVIDIA GPU in any adapter slot triggers an optional Nvidium recommendation. Enabling
+it installs the pinned, unmodified Nvidium release and selects OpenGL. The choice is
+remembered, and later renderer or mod changes are preserved.
+The recommendation is deferred when custom launch arguments override the managed
+mods folder, so it cannot install into an unused directory.
+
+To rebuild only the modern 26.2 runtime after publishing the local Core modules:
+
+```sh
+sh client-modern/gradlew -p client-next jar test
+python3 scripts/package_modern.py --minecraft-version 26.2
+```
+
+The existing wrapper is shared between the two modern runtime projects. Minecraft
+26.2 is unobfuscated, so its Loom build uses no remapping stage. The runtime's
+selected Idle counterpart retains its original code and notices; a recursive audit
+verifies the MIT artwork replacements, including images inside nested JARs.
 
 The runtime build refreshes Loom's remapped dependencies after publishing the
 local configuration library, so changes to its API are picked up by cached builds.
+Once dependencies are cached, `python3 scripts/build_client.py --offline` avoids
+remote metadata refreshes while rebuilding the local client components.
 
 To compile the launcher without creating an installer:
 

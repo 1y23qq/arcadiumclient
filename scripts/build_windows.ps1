@@ -10,6 +10,7 @@ $ErrorActionPreference = 'Stop'
 $projectRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $launcherVersion = [regex]::Match([IO.File]::ReadAllText((Join-Path $projectRoot 'Cargo.toml')), '(?m)^version\s*=\s*"([0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?)"\s*$').Groups[1].Value
 if (!$launcherVersion) { throw 'The launcher version is missing from Cargo.toml.' }
+$launcherNumericVersion = ($launcherVersion -split '-', 2)[0] + '.0'
 $buildDirectory = Join-Path $projectRoot 'build'
 New-Item -ItemType Directory -Force -Path $buildDirectory | Out-Null
 if (!$TargetDirectory) {
@@ -58,7 +59,7 @@ try {
     New-Item -ItemType Directory -Force -Path $componentsDirectory | Out-Null
     & python (Join-Path $projectRoot 'scripts/package_client.py') --verify-components
     if ($LASTEXITCODE -ne 0) { throw 'The source component catalogs failed verification.' }
-    $distributionLocks = @('distribution/oneclient-1.8.9.lock.json', 'distribution/arcadium-1.7.10.lock.json')
+    $distributionLocks = @('distribution/oneclient-1.8.9.lock.json', 'distribution/arcadium-1.7.10.lock.json', 'distribution/oneclient-1.21.11.lock.json', 'distribution/oneclient-26.2.lock.json')
     $minecraftVersions = @()
     foreach ($lockPath in $distributionLocks) {
         $componentCatalog = Get-Content -LiteralPath (Join-Path $projectRoot $lockPath) -Raw | ConvertFrom-Json
@@ -129,6 +130,8 @@ try {
     [IO.File]::WriteAllText((Join-Path $licenseDirectory 'Rust-dependencies.txt'), $notices.ToString(), [Text.UTF8Encoding]::new($false))
     Copy-Item -LiteralPath 'distribution/oneclient-1.8.9.lock.json' -Destination (Join-Path $stage 'distribution-lock.json')
     Copy-Item -LiteralPath 'distribution/arcadium-1.7.10.lock.json' -Destination (Join-Path $stage 'distribution-lock-1.7.10.json')
+    Copy-Item -LiteralPath 'distribution/oneclient-1.21.11.lock.json' -Destination (Join-Path $stage 'distribution-lock-1.21.11.json')
+    Copy-Item -LiteralPath 'distribution/oneclient-26.2.lock.json' -Destination (Join-Path $stage 'distribution-lock-26.2.json')
 
     $installerDirectory = Join-Path $buildDirectory 'installers'
     New-Item -ItemType Directory -Force -Path $installerDirectory | Out-Null
@@ -161,7 +164,7 @@ try {
     }
     $updateEntries += '!macroend'
     [IO.File]::WriteAllLines($updateFiles, $updateEntries, [Text.UTF8Encoding]::new($false))
-    & $Makensis "/DARCADIUM_VERSION=$launcherVersion" "/DSTAGEDIR=$stage" "/DOUTPUT=$output" "/DUPDATEFILES=$updateFiles" "/DICON=$(Join-Path $projectRoot 'packages/arcadium_app/icons/icon.ico')" (Join-Path $PSScriptRoot 'windows-installer.nsi')
+    & $Makensis "/DARCADIUM_VERSION=$launcherVersion" "/DARCADIUM_NUMERIC_VERSION=$launcherNumericVersion" "/DSTAGEDIR=$stage" "/DOUTPUT=$output" "/DUPDATEFILES=$updateFiles" "/DICON=$(Join-Path $projectRoot 'packages/arcadium_app/icons/icon.ico')" (Join-Path $PSScriptRoot 'windows-installer.nsi')
     if ($LASTEXITCODE -ne 0) { throw 'NSIS installer compilation failed.' }
     $packageFiles = Get-ChildItem -LiteralPath $stage -Recurse -File | ForEach-Object {
         [ordered]@{
