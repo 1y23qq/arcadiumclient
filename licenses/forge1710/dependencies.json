@@ -127,5 +127,204 @@
         "sha256": "7e12e5df4bae12cb21581ba157ced20e1986a0508dd10d0e8a4ab9a4cf94e85c"
       }
     ]
+  },
+  {
+    "file": "hodgepodge-2.7.219.jar",
+    "version": "2.7.219",
+    "url": "https://github.com/GTNewHorizons/Hodgepodge/releases/download/2.7.219/hodgepodge-2.7.219.jar",
+    "sha256": "0bf958115463c9841610e2d0183dfde26db46e3a7756b8eb88740e382eaf1184",
+    "bytes": 1261940,
+    "source": "https://github.com/GTNewHorizons/Hodgepodge/tree/2.7.219",
+    "sources": {
+      "url": "https://github.com/GTNewHorizons/Hodgepodge/releases/download/2.7.219/hodgepodge-2.7.219-sources.jar",
+      "sha256": "4c516d676c271393d41ef57345b4845dab5662665966d6ae080b17639093953f"
+    },
+    "license": "LGPL-3.0-only",
+    "notices": [
+      {
+        "originalPath": "LICENSE.txt",
+        "file": "e3a994d82e644b03a792a930f574002658412f62407f5fee083f2555c5f23118.txt",
+        "sha256": "e3a994d82e644b03a792a930f574002658412f62407f5fee083f2555c5f23118",
+        "origin": "source"
+      }
+    ]
+  },
+  {
+    "file": "coretweaks-0.3.4.7-GTNH.jar",
+    "version": "0.3.4.7-GTNH",
+    "url": "https://github.com/GTNewHorizons/CoreTweaks/releases/download/0.3.4.7-GTNH/coretweaks-0.3.4.7-GTNH.jar",
+    "sha256": "89c117aeee723df3a31d8d341626e7d080b78e50e23564c889e59b198f9bde9b",
+    "bytes": 786937,
+    "source": "https://github.com/GTNewHorizons/CoreTweaks/tree/0.3.4.7-GTNH",
+    "sources": {
+      "url": "https://github.com/GTNewHorizons/CoreTweaks/releases/download/0.3.4.7-GTNH/coretweaks-0.3.4.7-GTNH-sources.jar",
+      "sha256": "033dffbe0a383848a93534e50f177f68f86c035a87de6e52506c38197a72f8d4"
+    },
+    "license": "MIT",
+    "notices": [
+      {
+        "originalPath": "META-INF/LICENSE",
+        "file": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30.txt",
+        "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+        "origin": "jar"
+      },
+      {
+        "originalPath": "META-INF/NOTICE",
+        "file": "f566b3e321dba2709b90b7d041c0dc4493c9df6f5a6832b488be1c37124d2190.txt",
+        "sha256": "f566b3e321dba2709b90b7d041c0dc4493c9df6f5a6832b488be1c37124d2190",
+        "origin": "jar"
+      },
+      {
+        "originalPath": "LICENSE",
+        "file": "0f98c191058a55ce2596fe037283d40368ed7d1a705a4efcdcb28170c57686e4.txt",
+        "sha256": "0f98c191058a55ce2596fe037283d40368ed7d1a705a4efcdcb28170c57686e4",
+        "origin": "source"
+      }
+    ]
+  },
+  {
+    "file": "archaicfix-0.8.2.jar",
+    "version": "0.8.2",
+    "url": "https://github.com/embeddedt/ArchaicFix/releases/download/0.8.2/archaicfix-0.8.2.jar",
+    "sha256": "cf51b3af5b948ec963c8dbfb26d25340bbb66c71e2c857984183de718e3e2f43",
+    "bytes": 293572,
+    "source": "https://github.com/embeddedt/ArchaicFix/tree/0.8.2",
+    "sources": {
+      "url": "https://github.com/embeddedt/ArchaicFix/releases/download/0.8.2/archaicfix-0.8.2-sources.jar",
+      "sha256": "968856fccd412c6669d8d250ec8c7c284597076f7a30c2a98d7d080367ec4327"
+    },
+    "license": "LGPL-3.0-only",
+    "notices": [
+      {
+        "originalPath": "LICENSE.md",
+        "file": "bdd5bec3827ca80e988440ed9002947f15cd1c59fdf8a10176f61876eaaf4c63.txt",
+        "sha256": "bdd5bec3827ca80e988440ed9002947f15cd1c59fdf8a10176f61876eaaf4c63",
+        "origin": "source"
+      },
+      {
+        "originalPath": "COPYING",
+        "file": "a5681bf9b05db14d86776930017c647ad9e6e56ff6bbcfdf21e5848288dfaf1b.txt",
+        "sha256": "a5681bf9b05db14d86776930017c647ad9e6e56ff6bbcfdf21e5848288dfaf1b",
+        "origin": "source"
+      }
+    ]
+  },
+  {
+    "file": "+unimixins-all-1.7.10-0.3.2.jar",
+    "version": "0.3.2",
+    "url": "https://github.com/LegacyModdingMC/UniMixins/releases/download/0.3.2/%2Bunimixins-all-1.7.10-0.3.2.jar",
+    "sha256": "2687b776c8503e0b60cd8413cf70eaabb836c19f9fc726280ef61d6612257034",
+    "bytes": 5520080,
+    "source": "https://github.com/LegacyModdingMC/UniMixins/tree/0.3.2",
+    "notices": [
+      {
+        "originalPath": "CREDITS",
+        "file": "0d747791f1e5df83a732e660393818cb84515be826190accdde9220d7b2bf2c0.txt",
+        "sha256": "0d747791f1e5df83a732e660393818cb84515be826190accdde9220d7b2bf2c0",
+        "origin": "jar"
+      },
+      {
+        "originalPath": "META-INF/licenses/module-common/LICENSE",
+        "file": "7e12e5df4bae12cb21581ba157ced20e1986a0508dd10d0e8a4ab9a4cf94e85c.txt",
+        "sha256": "7e12e5df4bae12cb21581ba157ced20e1986a0508dd10d0e8a4ab9a4cf94e85c",
+        "origin": "jar"
+      },
+      {
+        "originalPath": "META-INF/licenses/module-mixin/LICENSE",
+        "file": "7e12e5df4bae12cb21581ba157ced20e1986a0508dd10d0e8a4ab9a4cf94e85c.txt",
+        "sha256": "7e12e5df4bae12cb21581ba157ced20e1986a0508dd10d0e8a4ab9a4cf94e85c",
+        "origin": "jar"
+      },
+      {
+        "originalPath": "META-INF/licenses/module-mixin/LICENSE.txt",
+        "file": "8f71659370c5268d9a1dc962a46232540e8fca63462586d8efaa95aab492a208.txt",
+        "sha256": "8f71659370c5268d9a1dc962a46232540e8fca63462586d8efaa95aab492a208",
+        "origin": "jar"
+      },
+      {
+        "originalPath": "META-INF/licenses/module-compat/LICENSE",
+        "file": "7e12e5df4bae12cb21581ba157ced20e1986a0508dd10d0e8a4ab9a4cf94e85c.txt",
+        "sha256": "7e12e5df4bae12cb21581ba157ced20e1986a0508dd10d0e8a4ab9a4cf94e85c",
+        "origin": "jar"
+      },
+      {
+        "originalPath": "META-INF/licenses/module-mixingasm/CREDITS",
+        "file": "497d2d001f0fff346a96d5570e12e296064393f274cdd6f5b74d01a7b97ee831.txt",
+        "sha256": "497d2d001f0fff346a96d5570e12e296064393f274cdd6f5b74d01a7b97ee831",
+        "origin": "jar"
+      },
+      {
+        "originalPath": "META-INF/licenses/module-mixingasm/LICENSE",
+        "file": "7e12e5df4bae12cb21581ba157ced20e1986a0508dd10d0e8a4ab9a4cf94e85c.txt",
+        "sha256": "7e12e5df4bae12cb21581ba157ced20e1986a0508dd10d0e8a4ab9a4cf94e85c",
+        "origin": "jar"
+      },
+      {
+        "originalPath": "META-INF/licenses/module-spongemixins/CREDITS",
+        "file": "a17c5722865d77133028117c8afba3330fc9842c73fc146991eaf6997eb38647.txt",
+        "sha256": "a17c5722865d77133028117c8afba3330fc9842c73fc146991eaf6997eb38647",
+        "origin": "jar"
+      },
+      {
+        "originalPath": "META-INF/licenses/module-spongemixins/LICENSE",
+        "file": "318c84e27e7d02fe84bba0721631d5bdbfdfe5c08c18274e33114a1259375728.txt",
+        "sha256": "318c84e27e7d02fe84bba0721631d5bdbfdfe5c08c18274e33114a1259375728",
+        "origin": "jar"
+      },
+      {
+        "originalPath": "META-INF/licenses/module-spongemixins/LICENSE.LGPLv3",
+        "file": "ea8af5e789cb2d4e9b10bce3874982ade163b749b6bfbdb32e2df21c4d106de1.txt",
+        "sha256": "ea8af5e789cb2d4e9b10bce3874982ade163b749b6bfbdb32e2df21c4d106de1",
+        "origin": "jar"
+      },
+      {
+        "originalPath": "META-INF/licenses/module-spongemixins/LICENSE.SpongeMixins",
+        "file": "2598da8d2c6cfeee992256dfb725b3532d95442af0b6a73ce963922db2971aea.txt",
+        "sha256": "2598da8d2c6cfeee992256dfb725b3532d95442af0b6a73ce963922db2971aea",
+        "origin": "jar"
+      },
+      {
+        "originalPath": "META-INF/licenses/module-mixinbooterlegacy/CREDITS",
+        "file": "e7ccae549798e3cc8cfe21b081b7e17b5bd592120c7489c87226dfa66ad2657d.txt",
+        "sha256": "e7ccae549798e3cc8cfe21b081b7e17b5bd592120c7489c87226dfa66ad2657d",
+        "origin": "jar"
+      },
+      {
+        "originalPath": "META-INF/licenses/module-mixinbooterlegacy/LICENSE",
+        "file": "20c17d8b8c48a600800dfd14f95d5cb9ff47066a9641ddeab48dc54aec96e331.txt",
+        "sha256": "20c17d8b8c48a600800dfd14f95d5cb9ff47066a9641ddeab48dc54aec96e331",
+        "origin": "jar"
+      },
+      {
+        "originalPath": "META-INF/licenses/module-gtnhmixins/CREDITS",
+        "file": "b4148d79761451f46e13109207620d3ab7cd80bb1f6ed77116b2bca2fa73077b.txt",
+        "sha256": "b4148d79761451f46e13109207620d3ab7cd80bb1f6ed77116b2bca2fa73077b",
+        "origin": "jar"
+      },
+      {
+        "originalPath": "META-INF/licenses/module-gtnhmixins/LICENSE",
+        "file": "ea8af5e789cb2d4e9b10bce3874982ade163b749b6bfbdb32e2df21c4d106de1.txt",
+        "sha256": "ea8af5e789cb2d4e9b10bce3874982ade163b749b6bfbdb32e2df21c4d106de1",
+        "origin": "jar"
+      },
+      {
+        "originalPath": "META-INF/licenses/module-gtnhmixins/README.original.md",
+        "file": "555592d6cdd3cc393068863ae15ace866a2f37cd94bb09237dabe362d64fc738.txt",
+        "sha256": "555592d6cdd3cc393068863ae15ace866a2f37cd94bb09237dabe362d64fc738",
+        "origin": "jar"
+      },
+      {
+        "originalPath": "META-INF/licenses/module-mixinextras/LICENSE",
+        "file": "7a9004d4183dc1596d15d332618274a4f013f1c453f1e90b791d73ecc6bf6199.txt",
+        "sha256": "7a9004d4183dc1596d15d332618274a4f013f1c453f1e90b791d73ecc6bf6199",
+        "origin": "jar"
+      },
+      {
+        "originalPath": "META-INF/licenses/module-mixinextras/LICENSE_MixinExtras",
+        "file": "7a9004d4183dc1596d15d332618274a4f013f1c453f1e90b791d73ecc6bf6199.txt",
+        "sha256": "7a9004d4183dc1596d15d332618274a4f013f1c453f1e90b791d73ecc6bf6199",
+        "origin": "jar"
+      }
+    ]
   }
 ]

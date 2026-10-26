@@ -58,28 +58,47 @@ pub async fn ensure_mod_allowed(path: &Path) -> ContentResult<()> {
 }
 
 pub async fn check_mod_directories(roots: &[PathBuf]) -> ContentResult<()> {
+    let roots = roots.to_vec();
+    let files = tokio::task::spawn_blocking(move || collect_mod_archives(&roots))
+        .await
+        .map_err(std::io::Error::other)??;
+    if files.is_empty() {
+        return Ok(());
+    }
+    let managed = managed_hashes().await?;
+    tokio::task::spawn_blocking(move || {
+        for file in files {
+            ensure_mod_allowed_sync(&file, managed)?;
+        }
+        Ok(())
+    })
+    .await
+    .map_err(std::io::Error::other)?
+}
+
+fn collect_mod_archives(roots: &[PathBuf]) -> ContentResult<Vec<PathBuf>> {
     let mut directories = HashSet::new();
     let mut files = HashSet::new();
     for root in roots {
         for directory in [root.clone(), root.join("1.8.9"), root.join("1.7.10")] {
-            let mut entries = match tokio::fs::read_dir(&directory).await {
+            let entries = match std::fs::read_dir(&directory) {
                 Ok(entries) => entries,
                 Err(error) if error.kind() == std::io::ErrorKind::NotFound => continue,
                 Err(error) => return Err(error.into()),
             };
-            if !directories.insert(tokio::fs::canonicalize(&directory).await?) {
+            if !directories.insert(std::fs::canonicalize(&directory)?) {
                 continue;
             }
-            while let Some(entry) = entries.next_entry().await? {
-                let path = entry.path();
+            for entry in entries {
+                let path = entry?.path();
                 if !path
                     .extension()
                     .is_some_and(|extension| extension.eq_ignore_ascii_case("jar"))
-                    || !tokio::fs::metadata(&path).await?.is_file()
+                    || !std::fs::metadata(&path)?.is_file()
                 {
                     continue;
                 }
-                files.insert(tokio::fs::canonicalize(path).await?);
+                files.insert(std::fs::canonicalize(path)?);
                 if files.len() > MAX_MOD_FILES {
                     return Err(ContentError::InvalidData {
                         reason: "Too many mod archives to inspect. Remove unused mods to continue."
@@ -91,10 +110,7 @@ pub async fn check_mod_directories(roots: &[PathBuf]) -> ContentResult<()> {
     }
     let mut files: Vec<_> = files.into_iter().collect();
     files.sort();
-    for file in files {
-        ensure_mod_allowed(&file).await?;
-    }
-    Ok(())
+    Ok(files)
 }
 
 fn archive_error(path: &Path, reason: &'static str) -> ContentError {
@@ -617,5 +633,33 @@ mod tests {
         let redirected = dir.join("custom-native-mods");
         jar(&redirected.join("1.8.9/renamed.JAR"), &blocked).await;
         assert_blocked(check_mod_directories(&[root, redirected]).await, "OptiFine");
+    }
+
+    #[tokio::test]
+    async fn repeated_launch_validation_rechecks_bytes_with_unchanged_file_metadata() {
+        let dir = ScratchDir::new("optimizer-recheck");
+        let root = dir.join("mods");
+        let file = root.join("ordinary.jar");
+        jar(&file, &[("fabric.mod.json", br#"{"id":"frames"}"#)]).await;
+        let before = std::fs::metadata(&file).unwrap();
+        check_mod_directories(&[root.clone()]).await.unwrap();
+        jar(&file, &[("fabric.mod.json", br#"{"id":"sodium"}"#)]).await;
+        std::fs::OpenOptions::new()
+            .write(true)
+            .open(&file)
+            .unwrap()
+            .set_times(std::fs::FileTimes::new().set_modified(before.modified().unwrap()))
+            .unwrap();
+        assert_eq!(before.len(), std::fs::metadata(&file).unwrap().len());
+        assert_blocked(check_mod_directories(&[root]).await, "Sodium");
+    }
+
+    #[tokio::test]
+    async fn batch_validation_keeps_deterministic_first_error() {
+        let dir = ScratchDir::new("optimizer-order");
+        let root = dir.join("mods");
+        jar(&root.join("z.jar"), &[("fabric.mod.json", br#"{"id":"sodium"}"#)]).await;
+        jar(&root.join("a.jar"), &[("mcmod.info", br#"[{"modid":"foamfix"}]"#)]).await;
+        assert_blocked(check_mod_directories(&[root]).await, "FoamFix");
     }
 }

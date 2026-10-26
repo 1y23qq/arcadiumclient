@@ -1,7 +1,7 @@
 plugins { java }
 
 group = "io.github.arcadiumclient"
-version = "0.5.2"
+version = "0.5.5"
 
 repositories {
     mavenCentral()
@@ -27,6 +27,8 @@ dependencies {
     compileOnly(fileTree("../build/forge1710/cache/mods") { include("*.jar") })
     compileOnly(fileTree("../build/forge1710/cache/libraries/org/lwjgl") { include("**/*.jar"); exclude("**/*natives*.jar") })
     compileOnly("com.google.guava:guava:17.0")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.12.2")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.12.2")
 }
 
 val versionReference by configurations.creating
@@ -34,6 +36,7 @@ dependencies { versionReference("net.fabricmc:fabric-loader:0.19.5") { isTransit
 
 java { toolchain.languageVersion.set(JavaLanguageVersion.of(25)) }
 tasks.withType<JavaCompile>().configureEach { options.encoding = "UTF-8" }
+tasks.test { useJUnitPlatform() }
 
 val forgeMixins by sourceSets.creating {
     compileClasspath = files("../build/forge1710/forge-srg-api.jar", "../build/forge1710/minecraft-srg-api.jar", "../build/forge1710/arcadium-srg.jar") +

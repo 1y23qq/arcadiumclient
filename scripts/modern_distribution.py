@@ -16,7 +16,7 @@ from port_checklist import DEFAULT_CATALOG, DEFAULT_RESULTS, ROOT, catalog_hash,
 
 
 TARGET = "1.21.11"
-CLIENT = "0.5.2"
+CLIENT = "0.5.5"
 UPSTREAM = "https://github.com/Polyfrost/DataStorageV2"
 UPSTREAM_COMMIT = "a8e6ec3ce5c80ca7a69245f43912adefdd1b862f"
 LAUNCHER_COMMIT = "4859c96cc8348aaa3fd269b71b71c6b87b2135ab"
@@ -169,7 +169,7 @@ def get_bundle(cache: Path, name: str, download: bool, **snapshot) -> bytes:
         if not download:
             raise FileNotFoundError(f"Missing pinned bundle: {target}. Pass --download to fetch it.")
         url = f"https://data-v2.polyfrost.org/oneclient/bundles/generated/{name}"
-        request = urllib.request.Request(url, headers={"User-Agent": "Arcadium-source-build/0.5.2"})
+        request = urllib.request.Request(url, headers={"User-Agent": "Arcadium-source-build/0.5.5"})
         with urllib.request.urlopen(request, timeout=60) as response:
             raw = response.read(4 * 1024 * 1024 + 1)
         if len(raw) > 4 * 1024 * 1024:
@@ -262,7 +262,7 @@ def fetch_dependencies(lock: dict, destination: Path, include_disabled: bool = F
         errors = []
         for url in entry["downloads"]:
             try:
-                request = urllib.request.Request(url, headers={"User-Agent": "Arcadium-source-build/0.5.2"})
+                request = urllib.request.Request(url, headers={"User-Agent": "Arcadium-source-build/0.5.5"})
                 with urllib.request.urlopen(request, timeout=60) as response:
                     raw = response.read(entry["bytes"] + 1)
                 if len(raw) != entry["bytes"] or hashlib.sha512(raw).hexdigest() != entry["sha512"]:

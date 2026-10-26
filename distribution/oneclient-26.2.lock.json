@@ -2424,9 +2424,9 @@
   "arcadiumComponents": [
     {
       "file": "ArcadiumCore-26.2.jar",
-      "sha1": "8f371e8815d945a8e0f62235924989eb1041908f",
-      "sha256": "3ef419d4b90e150e0588fbeb5fe2640cb028941998431dbd749ac68220952dea",
-      "bytes": 12385984,
+      "sha1": "146755b50210001d052e7e0d75ff5ced22e56afc",
+      "sha256": "9143aa7c6e4f2782d522c1c006ab9c71109ed5acb859d7e211065cf97f9b1f9d",
+      "bytes": 12386508,
       "modId": "oneconfig",
       "license": "GPL-3.0-only",
       "authors": [
@@ -2441,9 +2441,9 @@
     },
     {
       "file": "ArcadiumFeatures-26.2.jar",
-      "sha1": "ccca1184d1858dcaa0c24ddafd793edfe6d9de65",
-      "sha256": "af33256f77ac2ab541ae7dac3ae363cf72d3ba701c92965d434a44cb1d1649c4",
-      "bytes": 25783608,
+      "sha1": "9ab592af5efe0a1f666ad54a9d1fda74c163a712",
+      "sha256": "a2013d71ea2af9e8a0abe289af807f5ea8d8ae61f4936460961f951a6e5c6a06",
+      "bytes": 25783609,
       "modId": "arcadium_runtime",
       "license": "GPL-3.0-only",
       "authors": [

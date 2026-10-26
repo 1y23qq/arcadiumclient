@@ -1,3 +1,8 @@
+## 0.5.5
+
+- Improved Minecraft 1.7.10 performance with Hodgepodge, CoreTweaks and ArchaicFix.
+- Reduced redundant startup work and Mod validation overhead.
+
 ## 0.5.2
 
 - Fixed freezing when joining servers by double-clicking a server entry on 1.8.9.

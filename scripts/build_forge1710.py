@@ -286,14 +286,27 @@ def build(java_home: Path, calamus: Path, components: Path) -> Path:
         jar.writestr("arcadium-forge-mixins.json", json.dumps(list(dict.fromkeys(configs))))
         jar.writestr("mixins.arcadium-forge.json", json.dumps({"required": True, "minVersion": "0.8", "package": "io.github.arcadiumclient.forge1710.mixin", "compatibilityLevel": "JAVA_25", "client": ["ForgeTooltipScrollMixin", "ForgeHeartBlinkMixin", "ForgeHudRenderMixin", "ForgeAnimationsHudMixin", "ForgeWeatherMixin", "ForgeMinecraftExecutorMixin", "ForgeMinecraftInputMixin", "ForgeScreenInputMixin", "ForgeUnfocusedFpsMixin", "ForgeSkiaStateMixin", "ForgeVideoSettingsMixin", "ForgeGuiScaleHudMixin", "AngelicaNoRenderMixin"]}))
     print(f"Forge client built: {output} ({output.stat().st_size} bytes)")
+    build_bootstrap(version)
+    return output
+
+
+def build_bootstrap(version: str) -> Path:
     bootstrap = BUILD / "ArcadiumBootstrap-1.7.10.jar"
     with zipfile.ZipFile(bootstrap, "w", zipfile.ZIP_DEFLATED) as jar:
         base = ROOT / "client-forge1710/build/classes/java/main"
         for file in sorted((base / "io/github/arcadiumclient/forge1710/bootstrap").glob("*.class")):
             jar.writestr(file.relative_to(base).as_posix(), file.read_bytes())
-        jar.writestr("META-INF/rfb-plugin/arcadium-forge.properties", "name=Arcadium Forge Bootstrap\nversion=" + version + "\nclassName=io.github.arcadiumclient.forge1710.bootstrap.ArcadiumRfbPlugin\nloadBefore=gtnhlib;lwjgl3ify;angelica\ntransformerExclusions=io.github.arcadiumclient.forge1710.bootstrap.\n")
+        defaults = ROOT / "client-forge1710/src/main/resources/arcadium-defaults"
+        for file in sorted(defaults.glob("*")):
+            jar.writestr("arcadium-defaults/" + file.name, file.read_bytes())
+        dependencies = json.loads((ROOT / "distribution/forge-1.7.10.dependencies.json").read_text(encoding="utf-8"))
+        engine = next(library for library in dependencies["libraries"] if library["name"].startswith("net.fabricmc:sponge-mixin:"))
+        jar.writestr("arcadium-mixin-runtime.sha256", engine["sha256"] + "\n")
+        container = next(mod for mod in dependencies["mods"] if mod["file"].startswith("+unimixins-all-"))
+        jar.writestr("arcadium-unimixins-runtime.sha256", container["sha256"] + "\n")
+        jar.writestr("META-INF/rfb-plugin/arcadium-forge.properties", "name=Arcadium Forge Bootstrap\nversion=" + version + "\nclassName=io.github.arcadiumclient.forge1710.bootstrap.ArcadiumRfbPlugin\nloadBefore=gtnhlib;lwjgl3ify;angelica;hodgepodge\ntransformerExclusions=io.github.arcadiumclient.forge1710.bootstrap.\n")
         jar.writestr("LICENSE", (ROOT / "LICENSE").read_bytes())
-    return output
+    return bootstrap
 
 
 def build_from_sources(java_home: Path) -> Path:

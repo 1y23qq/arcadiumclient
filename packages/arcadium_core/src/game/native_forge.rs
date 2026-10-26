@@ -41,6 +41,14 @@ pub(super) async fn retire_ornithe_mods(
 ) -> LauncherResult<Vec<PathBuf>> {
     let retired: Vec<serde_json::Value> =
         serde_json::from_slice(arcadium_common::distribution::FORGE_1710_RETIRED)?;
+    retire_entries(runtime, mods, &retired).await
+}
+
+async fn retire_entries(
+    runtime: &Path,
+    mods: &Path,
+    retired: &[serde_json::Value],
+) -> LauncherResult<Vec<PathBuf>> {
     let mut moved = Vec::new();
     for entry in retired {
         let file = entry["file"]
@@ -174,5 +182,29 @@ mod tests {
                 .unwrap()
                 .is_empty()
         );
+    }
+
+    #[tokio::test]
+    async fn split_module_retirement_requires_exact_bytes_and_preserves_modified_copies() {
+        let root = arcadium_io::testing::ScratchDir::new("native-forge-split-retirement");
+        let mods = root.join("mods");
+        let versioned = mods.join("1.7.10");
+        tokio::fs::create_dir_all(&versioned).await.unwrap();
+        let filename = "+unimixins-compat-1.7.10-0.3.2.jar";
+        let managed = b"known managed split module";
+        tokio::fs::write(mods.join(filename), managed).await.unwrap();
+        tokio::fs::write(versioned.join(filename), b"user modified module")
+            .await
+            .unwrap();
+        let entries = [serde_json::json!({"file": filename, "sha1": arcadium_io::sha1_bytes(managed)})];
+        let backups = retire_entries(root.path(), &mods, &entries).await.unwrap();
+        assert_eq!(backups.len(), 1);
+        assert_eq!(tokio::fs::read(&backups[0]).await.unwrap(), managed);
+        assert!(!mods.join(filename).exists());
+        assert_eq!(
+            tokio::fs::read(versioned.join(filename)).await.unwrap(),
+            b"user modified module"
+        );
+        assert!(retire_entries(root.path(), &mods, &entries).await.unwrap().is_empty());
     }
 }

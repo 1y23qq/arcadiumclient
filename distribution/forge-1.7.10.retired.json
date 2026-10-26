@@ -238,5 +238,21 @@
   {
     "file": "smartsearch-1.2.0-ornithe.jar",
     "sha1": "897326ec6573fc78a0ff46f24f42a2b76f257e27"
+  },
+  {
+    "file": "+unimixins-compat-1.7.10-0.3.2.jar",
+    "sha1": "8e658b641bdd6bc637e74e47505fa657d6154380"
+  },
+  {
+    "file": "+unimixins-gtnhmixins-1.7.10-0.3.2+2.2.0.jar",
+    "sha1": "3c9aea30337eae6cd18ca33bc6f2ae1845aa9b91"
+  },
+  {
+    "file": "+unimixins-spongemixins-1.7.10-0.3.2+gtnh.2.0.1.jar",
+    "sha1": "757e556d898df7441df614045dfa97e42a041f5a"
+  },
+  {
+    "file": "+unimixins-mixingasm-1.7.10-0.3.2+0.3.jar",
+    "sha1": "76eef930e4fe69cd8d43466d3408ce4062fbd095"
   }
 ]

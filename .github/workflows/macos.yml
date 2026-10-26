@@ -9,7 +9,7 @@ on:
         options: [package, warm]
       build_tag:
         type: string
-        default: ci-inputs-0.5.2
+        default: ci-inputs-0.5.5
       component_sha256:
         type: string
 

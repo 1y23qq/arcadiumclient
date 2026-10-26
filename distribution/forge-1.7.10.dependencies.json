@@ -37,36 +37,51 @@
       "source": "https://github.com/GTNewHorizons/lwjgl3ify/tree/3.0.39"
     },
     {
-      "file": "+unimixins-compat-1.7.10-0.3.2.jar",
+      "file": "+unimixins-all-1.7.10-0.3.2.jar",
       "version": "0.3.2",
-      "url": "https://github.com/LegacyModdingMC/UniMixins/releases/download/0.3.2/%2Bunimixins-compat-1.7.10-0.3.2.jar",
-      "sha256": "313736581291c0c78848906e0f379a289b583ebaa53979e48679ab527da6b10d",
-      "bytes": 46541,
+      "url": "https://github.com/LegacyModdingMC/UniMixins/releases/download/0.3.2/%2Bunimixins-all-1.7.10-0.3.2.jar",
+      "sha256": "2687b776c8503e0b60cd8413cf70eaabb836c19f9fc726280ef61d6612257034",
+      "bytes": 5520080,
       "source": "https://github.com/LegacyModdingMC/UniMixins/tree/0.3.2"
     },
     {
-      "file": "+unimixins-gtnhmixins-1.7.10-0.3.2+2.2.0.jar",
-      "version": "0.3.2",
-      "url": "https://github.com/LegacyModdingMC/UniMixins/releases/download/0.3.2/%2Bunimixins-gtnhmixins-1.7.10-0.3.2%2B2.2.0.jar",
-      "sha256": "919e20447bde0a281a0d692ab4a4daa17eb0d5b2c8f5fe3248c446c1ab0731b7",
-      "bytes": 61058,
-      "source": "https://github.com/LegacyModdingMC/UniMixins/tree/0.3.2"
+      "file": "hodgepodge-2.7.219.jar",
+      "version": "2.7.219",
+      "url": "https://github.com/GTNewHorizons/Hodgepodge/releases/download/2.7.219/hodgepodge-2.7.219.jar",
+      "sha256": "0bf958115463c9841610e2d0183dfde26db46e3a7756b8eb88740e382eaf1184",
+      "bytes": 1261940,
+      "source": "https://github.com/GTNewHorizons/Hodgepodge/tree/2.7.219",
+      "sources": {
+        "url": "https://github.com/GTNewHorizons/Hodgepodge/releases/download/2.7.219/hodgepodge-2.7.219-sources.jar",
+        "sha256": "4c516d676c271393d41ef57345b4845dab5662665966d6ae080b17639093953f"
+      },
+      "license": "LGPL-3.0-only"
     },
     {
-      "file": "+unimixins-spongemixins-1.7.10-0.3.2+gtnh.2.0.1.jar",
-      "version": "0.3.2",
-      "url": "https://github.com/LegacyModdingMC/UniMixins/releases/download/0.3.2/%2Bunimixins-spongemixins-1.7.10-0.3.2%2Bgtnh.2.0.1.jar",
-      "sha256": "44e67781394934aad749777af9dffeaf00e2effba3ff56f111bb5a2c7b1a9831",
-      "bytes": 10968,
-      "source": "https://github.com/LegacyModdingMC/UniMixins/tree/0.3.2"
+      "file": "coretweaks-0.3.4.7-GTNH.jar",
+      "version": "0.3.4.7-GTNH",
+      "url": "https://github.com/GTNewHorizons/CoreTweaks/releases/download/0.3.4.7-GTNH/coretweaks-0.3.4.7-GTNH.jar",
+      "sha256": "89c117aeee723df3a31d8d341626e7d080b78e50e23564c889e59b198f9bde9b",
+      "bytes": 786937,
+      "source": "https://github.com/GTNewHorizons/CoreTweaks/tree/0.3.4.7-GTNH",
+      "sources": {
+        "url": "https://github.com/GTNewHorizons/CoreTweaks/releases/download/0.3.4.7-GTNH/coretweaks-0.3.4.7-GTNH-sources.jar",
+        "sha256": "033dffbe0a383848a93534e50f177f68f86c035a87de6e52506c38197a72f8d4"
+      },
+      "license": "MIT"
     },
     {
-      "file": "+unimixins-mixingasm-1.7.10-0.3.2+0.3.jar",
-      "version": "0.3.2",
-      "url": "https://github.com/LegacyModdingMC/UniMixins/releases/download/0.3.2/%2Bunimixins-mixingasm-1.7.10-0.3.2%2B0.3.jar",
-      "sha256": "9d4d0eaa0331d678c4d1b0a32d7ef34bdda642fcd078f1a9f422ef4ea70c76d3",
-      "bytes": 33465,
-      "source": "https://github.com/LegacyModdingMC/UniMixins/tree/0.3.2"
+      "file": "archaicfix-0.8.2.jar",
+      "version": "0.8.2",
+      "url": "https://github.com/embeddedt/ArchaicFix/releases/download/0.8.2/archaicfix-0.8.2.jar",
+      "sha256": "cf51b3af5b948ec963c8dbfb26d25340bbb66c71e2c857984183de718e3e2f43",
+      "bytes": 293572,
+      "source": "https://github.com/embeddedt/ArchaicFix/tree/0.8.2",
+      "sources": {
+        "url": "https://github.com/embeddedt/ArchaicFix/releases/download/0.8.2/archaicfix-0.8.2-sources.jar",
+        "sha256": "968856fccd412c6669d8d250ec8c7c284597076f7a30c2a98d7d080367ec4327"
+      },
+      "license": "LGPL-3.0-only"
     }
   ],
   "libraries": [

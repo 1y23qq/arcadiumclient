@@ -28,6 +28,8 @@ public final class ForgeRuntimeQa {
         if (!Files.isRegularFile(root.resolve(".arcadium-forge-probe")))
             throw new IllegalStateException("Forge verification requires an isolated test profile.");
         FMLCommonHandler.instance().bus().register(this);
+        if (System.getProperty("arcadium.startupQa.output") != null) FMLCommonHandler.instance().bus().register(new ForgeStartupQa());
+        if (System.getProperty("arcadium.qa.optimization.output") != null) FMLCommonHandler.instance().bus().register(new ForgeOptimizationQa());
         if (Boolean.getBoolean("arcadium.qa.menuFlow")) FMLCommonHandler.instance().bus().register(new ForgeMenuFlowQa());
         if (Boolean.getBoolean("arcadium.qa.worldFlow")) FMLCommonHandler.instance().bus().register(new ForgeWorldFlowQa());
         if (Boolean.getBoolean("arcadium.qa.controls")) FMLCommonHandler.instance().bus().register(new ForgeControlsQa());

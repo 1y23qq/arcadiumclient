@@ -6,7 +6,7 @@
   "bundles": [
     {
       "file": "core-1.7.10-forge.mrpack",
-      "arcadiumSha1": "d4aff9d4bc7081d6dec78f9c7eebeeee22ab7e0d",
+      "arcadiumSha1": "1bb5314b4b008f668a79160b8582ac8737fdf857",
       "mods": [
         {
           "path": "mods/angelica-2.2.35.jar",
@@ -39,42 +39,42 @@
           "enabled": true
         },
         {
-          "path": "mods/+unimixins-compat-1.7.10-0.3.2.jar",
-          "sha1": "8e658b641bdd6bc637e74e47505fa657d6154380",
-          "sha256": "313736581291c0c78848906e0f379a289b583ebaa53979e48679ab527da6b10d",
-          "bytes": 46541,
+          "path": "mods/+unimixins-all-1.7.10-0.3.2.jar",
+          "sha1": "caae4993fec61965d39a214c7ef9c709a58b5c9d",
+          "sha256": "2687b776c8503e0b60cd8413cf70eaabb836c19f9fc726280ef61d6612257034",
+          "bytes": 5520080,
           "downloads": [
-            "https://github.com/LegacyModdingMC/UniMixins/releases/download/0.3.2/%2Bunimixins-compat-1.7.10-0.3.2.jar"
+            "https://github.com/LegacyModdingMC/UniMixins/releases/download/0.3.2/%2Bunimixins-all-1.7.10-0.3.2.jar"
           ],
           "enabled": true
         },
         {
-          "path": "mods/+unimixins-gtnhmixins-1.7.10-0.3.2+2.2.0.jar",
-          "sha1": "3c9aea30337eae6cd18ca33bc6f2ae1845aa9b91",
-          "sha256": "919e20447bde0a281a0d692ab4a4daa17eb0d5b2c8f5fe3248c446c1ab0731b7",
-          "bytes": 61058,
+          "path": "mods/hodgepodge-2.7.219.jar",
+          "sha1": "1cfa1d83362ba5357eb6280c1fe5d0af7b3b1129",
+          "sha256": "0bf958115463c9841610e2d0183dfde26db46e3a7756b8eb88740e382eaf1184",
+          "bytes": 1261940,
           "downloads": [
-            "https://github.com/LegacyModdingMC/UniMixins/releases/download/0.3.2/%2Bunimixins-gtnhmixins-1.7.10-0.3.2%2B2.2.0.jar"
+            "https://github.com/GTNewHorizons/Hodgepodge/releases/download/2.7.219/hodgepodge-2.7.219.jar"
           ],
           "enabled": true
         },
         {
-          "path": "mods/+unimixins-spongemixins-1.7.10-0.3.2+gtnh.2.0.1.jar",
-          "sha1": "757e556d898df7441df614045dfa97e42a041f5a",
-          "sha256": "44e67781394934aad749777af9dffeaf00e2effba3ff56f111bb5a2c7b1a9831",
-          "bytes": 10968,
+          "path": "mods/coretweaks-0.3.4.7-GTNH.jar",
+          "sha1": "1848c0e5402c5631dbbaa0a76a4ed27eaf0a4f8e",
+          "sha256": "89c117aeee723df3a31d8d341626e7d080b78e50e23564c889e59b198f9bde9b",
+          "bytes": 786937,
           "downloads": [
-            "https://github.com/LegacyModdingMC/UniMixins/releases/download/0.3.2/%2Bunimixins-spongemixins-1.7.10-0.3.2%2Bgtnh.2.0.1.jar"
+            "https://github.com/GTNewHorizons/CoreTweaks/releases/download/0.3.4.7-GTNH/coretweaks-0.3.4.7-GTNH.jar"
           ],
           "enabled": true
         },
         {
-          "path": "mods/+unimixins-mixingasm-1.7.10-0.3.2+0.3.jar",
-          "sha1": "76eef930e4fe69cd8d43466d3408ce4062fbd095",
-          "sha256": "9d4d0eaa0331d678c4d1b0a32d7ef34bdda642fcd078f1a9f422ef4ea70c76d3",
-          "bytes": 33465,
+          "path": "mods/archaicfix-0.8.2.jar",
+          "sha1": "0c7b2396d6ecb5da917da868b28c231acd213476",
+          "sha256": "cf51b3af5b948ec963c8dbfb26d25340bbb66c71e2c857984183de718e3e2f43",
+          "bytes": 293572,
           "downloads": [
-            "https://github.com/LegacyModdingMC/UniMixins/releases/download/0.3.2/%2Bunimixins-mixingasm-1.7.10-0.3.2%2B0.3.jar"
+            "https://github.com/embeddedt/ArchaicFix/releases/download/0.8.2/archaicfix-0.8.2.jar"
           ],
           "enabled": true
         }
@@ -84,9 +84,9 @@
   "arcadiumComponents": [
     {
       "file": "ArcadiumForge-1.7.10.jar",
-      "sha1": "4fd5afa5aec53e33cd38522d30bb453882623daf",
-      "sha256": "0fcabff7fea0756fcc15fdf375a2b2c08e04e04b14ed46aee9b01799a8051c46",
-      "bytes": 118348884,
+      "sha1": "0b64f6a9122de072ed1a40b5f04497bd014e6c79",
+      "sha256": "9db0e33778cd6772d8b9b9dbd5e2cc192ee9cfef79883e636312fde8d2c98b80",
+      "bytes": 118360943,
       "modId": "arcadiumclient",
       "license": "GPL-3.0-only",
       "authors": [
@@ -96,9 +96,9 @@
     },
     {
       "file": "ArcadiumBootstrap-1.7.10.jar",
-      "sha1": "17e456d765dae657b01fe6823e5a9095d97f7ac7",
-      "sha256": "f3379a11ad9ddd62dce240e13cc372e66c9e5e5733ef7745f34cf05fc6e262ab",
-      "bytes": 21823,
+      "sha1": "f4e8e0a30b3afd5de1307c23aab25716e44e5193",
+      "sha256": "a71e35dbef08c4a5a05f709af86477018b914ba68f9440b03011a4450202004e",
+      "bytes": 40056,
       "modId": "arcadium_forge_bootstrap",
       "license": "GPL-3.0-only",
       "authors": [

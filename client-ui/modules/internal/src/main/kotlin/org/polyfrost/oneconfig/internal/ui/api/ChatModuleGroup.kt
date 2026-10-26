@@ -15,9 +15,10 @@ internal object ChatModuleGroup : ConfigData {
     override val category = Config.Category.QOL
 
     val ids = listOf("chatting.json", "chattweaks.json", "arcadium-chat-filters.json", "arcadium-auto-text.json")
+    private val normalizedIds = ids.mapTo(HashSet()) { it.removeSuffix(".json") }
     fun contains(id: String): Boolean {
         val normalized = id.lowercase(Locale.ROOT).removeSuffix(".json")
-        return ids.any { it.removeSuffix(".json") == normalized }
+        return normalized in normalizedIds
     }
     fun children(): List<ConfigData> = ids.mapNotNull { id ->
         ConfigRegistry.configs.firstOrNull { it.id == id || it.id == id.removeSuffix(".json") }

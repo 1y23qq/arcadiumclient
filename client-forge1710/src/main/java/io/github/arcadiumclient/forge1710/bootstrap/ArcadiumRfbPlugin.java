@@ -20,7 +20,58 @@ import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.VarInsnNode;
 
 public final class ArcadiumRfbPlugin implements RfbPlugin {
-    @Override public RfbClassTransformer[] makeEarlyTransformers() { return new RfbClassTransformer[]{new MixinAsmSymbols(), new SyntheticArgsTypes()}; }
+    @Override public RfbClassTransformer[] makeEarlyTransformers() {
+        OptimizationDefaults.install();
+        return new RfbClassTransformer[]{new MixinAsmSymbols(), new SyntheticArgsTypes(), new ArchaicMixinSelection(), new HostedMixinContainer()};
+    }
+
+    private static final class HostedMixinContainer implements RfbClassTransformer {
+        @Override public String id() { return "hosted-mixin-container"; }
+        @Override public boolean shouldTransformClass(ExtensibleClassLoader loader, Context context, Manifest manifest, String name, ClassNodeHandle handle) {
+            return name.replace('/', '.').equals("io.github.legacymoddingmc.unimixins.mixin.MixinSanityCheck");
+        }
+        @Override public void transformClass(ExtensibleClassLoader loader, Context context, Manifest manifest, String name, ClassNodeHandle handle) {
+            ClassNode node = handle.getNode();
+            boolean found = false;
+            for (var method : node.methods) {
+                if (!method.name.equals("checkMixinContainer") || !method.desc.equals("()Ljava/util/List;")) continue;
+                for (var instruction : method.instructions.toArray()) {
+                    if (instruction.getOpcode() != Opcodes.ARETURN) continue;
+                    method.instructions.insertBefore(instruction, new org.objectweb.asm.tree.LdcInsnNode(org.objectweb.asm.Type.getObjectType(node.name)));
+                    method.instructions.insertBefore(instruction, new MethodInsnNode(Opcodes.INVOKESTATIC,
+                        "io/github/arcadiumclient/forge1710/bootstrap/HostedMixinRuntime", "checkContainer",
+                        "(Ljava/util/List;Ljava/lang/Class;)Ljava/util/List;", false));
+                    method.maxStack = Math.max(method.maxStack, 2);
+                    found = true;
+                }
+            }
+            if (!found) throw new IllegalStateException("The pinned UniMixins container check API has changed");
+            handle.markDirty();
+        }
+    }
+
+    private static final class ArchaicMixinSelection implements RfbClassTransformer {
+        @Override public String id() { return "archaic-mixin-selection"; }
+        @Override public boolean shouldTransformClass(ExtensibleClassLoader loader, Context context, Manifest manifest, String name, ClassNodeHandle handle) {
+            return name.replace('/', '.').equals("org.embeddedt.archaicfix.ArchaicCore");
+        }
+        @Override public void transformClass(ExtensibleClassLoader loader, Context context, Manifest manifest, String name, ClassNodeHandle handle) {
+            ClassNode node = handle.getNode();
+            boolean found = false;
+            for (var method : node.methods) {
+                if (!method.name.equals("getMixins") || !method.desc.equals("(Ljava/util/Set;)Ljava/util/List;")) continue;
+                for (var instruction : method.instructions.toArray()) {
+                    if (instruction.getOpcode() != Opcodes.ARETURN) continue;
+                    method.instructions.insertBefore(instruction, new MethodInsnNode(Opcodes.INVOKESTATIC,
+                        "io/github/arcadiumclient/forge1710/bootstrap/OptimizationMixinPolicy", "archaicMixins",
+                        "(Ljava/util/List;)Ljava/util/List;", false));
+                    found = true;
+                }
+            }
+            if (!found) throw new IllegalStateException("The pinned ArchaicFix mixin selection API has changed");
+            handle.markDirty();
+        }
+    }
 
     private static final class SyntheticArgsTypes implements RfbClassTransformer {
         @Override public String id() { return "synthetic-args-types"; }

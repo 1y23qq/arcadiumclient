@@ -130,6 +130,7 @@ class OneConfigUIScreen @JvmOverloads constructor(
                     it.restorePrewarmScroll()
                     it.restorePrewarmNavigation()
                 }
+                it.resetPrewarmPreparation()
                 it.endPrewarm()
             }
         }
@@ -202,6 +203,11 @@ class OneConfigUIScreen @JvmOverloads constructor(
 
     private var prewarming = false
 
+    private var prewarmManager: ConfigManager? = null
+    private var prewarmConfigRevision = -1
+    private var prewarmHudRevision = -1
+    private var prewarmInstanceRevision = -1
+
     @Volatile private var everOpened = false
 
     private fun restorePrewarmScroll() {
@@ -214,12 +220,35 @@ class OneConfigUIScreen @JvmOverloads constructor(
         ShellState.lastRoute = null
     }
 
+    private fun resetPrewarmPreparation() {
+        prewarmManager = null
+        prewarmConfigRevision = -1
+        prewarmHudRevision = -1
+        prewarmInstanceRevision = -1
+    }
+
+    private fun preparePrewarm() {
+        val manager = ConfigManager.active()
+        if (prewarmManager !== manager) {
+            ConfigRegistry.loadFrom(manager, ConfigSource.OC)
+            prewarmManager = manager
+        }
+        val configRevision = ConfigRegistry.revision
+        val hudRevision = HudManager.revision
+        val instanceRevision = HudManager.instancesRevision.intValue
+        if (prewarmConfigRevision == configRevision && prewarmHudRevision == hudRevision &&
+            prewarmInstanceRevision == instanceRevision) return
+        warmIconCache(ConfigRegistry.modCardConfigs.mapNotNull { it.icon })
+        prewarmConfigRevision = configRevision
+        prewarmHudRevision = hudRevision
+        prewarmInstanceRevision = instanceRevision
+    }
+
     private fun runPrewarm(): Boolean {
         if (everOpened || Platform.screen().current<Any?>() === this) return true
         prewarming = true
         return try {
-            ConfigRegistry.loadFrom(ConfigManager.active(), ConfigSource.OC)
-            warmIconCache(ConfigRegistry.modCardConfigs.mapNotNull { it.icon })
+            preparePrewarm()
             prewarm(PREWARM_FRAMES, PREWARM_FRAME_BUDGET) { frame ->
                 when (frame) {
                     PREWARM_OPEN_FRAME -> requestOpenCallback?.invoke()

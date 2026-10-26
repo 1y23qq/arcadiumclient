@@ -3,6 +3,8 @@ Cargo.lock -diff linguist-generated
 
 # Preserve audited third-party notice bytes.
 licenses/** -text
+licenses/forge1710/*.txt -whitespace
+client-forge1710/src/main/resources/arcadium-defaults/*.cfg whitespace=-blank-at-eof
 **/LICENSE* -text
 **/NOTICE* -text
 **/COPYING* -text
