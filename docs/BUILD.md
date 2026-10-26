@@ -33,6 +33,11 @@ Minecraft 1.21.11 uses Fabric. Its OneClient baseline, dependency hashes and
 default states are pinned in `distribution/oneclient-1.21.11.lock.json`; the
 approved feature selection is in `distribution/port-scope-1.21.11.json`.
 Forge compatibility and the optional optimizer selector are not part of this port.
+On its first launch, a supported NVIDIA GPU triggers an optional Nvidium recommendation.
+Enabling it installs the pinned, unmodified release. The bundled Sodium 0.8.14 and
+Sodium Extra 0.9.4 are retained disabled and replaced by compatible 0.8.12 and 0.9.1
+releases. Declining preserves the baseline. Custom renderer dependencies that need
+manual changes defer the recommendation. The 1.21.11 OpenGL options are left intact.
 
 Minecraft 26.2 uses Fabric 0.20.1 and the separately built `client-next` runtime.
 Its five OneClient baseline groups are pinned in `distribution/oneclient-26.2.lock.json`;
@@ -40,7 +45,7 @@ SkyBlock and individually disabled mods retain their upstream default states.
 The 26.2 scope inherits the approved 1.21.11 choices. On the first launch, a supported
 NVIDIA GPU in any adapter slot triggers an optional Nvidium recommendation. Enabling
 it installs the pinned, unmodified Nvidium release and selects OpenGL. The choice is
-remembered, and later renderer or mod changes are preserved.
+remembered separately for each Minecraft version, and later renderer or mod changes are preserved.
 The recommendation is deferred when custom launch arguments override the managed
 mods folder, so it cannot install into an unused directory.
 

@@ -48,8 +48,10 @@ fn nvidium_choice(arguments: &[String]) -> anyhow::Result<Option<NvidiumChoice>>
             "Nvidium automatic answers are only available for synthetic game launches"
         );
         anyhow::ensure!(
-            arguments.iter().any(|value| value == "--minecraft=26.2"),
-            "Nvidium automatic answers require --minecraft=26.2"
+            arguments
+                .iter()
+                .any(|value| matches!(value.as_str(), "--minecraft=26.2" | "--minecraft=1.21.11")),
+            "Nvidium automatic answers require --minecraft=26.2 or --minecraft=1.21.11"
         );
     }
     Ok(choice)
@@ -467,8 +469,11 @@ async fn verify_nvidium_installation(
         game_dir.canonicalize()? == cluster.user_game_dir()?.canonicalize()?,
         "Nvidium verification did not target the synthetic user game directory"
     );
-    let lock: serde_json::Value =
-        serde_json::from_slice(arcadium_common::distribution::MODERN_262_LOCK)?;
+    let lock: serde_json::Value = serde_json::from_slice(match cluster.mc_version.as_str() {
+        "1.21.11" => arcadium_common::distribution::MODERN_12111_LOCK,
+        "26.2" => arcadium_common::distribution::MODERN_262_LOCK,
+        _ => anyhow::bail!("No Nvidium release for this Minecraft version"),
+    })?;
     let pinned = &lock["optionalNvidium"];
     let file = pinned["file"]
         .as_str()
@@ -501,16 +506,51 @@ async fn verify_nvidium_installation(
             .any(|link| link.hash == expected_sha1 && link.enabled),
         "The active Nvidium release is not enabled in the normal package database"
     );
-    let options = tokio::fs::read_to_string(game_dir.join("options.txt")).await?;
-    anyhow::ensure!(
-        options
-            .lines()
-            .any(|line| line == "preferredGraphicsBackend:\"opengl\""),
-        "Nvidium was enabled without the native OpenGL option"
-    );
+    let mut companions = Vec::new();
+    if let Some(entries) = pinned["compatibilityMods"].as_array() {
+        for entry in entries {
+            let old_hash = entry["replacesSha1"]
+                .as_str()
+                .context("Missing previous renderer hash")?;
+            let Some(old) = links.iter().find(|link| link.hash == old_hash) else {
+                continue;
+            };
+            let file = entry["file"]
+                .as_str()
+                .context("Missing compatible renderer file")?;
+            let sha1 = entry["sha1"]
+                .as_str()
+                .context("Missing compatible renderer hash")?;
+            let path = mods.join(file);
+            let raw = tokio::fs::read(&path).await?;
+            let sha512 = Sha512::digest(&raw)
+                .iter()
+                .map(|byte| format!("{byte:02x}"))
+                .collect::<String>();
+            anyhow::ensure!(
+                !old.enabled
+                    && !mods.join(&old.cluster_file_name).exists()
+                    && links.iter().any(|link| link.hash == sha1 && link.enabled)
+                    && arcadium_io::sha1_file(&path).await? == sha1
+                    && Some(raw.len() as u64) == entry["bytes"].as_u64()
+                    && Some(sha512.as_str()) == entry["sha512"].as_str(),
+                "The compatible renderer was not fully activated before Nvidium launch"
+            );
+            companions.push(serde_json::json!({"file":path,"sha1":sha1,"sha512":sha512,"originalDisabled":true}));
+        }
+    }
+    if cluster.mc_version == "26.2" {
+        let options = tokio::fs::read_to_string(game_dir.join("options.txt")).await?;
+        anyhow::ensure!(
+            options
+                .lines()
+                .any(|line| line == "preferredGraphicsBackend:\"opengl\""),
+            "Nvidium was enabled without the native OpenGL option"
+        );
+    }
     Ok(
         serde_json::json!({"file":path,"sha1":expected_sha1,"sha512":sha512,
-        "databaseEnabled":true,"graphicsBackend":"opengl","verifiedBeforeStartupCheck":true}),
+        "databaseEnabled":true,"graphicsBackend":"opengl","compatibilityMods":companions,"verifiedBeforeStartupCheck":true}),
     )
 }
 
@@ -527,40 +567,38 @@ mod tests {
     }
 
     #[test]
-    fn explicit_nvidium_choices_require_synthetic_262_game_launches() {
-        for choice in ["enable", "keep"] {
-            let flag = format!("--nvidium-choice={choice}");
-            assert_eq!(
-                nvidium_choice(&arguments(&["--offline-probe", "--minecraft=26.2", &flag]))
-                    .unwrap()
-                    .unwrap()
-                    .id(),
-                choice
-            );
-            assert!(nvidium_choice(&arguments(&["--minecraft=26.2", &flag])).is_err());
-            assert!(
-                nvidium_choice(&arguments(&[
-                    "--offline-probe",
-                    "--minecraft=1.21.11",
-                    &flag
-                ]))
-                .is_err()
-            );
-            for forbidden in [
-                "--launch-real",
-                "--sign-in",
-                "--account-service",
-                "--prepare-only",
-            ] {
-                assert!(
-                    nvidium_choice(&arguments(&[
-                        "--offline-probe",
-                        "--minecraft=26.2",
-                        &flag,
-                        forbidden
-                    ]))
-                    .is_err()
+    fn explicit_nvidium_choices_require_synthetic_modern_game_launches() {
+        for minecraft in ["--minecraft=26.2", "--minecraft=1.21.11"] {
+            for choice in ["enable", "keep"] {
+                let flag = format!("--nvidium-choice={choice}");
+                assert_eq!(
+                    nvidium_choice(&arguments(&["--offline-probe", minecraft, &flag]))
+                        .unwrap()
+                        .unwrap()
+                        .id(),
+                    choice
                 );
+                assert!(nvidium_choice(&arguments(&["--minecraft=26.2", &flag])).is_err());
+                assert!(
+                    nvidium_choice(&arguments(&["--offline-probe", "--minecraft=1.8.9", &flag]))
+                        .is_err()
+                );
+                for forbidden in [
+                    "--launch-real",
+                    "--sign-in",
+                    "--account-service",
+                    "--prepare-only",
+                ] {
+                    assert!(
+                        nvidium_choice(&arguments(&[
+                            "--offline-probe",
+                            minecraft,
+                            &flag,
+                            forbidden
+                        ]))
+                        .is_err()
+                    );
+                }
             }
         }
         assert!(

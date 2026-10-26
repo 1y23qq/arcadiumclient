@@ -36,6 +36,7 @@ NVIDIUM = {
     "url": "https://cdn.modrinth.com/data/SfMw2IZN/versions/2VTUVLLs/nvidium-0.4.4-beta6-26.2.jar",
     "sha1": "108723a7ebe97fcf0dbc16e154358c7f0553496e",
     "sha512": "f6a70717d3ceb9b8082a1f6e5857740755cf6e6e9b5054c98833f1659caa13e1e973422ee90bb0e9afaa07907bece978fdcd7cb725ff5ebba2b8e0fcc0dbb618",
+    "published": "2026-09-22T15:55:45.489858Z",
     "license": "LGPL-3.0-only", "source": "https://github.com/MCRcortex/nvidium", "commit": "bda9ff4",
     "minecraft": TARGET, "sodiumVersions": ["0.9.1", "0.9.2"], "requiresOpenGL": True,
     "enabledByDefault": False,

@@ -2138,9 +2138,9 @@
   "arcadiumComponents": [
     {
       "file": "ArcadiumCore-1.21.11.jar",
-      "sha1": "7456713e1bd5f6a53ea4d5cb73022639bb9e460d",
-      "sha256": "6de1ae3962253a5674945d8758e5c0d6beb493a76de88364815e83568ac83dae",
-      "bytes": 12435130,
+      "sha1": "83f8d2ef8add403ddb8ff007dccf89c619aafa5a",
+      "sha256": "127d580fdcb977a9a5f22199bbdc9d4dc2c9f5ae4b81ef7dc95a75062e5e7673",
+      "bytes": 12435134,
       "modId": "oneconfig",
       "license": "GPL-3.0-only",
       "authors": [
@@ -2155,9 +2155,9 @@
     },
     {
       "file": "ArcadiumFeatures-1.21.11.jar",
-      "sha1": "d8b8840e873cf0e14d5038cbbd38d1c744a96d3d",
-      "sha256": "3b2c22e51c2d55f2df360415ea29928c3f9d2dd950b4a86e49c3a11d985fc03f",
-      "bytes": 25780798,
+      "sha1": "89731e248c20d041d32216965a674bf632fb3479",
+      "sha256": "85f21df9e204fab385659771389fca2050106e6989c6c23393d54209c70bb0d3",
+      "bytes": 25780864,
       "modId": "arcadium_runtime",
       "license": "GPL-3.0-only",
       "authors": [
@@ -2185,5 +2185,58 @@
       }
     }
   ],
-  "componentScopeSha256": "09e7bcb6b49e38e6fe7519ae4987e0b644f2e039e260984873a84a3245a78b5a"
+  "componentScopeSha256": "09e7bcb6b49e38e6fe7519ae4987e0b644f2e039e260984873a84a3245a78b5a",
+  "optionalNvidium": {
+    "project": "SfMw2IZN",
+    "version": "4x9ci9sF",
+    "modVersion": "0.4.3-beta13-1.21.11",
+    "file": "nvidium-0.4.3-beta13-1.21.11.jar",
+    "bytes": 174412,
+    "url": "https://cdn.modrinth.com/data/SfMw2IZN/versions/4x9ci9sF/nvidium-0.4.3-beta13-1.21.11.jar",
+    "sha1": "08fa4be6b87c0b586efe7d5ee462f46e7a5d647d",
+    "sha512": "12ea425d80d33eff9713876daf03d52874a08cb3ce50848eb861cf5f6008a57fa6fee863f610a823eac055f9ba154ae4054109fd46abc47b74ea2e7a8a9ff69f",
+    "published": "2026-07-13T21:33:12.976699Z",
+    "license": "LGPL-3.0-only",
+    "source": "https://github.com/MCRcortex/nvidium",
+    "commit": "e600501",
+    "minecraft": "1.21.11",
+    "sodiumVersions": [
+      "0.8.11",
+      "0.8.12"
+    ],
+    "requiresOpenGL": true,
+    "enabledByDefault": false,
+    "compatibilityMods": [
+      {
+        "modId": "sodium",
+        "replacesSha1": "4a8733fe544168068d12fa94b2ab03e6c0c7bf91",
+        "project": "AANobbMI",
+        "version": "NFkjnzWE",
+        "modVersion": "0.8.12+mc1.21.11",
+        "file": "sodium-fabric-0.8.12+mc1.21.11.jar",
+        "bytes": 1905890,
+        "url": "https://cdn.modrinth.com/data/AANobbMI/versions/NFkjnzWE/sodium-fabric-0.8.12%2Bmc1.21.11.jar",
+        "sha1": "4d80592bef36674e7469ae2737a7704b826289ae",
+        "sha512": "17fdb8240670d069e9bb4d00cd3d17afe28ea3f7ea7daf27fd32844f302516e7a889686429db81f2c7b73ad4afce703cac8963a8c3943cfebf45d2c570bd8256",
+        "published": "2026-05-18T22:12:48.468154Z",
+        "license": "LicenseRef-Polyform-Shield-1.0.0",
+        "source": "https://github.com/CaffeineMC/sodium"
+      },
+      {
+        "modId": "sodium-extra",
+        "replacesSha1": "5ee4535324b48628424866eca29a4dceb364d27a",
+        "project": "PtjYWJkn",
+        "version": "zmsIDdn6",
+        "modVersion": "0.9.1+mc1.21.11",
+        "file": "sodium-extra-fabric-0.9.1+mc1.21.11.jar",
+        "bytes": 442450,
+        "url": "https://cdn.modrinth.com/data/PtjYWJkn/versions/zmsIDdn6/sodium-extra-fabric-0.9.1%2Bmc1.21.11.jar",
+        "sha1": "49783b5a7f2bec3330ab4e776f91620e5646ac87",
+        "sha512": "6fb4228c2466efd5f2a4766f5c29ba31123e75842fdcfd3699f45646abe1ed17418f47d1468066f4e059e6d8f20d583b6d77696e78f3dd8a0af5e041dec84487",
+        "published": "2026-06-29T18:42:56.903414Z",
+        "license": "LGPL-3.0-only",
+        "source": "https://github.com/FlashyReese/sodium-extra-fabric"
+      }
+    ]
+  }
 }

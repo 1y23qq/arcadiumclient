@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "io.github.arcadiumclient"
-version = "0.5.0"
+version = "0.5.1"
 base.archivesName = "ArcadiumRuntime"
 val minecraftVersion = providers.gradleProperty("minecraftVersion").getOrElse("1.8.9")
 require(minecraftVersion in setOf("1.7.10", "1.8.9")) { "Unsupported Minecraft version: $minecraftVersion" }
@@ -89,6 +89,24 @@ tasks.processResources {
             "runtimeMixins" to if (minecraftVersion == "1.7.10") "arcadium-runtime-1710.mixins.json" else "arcadium-runtime.mixins.json")
     }
 }
+
+if (minecraftVersion == "1.8.9") {
+    val releaseQa = sourceSets.create("releaseQa") {
+        compileClasspath += sourceSets.main.get().output + sourceSets.main.get().compileClasspath
+        runtimeClasspath += output + compileClasspath + sourceSets.main.get().runtimeClasspath
+    }
+    val releaseQaJar = tasks.register<Jar>("releaseQaJar") {
+        dependsOn(tasks.named(releaseQa.classesTaskName))
+        from(releaseQa.output)
+        archiveClassifier.set("release-qa-dev")
+    }
+    tasks.register<net.fabricmc.loom.task.RemapJarTask>("remapReleaseQaJar") {
+        dependsOn(releaseQaJar)
+        inputFile.set(releaseQaJar.flatMap { it.archiveFile })
+        archiveClassifier.set("release-qa")
+        addNestedDependencies.set(false)
+    }
+}
 tasks.jar {
     from("../LICENSE")
     from("../NOTICE.md")
@@ -116,6 +134,10 @@ if (minecraftVersion == "1.7.10") {
                 "**/client/MixinBadlionEntityAnimations.java", "**/client/MixinGuiScaleSpectatorHud.java",
                 "**/client/MixinBadlionTitleAnimations.java", "**/client/MixinNickHiderTextWrapping.java",
                 "**/client/MixinSkinChangerPlayerInfo.java", "**/compat/argentum/MixinNoRenderFastBlocks.java",
+                "**/client/RodThicknessMixin.java", "**/client/PasswordHiderMixin.java",
+                "**/client/ServerSwitchConnectionMixin.java", "**/client/DisconnectedPacketMixin.java",
+                "**/client/StaleDisconnectMixin.java",
+                "**/client/access/ChatScreenAccessor.java", "**/features/RodThickness.kt", "**/features/PasswordHider.kt",
                 "**/compat/forge/**")
             replacements.forEach { exclude("java/$it", "kotlin/$it") }
         }

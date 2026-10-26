@@ -27,6 +27,7 @@
     "url": "https://cdn.modrinth.com/data/SfMw2IZN/versions/2VTUVLLs/nvidium-0.4.4-beta6-26.2.jar",
     "sha1": "108723a7ebe97fcf0dbc16e154358c7f0553496e",
     "sha512": "f6a70717d3ceb9b8082a1f6e5857740755cf6e6e9b5054c98833f1659caa13e1e973422ee90bb0e9afaa07907bece978fdcd7cb725ff5ebba2b8e0fcc0dbb618",
+    "published": "2026-09-22T15:55:45.489858Z",
     "license": "LGPL-3.0-only",
     "source": "https://github.com/MCRcortex/nvidium",
     "commit": "bda9ff4",
@@ -2423,9 +2424,9 @@
   "arcadiumComponents": [
     {
       "file": "ArcadiumCore-26.2.jar",
-      "sha1": "5225bfd39acc321b1f5d1a8b74fa0840e1decac0",
-      "sha256": "3b294331a855873eb5c6c8564502dc02527dd6bbfa0c150a6615b98f952197fb",
-      "bytes": 12385980,
+      "sha1": "8f371e8815d945a8e0f62235924989eb1041908f",
+      "sha256": "3ef419d4b90e150e0588fbeb5fe2640cb028941998431dbd749ac68220952dea",
+      "bytes": 12385984,
       "modId": "oneconfig",
       "license": "GPL-3.0-only",
       "authors": [
@@ -2440,9 +2441,9 @@
     },
     {
       "file": "ArcadiumFeatures-26.2.jar",
-      "sha1": "ef77272fe2ab5abe73219ee531c61268365c7917",
-      "sha256": "4867e59bd197e12fd2b3c4bb4e3295ef7a03b2bbc5bf24001fbd0513d3dcb9b1",
-      "bytes": 25783541,
+      "sha1": "8db059462bb0962ef3c56a4555ff8778846454a5",
+      "sha256": "2256f21a286f25257ff8cb9e6d089a70ea71cf940979628a5f96089f076ecd38",
+      "bytes": 25783610,
       "modId": "arcadium_runtime",
       "license": "GPL-3.0-only",
       "authors": [

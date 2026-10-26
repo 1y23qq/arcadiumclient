@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "id": "arcadium_release_qa",
+  "version": "1.0.0",
+  "environment": "client",
+  "mixins": ["arcadium-release-qa.mixins.json"],
+  "depends": {"minecraft": "1.8.9", "java": ">=25"}
+}

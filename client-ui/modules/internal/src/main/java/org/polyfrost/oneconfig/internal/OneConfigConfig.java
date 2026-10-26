@@ -50,11 +50,11 @@ public class OneConfigConfig extends Config {
     public static int serverListStartPosition = 0;
 
     @Switch(title = "Limit FPS When Unfocused", description = "Reduce the frame rate while another window is focused.", subcategory = "Performance")
-    public static boolean limitUnfocusedFps = true;
+    public static volatile boolean limitUnfocusedFps = true;
 
     @Slider(title = "Unfocused FPS", description = "Limit FPS while another window is focused. Click the value to enter a number.",
         subcategory = "Performance", min = 5f, max = 200f, step = 1f)
-    public static int unfocusedFps = 60;
+    public static volatile int unfocusedFps = 60;
 
     @Switch(title = "Use Inter in-game", description = "Use Inter for Minecraft text.", subcategory = "Fonts")
     public static volatile boolean useInterInGame = false;

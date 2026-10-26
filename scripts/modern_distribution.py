@@ -16,7 +16,7 @@ from port_checklist import DEFAULT_CATALOG, DEFAULT_RESULTS, ROOT, catalog_hash,
 
 
 TARGET = "1.21.11"
-CLIENT = "0.5.0"
+CLIENT = "0.5.1"
 UPSTREAM = "https://github.com/Polyfrost/DataStorageV2"
 UPSTREAM_COMMIT = "a8e6ec3ce5c80ca7a69245f43912adefdd1b862f"
 LAUNCHER_COMMIT = "4859c96cc8348aaa3fd269b71b71c6b87b2135ab"
@@ -45,6 +45,39 @@ EXPECTED_OVERRIDES = {
 DISTRIBUTION_OVERRIDES = {
     "version": 1,
     "overrides": {mod: rules for source in EXPECTED_OVERRIDES.values() for mod, rules in source["overrides"].items()},
+}
+NVIDIUM = {
+    "project": "SfMw2IZN", "version": "4x9ci9sF", "modVersion": "0.4.3-beta13-1.21.11",
+    "file": "nvidium-0.4.3-beta13-1.21.11.jar", "bytes": 174412,
+    "url": "https://cdn.modrinth.com/data/SfMw2IZN/versions/4x9ci9sF/nvidium-0.4.3-beta13-1.21.11.jar",
+    "sha1": "08fa4be6b87c0b586efe7d5ee462f46e7a5d647d",
+    "sha512": "12ea425d80d33eff9713876daf03d52874a08cb3ce50848eb861cf5f6008a57fa6fee863f610a823eac055f9ba154ae4054109fd46abc47b74ea2e7a8a9ff69f",
+    "published": "2026-07-13T21:33:12.976699Z",
+    "license": "LGPL-3.0-only", "source": "https://github.com/MCRcortex/nvidium", "commit": "e600501",
+    "minecraft": TARGET, "sodiumVersions": ["0.8.11", "0.8.12"], "requiresOpenGL": True,
+    "enabledByDefault": False,
+    "compatibilityMods": [
+        {
+            "modId": "sodium", "replacesSha1": "4a8733fe544168068d12fa94b2ab03e6c0c7bf91",
+            "project": "AANobbMI", "version": "NFkjnzWE", "modVersion": "0.8.12+mc1.21.11",
+            "file": "sodium-fabric-0.8.12+mc1.21.11.jar", "bytes": 1905890,
+            "url": "https://cdn.modrinth.com/data/AANobbMI/versions/NFkjnzWE/sodium-fabric-0.8.12%2Bmc1.21.11.jar",
+            "sha1": "4d80592bef36674e7469ae2737a7704b826289ae",
+            "sha512": "17fdb8240670d069e9bb4d00cd3d17afe28ea3f7ea7daf27fd32844f302516e7a889686429db81f2c7b73ad4afce703cac8963a8c3943cfebf45d2c570bd8256",
+            "published": "2026-05-18T22:12:48.468154Z", "license": "LicenseRef-Polyform-Shield-1.0.0",
+            "source": "https://github.com/CaffeineMC/sodium",
+        },
+        {
+            "modId": "sodium-extra", "replacesSha1": "5ee4535324b48628424866eca29a4dceb364d27a",
+            "project": "PtjYWJkn", "version": "zmsIDdn6", "modVersion": "0.9.1+mc1.21.11",
+            "file": "sodium-extra-fabric-0.9.1+mc1.21.11.jar", "bytes": 442450,
+            "url": "https://cdn.modrinth.com/data/PtjYWJkn/versions/zmsIDdn6/sodium-extra-fabric-0.9.1%2Bmc1.21.11.jar",
+            "sha1": "49783b5a7f2bec3330ab4e776f91620e5646ac87",
+            "sha512": "6fb4228c2466efd5f2a4766f5c29ba31123e75842fdcfd3699f45646abe1ed17418f47d1468066f4e059e6d8f20d583b6d77696e78f3dd8a0af5e041dec84487",
+            "published": "2026-06-29T18:42:56.903414Z", "license": "LGPL-3.0-only",
+            "source": "https://github.com/FlashyReese/sodium-extra-fabric",
+        },
+    ],
 }
 
 
@@ -136,7 +169,7 @@ def get_bundle(cache: Path, name: str, download: bool, **snapshot) -> bytes:
         if not download:
             raise FileNotFoundError(f"Missing pinned bundle: {target}. Pass --download to fetch it.")
         url = f"https://data-v2.polyfrost.org/oneclient/bundles/generated/{name}"
-        request = urllib.request.Request(url, headers={"User-Agent": "Arcadium-source-build/0.5.0"})
+        request = urllib.request.Request(url, headers={"User-Agent": "Arcadium-source-build/0.5.1"})
         with urllib.request.urlopen(request, timeout=60) as response:
             raw = response.read(4 * 1024 * 1024 + 1)
         if len(raw) > 4 * 1024 * 1024:
@@ -164,6 +197,7 @@ def prepare(root: Path, catalog: dict, state: dict, result_raw: bytes, cache: Pa
         "loader": "Fabric",
         "loaderVersion": "0.19.5",
         "portScope": {"path": f"distribution/port-scope-{TARGET}.json", "sha256": hashlib.sha256(scope_raw).hexdigest()},
+        "optionalNvidium": NVIDIUM,
         "bundles": [],
     }
     previous_path = root / f"distribution/oneclient-{TARGET}.lock.json"
@@ -228,7 +262,7 @@ def fetch_dependencies(lock: dict, destination: Path, include_disabled: bool = F
         errors = []
         for url in entry["downloads"]:
             try:
-                request = urllib.request.Request(url, headers={"User-Agent": "Arcadium-source-build/0.5.0"})
+                request = urllib.request.Request(url, headers={"User-Agent": "Arcadium-source-build/0.5.1"})
                 with urllib.request.urlopen(request, timeout=60) as response:
                     raw = response.read(entry["bytes"] + 1)
                 if len(raw) != entry["bytes"] or hashlib.sha512(raw).hexdigest() != entry["sha512"]:

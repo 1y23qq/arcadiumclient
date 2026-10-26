@@ -208,7 +208,7 @@ impl BundlesManager {
         let Some(loader) = arcadium_common::distribution::default_loader(mc_version) else {
             return Ok(Vec::new());
         };
-        let loader = loader.to_string().to_ascii_lowercase();
+        let loader = loader.modrinth_name();
         for entry in manifest
             .remote_paths()
             .into_iter()

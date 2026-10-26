@@ -335,6 +335,25 @@ fn load_managed_hashes() -> ContentResult<HashSet<String>> {
             ContentResult::Ok(())
         })?;
     }
+    for bytes in [
+        distribution::MODERN_12111_LOCK,
+        distribution::MODERN_262_LOCK,
+    ] {
+        let lock: Value = serde_json::from_slice(bytes)?;
+        let optional = &lock["optionalNvidium"];
+        for entry in std::iter::once(optional).chain(
+            optional["compatibilityMods"]
+                .as_array()
+                .into_iter()
+                .flatten(),
+        ) {
+            let hash = entry["sha1"]
+                .as_str()
+                .filter(|hash| hash.len() == 40 && hash.bytes().all(|b| b.is_ascii_hexdigit()))
+                .ok_or_else(invalid_distribution)?;
+            hashes.insert(hash.to_ascii_lowercase());
+        }
+    }
     Ok(hashes)
 }
 
@@ -532,6 +551,15 @@ mod tests {
         assert!(hashes.len() > 50);
         assert!(hashes.contains(arcadium_common::distribution::BRANDING_SHA1));
         assert!(!hashes.contains("ArcadiumCore-1.8.9.jar"));
+        let lock: Value =
+            serde_json::from_slice(arcadium_common::distribution::MODERN_12111_LOCK).unwrap();
+        for entry in lock["optionalNvidium"]["compatibilityMods"]
+            .as_array()
+            .unwrap()
+        {
+            assert!(hashes.contains(entry["sha1"].as_str().unwrap()));
+            assert!(!hashes.contains(entry["file"].as_str().unwrap()));
+        }
     }
 
     #[tokio::test]

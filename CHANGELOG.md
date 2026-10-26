@@ -1,3 +1,10 @@
+## 0.5.1
+
+- Added Rod Thickness and Password Hider for 1.8.9.
+- Improved Toggle Sprint and Toggle Sneak controls.
+- Fixed background FPS limiting, server switching and fresh 1.8.9 setups.
+- Added the first-launch Nvidium recommendation for 1.21.11.
+
 ## 0.5.0
 
 - Added Minecraft 1.21.11 and 26.2 support with updated bundled mods.

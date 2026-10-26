@@ -54,9 +54,11 @@ dependencies retain their respective licenses.
 The Minecraft 26.2 bundle metadata follows
 [DataStorageV2](https://github.com/Polyfrost/DataStorageV2/tree/45403497daf6ebfcd284c05ac1252d02a427dca8)
 under the same GPL-3.0 terms. Exact versions and defaults are recorded in
-`distribution/oneclient-26.2.lock.json`. Optional Nvidium is downloaded separately
+`distribution/oneclient-26.2.lock.json`. Optional Nvidium for both modern versions is downloaded separately
 and unmodified under LGPL-3.0-only; its license and source reference remain in
 the downloaded JAR and the lock file.
+The 1.21.11 opt-in also downloads unmodified compatible Sodium and Sodium Extra
+releases under their original terms, with exact hashes and source references in its lock file.
 
 Exact external download versions, hashes, authors, source references and
 original notices are recorded in [licenses/bundled/](licenses/bundled/).

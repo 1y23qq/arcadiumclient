@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use arcadium_common::domain::{ContentType, GameLoader, ProviderId};
 use arcadium_content::packages::store::{
@@ -16,7 +16,7 @@ use crate::{LauncherError, LauncherResult};
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
-struct Release {
+struct PinnedMod {
     project: String,
     version: String,
     mod_version: String,
@@ -25,17 +25,42 @@ struct Release {
     url: String,
     sha1: String,
     sha512: String,
-    sodium_versions: Vec<String>,
+    published: String,
 }
 
-fn release() -> &'static Release {
-    static RELEASE: std::sync::OnceLock<Release> = std::sync::OnceLock::new();
-    RELEASE.get_or_init(|| {
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct CompatibilityMod {
+    mod_id: String,
+    replaces_sha1: String,
+    #[serde(flatten)]
+    artifact: PinnedMod,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct Release {
+    #[serde(flatten)]
+    artifact: PinnedMod,
+    minecraft: String,
+    sodium_versions: Vec<String>,
+    #[serde(default)]
+    compatibility_mods: Vec<CompatibilityMod>,
+}
+
+fn release(minecraft: &str) -> Option<&'static Release> {
+    static MODERN: std::sync::OnceLock<Release> = std::sync::OnceLock::new();
+    static NEXT: std::sync::OnceLock<Release> = std::sync::OnceLock::new();
+    let (cell, bytes) = match minecraft {
+        "1.21.11" => (&MODERN, arcadium_common::distribution::MODERN_12111_LOCK),
+        "26.2" => (&NEXT, arcadium_common::distribution::MODERN_262_LOCK),
+        _ => return None,
+    };
+    Some(cell.get_or_init(|| {
         let lock: serde_json::Value =
-            serde_json::from_slice(arcadium_common::distribution::MODERN_262_LOCK)
-                .expect("valid 26.2 distribution lock");
+            serde_json::from_slice(bytes).expect("valid modern distribution lock");
         serde_json::from_value(lock["optionalNvidium"].clone()).expect("pinned Nvidium release")
-    })
+    }))
 }
 
 #[derive(Serialize, Deserialize)]
@@ -48,11 +73,14 @@ struct Decision {
 }
 
 fn recommendation_needed(version: &str, decided: bool, installed: bool, adapters: &[Gpu]) -> bool {
-    version == "26.2" && !decided && !installed && adapters.iter().any(super::gpu::supports_nvidium)
+    release(version).is_some()
+        && !decided
+        && !installed
+        && adapters.iter().any(super::gpu::supports_nvidium)
 }
 
-fn compatible_sodium_version(version: &str) -> bool {
-    release()
+fn compatible_sodium_version(pinned: &Release, version: &str) -> bool {
+    pinned
         .sodium_versions
         .iter()
         .any(|pinned| version == pinned || version.starts_with(&format!("{pinned}+")))
@@ -71,16 +99,28 @@ fn active_mods(
     .join("mods"))
 }
 
-async fn ask(events: &EventBus, adapters: &[Gpu]) -> LauncherResult<bool> {
+async fn ask(
+    events: &EventBus,
+    adapters: &[Gpu],
+    pinned: &Release,
+    replace: bool,
+) -> LauncherResult<bool> {
     let names = adapters
         .iter()
         .filter(|gpu| super::gpu::supports_nvidium(gpu))
         .map(|gpu| gpu.name.as_str())
         .collect::<Vec<_>>()
         .join(", ");
+    let setup = if pinned.minecraft == "26.2" {
+        "Enabling it installs Nvidium and selects OpenGL, which Nvidium requires."
+    } else if replace {
+        "Enabling it installs Nvidium and switches the bundled Sodium and Sodium Extra to compatible versions. Their current versions are kept disabled."
+    } else {
+        "Enabling it installs Nvidium with your current OpenGL renderer."
+    };
     Ok(events.ask(
         Prompt::new("Nvidium recommended", format!(
-            "Compatible NVIDIA GPU detected: {names}.\n\nWould you like to use Nvidium for Minecraft 26.2? Enabling it installs Nvidium and selects OpenGL, which Nvidium requires."
+            "Compatible NVIDIA GPU detected: {names}.\n\nWould you like to use Nvidium for Minecraft {}? {setup}", pinned.minecraft
         ))
         .option(Choice::primary("enable", "Enable Nvidium"), true)
         .dismiss("Keep current renderer")
@@ -117,9 +157,13 @@ fn prefers_opengl(options: &str) -> bool {
     })
 }
 
-async fn installed_mods(
-    mods: &Path,
-) -> LauncherResult<Vec<arcadium_content::packages::local_manifest::JarModId>> {
+struct InstalledMod {
+    identity: arcadium_content::packages::local_manifest::JarModId,
+    path: PathBuf,
+    enabled: bool,
+}
+
+async fn installed_mods(mods: &Path) -> LauncherResult<Vec<InstalledMod>> {
     let mut found = Vec::new();
     let mut entries = match tokio::fs::read_dir(mods).await {
         Ok(entries) => entries,
@@ -133,9 +177,11 @@ async fn installed_mods(
             && let Some(identity) =
                 arcadium_content::packages::local_manifest::read_jar_mod_id(&path).await
         {
-            if identity.id == "nvidium" || (identity.id == "sodium" && name.ends_with(".jar")) {
-                found.push(identity);
-            }
+            found.push(InstalledMod {
+                identity,
+                path,
+                enabled: name.ends_with(".jar"),
+            });
         }
     }
     Ok(found)
@@ -150,21 +196,28 @@ pub async fn prepare(
 ) -> LauncherResult<Option<String>> {
     let version = cluster.mc_version.as_str();
     let cluster_id = cluster.id;
-    if version != "26.2" || !mods_in_cluster {
+    let Some(pinned) = release(version) else {
+        return Ok(None);
+    };
+    if !mods_in_cluster {
         return Ok(None);
     }
     let mods = active_mods(cluster, game_dir, mods_in_cluster)?;
-    let state_path =
-        arcadium_common::paths::data_dir()?.join("metadata/recommendations/nvidium-26.2.json");
+    let state_path = decision_path(version)?;
     if let Ok(raw) = tokio::fs::read(&state_path).await
         && let Ok(state) = serde_json::from_slice::<Decision>(&raw)
-        && state.minecraft == "26.2"
+        && state.minecraft == version
     {
         if state.choice == "enabled"
-            && arcadium_net::matches_on_disk(&mods.join(&release().file), &release().sha1).await
-            && tokio::fs::read_to_string(user_game_dir.join("options.txt"))
-                .await
-                .is_ok_and(|options| prefers_opengl(&options))
+            && arcadium_net::matches_on_disk(
+                &mods.join(&pinned.artifact.file),
+                &pinned.artifact.sha1,
+            )
+            .await
+            && (version != "26.2"
+                || tokio::fs::read_to_string(user_game_dir.join("options.txt"))
+                    .await
+                    .is_ok_and(|options| prefers_opengl(&options)))
         {
             return Ok(state.selected_gpu);
         }
@@ -180,9 +233,9 @@ pub async fn prepare(
     let ctx = services.content();
     let linked = PackageStore::list_linked_artifacts(cluster_id, &ctx).await?;
     let present = installed_mods(&mods).await?;
-    let installed = present.iter().any(|identity| identity.id == "nvidium")
+    let installed = present.iter().any(|found| found.identity.id == "nvidium")
         || linked.iter().any(|artifact| {
-            artifact.project_id.as_deref() == Some(release().project.as_str())
+            artifact.project_id.as_deref() == Some(pinned.artifact.project.as_str())
                 || artifact
                     .file_name
                     .to_ascii_lowercase()
@@ -195,19 +248,31 @@ pub async fn prepare(
     };
     let mut selected_gpu = None;
     if recommendation_needed(version, false, installed, &adapters) {
-        let compatible_sodium = present.iter().any(|identity| {
-            identity.id == "sodium"
-                && identity
-                    .version
-                    .as_ref()
-                    .is_some_and(|value| compatible_sodium_version(value))
-        });
-        if !compatible_sodium {
-            tracing::info!("Nvidium recommendation deferred; compatible Sodium is not active");
+        let Some(replacements) = compatibility_plan(services, cluster, pinned, &present).await?
+        else {
+            tracing::info!(
+                "Nvidium recommendation deferred; the current mods need manual compatibility changes"
+            );
             return Ok(None);
-        }
-        if ask(&services.events, &adapters).await? {
-            install(services, cluster, user_game_dir, game_dir, mods_in_cluster).await?;
+        };
+        if ask(
+            &services.events,
+            &adapters,
+            pinned,
+            !replacements.is_empty(),
+        )
+        .await?
+        {
+            install(
+                services,
+                cluster,
+                pinned,
+                &replacements,
+                user_game_dir,
+                game_dir,
+                mods_in_cluster,
+            )
+            .await?;
             choice = "enabled";
             selected_gpu = adapters
                 .iter()
@@ -233,26 +298,160 @@ pub async fn prepare(
     Ok(selected_gpu)
 }
 
+fn decision_path(minecraft: &str) -> LauncherResult<PathBuf> {
+    Ok(arcadium_common::paths::data_dir()?
+        .join(format!("metadata/recommendations/nvidium-{minecraft}.json")))
+}
+
+async fn compatibility_plan<'a>(
+    services: &LauncherServices,
+    cluster: &Cluster,
+    pinned: &'a Release,
+    present: &[InstalledMod],
+) -> LauncherResult<Option<Vec<&'a CompatibilityMod>>> {
+    let active: Vec<_> = present.iter().filter(|found| found.enabled).collect();
+    let sodium: Vec<_> = active
+        .iter()
+        .filter(|found| found.identity.id == "sodium")
+        .collect();
+    if sodium.len() != 1 {
+        return Ok(None);
+    }
+    let mut replacements = Vec::new();
+    for replacement in &pinned.compatibility_mods {
+        let found: Vec<_> = active
+            .iter()
+            .filter(|found| found.identity.id == replacement.mod_id)
+            .collect();
+        if found.is_empty() && replacement.mod_id != "sodium" {
+            continue;
+        }
+        if found.len() != 1 {
+            return Ok(None);
+        }
+        let found = found[0];
+        if replacement.mod_id == "sodium"
+            && found
+                .identity
+                .version
+                .as_ref()
+                .is_some_and(|value| compatible_sodium_version(pinned, value))
+        {
+            continue;
+        }
+        if arcadium_net::matches_on_disk(&found.path, &replacement.artifact.sha1).await {
+            continue;
+        }
+        let linked = arcadium_db::dao::artifact::get_cluster_artifact(
+            &services.db,
+            cluster.id,
+            &replacement.replaces_sha1,
+        )
+        .await?;
+        if !linked.is_some_and(|link| link.enabled != 0)
+            || !arcadium_net::matches_on_disk(&found.path, &replacement.replaces_sha1).await
+        {
+            return Ok(None);
+        }
+        replacements.push(replacement);
+    }
+    if !sodium[0]
+        .identity
+        .version
+        .as_ref()
+        .is_some_and(|value| compatible_sodium_version(pinned, value))
+        && !replacements.iter().any(|entry| entry.mod_id == "sodium")
+    {
+        return Ok(None);
+    }
+    if !replacements.is_empty() {
+        let lock: serde_json::Value =
+            serde_json::from_slice(arcadium_common::distribution::MODERN_12111_LOCK)?;
+        let known: std::collections::HashSet<_> = lock["bundles"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .flat_map(|bundle| bundle["mods"].as_array().unwrap())
+            .filter_map(|entry| entry["sha1"].as_str())
+            .collect();
+        for found in active {
+            let hash = arcadium_io::sha1_file(&found.path).await?;
+            if known.contains(hash.as_str())
+                || pinned
+                    .compatibility_mods
+                    .iter()
+                    .any(|entry| entry.artifact.sha1 == hash)
+            {
+                continue;
+            }
+            let entries =
+                arcadium_io::read_zip_file_entries(&found.path, |name| name == "fabric.mod.json")
+                    .await?;
+            for (_, bytes) in entries {
+                let manifest: serde_json::Value = serde_json::from_slice(&bytes)?;
+                if ["depends", "breaks", "conflicts"].iter().any(|section| {
+                    ["sodium", "sodium-extra"]
+                        .iter()
+                        .any(|id| !manifest[section][id].is_null())
+                }) {
+                    tracing::info!(file = %found.path.display(), "Nvidium recommendation deferred for custom renderer dependencies");
+                    return Ok(None);
+                }
+            }
+        }
+    }
+    Ok(Some(replacements))
+}
+
 async fn install(
     services: &LauncherServices,
     cluster: &Cluster,
+    pinned: &Release,
+    replacements: &[&CompatibilityMod],
     user_game_dir: &Path,
     game_dir: &Path,
     mods_in_cluster: bool,
 ) -> LauncherResult<()> {
-    let pinned = release();
+    let mut artifacts = Vec::new();
+    for replacement in replacements {
+        artifacts.push(download(services, &replacement.artifact, &pinned.minecraft).await?);
+    }
+    artifacts.push(download(services, &pinned.artifact, &pinned.minecraft).await?);
+    let replaced: Vec<_> = replacements
+        .iter()
+        .map(|entry| entry.replaces_sha1.as_str())
+        .collect();
+    activate_cached_mods(
+        services,
+        cluster,
+        &artifacts,
+        &replaced,
+        user_game_dir,
+        game_dir,
+        mods_in_cluster,
+    )
+    .await?;
+    services
+        .events
+        .signal(arcadium_events::Signal::ClustersChanged);
+    Ok(())
+}
+
+async fn download(
+    services: &LauncherServices,
+    pinned: &PinnedMod,
+    minecraft: &str,
+) -> LauncherResult<arcadium_db::models::ArtifactRow> {
     let ctx = services.content();
     let version = VersionDetail {
         version_id: pinned.version.clone(),
         project_id: pinned.project.clone(),
-        name: format!("Nvidium {}", pinned.mod_version),
+        name: pinned.file.clone(),
         version_number: pinned.mod_version.clone(),
         changelog: None,
-        game_versions: vec!["26.2".into()],
+        game_versions: vec![minecraft.into()],
         loaders: vec![GameLoader::Fabric],
-        published: "2026-09-22T15:55:45.489858Z"
-            .parse()
-            .expect("pinned publication date"),
+        published: pinned.published.parse().expect("pinned publication date"),
         downloads: 0,
         files: Vec::new(),
         dependencies: Vec::new(),
@@ -286,63 +485,114 @@ async fn install(
             "The Nvidium download did not match the pinned release.".into(),
         ));
     }
-    activate_cached_mod(
-        services,
-        cluster,
-        &artifact,
-        user_game_dir,
-        game_dir,
-        mods_in_cluster,
-    )
-    .await?;
-    services
-        .events
-        .signal(arcadium_events::Signal::ClustersChanged);
-    Ok(())
+    Ok(artifact)
 }
 
-async fn activate_cached_mod(
+async fn activate_cached_mods(
     services: &LauncherServices,
     cluster: &Cluster,
-    artifact: &arcadium_db::models::ArtifactRow,
+    artifacts: &[arcadium_db::models::ArtifactRow],
+    replaced: &[&str],
     user_game_dir: &Path,
     game_dir: &Path,
     mods_in_cluster: bool,
 ) -> LauncherResult<()> {
     use arcadium_db::dao::artifact as artifact_dao;
+    use arcadium_db::dao::cluster_bundle as bundle_dao;
 
     let ctx = services.content();
-    let previous =
-        artifact_dao::get_cluster_artifact(&services.db, cluster.id, &artifact.hash).await?;
-    if previous.as_ref().is_some_and(|link| link.enabled == 0) {
-        return Err(LauncherError::Minecraft(
-            "Nvidium was disabled. Keep the current renderer or enable the mod first.".into(),
-        ));
-    }
-    PackageStore::link_by_hash(&artifact.hash, cluster.id, None, &ctx).await?;
-    let result = async {
-        super::materialize_content(services, cluster, game_dir, mods_in_cluster).await?;
-        let active = artifact_dao::get_cluster_artifact(&services.db, cluster.id, &artifact.hash)
-            .await?
-            .is_some_and(|link| link.enabled != 0);
-        let path = active_mods(cluster, game_dir, mods_in_cluster)?.join(&artifact.file_name);
-        if !active || !arcadium_net::matches_on_disk(&path, &artifact.hash).await {
-            return Err(LauncherError::Minecraft("Nvidium could not be placed in the active mods folder. The renderer was kept unchanged.".into()));
+    let mut previous = Vec::new();
+    for artifact in artifacts {
+        let link =
+            artifact_dao::get_cluster_artifact(&services.db, cluster.id, &artifact.hash).await?;
+        if link.as_ref().is_some_and(|link| link.enabled == 0) {
+            return Err(LauncherError::Minecraft(
+                "A required Nvidium mod was disabled. Keep the current renderer or enable the mod first.".into(),
+            ));
         }
-        let path = user_game_dir.join("options.txt");
-        let original = match tokio::fs::read_to_string(&path).await {
-            Ok(original) => original,
-            Err(error) if error.kind() == std::io::ErrorKind::NotFound => String::new(),
-            Err(error) => return Err(error.into()),
-        };
-        arcadium_io::write_atomic(&path, opengl_options(&original)).await?;
+        previous.push(link);
+    }
+    let overrides = bundle_dao::list_overrides(&services.db, cluster.id).await?;
+    let mut previous_replaced = Vec::new();
+    for hash in replaced {
+        let link = artifact_dao::get_cluster_artifact(&services.db, cluster.id, hash)
+            .await?
+            .filter(|link| link.enabled != 0)
+            .ok_or_else(|| {
+                LauncherError::Minecraft(
+                    "The current renderer changed before Nvidium installation.".into(),
+                )
+            })?;
+        let tracked = bundle_dao::get_bundle_tracked(&services.db, cluster.id, hash).await?;
+        previous_replaced.push((link, tracked));
+    }
+    let result = async {
+        for (artifact, previous) in artifacts.iter().zip(&previous) {
+            if previous.is_none() { PackageStore::link_by_hash(&artifact.hash, cluster.id, None, &ctx).await?; }
+        }
+        for (link, _) in &previous_replaced {
+            arcadium_content::bundles::set_artifact_enabled_to(cluster.id, &link.hash, false, &ctx).await?;
+        }
+        super::materialize_content(services, cluster, game_dir, mods_in_cluster).await?;
+        let mods = active_mods(cluster, game_dir, mods_in_cluster)?;
+        for artifact in artifacts {
+            let active = artifact_dao::get_cluster_artifact(&services.db, cluster.id, &artifact.hash).await?;
+            let path = mods.join(active.as_ref().map_or(artifact.file_name.as_str(), |link| link.cluster_file_name.as_str()));
+            if !active.is_some_and(|link| link.enabled != 0) || !arcadium_net::matches_on_disk(&path, &artifact.hash).await {
+                return Err(LauncherError::Minecraft("Nvidium could not be placed in the active mods folder. The renderer was kept unchanged.".into()));
+            }
+        }
+        for (link, _) in &previous_replaced {
+            if mods.join(&link.cluster_file_name).exists() {
+                return Err(LauncherError::Minecraft("The previous Sodium version is still active. The renderer was kept unchanged.".into()));
+            }
+        }
+        if cluster.mc_version == "26.2" {
+            let path = user_game_dir.join("options.txt");
+            let original = match tokio::fs::read_to_string(&path).await {
+                Ok(original) => original,
+                Err(error) if error.kind() == std::io::ErrorKind::NotFound => String::new(),
+                Err(error) => return Err(error.into()),
+            };
+            arcadium_io::write_atomic(&path, opengl_options(&original)).await?;
+        }
         Ok(())
     }.await;
-    if result.is_err() && previous.is_none() {
-        artifact_dao::unlink_cluster_artifact(&services.db, cluster.id, &artifact.hash).await?;
-        let path = active_mods(cluster, game_dir, mods_in_cluster)?.join(&artifact.file_name);
-        if arcadium_net::matches_on_disk(&path, &artifact.hash).await {
-            arcadium_content::packages::store::remove_entry(&path).await?;
+    if result.is_err() {
+        for (artifact, previous) in artifacts.iter().zip(&previous) {
+            if previous.is_none() {
+                artifact_dao::unlink_cluster_artifact(&services.db, cluster.id, &artifact.hash)
+                    .await?;
+                let path =
+                    active_mods(cluster, game_dir, mods_in_cluster)?.join(&artifact.file_name);
+                if arcadium_net::matches_on_disk(&path, &artifact.hash).await {
+                    arcadium_content::packages::store::remove_entry(&path).await?;
+                }
+            }
+        }
+        for (link, tracked) in &previous_replaced {
+            artifact_dao::update_cluster_artifact(
+                &services.db,
+                cluster.id,
+                &link.hash,
+                &link.cluster_file_name,
+                link.enabled,
+            )
+            .await?;
+            if let Some(tracked) = tracked
+                && let (Some(bundle), Some(package)) = (&tracked.bundle_name, &tracked.package_id)
+            {
+                if let Some(previous) = overrides
+                    .iter()
+                    .find(|row| &row.bundle_name == bundle && &row.package_id == package)
+                    .and_then(|row| arcadium_db::models::OverrideType::parse(&row.override_type))
+                {
+                    bundle_dao::save_override(&services.db, cluster.id, bundle, package, previous)
+                        .await?;
+                } else {
+                    bundle_dao::remove_override(&services.db, cluster.id, bundle, package).await?;
+                }
+            }
         }
         if let Err(error) =
             super::materialize_content(services, cluster, game_dir, mods_in_cluster).await
@@ -358,6 +608,38 @@ mod tests {
     use super::*;
     use arcadium_events::{Answer, Event, Notification};
 
+    async fn fixture_mod(
+        services: &LauncherServices,
+        name: &str,
+        id: &str,
+        version: &str,
+        depends: serde_json::Value,
+    ) -> arcadium_db::models::ArtifactRow {
+        let relative = format!("artifacts/{name}");
+        let path = arcadium_common::paths::data_dir().unwrap().join(&relative);
+        let file = tokio::fs::File::create(&path).await.unwrap();
+        let mut writer = async_zip::tokio::write::ZipFileWriter::with_tokio(file);
+        writer.write_entry_whole(
+            async_zip::ZipEntryBuilder::new("fabric.mod.json".into(), async_zip::Compression::Stored),
+            &serde_json::to_vec(&serde_json::json!({"schemaVersion":1,"id":id,"version":version,"depends":depends})).unwrap(),
+        ).await.unwrap();
+        let mut output = writer.close().await.unwrap();
+        futures_lite::io::AsyncWriteExt::flush(&mut output)
+            .await
+            .unwrap();
+        let hash = arcadium_io::sha1_file(&path).await.unwrap();
+        arcadium_db::dao::artifact::insert_artifact(
+            &services.db,
+            &hash,
+            ContentType::Mod as i64,
+            &relative,
+            name,
+            Some(tokio::fs::metadata(&path).await.unwrap().len() as i64),
+        )
+        .await
+        .unwrap()
+    }
+
     fn hybrid() -> Vec<Gpu> {
         vec![
             Gpu {
@@ -372,30 +654,44 @@ mod tests {
     }
 
     #[test]
-    fn first_262_launch_checks_all_adapters_without_overriding_prior_choices() {
+    fn first_modern_launch_checks_all_adapters_without_overriding_prior_choices() {
         let adapters = hybrid();
-        assert!(recommendation_needed("26.2", false, false, &adapters));
-        assert!(!recommendation_needed("1.21.11", false, false, &adapters));
-        assert!(!recommendation_needed("26.2", true, false, &adapters));
-        assert!(!recommendation_needed("26.2", false, true, &adapters));
-        assert!(!recommendation_needed("26.2", false, false, &adapters[..1]));
+        for minecraft in ["1.21.11", "26.2"] {
+            assert!(recommendation_needed(minecraft, false, false, &adapters));
+            assert!(!recommendation_needed(minecraft, true, false, &adapters));
+            assert!(!recommendation_needed(minecraft, false, true, &adapters));
+            assert!(!recommendation_needed(
+                minecraft,
+                false,
+                false,
+                &adapters[..1]
+            ));
+        }
+        for minecraft in ["1.8.9", "1.7.10"] {
+            assert!(!recommendation_needed(minecraft, false, false, &adapters));
+        }
     }
 
     #[tokio::test]
     async fn prompt_installs_only_after_explicit_enable() {
-        for response in [Some("enable"), None] {
-            let (events, mut receiver) = EventBus::channel();
-            let task = tokio::spawn(async move { ask(&events, &hybrid()).await });
-            let Some(Event::Notification(Notification::Prompt(prompt))) = receiver.recv().await
-            else {
-                panic!("expected recommendation")
-            };
-            assert!(prompt.body.contains("NVIDIA GeForce RTX 4060 Laptop GPU"));
-            assert!(prompt.body.contains("OpenGL"));
-            assert_eq!(prompt.choices.len(), 1);
-            assert_eq!(prompt.dismiss.as_deref(), Some("Keep current renderer"));
-            prompt.reply.send(response.map(Answer::new)).unwrap();
-            assert_eq!(task.await.unwrap().unwrap(), response == Some("enable"));
+        for (minecraft, replace) in [("26.2", false), ("1.21.11", false), ("1.21.11", true)] {
+            for response in [Some("enable"), None] {
+                let (events, mut receiver) = EventBus::channel();
+                let task = tokio::spawn(async move {
+                    ask(&events, &hybrid(), release(minecraft).unwrap(), replace).await
+                });
+                let Some(Event::Notification(Notification::Prompt(prompt))) = receiver.recv().await
+                else {
+                    panic!("expected recommendation")
+                };
+                assert!(prompt.body.contains("NVIDIA GeForce RTX 4060 Laptop GPU"));
+                assert!(prompt.body.contains(minecraft));
+                assert_eq!(prompt.body.contains("Sodium Extra"), replace);
+                assert_eq!(prompt.choices.len(), 1);
+                assert_eq!(prompt.dismiss.as_deref(), Some("Keep current renderer"));
+                prompt.reply.send(response.map(Answer::new)).unwrap();
+                assert_eq!(task.await.unwrap().unwrap(), response == Some("enable"));
+            }
         }
     }
 
@@ -434,10 +730,10 @@ mod tests {
 
     #[test]
     fn nvidium_is_pinned_to_a_matching_sodium_and_never_in_default_bundles() {
-        let pinned = release();
-        assert_eq!(pinned.sha512.len(), 128);
-        assert_eq!(pinned.sha1.len(), 40);
-        assert_eq!(pinned.file, "nvidium-0.4.4-beta6-26.2.jar");
+        let pinned = release("26.2").unwrap();
+        assert_eq!(pinned.artifact.sha512.len(), 128);
+        assert_eq!(pinned.artifact.sha1.len(), 40);
+        assert_eq!(pinned.artifact.file, "nvidium-0.4.4-beta6-26.2.jar");
         assert!(pinned.sodium_versions.contains(&"0.9.2".to_owned()));
         let lock: serde_json::Value =
             serde_json::from_slice(arcadium_common::distribution::MODERN_262_LOCK).unwrap();
@@ -455,12 +751,32 @@ mod tests {
 
     #[test]
     fn sodium_build_metadata_is_allowed_without_accepting_other_releases() {
-        assert!(compatible_sodium_version("0.9.2+mc26.2"));
-        assert!(compatible_sodium_version("0.9.2"));
-        assert!(compatible_sodium_version("0.9.1+mc26.2"));
-        assert!(!compatible_sodium_version("0.9.20+mc26.2"));
-        assert!(!compatible_sodium_version("0.9.3+mc26.2"));
-        assert!(!compatible_sodium_version("0.9.2-beta.1"));
+        assert!(compatible_sodium_version(
+            release("26.2").unwrap(),
+            "0.9.2+mc26.2"
+        ));
+        assert!(compatible_sodium_version(release("26.2").unwrap(), "0.9.2"));
+        assert!(compatible_sodium_version(
+            release("26.2").unwrap(),
+            "0.9.1+mc26.2"
+        ));
+        assert!(!compatible_sodium_version(
+            release("26.2").unwrap(),
+            "0.9.20+mc26.2"
+        ));
+        assert!(!compatible_sodium_version(
+            release("26.2").unwrap(),
+            "0.9.3+mc26.2"
+        ));
+        assert!(!compatible_sodium_version(
+            release("26.2").unwrap(),
+            "0.9.2-beta.1"
+        ));
+        let pinned = release("1.21.11").unwrap();
+        assert!(compatible_sodium_version(pinned, "0.8.12+mc1.21.11"));
+        assert!(compatible_sodium_version(pinned, "0.8.11"));
+        assert!(!compatible_sodium_version(pinned, "0.8.14+mc1.21.11"));
+        assert!(!compatible_sodium_version(pinned, "0.8.120"));
     }
 
     #[tokio::test]
@@ -503,95 +819,112 @@ mod tests {
         .await
         .unwrap();
         let global = arcadium_cluster::GameSettingsProfile::default_global_profile();
-        for mods_in_cluster in [true, false] {
-            let cluster = clusters
-                .create(
-                    &global,
-                    CreateClusterOptions::new(
-                        format!("Nvidium {mods_in_cluster}"),
-                        "26.2",
-                        GameLoader::Fabric,
-                    ),
+        assert_ne!(
+            decision_path("1.21.11").unwrap(),
+            decision_path("26.2").unwrap()
+        );
+        for minecraft in ["1.21.11", "26.2"] {
+            for mods_in_cluster in [true, false] {
+                let cluster = clusters
+                    .create(
+                        &global,
+                        CreateClusterOptions::new(
+                            format!("Nvidium {minecraft} {mods_in_cluster}"),
+                            minecraft,
+                            GameLoader::Fabric,
+                        ),
+                    )
+                    .await
+                    .unwrap();
+                let game_dir = cluster.dir().unwrap().join("runtime");
+                let user_game_dir = cluster.dir().unwrap().join("userdata");
+                tokio::fs::create_dir_all(&user_game_dir).await.unwrap();
+                let options = user_game_dir.join("options.txt");
+                tokio::fs::write(
+                    &options,
+                    "preferredGraphicsBackend:\"vulkan\"\nrenderDistance:8\n",
                 )
                 .await
                 .unwrap();
-            let game_dir = cluster.dir().unwrap().join("runtime");
-            let user_game_dir = cluster.dir().unwrap().join("userdata");
-            tokio::fs::create_dir_all(&user_game_dir).await.unwrap();
-            let options = user_game_dir.join("options.txt");
-            tokio::fs::write(
-                &options,
-                "preferredGraphicsBackend:\"vulkan\"\nrenderDistance:8\n",
-            )
-            .await
-            .unwrap();
-            super::super::materialize_content(&services, &cluster, &game_dir, mods_in_cluster)
-                .await
-                .unwrap();
-            let active = active_mods(&cluster, &game_dir, mods_in_cluster)
-                .unwrap()
-                .join(&artifact.file_name);
-            assert!(!active.exists());
-
-            activate_cached_mod(
-                &services,
-                &cluster,
-                &artifact,
-                &user_game_dir,
-                &game_dir,
-                mods_in_cluster,
-            )
-            .await
-            .unwrap();
-            assert_eq!(tokio::fs::read(&active).await.unwrap(), bytes);
-            assert!(arcadium_net::matches_on_disk(&active, &hash).await);
-            assert_eq!(
-                tokio::fs::read_to_string(&options).await.unwrap(),
-                "renderDistance:8\npreferredGraphicsBackend:\"opengl\"\n"
-            );
-            assert_eq!(
-                artifact_dao::get_cluster_artifact(&services.db, cluster.id, &hash)
+                super::super::materialize_content(&services, &cluster, &game_dir, mods_in_cluster)
                     .await
+                    .unwrap();
+                let active = active_mods(&cluster, &game_dir, mods_in_cluster)
                     .unwrap()
-                    .unwrap()
-                    .enabled,
-                1
-            );
+                    .join(&artifact.file_name);
+                assert!(!active.exists());
 
-            PackageStore::set_artifact_enabled_to(cluster.id, &hash, false, &services.content())
-                .await
-                .unwrap();
-            super::super::materialize_content(&services, &cluster, &game_dir, mods_in_cluster)
-                .await
-                .unwrap();
-            tokio::fs::write(&options, "preferredGraphicsBackend:\"vulkan\"\n")
-                .await
-                .unwrap();
-            assert!(
-                activate_cached_mod(
+                activate_cached_mods(
                     &services,
                     &cluster,
-                    &artifact,
+                    std::slice::from_ref(&artifact),
+                    &[],
                     &user_game_dir,
                     &game_dir,
-                    mods_in_cluster
+                    mods_in_cluster,
                 )
                 .await
-                .is_err()
-            );
-            assert!(!active.exists());
-            assert_eq!(
-                tokio::fs::read_to_string(&options).await.unwrap(),
-                "preferredGraphicsBackend:\"vulkan\"\n"
-            );
-            assert_eq!(
-                artifact_dao::get_cluster_artifact(&services.db, cluster.id, &hash)
+                .unwrap();
+                assert_eq!(tokio::fs::read(&active).await.unwrap(), bytes);
+                assert!(arcadium_net::matches_on_disk(&active, &hash).await);
+                assert_eq!(
+                    tokio::fs::read_to_string(&options).await.unwrap(),
+                    if minecraft == "26.2" {
+                        "renderDistance:8\npreferredGraphicsBackend:\"opengl\"\n"
+                    } else {
+                        "preferredGraphicsBackend:\"vulkan\"\nrenderDistance:8\n"
+                    }
+                );
+                assert_eq!(
+                    artifact_dao::get_cluster_artifact(&services.db, cluster.id, &hash)
+                        .await
+                        .unwrap()
+                        .unwrap()
+                        .enabled,
+                    1
+                );
+
+                PackageStore::set_artifact_enabled_to(
+                    cluster.id,
+                    &hash,
+                    false,
+                    &services.content(),
+                )
+                .await
+                .unwrap();
+                super::super::materialize_content(&services, &cluster, &game_dir, mods_in_cluster)
                     .await
-                    .unwrap()
-                    .unwrap()
-                    .enabled,
-                0
-            );
+                    .unwrap();
+                tokio::fs::write(&options, "preferredGraphicsBackend:\"vulkan\"\n")
+                    .await
+                    .unwrap();
+                assert!(
+                    activate_cached_mods(
+                        &services,
+                        &cluster,
+                        std::slice::from_ref(&artifact),
+                        &[],
+                        &user_game_dir,
+                        &game_dir,
+                        mods_in_cluster
+                    )
+                    .await
+                    .is_err()
+                );
+                assert!(!active.exists());
+                assert_eq!(
+                    tokio::fs::read_to_string(&options).await.unwrap(),
+                    "preferredGraphicsBackend:\"vulkan\"\n"
+                );
+                assert_eq!(
+                    artifact_dao::get_cluster_artifact(&services.db, cluster.id, &hash)
+                        .await
+                        .unwrap()
+                        .unwrap()
+                        .enabled,
+                    0
+                );
+            }
         }
 
         let cluster = clusters
@@ -607,10 +940,11 @@ mod tests {
             .await
             .unwrap();
         assert!(
-            activate_cached_mod(
+            activate_cached_mods(
                 &services,
                 &cluster,
-                &artifact,
+                std::slice::from_ref(&artifact),
+                &[],
                 &user_game_dir,
                 &game_dir,
                 true
@@ -630,5 +964,198 @@ mod tests {
                 .join(&artifact.file_name)
                 .exists()
         );
+
+        let cluster = clusters
+            .create(
+                &global,
+                CreateClusterOptions::new("Compatible renderer", "1.21.11", GameLoader::Fabric),
+            )
+            .await
+            .unwrap();
+        let game_dir = cluster.dir().unwrap().join("runtime");
+        let user_game_dir = cluster.dir().unwrap().join("userdata");
+        tokio::fs::create_dir_all(&user_game_dir).await.unwrap();
+        let options = user_game_dir.join("options.txt");
+        let original = "version:4671\r\nrenderDistance:12\r\nlang:ja_jp\r\n";
+        tokio::fs::write(&options, original).await.unwrap();
+        let old = fixture_mod(
+            &services,
+            "sodium-original.jar",
+            "sodium-fixture",
+            "0.8.14",
+            serde_json::json!({}),
+        )
+        .await;
+        let compatible = fixture_mod(
+            &services,
+            "sodium-compatible.jar",
+            "sodium-fixture",
+            "0.8.12",
+            serde_json::json!({}),
+        )
+        .await;
+        PackageStore::link_by_hash(&old.hash, cluster.id, None, &services.content())
+            .await
+            .unwrap();
+        use arcadium_db::dao::cluster_bundle as bundle_dao;
+        use arcadium_db::models::OverrideType;
+        bundle_dao::track_bundle_artifact(
+            &services.db,
+            cluster.id,
+            &old.hash,
+            "performance",
+            "fixture",
+            "sodium",
+        )
+        .await
+        .unwrap();
+        bundle_dao::save_override(
+            &services.db,
+            cluster.id,
+            "performance",
+            "sodium",
+            OverrideType::Enabled,
+        )
+        .await
+        .unwrap();
+        super::super::materialize_content(&services, &cluster, &game_dir, true)
+            .await
+            .unwrap();
+        let mods = active_mods(&cluster, &game_dir, true).unwrap();
+        let mut pinned: Release = serde_json::from_value(
+            serde_json::from_slice::<serde_json::Value>(
+                arcadium_common::distribution::MODERN_12111_LOCK,
+            )
+            .unwrap()["optionalNvidium"]
+                .clone(),
+        )
+        .unwrap();
+        pinned.compatibility_mods.truncate(1);
+        pinned.compatibility_mods[0].replaces_sha1 = old.hash.clone();
+        pinned.compatibility_mods[0].artifact.sha1 = compatible.hash.clone();
+        let mut found = installed_mods(&mods).await.unwrap();
+        for entry in &mut found {
+            if entry.identity.id == "sodium-fixture" {
+                entry.identity.id = "sodium".into();
+            }
+        }
+        assert_eq!(
+            compatibility_plan(&services, &cluster, &pinned, &found)
+                .await
+                .unwrap()
+                .unwrap()
+                .len(),
+            1
+        );
+        assert_eq!(
+            artifact_dao::get_cluster_artifact(&services.db, cluster.id, &old.hash)
+                .await
+                .unwrap()
+                .unwrap()
+                .enabled,
+            1
+        );
+        assert!(
+            artifact_dao::get_cluster_artifact(&services.db, cluster.id, &compatible.hash)
+                .await
+                .unwrap()
+                .is_none()
+        );
+        let custom = fixture_mod(
+            &services,
+            "custom-renderer-addon.jar",
+            "custom-addon",
+            "1",
+            serde_json::json!({"sodium": ">=0.8.14"}),
+        )
+        .await;
+        let mut custom_found = found;
+        custom_found.push(InstalledMod {
+            identity: arcadium_content::packages::local_manifest::JarModId {
+                id: "custom-addon".into(),
+                version: Some("1".into()),
+            },
+            path: artifact_absolute_path(&custom.path).unwrap(),
+            enabled: true,
+        });
+        assert!(
+            compatibility_plan(&services, &cluster, &pinned, &custom_found)
+                .await
+                .unwrap()
+                .is_none()
+        );
+
+        let group = [compatible.clone(), artifact.clone()];
+        let blocker = mods.join(&artifact.file_name);
+        tokio::fs::create_dir(&blocker).await.unwrap();
+        assert!(
+            activate_cached_mods(
+                &services,
+                &cluster,
+                &group,
+                &[&old.hash],
+                &user_game_dir,
+                &game_dir,
+                true
+            )
+            .await
+            .is_err()
+        );
+        assert_eq!(
+            artifact_dao::get_cluster_artifact(&services.db, cluster.id, &old.hash)
+                .await
+                .unwrap()
+                .unwrap()
+                .enabled,
+            1
+        );
+        for added in &group {
+            assert!(
+                artifact_dao::get_cluster_artifact(&services.db, cluster.id, &added.hash)
+                    .await
+                    .unwrap()
+                    .is_none()
+            );
+        }
+        assert_eq!(
+            bundle_dao::list_overrides(&services.db, cluster.id)
+                .await
+                .unwrap()[0]
+                .override_type,
+            "enabled"
+        );
+        assert!(arcadium_net::matches_on_disk(&mods.join(&old.file_name), &old.hash).await);
+        tokio::fs::remove_dir(&blocker).await.unwrap();
+        activate_cached_mods(
+            &services,
+            &cluster,
+            &group,
+            &[&old.hash],
+            &user_game_dir,
+            &game_dir,
+            true,
+        )
+        .await
+        .unwrap();
+        assert_eq!(
+            artifact_dao::get_cluster_artifact(&services.db, cluster.id, &old.hash)
+                .await
+                .unwrap()
+                .unwrap()
+                .enabled,
+            0
+        );
+        assert!(!mods.join(&old.file_name).exists());
+        for added in &group {
+            assert!(arcadium_net::matches_on_disk(&mods.join(&added.file_name), &added.hash).await);
+        }
+        assert_eq!(
+            bundle_dao::list_overrides(&services.db, cluster.id)
+                .await
+                .unwrap()[0]
+                .override_type,
+            "disabled"
+        );
+        assert_eq!(tokio::fs::read_to_string(&options).await.unwrap(), original);
     }
 }

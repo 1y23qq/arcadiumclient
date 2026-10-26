@@ -53,6 +53,7 @@ import java.util.Base64
 import java.util.concurrent.Executors
 import kotlinx.coroutines.launch
 import net.minecraft.client.gui.screen.Screen
+import net.minecraft.client.gui.screen.menu.TitleScreen
 import net.minecraft.client.gui.screen.menu.multiplayer.ConnectScreen
 import net.minecraft.client.network.LanServerQueryManager
 import net.minecraft.client.network.MultiplayerServerListPinger
@@ -83,6 +84,7 @@ class ArcadiumServersScreen(private val parent: Screen?) : ComposeScreen(RenderM
     private var ticks = 0
     @Volatile private var closed = true
     @Volatile private var cycle = 0L
+    @Volatile private var connecting = false
     private var dialog by mutableStateOf<ServerDialog?>(null)
     private var serverName by mutableStateOf("")
     private var serverAddress by mutableStateOf("")
@@ -94,6 +96,7 @@ class ArcadiumServersScreen(private val parent: Screen?) : ComposeScreen(RenderM
         super.init()
         if (!closed) return
         closed = false
+        connecting = false
         openRevision++
         cycle++
         pinger = MultiplayerServerListPinger()
@@ -165,13 +168,19 @@ class ArcadiumServersScreen(private val parent: Screen?) : ComposeScreen(RenderM
 
     private fun close() = client.tell { client.openScreen(parent) }
 
-    private fun connect(server: ServerListEntry) = client.tell {
-        if (dialog == ServerDialog.Direct) {
-            client.options.lastServer = server.ip
-            client.options.save()
+    private fun connect(server: ServerListEntry) {
+        if (closed || connecting) return
+        connecting = true
+        client.tell {
+            if (client.screen !== this) { connecting = false; return@tell }
+            if (dialog == ServerDialog.Direct) {
+                client.options.lastServer = server.ip
+                client.options.save()
+            }
+            dialog = null
+            val back = if (client.world == null) this else ArcadiumServersScreen(TitleScreen())
+            client.openScreen(ConnectScreen(back, client, server))
         }
-        dialog = null
-        client.openScreen(ConnectScreen(this, client, server))
     }
 
     private fun edit(server: ServerListEntry? = null) {

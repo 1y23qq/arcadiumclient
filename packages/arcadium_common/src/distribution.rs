@@ -5,6 +5,7 @@ pub const BUNDLE_POLICY: &[u8] = include_bytes!("../../../distribution/bundle-po
 
 pub const MINECRAFT_VERSION: &str = "1.8.9";
 pub const MINECRAFT_VERSIONS: &[&str] = &["1.8.9", "1.7.10", "1.21.11", "26.2"];
+pub const MODERN_12111_LOCK: &[u8] = include_bytes!("../../../distribution/oneclient-1.21.11.lock.json");
 pub const MODERN_262_LOCK: &[u8] = include_bytes!("../../../distribution/oneclient-26.2.lock.json");
 pub const CLIENT_COMPONENTS: &[u8] =
     include_bytes!("../assets/distribution/client-components.json");
@@ -135,13 +136,13 @@ pub fn bundle(path: &str) -> Option<&'static [u8]> {
 }
 
 pub const BRANDING_MOD: &[u8] = include_bytes!("../assets/distribution/ArcadiumBrand-1.8.9.jar");
-pub const BRANDING_SHA1: &str = "575f97a2ef2fdf160924d7ed838ab63a36628877";
+pub const BRANDING_SHA1: &str = "9c95e61e8f4004cc9069efa0cebdc8727e429a23";
 
 pub const COMPONENTS: &[(&str, &str)] = &[
-    ("ArcadiumCore-1.8.9.jar", "521107f0719b65dce47819455fb3913bf0fb0faf"),
-    ("ArcadiumFeatures-1.8.9.jar", "709a75c08eab06ca3a727ffd5f2a9a78939a3035"),
+    ("ArcadiumCore-1.8.9.jar", "8fccc2abddde6c0365e96c328d0a44858c142243"),
+    ("ArcadiumFeatures-1.8.9.jar", "00e4327ba36d6b0c455873586d413414579f06c5"),
     ("ArcadiumRenderer-1.8.9.jar", "a93ef441f12e02add2c756c3b1dedad0454bc616"),
-    ("ArcadiumForgeCompat-1.8.9.jar", "930214faef5c91c5b8f22cb6f6573224d2eb98af"),
+    ("ArcadiumForgeCompat-1.8.9.jar", "1704f22e3594d540c1788127127dd1d6f16e8497"),
 ];
 
 #[cfg(test)]

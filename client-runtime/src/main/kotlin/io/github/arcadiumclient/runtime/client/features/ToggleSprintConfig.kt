@@ -16,7 +16,7 @@ import org.polyfrost.oneconfig.api.ui.v1.keybind.KeybindHelper
 object ToggleSprintConfig : Config("polysprint.json", "Toggle Sprint", Category.COMBAT) {
     @JvmStatic @Switch(title = "Enabled") var isEnabled = true
     @JvmStatic @Switch(title = "Enable Toggle Sprint", subcategory = "Sprint") var toggleSprint = true
-    @JvmStatic @Switch(title = "Enable Toggle Sneak", subcategory = "Sneak") var toggleSneak = false
+    @JvmStatic @Switch(title = "Toggle Sneak", description = "Press the sneak key once to keep sneaking, then press it again to release.", subcategory = "Sneak") var toggleSneak = false
     @JvmStatic @Switch(title = "Disable W-Tap Sprint") var disableWTapSprint = false
     @JvmField @Include var toggleSprintState = false
     @JvmField @Include var toggleSneakState = false

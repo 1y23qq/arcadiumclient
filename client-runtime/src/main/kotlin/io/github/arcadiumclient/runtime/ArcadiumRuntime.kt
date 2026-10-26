@@ -30,6 +30,8 @@ class ArcadiumRuntime : ClientModInitializer {
             "Cute Visuals" to { CuteVisualsConfig.initialize() },
             "Custom Crosshair" to { CustomCrosshair.initialize() },
             "AutoText" to { AutoText.initialize() },
+            "Rod Thickness" to { RodThickness.preload() },
+            "Password Hider" to { PasswordHider.preload() },
             "Toggle Sprint" to {
                 ToggleSprintConfig.initialize()
                 HudManager.register(ToggleSprintHud(), "polysprint.json", "/assets/arcadium/logo.svg")

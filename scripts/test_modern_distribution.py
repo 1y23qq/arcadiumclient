@@ -89,7 +89,7 @@ class ModernDistributionTests(unittest.TestCase):
         with zipfile.ZipFile(io.BytesIO(output)) as archive:
             index = json.loads(archive.read("modrinth.index.json"))
             self.assertEqual(index["updateUrl"], f"arcadium/bundles/{NAME}")
-            self.assertEqual(index["versionId"], "0.5.0")
+            self.assertEqual(index["versionId"], modern.CLIENT)
             self.assertNotIn("OneClient", index["name"])
 
     def test_upstream_tampering_is_rejected(self):
@@ -147,10 +147,27 @@ class ModernDistributionTests(unittest.TestCase):
         target = self.root / modern.ASSET_PATH / NAME
         self.assertTrue(target.exists())
         self.assertEqual(result["loader"], "Fabric")
+        self.assertEqual(result["optionalNvidium"], modern.NVIDIUM)
         self.assertEqual(result["bundles"][0]["upstreamSha256"], hashlib.sha256(raw).hexdigest())
         self.assertEqual(result["bundles"][0]["mods"][1]["enabled"], False)
         with zipfile.ZipFile(target) as archive:
             self.assertEqual(archive.namelist(), ["modrinth.index.json"])
+
+    def test_nvidium_uses_separate_optional_compatible_releases_without_changing_defaults(self):
+        lock = json.loads((modern.ROOT / "distribution/oneclient-1.21.11.lock.json").read_text(encoding="utf-8"))
+        self.assertEqual(lock["optionalNvidium"], modern.NVIDIUM)
+        self.assertEqual(modern.NVIDIUM["minecraft"], "1.21.11")
+        self.assertFalse(modern.NVIDIUM["enabledByDefault"])
+        defaults = [entry for bundle in lock["bundles"] for entry in bundle["mods"] if entry["enabled"]]
+        hashes = {entry["sha1"] for entry in defaults}
+        self.assertFalse(any("nvidium" in entry["path"].lower() for entry in defaults))
+        self.assertTrue(any("sodium-fabric-0.8.14+mc1.21.11" in entry["path"] for entry in defaults))
+        self.assertTrue(any("sodium-extra-fabric-0.9.4+mc1.21.11" in entry["path"] for entry in defaults))
+        self.assertEqual({entry["modId"] for entry in modern.NVIDIUM["compatibilityMods"]}, {"sodium", "sodium-extra"})
+        for entry in modern.NVIDIUM["compatibilityMods"]:
+            self.assertIn(entry["replacesSha1"], hashes)
+            self.assertNotIn(entry["sha1"], hashes)
+            self.assertEqual(len(entry["sha512"]), 128)
 
     def test_mod_download_is_verified_deduplicated_and_does_not_enable_optional_mods(self):
         raw = b"download fixture"
