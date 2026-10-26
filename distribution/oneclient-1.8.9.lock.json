@@ -9,7 +9,7 @@
     {
       "file": "hud-1.8.9-ornithe.mrpack",
       "upstreamSha1": "15c3e1778ebd72d80bdd3477d3788df12d336e6b",
-      "arcadiumSha1": "f2ef7bb93ff79453984851fdc8049dbb34a9f859",
+      "arcadiumSha1": "0734608389a0c437031a2f9391fb415bfc362c0b",
       "mods": [
         {
           "path": "mods/evergreenhud-3.9.7+1.8.9.jar",
@@ -36,14 +36,6 @@
           "enabled": true
         },
         {
-          "path": "mods/pylon-0.2.2-beta.1.jar",
-          "sha1": "5cb0d71a6838b046670cdab4f33715865eaa92d5",
-          "downloads": [
-            "https://github.com/Polyfrost/pylon/releases/download/0.2.2-beta.1/pylon-0.2.2-beta.1.jar"
-          ],
-          "enabled": true
-        },
-        {
           "path": "mods/vanillahud-3.5.9+1.8.9.jar",
           "sha1": "128d7218ac06ccc464a85168c21f745ac1217152",
           "downloads": [
@@ -56,7 +48,7 @@
     {
       "file": "performance-1.8.9-ornithe.mrpack",
       "upstreamSha1": "cb1c9798cb22ce425c1078a7aff78f0226683154",
-      "arcadiumSha1": "f39d14b149b78bf551f49b8e2e8d7ac0e3de519d",
+      "arcadiumSha1": "7f3b1c124befed4f5bf50d053c77285d1b01c6c7",
       "mods": [
         {
           "path": "mods/Sarcio-1.1.0.jar",
@@ -131,14 +123,6 @@
           "enabled": true
         },
         {
-          "path": "mods/pylon-0.2.2-beta.1.jar",
-          "sha1": "5cb0d71a6838b046670cdab4f33715865eaa92d5",
-          "downloads": [
-            "https://github.com/Polyfrost/pylon/releases/download/0.2.2-beta.1/pylon-0.2.2-beta.1.jar"
-          ],
-          "enabled": true
-        },
-        {
           "path": "mods/sciophobia-1.2.6+1.8.9-fabric.jar",
           "sha1": "b0dfe91fdba2179eb1985c4a92cd04bac16ae6b9",
           "downloads": [
@@ -151,7 +135,7 @@
     {
       "file": "qol-1.8.9-ornithe.mrpack",
       "upstreamSha1": "31e4b7a5c60b0cb89337f1014acb4858eb916c3a",
-      "arcadiumSha1": "3a0d63c6bf856c24e347d7bc89e738a506baa5f5",
+      "arcadiumSha1": "71667ff1314966b64a0f43a5742d75ffbdebbd38",
       "mods": [
         {
           "path": "mods/BetterHurtCam-1.15.1+mc1.8.9-ornithe.jar",
@@ -434,14 +418,6 @@
           "enabled": true
         },
         {
-          "path": "mods/pylon-0.2.2-beta.1.jar",
-          "sha1": "5cb0d71a6838b046670cdab4f33715865eaa92d5",
-          "downloads": [
-            "https://github.com/Polyfrost/pylon/releases/download/0.2.2-beta.1/pylon-0.2.2-beta.1.jar"
-          ],
-          "enabled": true
-        },
-        {
           "path": "mods/redaction-2.1.0+1.8.9.jar",
           "sha1": "26c1098fe10e08c1bbda3616a768dd94c2bbffc5",
           "downloads": [
@@ -510,7 +486,7 @@
     {
       "file": "utility-1.8.9-ornithe.mrpack",
       "upstreamSha1": "22c505fec9c2bc91d18ade846e60ee202ca438da",
-      "arcadiumSha1": "3dfe32af193def8e7b34936fd1e2ea2ae8af5f82",
+      "arcadiumSha1": "55c308945762d5067f28a5381df0d04c77c3fc64",
       "mods": [
         {
           "path": "mods/behindyouv3-3.5.0+1.8.9.jar",
@@ -569,14 +545,6 @@
           "enabled": true
         },
         {
-          "path": "mods/pylon-0.2.2-beta.1.jar",
-          "sha1": "5cb0d71a6838b046670cdab4f33715865eaa92d5",
-          "downloads": [
-            "https://github.com/Polyfrost/pylon/releases/download/0.2.2-beta.1/pylon-0.2.2-beta.1.jar"
-          ],
-          "enabled": true
-        },
-        {
           "path": "mods/smartsearch-1.2.0-ornithe.jar",
           "sha1": "897326ec6573fc78a0ff46f24f42a2b76f257e27",
           "downloads": [
@@ -605,9 +573,9 @@
   ],
   "arcadiumBranding": {
     "file": "ArcadiumBrand-1.8.9.jar",
-    "sha1": "4648f13e51255a13ab830cb8dfac00e23eed162d",
-    "sha256": "1d228668cd9c3c3b2fcf84fc93e09e8819135d259fddad047d4bca184025da42",
-    "bytes": 35642,
+    "sha1": "67e54cec4df44acaaac41665e3033bb5ecad22ca",
+    "sha256": "cad9450a2061e1ff83aa5a2cf04e7ab49d1c5a7d2d1c28034f90f0eea459e881",
+    "bytes": 35759,
     "modId": "arcadiumclient",
     "license": "GPL-3.0-only",
     "authors": [
@@ -640,9 +608,9 @@
     },
     {
       "file": "ArcadiumFeatures-1.8.9.jar",
-      "sha1": "da10f96b558b445474b941ab33d956197d06573b",
-      "sha256": "c0a50459902ef4a12063fb91f68f689921c13af17cc8badf7e9b37baa914ee68",
-      "bytes": 26478664,
+      "sha1": "495706f0669ccd156c53cbeef5913851f1b80b55",
+      "sha256": "73905fab67f627f743efd82f82ddbfbb642d117b179389bcbe34960cb4945ac2",
+      "bytes": 26478779,
       "modId": "arcadium_runtime",
       "license": "GPL-3.0-only",
       "authors": [
@@ -671,9 +639,9 @@
     },
     {
       "file": "ArcadiumForgeCompat-1.8.9.jar",
-      "sha1": "0d944a5f5339b736a296ae2f9235b069dc4e6276",
-      "sha256": "17c01eeebf569a9c401d4c864e33bde46b1e8a72c793278d78d7a59fa0ece26a",
-      "bytes": 3289611,
+      "sha1": "2751efde7281b85f67b19d98906d175bc50e21df",
+      "sha256": "b3246fa0def1227e0acd86f9b18c13291dd0899861c800de0234bd41a2881496",
+      "bytes": 3289727,
       "modId": "arcadium_forge_compat",
       "license": "GPL-3.0-only",
       "authors": [
@@ -682,6 +650,23 @@
       "contact": {
         "homepage": "https://arcadiumclient.com",
         "sources": "https://github.com/1y23qq/arcadiumclient",
+        "issues": "https://discord.gg/QbNfaCHjUz"
+      }
+    },
+    {
+      "file": "ArcadiumPylon-1.8.9.jar",
+      "sha1": "94a1ac70643e13cba024b13bd5236247291142a9",
+      "sha256": "4d8e0778d6b7d4f7056e071ce8667c46eb1229764c9c58bb28687aedeae91fd1",
+      "bytes": 13086160,
+      "modId": "pylon",
+      "license": "LGPL-3.0-only",
+      "authors": [
+        "notdevcody",
+        "Arcadium contributors (modifications)"
+      ],
+      "contact": {
+        "homepage": "https://arcadiumclient.com",
+        "sources": "https://github.com/1y23qq/arcadiumclient/tree/main/client-legacy-mods/pylon",
         "issues": "https://discord.gg/QbNfaCHjUz"
       }
     }

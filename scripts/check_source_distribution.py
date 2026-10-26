@@ -29,6 +29,8 @@ CREDENTIAL_FILES = {"accounts.json", "cookies.txt", "cookies.json", "credentials
 SECRET_PATTERNS = [re.compile(rb"\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b"), re.compile(rb"\bgh[pousr]_[A-Za-z0-9]{36,}\b"), re.compile(rb"\bgithub_pat_[A-Za-z0-9_]{70,}\b"), re.compile(rb"\bAKIA[0-9A-Z]{16}\b"), re.compile(rb"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----[\r\n]+[A-Za-z0-9+/]{32,}")]
 SYNTHETIC_HOMES = {"someone", "me", "o", "user", "username", "example", "test", "testuser", "fixture", "<username>"}
 RESTORED_VIDEO = {"client-runtime/src/main/kotlin/io/github/arcadiumclient/runtime/client/gui/VideoSettingsModel.kt", "client-runtime/src/main/kotlin/io/github/arcadiumclient/runtime/client/gui/ArcadiumVideoSettingsScreen.kt"}
+BUILD_LOGIC_SOURCES = {"client-legacy-mods/pylon/build-logic/src/main/kotlin/pl/tomgirl/pylon/build/" + name
+                       for name in ("PylonBuildPlugin.kt", "BakeLwjglTask.kt")}
 
 
 def check_file(name: str, raw: bytes) -> list[str]:
@@ -37,6 +39,8 @@ def check_file(name: str, raw: bytes) -> list[str]:
     if path.is_absolute() or "\\" in name or any(part in {"", ".", ".."} for part in path.parts):
         return ["Invalid publication path"]
     generated_parts = GENERATED_PARTS - ({"logs"} if name in NATIVE_LOG_SOURCES else set())
+    if name in BUILD_LOGIC_SOURCES:
+        generated_parts = generated_parts - {"build"}
     if any(part in generated_parts for part in path.parts):
         failures.append("Generated, private or excluded source directory")
     if (len(path.parts) == 1 and name not in SOURCE_ROOT_FILES) or (len(path.parts) > 1 and path.parts[0] not in SOURCE_DIRECTORIES):

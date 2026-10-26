@@ -27,11 +27,12 @@ NATIVE_SHADER_PROGRAMS = {
     "blur": ("arcadium_gui_blur",),
 }
 POLICY = json.loads((ROOT / "distribution/bundle-policy.json").read_text(encoding="utf-8"))
-EXCLUDED_HASHES = {artifact["sha1"].lower() for entry in POLICY["excluded"] for artifact in entry.get("historicalArtifacts", [])}
+EXCLUDED_HASHES = {artifact["sha1"].lower() for entry in [*POLICY["excluded"], *POLICY.get("sourceReplacements", [])]
+                   for artifact in entry.get("historicalArtifacts", [])}
 
 
 def read_properties(path: Path) -> dict[str, str]:
-    return dict(line.split("=", 1) for line in path.read_text(encoding="utf-8").splitlines()
+    return dict(tuple(part.strip() for part in line.split("=", 1)) for line in path.read_text(encoding="utf-8").splitlines()
                 if "=" in line and not line.lstrip().startswith("#"))
 
 
@@ -177,6 +178,8 @@ def component_sources(root: Path, version: str, minecraft_version: str = "1.8.9"
     }
     if minecraft_version == "1.8.9":
         result["ArcadiumForgeCompat-1.8.9.jar"] = (root / f"forge-compat/build/libs/ArcadiumForgeCompat-{version}.jar", "arcadium_forge_compat")
+        pylon = read_properties(root / "client-legacy-mods/pylon/gradle.properties")["version"].strip()
+        result["ArcadiumPylon-1.8.9.jar"] = (root / f"client-legacy-mods/pylon/build/libs/pylon-{pylon}.jar", "pylon")
     else:
         for port in legacy_ports(root):
             directory = root / "client-legacy-mods" / port["directory"] / port["outputDirectory"]
@@ -215,8 +218,10 @@ def write_legacy_notices(destination: Path, root: Path = ROOT) -> None:
         for name in ["LICENSE", "NOTICE", "COPYING", "HEADER"]:
             if (source / name).is_file():
                 shutil.copy2(source / name, destination / f"{port['directory']}-{name}.txt")
+    for name in ("LICENSE.md", "COPYING", "NOTICE.md"):
+        shutil.copy2(root / "client-legacy-mods/pylon" / name, destination / f"pylon-{name}.txt")
     (destination / "README.txt").write_text(
-        "Minecraft 1.7.10 dependency ports retain their original authors and licenses.\n"
+        "Minecraft 1.7.10 dependency ports and the Minecraft 1.8.9 Pylon adaptation retain their original authors and licenses.\n"
         "The complete modified corresponding sources and build scripts are included in the same version's source archive.\n"
         "Source: https://github.com/1y23qq/arcadiumclient\n"
         "Releases: https://github.com/1y23qq/arcadium-public/releases\n", encoding="utf-8")
@@ -284,7 +289,7 @@ def distribution_locks(root: Path = ROOT) -> dict[str, dict]:
 def shipped_components(root: Path = ROOT) -> list[dict]:
     result = []
     for minecraft, lock in distribution_locks(root).items():
-        kinds = ["Core", "Features", "Renderer", "ForgeCompat"] if minecraft == "1.8.9" else ["Core", "Features", "Renderer", "Performance", "Brand"]
+        kinds = ["Core", "Features", "Renderer", "ForgeCompat", "Pylon"] if minecraft == "1.8.9" else ["Core", "Features", "Renderer", "Performance", "Brand"]
         expected = {f"Arcadium{kind}-{minecraft}.jar" for kind in kinds}
         if minecraft in {"1.21.11", "26.2"}:
             expected = {f"Arcadium{kind}-{minecraft}.jar" for kind in ("Core", "Features", "Renderer")}

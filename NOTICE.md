@@ -62,6 +62,10 @@ releases under their original terms, with exact hashes and source references in 
 
 Exact external download versions, hashes, authors, source references and
 original notices are recorded in [licenses/bundled/](licenses/bundled/).
+Minecraft 1.8.9 uses a modified LGPL-3.0-only Pylon library. Its complete source,
+original license and modification notices are in `client-legacy-mods/pylon/`.
+The original window, input and patch implementations are retained; the change
+filters classes that cannot match a patch before scanning their methods.
 Argentum, Argentum Extras and Cera retain their reserved-rights terms and are
 downloaded unchanged from their official endpoints. Neither their source nor
 their binary JARs are included in this repository or covered by Arcadium's GPL

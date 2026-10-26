@@ -106,6 +106,12 @@ class PackagingTests(unittest.TestCase):
         self.assertTrue(package.excluded_bundle_entry({"path": "mods/renamed.jar", "hashes": {"sha1": checksum}}))
         self.assertTrue(package.excluded_bundle_entry({"path": "mods/renamed.jar", "sha1": checksum.upper()}))
 
+    def test_source_pylon_replaces_only_the_exact_historical_bundle_download(self):
+        checksum = "5cb0d71a6838b046670cdab4f33715865eaa92d5"
+        self.assertTrue(package.excluded_bundle_entry({"path": "mods/renamed-pylon.jar", "hashes": {"sha1": checksum}}))
+        self.assertFalse(package.excluded_bundle_entry({"path": "mods/pylon-0.2.2-beta.1.jar", "sha1": "0" * 40}))
+        self.assertFalse(package.excluded_bundle_entry({"path": "mods/ArcadiumPylon-1.8.9.jar", "sha1": "1" * 40}))
+
     def test_eos_mcp_and_polyplus_bytecode_are_rejected(self):
         for name in ["net/minecraft/client/Minecraft.class", "org/polyfrost/polyplus/Main.class", "native/EOSSDK-Win64.dll", "eos_sdk.zip", "forge-runtime.jar", "forge.srg.gz", "binpatches.pack.lzma"]:
             with self.subTest(name=name), self.assertRaises(RuntimeError):
@@ -180,6 +186,8 @@ class PackagingTests(unittest.TestCase):
         self.assertEqual(set(legacy), {"ArcadiumCore-1.7.10.jar", "ArcadiumFeatures-1.7.10.jar",
                                       "ArcadiumRenderer-1.7.10.jar"})
         self.assertIn("ArcadiumForgeCompat-1.8.9.jar", modern)
+        self.assertIn("ArcadiumPylon-1.8.9.jar", modern)
+        self.assertNotIn("ArcadiumPylon-1.7.10.jar", legacy)
         self.assertEqual(legacy["ArcadiumRenderer-1.7.10.jar"][0], modern["ArcadiumRenderer-1.8.9.jar"][0])
         self.assertIn("build/1.7.10/libs/", legacy["ArcadiumFeatures-1.7.10.jar"][0].as_posix())
         self.assertNotEqual(legacy["ArcadiumCore-1.7.10.jar"][0], modern["ArcadiumCore-1.8.9.jar"][0])

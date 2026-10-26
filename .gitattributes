@@ -5,6 +5,8 @@ Cargo.lock -diff linguist-generated
 licenses/** -text
 licenses/forge1710/*.txt -whitespace
 client-forge1710/src/main/resources/arcadium-defaults/*.cfg whitespace=-blank-at-eof
+client-legacy-mods/pylon/LICENSE.md -whitespace
+client-legacy-mods/pylon/src/main/java/org/lwjgl/util/glu/GLU.java -whitespace
 **/LICENSE* -text
 **/NOTICE* -text
 **/COPYING* -text

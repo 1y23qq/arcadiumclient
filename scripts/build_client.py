@@ -57,6 +57,7 @@ def build_commands() -> list[list[str]]:
         gradle("forge-compat", "build"),
         gradle("game-branding", "build"),
         gradle("game-branding", "-PminecraftVersion=1.7.10", "build"),
+        gradle("client-legacy-mods/pylon", "build"),
         *(gradle("client-legacy-mods/" + port["directory"], port["task"]) for port in legacy_ports(ROOT)),
         [sys.executable, str(ROOT / "scripts/package_client.py")],
     ]

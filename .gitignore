@@ -23,6 +23,7 @@ ArcadiumLauncher.iml
 *.pdb
 **/.gradle/
 **/build/
+!/client-legacy-mods/pylon/build-logic/src/main/kotlin/pl/tomgirl/pylon/build/
 **/run/
 
 .env

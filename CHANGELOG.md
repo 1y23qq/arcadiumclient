@@ -1,3 +1,7 @@
+## 0.5.6
+
+- Faster Minecraft 1.8.9 startup.
+
 ## 0.5.5
 
 - Improved Minecraft 1.7.10 performance with Hodgepodge, CoreTweaks and ArchaicFix.

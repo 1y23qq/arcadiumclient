@@ -22,6 +22,8 @@ const OWNED_BUNDLES: &[&str] = &[
 #[derive(Deserialize)]
 struct Policy {
     excluded: Vec<Excluded>,
+    #[serde(default, rename = "sourceReplacements")]
+    replacements: Vec<Excluded>,
 }
 
 #[derive(Deserialize)]
@@ -41,6 +43,7 @@ fn historical_mod_hashes() -> ContentResult<HashSet<String>> {
     Ok(policy
         .excluded
         .into_iter()
+        .chain(policy.replacements)
         .flat_map(|entry| entry.artifacts)
         .filter(|artifact| {
             artifact.file.starts_with("mods/")
@@ -362,6 +365,7 @@ mod tests {
     fn historical_policy_targets_mods_without_touching_resource_packs() {
         let actual = historical_mod_hashes().unwrap();
         assert!(actual.contains("e234afa5498ac6a5b5a986f2d547ad3761b31b8d"));
+        assert!(actual.contains("5cb0d71a6838b046670cdab4f33715865eaa92d5"));
         for exempt in [
             "6324b84ba636bb3dee2cc6898fbae40051ea9dc6",
             "b4d397612db05f78c9625a05f5876b6ff29c5dcb",

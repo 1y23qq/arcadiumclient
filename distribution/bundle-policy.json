@@ -57,6 +57,20 @@
       ]
     }
   ],
+  "sourceReplacements": [
+    {
+      "id": "pylon",
+      "license": "LGPL-3.0-only",
+      "replacement": "client-legacy-mods/pylon: original Pylon with a conservative transformer filter",
+      "historicalArtifacts": [
+        {
+          "file": "mods/pylon-0.2.2-beta.1.jar",
+          "sha1": "5cb0d71a6838b046670cdab4f33715865eaa92d5",
+          "sha256": "74201f39ef378b4eee49676221dff0ec28de57b30e6a4c3008eeb4fecdc59f65"
+        }
+      ]
+    }
+  ],
   "externalDependenciesOutsideProjectLicense": [
     {
       "id": "argentum",

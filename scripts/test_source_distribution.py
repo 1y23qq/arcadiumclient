@@ -61,6 +61,11 @@ class SourcePublicationTests(unittest.TestCase):
             with self.subTest(name=name):
                 self.assertEqual(gate.check_file(name, b"pub fn read_log() {}"), [])
 
+    def test_pylon_build_package_sources_do_not_allow_build_outputs(self):
+        for name in gate.BUILD_LOGIC_SOURCES:
+            self.assertEqual(gate.check_file(name, b"package pl.tomgirl.pylon.build"), [])
+        self.assertTrue(gate.check_file("client-legacy-mods/pylon/build/output.txt", b"build output"))
+
     def test_runtime_logs_cannot_use_the_native_source_exception(self):
         for name in ["client-runtime/logs/latest.log", "packages/arcadium_cluster/src/logs/session.txt",
                      "packages/arcadium_cluster/build/logs/mod.rs"]:

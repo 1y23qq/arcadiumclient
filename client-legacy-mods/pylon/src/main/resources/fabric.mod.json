@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "id": "pylon",
+  "version": "${version}",
+  "name": "Pylon",
+  "icon": "assets/pylon/icon.png",
+  "authors": [ "notdevcody", "Arcadium contributors (modifications)" ],
+  "contact": {
+    "homepage": "https://arcadiumclient.com",
+    "sources": "https://github.com/1y23qq/arcadiumclient/tree/main/client-legacy-mods/pylon",
+    "issues": "https://discord.gg/QbNfaCHjUz"
+  },
+  "license": "LGPL-3.0-only",
+  "environment": "client",
+  "entrypoints": {
+    "preLaunch": [
+      "pl.tomgirl.pylon.fabric.PreLaunch"
+    ]
+  },
+  "mixins": [
+    "pylon.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.17.3",
+    "minecraft": "<1.13.0-alpha.17.43.a",
+    "java": ">=8"
+  }
+}
