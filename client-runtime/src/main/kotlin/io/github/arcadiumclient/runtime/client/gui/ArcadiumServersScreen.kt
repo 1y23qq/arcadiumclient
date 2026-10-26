@@ -85,6 +85,7 @@ class ArcadiumServersScreen(private val parent: Screen?) : ComposeScreen(RenderM
     @Volatile private var closed = true
     @Volatile private var cycle = 0L
     @Volatile private var connecting = false
+    private var pendingConnection: ServerListEntry? = null
     private var dialog by mutableStateOf<ServerDialog?>(null)
     private var serverName by mutableStateOf("")
     private var serverAddress by mutableStateOf("")
@@ -97,6 +98,7 @@ class ArcadiumServersScreen(private val parent: Screen?) : ComposeScreen(RenderM
         if (!closed) return
         closed = false
         connecting = false
+        pendingConnection = null
         openRevision++
         cycle++
         pinger = MultiplayerServerListPinger()
@@ -116,6 +118,11 @@ class ArcadiumServersScreen(private val parent: Screen?) : ComposeScreen(RenderM
     override fun tick() {
         super.tick()
         if (closed) return
+        pendingConnection?.let { server ->
+            pendingConnection = null
+            if (client.screen === this) startConnection(server) else connecting = false
+            return
+        }
         pinger.tick()
         if (++ticks % 4 == 0) pingsRevision++
         if (lan.needsUpdate()) {
@@ -126,11 +133,15 @@ class ArcadiumServersScreen(private val parent: Screen?) : ComposeScreen(RenderM
 
     override fun removed() {
         closed = true
+        pendingConnection = null
         cycle++
         detector?.interrupt()
         detector = null
         pool.shutdownNow()
-        pinger.cancel()
+        val retiringPinger = pinger
+        Thread({
+            runCatching { retiringPinger.cancel() }.onFailure { LOGGER.warn("Could not finish server ping cleanup", it) }
+        }, "Arcadium Server Ping Cleanup").apply { isDaemon = true }.start()
         dragging = null
         super.removed()
     }
@@ -171,16 +182,17 @@ class ArcadiumServersScreen(private val parent: Screen?) : ComposeScreen(RenderM
     private fun connect(server: ServerListEntry) {
         if (closed || connecting) return
         connecting = true
-        client.tell {
-            if (client.screen !== this) { connecting = false; return@tell }
-            if (dialog == ServerDialog.Direct) {
-                client.options.lastServer = server.ip
-                client.options.save()
-            }
-            dialog = null
-            val back = if (client.world == null) this else ArcadiumServersScreen(TitleScreen())
-            client.openScreen(ConnectScreen(back, client, server))
+        pendingConnection = server
+    }
+
+    private fun startConnection(server: ServerListEntry) {
+        if (dialog == ServerDialog.Direct) {
+            client.options.lastServer = server.ip
+            client.options.save()
         }
+        dialog = null
+        val back = if (client.world == null) this else ArcadiumServersScreen(TitleScreen())
+        client.openScreen(ConnectScreen(back, client, server))
     }
 
     private fun edit(server: ServerListEntry? = null) {

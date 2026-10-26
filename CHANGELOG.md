@@ -1,3 +1,8 @@
+## 0.5.2
+
+- Fixed freezing when joining servers by double-clicking a server entry on 1.8.9.
+- Added Reload Resources to the bottom-left of the 1.8.9 pause menu.
+
 ## 0.5.1
 
 - Added Rod Thickness and Password Hider for 1.8.9.

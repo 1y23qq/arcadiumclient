@@ -19,6 +19,7 @@
     "client.ServerSwitchConnectionMixin",
     "client.DisconnectedPacketMixin",
     "client.StaleDisconnectMixin",
+    "client.PauseResourcesReloadMixin",
     "client.MixinArcadiumPauseTitle",
     "client.MixinArcadiumPlayScreens",
     "client.MixinArcadiumPrefixTextRenderer",

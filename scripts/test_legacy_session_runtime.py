@@ -169,7 +169,7 @@ class LocalServer:
         self.thread.join(timeout=2)
 
 
-def run(profile: Path, command_file: Path, qa_jar: Path):
+def run(profile: Path, command_file: Path, qa_jar: Path, scenario: str = "controls"):
     profile = profile.resolve()
     if not (profile / ".arcadium-verification-profile").is_file():
         raise ValueError("Use an isolated offline verification profile")
@@ -181,14 +181,17 @@ def run(profile: Path, command_file: Path, qa_jar: Path):
     mods = Path(next(value.split("=", 1)[1] for value in command if value.startswith("-Dfabric.modsFolder="))).resolve()
     if not game.is_relative_to(profile) or not mods.is_relative_to(profile):
         raise ValueError("The synthetic command targets another profile")
-    output = profile / ("release051-" + str(time.time_ns()))
+    version = "052" if scenario == "session-ui" else "051"
+    output = profile / ("release" + version + "-" + str(time.time_ns()))
     output.mkdir()
     target = mods / "ArcadiumReleaseQa.jar"
     if target.exists():
         raise ValueError("Remove the previous owned QA mod before another run")
     shutil.copyfile(qa_jar, target)
     servers = [LocalServer("A"), LocalServer("B")]
-    command[1:1] = [f"-Darcadium.release051.server{index}=127.0.0.1:{server.port}" for index, server in enumerate(servers)] + [f"-Darcadium.release051.output={output / 'result.json'}"]
+    command[1:1] = [f"-Darcadium.release051.server{index}=127.0.0.1:{server.port}" for index, server in enumerate(servers)] + [f"-Darcadium.release{version}.output={output / 'result.json'}"]
+    server_list = game / "servers.dat"
+    original_servers = server_list.read_bytes() if server_list.exists() else None
     process = None
     try:
         with (output / "console.log").open("wb") as log:
@@ -196,7 +199,17 @@ def run(profile: Path, command_file: Path, qa_jar: Path):
                                        creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0)
             (output / "process.json").write_text(json.dumps({"pid": process.pid}), encoding="utf-8")
             try:
-                process.wait(timeout=180)
+                deadline = time.monotonic() + 180
+                while process.poll() is None:
+                    progress = output / "progress.json"
+                    stalled = scenario == "session-ui" and progress.exists() and time.time() - progress.stat().st_mtime > 30
+                    if time.monotonic() >= deadline or stalled:
+                        inspector = Path(command[0]).with_name("jcmd.exe")
+                        if inspector.exists():
+                            with (output / "threads.txt").open("wb") as threads:
+                                subprocess.run([str(inspector), str(process.pid), "Thread.print"], stdout=threads, stderr=subprocess.STDOUT, timeout=10)
+                        raise subprocess.TimeoutExpired(command, 180)
+                    time.sleep(0.25)
             except subprocess.TimeoutExpired:
                 process.terminate()
                 process.wait(timeout=15)
@@ -211,7 +224,8 @@ def run(profile: Path, command_file: Path, qa_jar: Path):
         expected = ["/login Release051Dummy"]
         report["passwordSentUnchanged"] = bool(servers[0].sessions) and servers[0].sessions[0]["commands"] == expected
         report["oldSessionsClosed"] = len(servers[0].sessions) >= 2 and len(servers[1].sessions) >= 1 and all(session["closed"] for server in servers for session in server.sessions)
-        report["passed"] = report["passed"] and process.returncode == 0 and report["passwordSentUnchanged"] and report["oldSessionsClosed"] and not any(server.errors for server in servers)
+        controls = scenario != "controls" or report["passwordSentUnchanged"]
+        report["passed"] = report["passed"] and process.returncode == 0 and controls and report["oldSessionsClosed"] and not any(server.errors for server in servers)
         (output / "run.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
         print(json.dumps({"passed": report["passed"], "evidence": str(output), "error": report.get("error")}), flush=True)
         return report["passed"]
@@ -222,6 +236,9 @@ def run(profile: Path, command_file: Path, qa_jar: Path):
             process.terminate()
             process.wait(timeout=15)
         target.unlink(missing_ok=True)
+        if scenario == "session-ui":
+            if original_servers is None: server_list.unlink(missing_ok=True)
+            else: server_list.write_bytes(original_servers)
 
 
 if __name__ == "__main__":
@@ -229,5 +246,6 @@ if __name__ == "__main__":
     parser.add_argument("--profile", type=Path, required=True)
     parser.add_argument("--command", type=Path, required=True)
     parser.add_argument("--qa-jar", type=Path, required=True)
+    parser.add_argument("--scenario", choices=["controls", "session-ui"], default="controls")
     args = parser.parse_args()
-    raise SystemExit(0 if run(args.profile, args.command, args.qa_jar) else 1)
+    raise SystemExit(0 if run(args.profile, args.command, args.qa_jar, args.scenario) else 1)
