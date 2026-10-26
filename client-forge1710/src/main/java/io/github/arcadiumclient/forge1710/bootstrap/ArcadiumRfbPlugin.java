@@ -22,7 +22,36 @@ import org.objectweb.asm.tree.VarInsnNode;
 public final class ArcadiumRfbPlugin implements RfbPlugin {
     @Override public RfbClassTransformer[] makeEarlyTransformers() {
         OptimizationDefaults.install();
-        return new RfbClassTransformer[]{new MixinAsmSymbols(), new SyntheticArgsTypes(), new ArchaicMixinSelection(), new HostedMixinContainer()};
+        return new RfbClassTransformer[]{new MixinAsmSymbols(), new SyntheticArgsTypes(), new ArchaicMixinSelection(), new HostedMixinContainer(), new LiteCacheSave()};
+    }
+
+    private static final class LiteCacheSave implements RfbClassTransformer {
+        @Override public String id() { return "lite-cache-save-snapshot"; }
+        @Override public boolean shouldTransformClass(ExtensibleClassLoader loader, Context context, Manifest manifest, String name, ClassNodeHandle handle) {
+            return name.replace('/', '.').equals("makamys.coretweaks.optimization.transformercache.lite.TransformerCache");
+        }
+        @Override public void transformClass(ExtensibleClassLoader loader, Context context, Manifest manifest, String name, ClassNodeHandle handle) {
+            try (var pin = ArcadiumRfbPlugin.class.getResourceAsStream("/arcadium-coretweaks-cache.sha256")) {
+                if (pin == null) throw new IllegalStateException("Missing CoreTweaks cache integration pin");
+                String expected = new String(pin.readAllBytes(), StandardCharsets.US_ASCII).trim();
+                String actual = java.util.HexFormat.of().formatHex(java.security.MessageDigest.getInstance("SHA-256").digest(handle.getOriginalBytes()));
+                if (!expected.equals(actual)) throw new IllegalStateException("The pinned CoreTweaks LITE cache implementation has changed");
+            } catch (java.io.IOException | java.security.NoSuchAlgorithmException error) { throw new IllegalStateException(error); }
+            ClassNode node = handle.getNode();
+            int snapshots = 0;
+            for (var method : node.methods) {
+                if (!method.name.equals("saveTransformerCache") || !method.desc.equals("()V")) continue;
+                for (var instruction : method.instructions.toArray()) {
+                    if (!(instruction instanceof org.objectweb.asm.tree.FieldInsnNode field) || field.getOpcode() != Opcodes.GETFIELD
+                            || !field.owner.equals(node.name) || !field.name.equals("transformerMap") || !field.desc.equals("Ljava/util/Map;")) continue;
+                    method.instructions.insert(instruction, new MethodInsnNode(Opcodes.INVOKESTATIC,
+                        "io/github/arcadiumclient/forge1710/bootstrap/CoreCacheSnapshot", "snapshot", "(Ljava/util/Map;)Ljava/util/Map;", false));
+                    snapshots++;
+                }
+            }
+            if (snapshots != 1) throw new IllegalStateException("The pinned CoreTweaks LITE save boundary has changed");
+            handle.markDirty();
+        }
     }
 
     private static final class HostedMixinContainer implements RfbClassTransformer {

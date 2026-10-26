@@ -28,6 +28,7 @@ dependencies {
     compileOnly(fileTree("../build/forge1710/cache/libraries/org/lwjgl") { include("**/*.jar"); exclude("**/*natives*.jar") })
     compileOnly("com.google.guava:guava:17.0")
     testImplementation("org.junit.jupiter:junit-jupiter:5.12.2")
+    testImplementation(files("../build/forge1710/cache/mods/coretweaks-0.3.4.7-GTNH.jar"))
     testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.12.2")
 }
 

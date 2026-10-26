@@ -304,6 +304,11 @@ def build_bootstrap(version: str) -> Path:
         jar.writestr("arcadium-mixin-runtime.sha256", engine["sha256"] + "\n")
         container = next(mod for mod in dependencies["mods"] if mod["file"].startswith("+unimixins-all-"))
         jar.writestr("arcadium-unimixins-runtime.sha256", container["sha256"] + "\n")
+        core = next(mod for mod in dependencies["mods"] if mod["file"].startswith("coretweaks-"))
+        verified_core = verified_download(core, BUILD / "cache/mods" / core["file"])
+        with zipfile.ZipFile(verified_core) as upstream:
+            target_class = upstream.read("makamys/coretweaks/optimization/transformercache/lite/TransformerCache.class")
+        jar.writestr("arcadium-coretweaks-cache.sha256", hashlib.sha256(target_class).hexdigest() + "\n")
         jar.writestr("META-INF/rfb-plugin/arcadium-forge.properties", "name=Arcadium Forge Bootstrap\nversion=" + version + "\nclassName=io.github.arcadiumclient.forge1710.bootstrap.ArcadiumRfbPlugin\nloadBefore=gtnhlib;lwjgl3ify;angelica;hodgepodge\ntransformerExclusions=io.github.arcadiumclient.forge1710.bootstrap.\n")
         jar.writestr("LICENSE", (ROOT / "LICENSE").read_bytes())
     return bootstrap

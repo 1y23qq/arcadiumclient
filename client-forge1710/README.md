@@ -8,6 +8,8 @@ UniMixins 0.3.2 uses its official composite JAR so Forge can resolve the aggrega
 
 The Arcadium RFB integration filters ArchaicFix's unconditional collision-margin, third-person camera and window-focus mixins. Its lighting and memory fixes remain available. Official dependency JARs are not modified.
 
+CoreTweaks LITE saves use detached snapshots of the outer cache and each transformer's entry map. This prevents background class loading from changing map membership while Kryo writes the cache. The upstream cache format, metadata and cached bytecode remain unchanged; the integration checks the pinned cache implementation and data layout before applying the snapshot.
+
 Arcadium's shared UI and module sources are compiled with the existing mapping toolchain and reobfuscated to Forge SRG names. The private `platform` API connects their loader metadata and lifecycle calls to Forge. It does not load user Fabric mods or run a Fabric loader. The RFB plugin handles legacy ASM references before the current Mixin engine loads them.
 
 Run `python scripts/build_client.py --java-home "$JAVA_HOME"` from the repository root. `scripts/package_client.py` builds and stages the two Forge components and generates the dependency bundle. Dependencies and mappings are verified against `distribution/forge-1.7.10.dependencies.json`; generated game APIs remain inside the ignored build cache.
