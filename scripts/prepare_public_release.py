@@ -186,19 +186,23 @@ def verify_current_components(platforms):
             raise RuntimeError(f"Package client components do not match this release: {platform}")
 
 
-def update_site(version, stable, platforms):
+def update_site(version, stable, platforms, preserve_missing=False):
     website = ROOT / "sites/arcadium-official/public"
     metadata = {"version": version, "prerelease": not stable, "platforms": {}}
-    redirects = []
+    if preserve_missing:
+        previous = json.loads((website / "release.json").read_text(encoding="utf-8"))
+        for platform, download in previous.get("platforms", {}).items():
+            metadata["platforms"][platform] = {"version": previous["version"], "prerelease": previous["prerelease"], **download}
     for platform, package in platforms.items():
         download = package["download"]
         values = {key: download[key] for key in ["file", "bytes", "sha256"]}
+        values.update(version=version, prerelease=not stable)
         if "minimumSystemVersion" in package:
             values["minimumSystemVersion"] = package["minimumSystemVersion"]
         values["url"] = f"{PUBLIC_REPOSITORY}/releases/download/v{version}/{download['file']}"
         metadata["platforms"][platform] = values
-        route = "windows" if platform == "windows-x64" else platform
-        redirects.append(f"/download/{route} {values['url']} 302")
+    redirects = [f"/download/{'windows' if platform == 'windows-x64' else platform} {download['url']} 302"
+                 for platform, download in metadata["platforms"].items()]
     metadata.update({key: metadata["platforms"]["windows-x64"][key] for key in ["bytes", "sha256", "url"]})
     (website / "release.json").write_text(json.dumps(metadata, indent=2) + "\n", encoding="utf-8")
     (website / "_redirects").write_text("\n".join(redirects) + "\n", encoding="utf-8")
@@ -209,14 +213,17 @@ def update_site(version, stable, platforms):
         for key, value in common.items():
             pattern = rf"(\bdata-release-{key}(?:\s[^>]*)?>)[^<]*(</[a-zA-Z][^>]*>)"
             content = re.sub(pattern, lambda match: match[1] + escape(value) + match[2], content)
-        for platform, package in platforms.items():
-            download = package["download"]
+        for platform, download in metadata["platforms"].items():
             values = {"file": download["file"], "size": f"{download['bytes'] / 1000000:.1f} MB",
-                      "sha256": download["sha256"]}
+                      "sha256": download["sha256"], "version": download["version"],
+                      "label": download["version"] + (" Beta" if download["prerelease"] else ""),
+                      "channel": "Beta" if download["prerelease"] else "Stable"}
             for key, value in values.items():
                 pattern = rf'(\bdata-release-{key}="{platform}"(?:\s[^>]*)?>)[^<]*(</[a-zA-Z][^>]*>)'
                 content = re.sub(pattern, lambda match: match[1] + escape(value) + match[2], content)
-        content = re.sub(r'href="https://github.com/1y23qq/arcadium-public/releases/tag/v[0-9.]+"',
+            content = re.sub(rf'href="https://github.com/1y23qq/arcadium-public/releases/tag/v[0-9.]+" data-release-notes="{platform}"',
+                             f'href="{PUBLIC_REPOSITORY}/releases/tag/v{download["version"]}" data-release-notes="{platform}"', content)
+        content = re.sub(r'href="https://github.com/1y23qq/arcadium-public/releases/tag/v[0-9.]+"(?= data-release-notes(?:\s|>))',
                          f'href="{PUBLIC_REPOSITORY}/releases/tag/v{version}"', content)
         page.write_text(content, encoding="utf-8")
 
@@ -230,11 +237,11 @@ def write_update_manifest(version, platform, package, directory):
     return target
 
 
-def prepare(stable, advance_site=False):
+def prepare(stable, advance_site=False, windows_only=False):
     version = tomllib.loads((ROOT / "Cargo.toml").read_text(encoding="utf-8"))["workspace"]["package"]["version"]
     installers = ROOT / "build/installers"
     platforms = {"windows-x64": verify_windows(version, installers)}
-    for platform in PLATFORMS[1:]:
+    for platform in ([] if windows_only else PLATFORMS[1:]):
         platforms[platform] = verify_macos(version, installers, platform)
     verify_current_components(platforms)
     checkout = ROOT / "build/arcadium-public-checkout"
@@ -274,7 +281,7 @@ def prepare(stable, advance_site=False):
     inventory_path = notes_dir / f"v{version}-assets.json"
     inventory_path.write_text(json.dumps(inventory, indent=2) + "\n", encoding="utf-8")
     if advance_site:
-        update_site(version, stable, platforms)
+        update_site(version, stable, platforms, preserve_missing=windows_only)
     print(json.dumps({**inventory, "inventory": str(inventory_path)}, indent=2))
 
 
@@ -282,5 +289,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Verify Windows and both macOS packages and prepare public release assets.")
     parser.add_argument("--stable", action="store_true", help="Mark site metadata as stable instead of beta.")
     parser.add_argument("--update-site", action="store_true", help="Advance site download metadata after an approved public release.")
+    parser.add_argument("--windows-only", action="store_true", help="Prepare Windows assets and preserve published Mac download metadata.")
     args = parser.parse_args()
-    prepare(args.stable, args.update_site)
+    prepare(args.stable, args.update_site, args.windows_only)

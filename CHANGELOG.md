@@ -1,3 +1,7 @@
+## 0.5.7
+
+- Make waypoint shortcuts editable from the client Keybinds menu.
+
 ## 0.5.6
 
 - Faster Minecraft 1.8.9 startup.

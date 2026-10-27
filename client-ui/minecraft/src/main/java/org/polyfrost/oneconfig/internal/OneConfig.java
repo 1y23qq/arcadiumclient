@@ -428,6 +428,7 @@ public class OneConfig
         ExternalSounds.INSTANCE.ensureDownloaded();
 
         KeybindProviderRegistry.INSTANCE.register(MinecraftKeybindProvider.INSTANCE);
+        MinecraftKeybindProvider.INSTANCE.watchMappings();
         registerKeybinds();
         new OneConfigConfig();
         new ThemeConfig();

@@ -12,6 +12,8 @@ import net.minecraft.network.chat.Component
 import org.polyfrost.oneconfig.api.config.v1.Properties
 import org.polyfrost.oneconfig.api.config.v1.Property
 import org.polyfrost.oneconfig.api.config.v1.Visualizer
+import org.polyfrost.oneconfig.api.event.v1.EventManager
+import org.polyfrost.oneconfig.api.event.v1.events.TickEvent
 import org.polyfrost.oneconfig.api.platform.v1.ModInfo
 import org.polyfrost.oneconfig.api.ui.v1.keybind.KeyModifiers
 import org.polyfrost.oneconfig.api.ui.v1.keybind.OneConfigKeybind
@@ -25,6 +27,19 @@ import net.minecraft.server.packs.FixedPathPackResources
 object MinecraftKeybindProvider : KeybindGroupProvider {
     private val properties = IdentityHashMap<KeyMapping, Property<OneConfigKeybind>>()
     private val modIconCache = mutableMapOf<String, String?>()
+    private var observedMappings: Array<KeyMapping>? = null
+    private var watching = false
+
+    fun watchMappings() {
+        if (watching) return
+        watching = true
+        EventManager.register(TickEvent.End::class.java, Runnable {
+            val current = Minecraft.getInstance()?.options?.keyMappings ?: return@Runnable
+            if (current === observedMappings) return@Runnable
+            observedMappings = current
+            KeybindProviderRegistry.invalidate()
+        })
+    }
 
     private data class MinecraftKeybindGroup(
         val category: String,
@@ -88,7 +103,7 @@ object MinecraftKeybindProvider : KeybindGroupProvider {
             Supplier { mapping.toOneConfigKeybind() },
             Consumer { keybind -> mapping.applyOneConfigKeybind(keybind) },
             "minecraft.${mapping.name}",
-            translate(mapping.name),
+            keybindTitle(mapping),
             null,
             OneConfigKeybind::class.java,
         )
@@ -101,9 +116,24 @@ object MinecraftKeybindProvider : KeybindGroupProvider {
     }
 
     private fun ownerMod(mapping: KeyMapping, modsById: Map<String, ModInfo>): ModInfo? {
-        return ownerCandidates(mapping.name)
+        val named = ownerCandidates(mapping.name)
             .map { it.lowercase() }
             .firstNotNullOfOrNull { modsById[it] }
+        if (named != null) return named
+        //? if >= 1.21.10 {
+        return modsById[mapping.category.id().namespace.lowercase()]
+        //?} else
+        //return null
+    }
+
+    private fun keybindTitle(mapping: KeyMapping): String {
+        //? if >= 1.21.10 {
+        val category = mapping.category.id()
+        if (category.namespace == "wwaypoints" && category.path == "create_waypoint") {
+            return "Create Waypoint: ${translate(mapping.name).removePrefix("Create: ")}"
+        }
+        //?}
+        return translate(mapping.name)
     }
 
     private fun ownerCandidates(keyName: String): Sequence<String> = sequence {

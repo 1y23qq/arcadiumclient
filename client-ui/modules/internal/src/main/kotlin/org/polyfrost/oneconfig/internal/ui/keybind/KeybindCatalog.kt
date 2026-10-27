@@ -38,6 +38,10 @@ object KeybindProviderRegistry {
     fun register(provider: KeybindGroupProvider) {
         if (provider in providers) return
         providers += provider
+        invalidate()
+    }
+
+    fun invalidate() {
         SearchCorpus.invalidate(KeybindDocumentSource)
         revision.intValue++
     }

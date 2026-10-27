@@ -103,20 +103,19 @@
         'channel': release.prerelease ? 'Beta' : 'Stable'
       };
       for (const [key, value] of Object.entries(values)) {
-        document.querySelectorAll(`[data-release-${key}]`).forEach(element => { element.textContent = value; });
+        document.querySelectorAll(`[data-release-${key}=""]`).forEach(element => { element.textContent = value; });
       }
       const platforms = release.platforms || {
         'windows-x64': {...release, file: `ArcadiumClientSetup-${release.version}-x64.exe`}
       };
-      const names = {
-        'windows-x64': `ArcadiumClientSetup-${release.version}-x64.exe`,
-        'macos-arm64': `ArcadiumClient-${release.version}-macos-arm64.dmg`,
-        'macos-x64': `ArcadiumClient-${release.version}-macos-x64.dmg`
-      };
-      for (const [platform, file] of Object.entries(names)) {
+      for (const platform of ['windows-x64', 'macos-arm64', 'macos-x64']) {
         const download = platforms[platform];
+        const version = download?.version || release.version;
+        if (!/^\d+\.\d+\.\d+$/.test(version)) continue;
+        const file = platform === 'windows-x64' ? `ArcadiumClientSetup-${version}-x64.exe` : `ArcadiumClient-${version}-${platform}.dmg`;
         if (!download || download.file !== file) continue;
-        const values = {'file': file};
+        const prerelease = download.prerelease ?? release.prerelease;
+        const values = {'file': file, 'version': version, 'label': `${version}${prerelease ? ' Beta' : ''}`, 'channel': prerelease ? 'Beta' : 'Stable'};
         if (Number.isSafeInteger(download.bytes) && download.bytes > 0) values.size = `${(download.bytes / 1000000).toFixed(1)} MB`;
         if (/^[a-f0-9]{64}$/.test(download.sha256)) values.sha256 = download.sha256;
         for (const [key, value] of Object.entries(values)) {
@@ -124,7 +123,8 @@
         }
       }
       document.querySelectorAll('[data-release-notes]').forEach(link => {
-        link.href = `https://github.com/1y23qq/arcadium-public/releases/tag/v${release.version}`;
+        const version = platforms[link.dataset.releaseNotes]?.version || release.version;
+        if (/^\d+\.\d+\.\d+$/.test(version)) link.href = `https://github.com/1y23qq/arcadium-public/releases/tag/v${version}`;
       });
     })
     .catch(() => {});

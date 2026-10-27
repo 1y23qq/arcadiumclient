@@ -13,6 +13,30 @@ import prepare_public_release as release
 
 
 class PublicReleaseTests(unittest.TestCase):
+    def test_windows_only_site_update_preserves_mac_versions_and_links(self):
+        with tempfile.TemporaryDirectory(prefix="arcadium-release-") as temporary:
+            root = Path(temporary)
+            site = root / "sites/arcadium-official/public"
+            (site / "download").mkdir(parents=True)
+            old_mac = {"file": "ArcadiumClient-0.5.6-macos-arm64.dmg", "bytes": 42, "sha256": "a" * 64,
+                       "url": release.PUBLIC_REPOSITORY + "/releases/download/v0.5.6/ArcadiumClient-0.5.6-macos-arm64.dmg"}
+            (site / "release.json").write_text(json.dumps({"version": "0.5.6", "prerelease": True, "platforms": {"macos-arm64": old_mac}}), encoding="utf-8")
+            html = '<span data-release-version="windows-x64">0.5.6</span><span data-release-version="macos-arm64">0.5.6</span>'
+            html += '<a href="' + release.PUBLIC_REPOSITORY + '/releases/tag/v0.5.6" data-release-notes="macos-arm64">Notes</a>'
+            for page in (site / "index.html", site / "download/index.html"):
+                page.write_text(html, encoding="utf-8")
+            new_win = {"file": "ArcadiumClientSetup-0.5.7-x64.exe", "bytes": 50, "sha256": "b" * 64}
+            with patch.object(release, "ROOT", root):
+                release.update_site("0.5.7", False, {"windows-x64": {"download": new_win}}, preserve_missing=True)
+            metadata = json.loads((site / "release.json").read_text(encoding="utf-8"))
+            self.assertEqual(metadata["platforms"]["macos-arm64"], {"version": "0.5.6", "prerelease": True, **old_mac})
+            self.assertEqual(metadata["platforms"]["windows-x64"]["version"], "0.5.7")
+            self.assertIn('/download/macos-arm64 ' + old_mac["url"], (site / "_redirects").read_text(encoding="utf-8"))
+            rendered = (site / "download/index.html").read_text(encoding="utf-8")
+            self.assertIn('data-release-version="windows-x64">0.5.7', rendered)
+            self.assertIn('data-release-version="macos-arm64">0.5.6', rendered)
+            self.assertIn('/releases/tag/v0.5.6" data-release-notes="macos-arm64"', rendered)
+
     def test_public_update_manifest_stays_below_client_limit_with_full_audit_retained(self):
         with tempfile.TemporaryDirectory(prefix="arcadium-release-") as temporary:
             root = Path(temporary)
