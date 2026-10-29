@@ -382,5 +382,15 @@
       "from": "float cursor = x;",
       "to": "int cursor = x;"
     }
+  ],
+  "kotlin/io/github/arcadiumclient/runtime/client/features/TabBackgroundConfig.kt": [
+    {
+      "from": "    private var drawingOwnName = false",
+      "to": "    private var drawingOwnName = false\n\n    override fun initialize(byConfigManager: Boolean) {\n        super.initialize(byConfigManager)\n        for (key in listOf(\"backgroundColor\", \"highlightOwnName\", \"ownNameColor\", \"ownNameOpacity\")) hideIf(key) { true }\n    }"
+    },
+    {
+      "from": "    @JvmStatic fun background(original: Int, ownName: Boolean = false): Int {\n        if (!enabled) return original\n        val highlight = ownName && highlightOwnName\n        return BackgroundOpacity.withAlpha(if (highlight) ownNameColor.rgb else backgroundColor.rgb,\n            if (highlight) ownNameOpacity else opacity)\n    }",
+      "to": "    @JvmStatic fun background(original: Int, ownName: Boolean = false): Int =\n        if (enabled) BackgroundOpacity.withAlpha(original, opacity) else original"
+    }
   ]
 }
