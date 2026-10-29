@@ -4,19 +4,19 @@
       "ornithe": [
         {
           "path": "/arcadium/bundles/hud-1.8.9-ornithe.mrpack",
-          "sha1": "7717e181c0f0d54a000830c8692ed4c4a8eb2b2f"
+          "sha1": "2c28b35347b374064ea74e66546af5ee69d50202"
         },
         {
           "path": "/arcadium/bundles/performance-1.8.9-ornithe.mrpack",
-          "sha1": "64a63f807db5a1d47fcc3de34878486d40a480b4"
+          "sha1": "51fdda56f001fc8091b156d1469f3f3c7853c611"
         },
         {
           "path": "/arcadium/bundles/qol-1.8.9-ornithe.mrpack",
-          "sha1": "bf9a5e6bab9fedf08f757658fc8f839a82b26381"
+          "sha1": "045233cbb8d16044c5e9fcf2e508e69b1d9a0bef"
         },
         {
           "path": "/arcadium/bundles/utility-1.8.9-ornithe.mrpack",
-          "sha1": "4b9ae76839c81262c1366dd2b30b04935a7303d1"
+          "sha1": "8f2a371ca0dedc2f4a359467a1d8793fe907decc"
         }
       ]
     },
@@ -24,7 +24,7 @@
       "forge": [
         {
           "path": "/arcadium/bundles/core-1.7.10-forge.mrpack",
-          "sha1": "6de857d13d360fc8caa0ec9df805ed8dc898a765"
+          "sha1": "22edeba47e7ce0379b9cbed8f69e66827f7c5e11"
         }
       ]
     },

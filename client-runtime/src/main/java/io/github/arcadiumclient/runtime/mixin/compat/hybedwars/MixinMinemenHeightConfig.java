@@ -21,6 +21,15 @@ public abstract class MixinMinemenHeightConfig implements HeightOverlaySettings 
     @Switch(title = "Use Minemen Height Limit", description = "Use a height limit of 100 for the HUD and block overlay on Minemen Club.", subcategory = "Height Overlay")
     private boolean minemenHeightLimit = true;
 
+    @Unique
+    @Switch(title = "Use CompMC Height Limit", description = "Use a height limit of 100 for the HUD and block overlay on compmc.net.", subcategory = "Height Overlay")
+    private boolean compMcHeightLimit = true;
+
+    @Override
+    public boolean arcadium$compMcHeightLimitEnabled() {
+        return compMcHeightLimit;
+    }
+
     @Override
     public boolean arcadium$minemenHeightLimitEnabled() {
         return minemenHeightLimit;

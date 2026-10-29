@@ -132,13 +132,16 @@ object HeightLimitSource {
     private var lastWorld: Any? = null
     private var lastServer: String? = null
     private var lastMinemenEnabled = true
+    private var lastCompMcEnabled = true
     private var matchedAddress: String? = null
     private var addressIsMinemen = false
+    private var addressIsCompMc = false
 
     private fun matchesMinemen(server: String?): Boolean {
         if (server != matchedAddress) {
             matchedAddress = server
             addressIsMinemen = MinemenHeightLimit.matches(server)
+            addressIsCompMc = MinemenHeightLimit.matchesCompMc(server)
         }
         return addressIsMinemen
     }
@@ -146,9 +149,10 @@ object HeightLimitSource {
     @JvmStatic
     fun minemenLimitActive(): Boolean {
         val mc = Minecraft.getInstance()
+        val minemen = matchesMinemen(mc.currentServerEntry?.ip)
         return mc.world != null && !mc.isSingleplayer &&
-            overlaySettings?.`arcadium$minemenHeightLimitEnabled`() != false &&
-            matchesMinemen(mc.currentServerEntry?.ip)
+            (minemen && overlaySettings?.`arcadium$minemenHeightLimitEnabled`() != false ||
+                addressIsCompMc && overlaySettings?.`arcadium$compMcHeightLimitEnabled`() != false)
     }
 
     @JvmStatic
@@ -161,8 +165,9 @@ object HeightLimitSource {
         val world = mc.world
         val server = if (mc.isSingleplayer) null else mc.currentServerEntry?.ip
         val minemenEnabled = overlaySettings?.`arcadium$minemenHeightLimitEnabled`() != false
+        val compMcEnabled = overlaySettings?.`arcadium$compMcHeightLimitEnabled`() != false
         val now = System.nanoTime()
-        val sameContext = world === lastWorld && server == lastServer && minemenEnabled == lastMinemenEnabled
+        val sameContext = world === lastWorld && server == lastServer && minemenEnabled == lastMinemenEnabled && compMcEnabled == lastCompMcEnabled
         if (sameContext && now - sampledAt < 100_000_000L) return value
         if (!sameContext) {
             value = Snapshot()
@@ -170,11 +175,16 @@ object HeightLimitSource {
             lastWorld = world
             lastServer = server
             lastMinemenEnabled = minemenEnabled
+            lastCompMcEnabled = compMcEnabled
         }
         sampledAt = now
         if (world == null) return Snapshot().also { value = it }
         if (matchesMinemen(server)) {
             value = if (minemenEnabled) Snapshot(false, "Minemen Club", MinemenHeightLimit.LIMIT, true) else Snapshot()
+            return value
+        }
+        if (addressIsCompMc) {
+            value = if (compMcEnabled) Snapshot(false, "CompMC", MinemenHeightLimit.LIMIT, true) else Snapshot()
             return value
         }
         val api = access ?: return Snapshot().also { value = it }

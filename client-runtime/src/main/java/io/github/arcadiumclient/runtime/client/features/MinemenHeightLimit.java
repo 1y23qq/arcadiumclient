@@ -14,23 +14,31 @@ public final class MinemenHeightLimit {
     private MinemenHeightLimit() { }
 
     public static boolean matches(String address) {
-        if (address == null) return false;
+        return HOSTS.contains(normalizedHost(address));
+    }
+
+    public static boolean matchesCompMc(String address) {
+        return "compmc.net".equals(normalizedHost(address));
+    }
+
+    private static String normalizedHost(String address) {
+        if (address == null) return "";
         String host = address.trim().toLowerCase(Locale.ROOT);
         int colon = host.indexOf(':');
         if (colon >= 0) {
-            if (colon != host.lastIndexOf(':')) return false;
+            if (colon != host.lastIndexOf(':')) return "";
             String port = host.substring(colon + 1);
-            if (port.isEmpty() || port.length() > 5) return false;
+            if (port.isEmpty() || port.length() > 5) return "";
             int number = 0;
             for (int index = 0; index < port.length(); index++) {
                 char digit = port.charAt(index);
-                if (digit < '0' || digit > '9') return false;
+                if (digit < '0' || digit > '9') return "";
                 number = number * 10 + digit - '0';
             }
-            if (number < 1 || number > 65535) return false;
+            if (number < 1 || number > 65535) return "";
             host = host.substring(0, colon);
         }
         if (host.endsWith(".")) host = host.substring(0, host.length() - 1);
-        return HOSTS.contains(host);
+        return host;
     }
 }

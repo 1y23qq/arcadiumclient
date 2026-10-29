@@ -39,7 +39,7 @@ object ToggleSprintConfig : Config("polysprint.json", "Toggle Sprint", Category.
         true
     }.build()
 
-    @JvmStatic @Switch(title = "Show Sprint Text while Flying", subcategory = "Flying")
+    @JvmStatic @Switch(title = "Show Flying Text", subcategory = "Flying")
     var showSprintTextWhileFlying = true
 
     @JvmStatic @Switch(title = "Unsneak on Flight Start", subcategory = "Flying")
@@ -62,13 +62,14 @@ class ToggleSprintHud : TextHud("arcadium-toggle-sprint-hud.json", "Toggle Sprin
         if (HudManager.isEditing) return true
         val player = Minecraft.getInstance().player ?: return false
         if (!ToggleSprintConfig.isEnabled) return false
-        if (player.abilities.flying && !ToggleSprintConfig.showSprintTextWhileFlying) return false
+        if (player.abilities.flying) return ToggleSprintConfig.showSprintTextWhileFlying
         return player.isSneaking || player.isSprinting || ToggleSprintConfig.toggleSprint && ToggleSprintConfig.toggleSprintState ||
             ToggleSprintConfig.toggleSneak && ToggleSprintConfig.toggleSneakState
     }
 
     override fun getText(): String {
         val player = Minecraft.getInstance().player
+        if (player?.abilities?.flying == true) return "Flying"
         if (ToggleSprintConfig.toggleSneak && ToggleSprintConfig.toggleSneakState) return "Sneaking (Toggled)"
         if (player?.isSneaking == true) return "Sneaking (Held)"
         if (ToggleSprintConfig.toggleSprint && ToggleSprintConfig.toggleSprintState || HudManager.isEditing) return "Sprinting (Toggled)"

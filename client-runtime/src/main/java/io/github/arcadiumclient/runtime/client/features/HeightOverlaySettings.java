@@ -5,5 +5,6 @@ package io.github.arcadiumclient.runtime.client.features;
 
 public interface HeightOverlaySettings {
     boolean arcadium$minemenHeightLimitEnabled();
+    default boolean arcadium$compMcHeightLimitEnabled() { return true; }
     boolean arcadium$heightOverlayEnabled();
 }

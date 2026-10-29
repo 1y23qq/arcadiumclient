@@ -2,6 +2,6 @@
   "required": true,
   "package": "io.github.arcadiumclient.runtime.qa.mixin",
   "compatibilityLevel": "JAVA_25",
-  "client": ["ReleaseQaMixin", "PasswordRenderProbe", "FishingLineProbe", "ChatInputAccess", "MouseInputAccess", "SoundReloadProbe", "PingCleanupProbe", "RegistryWarmupProbe"],
+  "client": ["ReleaseQaMixin", "PasswordRenderProbe", "FishingLineProbe", "ChatInputAccess", "MouseInputAccess", "SoundReloadProbe", "PingCleanupProbe", "RegistryWarmupProbe", "TabFillProbe", "TabBatchProbe"],
   "injectors": {"defaultRequire": 1}
 }
