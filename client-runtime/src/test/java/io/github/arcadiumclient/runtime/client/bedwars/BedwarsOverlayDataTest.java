@@ -168,10 +168,10 @@ public class BedwarsOverlayDataTest {
                 try { release.await(2, TimeUnit.SECONDS); } catch (InterruptedException error) { Thread.currentThread().interrupt(); }
                 running.decrementAndGet(); return 1;
             }));
-            assertTrue(futures.stream().filter(CompletableFuture::isCompletedExceptionally).count() >= 19);
+            assertTrue(futures.stream().filter(CompletableFuture::isCompletedExceptionally).count() >= 14);
             release.countDown();
             for (CompletableFuture<Integer> future : futures) future.handle((value, error) -> 0).get(2, TimeUnit.SECONDS);
-            assertTrue(maximum.get() <= 3);
+            assertTrue(maximum.get() <= 8);
         }
     }
 

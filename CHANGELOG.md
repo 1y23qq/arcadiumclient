@@ -3,6 +3,8 @@
 - Added a height limit of 100 on compmc.net for Minecraft 1.8.9.
 - Added Tab Background colors and optional separate color and opacity for your own name.
 - Show Flying in the Toggle Sprint HUD while flying.
+- Keep inventory and shop keyboard shortcuts working with IME enabled.
+- Faster keyless Bedwars Overlay stats loading.
 
 ## 0.5.7
 

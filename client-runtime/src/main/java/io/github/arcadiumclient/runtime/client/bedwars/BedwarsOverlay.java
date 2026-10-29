@@ -128,8 +128,9 @@ public final class BedwarsOverlay {
             gameEnd(BedwarsRuntime.title());
             if (queuedAt >= 0 && System.currentTimeMillis() >= queuedAt) flushQueue();
         } else { queuedAt = -1; queuedCommand = null; }
-        if (++scanTicks < 20) return;
-        scanTicks = 0;
+        if (++scanTicks % 5 != 0) return;
+        boolean scanEvidence = scanTicks >= 20;
+        if (scanEvidence) scanTicks = 0;
         if (BedwarsRuntime.sidebar().toUpperCase(Locale.ROOT).contains("BED WARS")) context = true;
         if (!config.enabled) { tabLines.clear(); return; }
         if (data.invalidKey(policy.hypixelKey) && config.useHypixelApiKey && !config.hideInvalidKeyWarning && !invalidKeyWarned) {
@@ -138,7 +139,7 @@ public final class BedwarsOverlay {
         }
         List<BedwarsRuntime.Entry> roster = BedwarsRuntime.roster();
         if (context) scanRoster(roster, policy);
-        if (config.denick && context) scanDenick(roster);
+        if (scanEvidence && config.denick && context) scanDenick(roster);
     }
 
     private void resetWorld() {

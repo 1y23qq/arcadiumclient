@@ -43,6 +43,7 @@ public final class BedwarsData {
             "https://nadeshiko.io/player/",
             "https://api.abyssoverlay.com/player?uuid="
     };
+    private static final long KEYLESS_HEDGE_MILLIS = 600;
     private final OverlayHttp http;
     private final Map<UUID, Cached> cache = new LinkedHashMap<>(64, 0.75f, true);
     private final Map<UUID, CompletableFuture<BedwarsStats>> pending = new HashMap<>();
@@ -97,7 +98,7 @@ public final class BedwarsData {
         CompletableFuture<BedwarsStats> shared = new CompletableFuture<>();
         pending.put(id, shared);
         BooleanSupplier active = () -> generation.get() == ticket && !shared.isCancelled();
-        CompletableFuture<BedwarsStats> work = http.submit(active, () -> fetch(id, name, policy, active));
+        CompletableFuture<BedwarsStats> work = fetch(id, name, policy, active);
         work.whenComplete((value, error) -> {
             synchronized (BedwarsData.this) {
                 if (generation.get() != ticket || shared.isCancelled()) {
@@ -122,59 +123,143 @@ public final class BedwarsData {
         return shared;
     }
 
-    public synchronized void clear() {
-        generation.incrementAndGet();
-        var cancelled = new ArrayList<>(pending.values());
-        pending.clear();
-        cache.clear();
-        releaseMatch();
-        rejectedHypixelKey = "";
+    public void clear() {
+        ArrayList<CompletableFuture<BedwarsStats>> cancelled;
+        synchronized (this) {
+            generation.incrementAndGet();
+            cancelled = new ArrayList<>(pending.values());
+            pending.clear();
+            cache.clear();
+            releaseMatch();
+            rejectedHypixelKey = "";
+        }
         cancelled.forEach(future -> future.cancel(true));
     }
 
     public boolean invalidKey() { return !rejectedHypixelKey.isEmpty(); }
     public boolean invalidKey(String key) { return key != null && !key.isEmpty() && key.equals(rejectedHypixelKey); }
 
-    private BedwarsStats fetch(UUID id, String name, Policy policy, BooleanSupplier active) {
-        if (id.version() == 1) return BedwarsStats.nicked(id, name);
+    private CompletableFuture<BedwarsStats> fetch(UUID id, String name, Policy policy, BooleanSupplier active) {
+        Fetch fetch = new Fetch(id, name, policy, active);
+        fetch.start();
+        return fetch.result;
+    }
+
+    private BedwarsStats fetchHypixel(UUID id, String name, String key, BooleanSupplier active) {
         String compact = id.toString().replace("-", "");
-        if (!policy.hypixelKey.isEmpty() && !invalidKey(policy.hypixelKey)) {
-            OverlayHttp.Response response = http.requestOnce("https://api.hypixel.net/v2/player?uuid=" + compact,
-                    OverlayHttp.Credential.HYPIXEL, policy.hypixelKey, active);
-            if (response.status == 401 || response.status == 403) rejectedHypixelKey = policy.hypixelKey;
-            if (response.status == 200) {
-                JsonObject root = object(response.body);
-                if (root != null && bool(root, "success")) {
-                    if (root.has("player") && root.get("player").isJsonNull()) return BedwarsStats.nicked(id, name);
-                    JsonObject player = child(root, "player");
-                    if (player != null && matchesUuid(player, compact)) {
-                        BedwarsStats stats = parsePlayer(id, name, player);
-                        if (!stats.isUnavailable()) return stats;
+        OverlayHttp.Response response = http.requestOnce("https://api.hypixel.net/v2/player?uuid=" + compact,
+                OverlayHttp.Credential.HYPIXEL, key, active);
+        if (response.status == 401 || response.status == 403) rejectedHypixelKey = key;
+        if (response.status == 200) {
+            JsonObject root = object(response.body);
+            if (root != null && bool(root, "success")) {
+                if (root.has("player") && root.get("player").isJsonNull()) return BedwarsStats.nicked(id, name);
+                JsonObject player = child(root, "player");
+                if (player != null && matchesUuid(player, compact)) {
+                    BedwarsStats stats = parsePlayer(id, name, player);
+                    if (!stats.isUnavailable()) return stats;
+                }
+            }
+        }
+        return null;
+    }
+
+    private BedwarsStats fetchKeyless(UUID id, String name, int provider, BooleanSupplier active) {
+        String compact = id.toString().replace("-", "");
+        String url = PROVIDERS[provider] + compact + (provider == 1 ? "/network" : "");
+        OverlayHttp.Response response = http.requestOnce(url, OverlayHttp.Credential.NONE, "", active);
+        if (response.status != 200) {
+            if (response.status != 404) providerRetryAt.set(provider, clock.getAsLong() + 5000);
+            return null;
+        }
+        JsonObject player = parseKeyless(provider, response.body);
+        if (player == null || !matchesUuid(player, compact)) {
+            if (player == null) providerRetryAt.set(provider, clock.getAsLong() + 5000);
+            return null;
+        }
+        BedwarsStats stats = parsePlayer(id, name, player);
+        return stats.isUnavailable() ? null : stats;
+    }
+
+    private final class Fetch {
+        final CompletableFuture<BedwarsStats> result = new CompletableFuture<>();
+        private final UUID id;
+        private final String name;
+        private final Policy policy;
+        private final BooleanSupplier active;
+        private final Set<CompletableFuture<BedwarsStats>> attempts = new HashSet<>();
+        private CompletableFuture<Void> hedge;
+        private int firstProvider;
+        private int nextProvider;
+        private int running;
+
+        Fetch(UUID id, String name, Policy policy, BooleanSupplier active) {
+            this.id = id;
+            this.name = name;
+            this.policy = policy;
+            this.active = () -> active.getAsBoolean() && !result.isDone();
+            result.whenComplete((value, error) -> cancelAttempts());
+        }
+
+        synchronized void start() {
+            if (id.version() == 1) { result.complete(BedwarsStats.nicked(id, name)); return; }
+            if (policy.hypixelKey.isEmpty() || invalidKey(policy.hypixelKey)) { startKeyless(); return; }
+            CompletableFuture<BedwarsStats> keyed = http.submit(active, () -> fetchHypixel(id, name, policy.hypixelKey, active));
+            attempts.add(keyed);
+            keyed.whenComplete((stats, error) -> {
+                synchronized (Fetch.this) {
+                    attempts.remove(keyed);
+                    if (!active.getAsBoolean()) { result.cancel(false); return; }
+                    if (stats != null) result.complete(stats);
+                    else startKeyless();
+                }
+            });
+        }
+
+        private void startKeyless() {
+            if (!policy.keyless) { result.complete(BedwarsStats.unavailable(id, name)); return; }
+            firstProvider = preferredProvider;
+            startNext(false);
+            if (!result.isDone() && nextProvider < PROVIDERS.length) {
+                hedge = http.defer(() -> {
+                    synchronized (Fetch.this) {
+                        if (active.getAsBoolean() && running < 2) startNext(true);
                     }
-                }
+                }, KEYLESS_HEDGE_MILLIS);
             }
         }
-        if (policy.keyless) {
-            int firstProvider = preferredProvider;
-            for (int offset = 0; offset < PROVIDERS.length; offset++) {
-                int provider = (firstProvider + offset) % PROVIDERS.length;
+
+        private void startNext(boolean fallback) {
+            if (!active.getAsBoolean()) { if (!result.isDone()) result.cancel(false); return; }
+            while (nextProvider < PROVIDERS.length) {
+                int provider = (firstProvider + nextProvider++) % PROVIDERS.length;
                 if (clock.getAsLong() < providerRetryAt.get(provider)) continue;
-                String url = PROVIDERS[provider] + compact + (provider == 1 ? "/network" : "");
-                OverlayHttp.Response response = http.requestOnce(url, OverlayHttp.Credential.NONE, "", active);
-                if (response.status != 200) {
-                    if (response.status != 404) providerRetryAt.set(provider, clock.getAsLong() + 5000);
-                    continue;
-                }
-                JsonObject player = parseKeyless(provider, response.body);
-                if (player == null || !matchesUuid(player, compact)) {
-                    if (player == null) providerRetryAt.set(provider, clock.getAsLong() + 5000);
-                    continue;
-                }
-                BedwarsStats stats = parsePlayer(id, name, player);
-                if (!stats.isUnavailable()) { preferredProvider = provider; return stats; }
+                running++;
+                CompletableFuture<BedwarsStats> attempt = fallback
+                        ? http.submitFallback(active, () -> fetchKeyless(id, name, provider, active))
+                        : http.submit(active, () -> fetchKeyless(id, name, provider, active));
+                attempts.add(attempt);
+                attempt.whenComplete((stats, error) -> {
+                    synchronized (Fetch.this) {
+                        attempts.remove(attempt);
+                        running--;
+                        if (!active.getAsBoolean()) { if (!result.isDone()) result.cancel(false); return; }
+                        if (stats != null) {
+                            preferredProvider = provider;
+                            result.complete(stats);
+                        } else startNext(fallback);
+                    }
+                });
+                return;
             }
+            if (running == 0) result.complete(BedwarsStats.unavailable(id, name));
         }
-        return BedwarsStats.unavailable(id, name);
+
+        private synchronized void cancelAttempts() {
+            if (hedge != null) hedge.cancel(false);
+            for (CompletableFuture<BedwarsStats> attempt : new ArrayList<>(attempts)) attempt.cancel(true);
+            attempts.clear();
+        }
     }
 
     public static JsonObject parseKeyless(int provider, String body) {

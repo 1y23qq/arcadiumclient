@@ -4,6 +4,7 @@ import io.github.arcadiumclient.runtime.qa.ReleaseQa;
 import io.github.arcadiumclient.runtime.qa.SessionUiQa;
 import io.github.arcadiumclient.runtime.qa.StartupQa;
 import io.github.arcadiumclient.runtime.qa.Feature058Qa;
+import io.github.arcadiumclient.runtime.qa.Ime058Qa;
 
 import net.minecraft.client.Minecraft;
 import org.spongepowered.asm.mixin.Mixin;
@@ -14,9 +15,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(Minecraft.class)
 public abstract class ReleaseQaMixin {
     @Inject(method = "tick", at = @At("TAIL"))
-    private void release$testTick(CallbackInfo ci) { if (Feature058Qa.enabled()) Feature058Qa.tick(); else if (StartupQa.enabled()) StartupQa.tick(); else if (SessionUiQa.enabled()) SessionUiQa.tick(); else ReleaseQa.tick(); }
+    private void release$testTick(CallbackInfo ci) { if (Ime058Qa.enabled()) Ime058Qa.tick(); else if (Feature058Qa.enabled()) Feature058Qa.tick(); else if (StartupQa.enabled()) StartupQa.tick(); else if (SessionUiQa.enabled()) SessionUiQa.tick(); else ReleaseQa.tick(); }
     @Inject(method = "runGame", at = @At("TAIL"))
-    private void release$testFrame(CallbackInfo ci) { if (Feature058Qa.enabled()) Feature058Qa.frame(); else if (StartupQa.enabled()) StartupQa.frame(); else if (!SessionUiQa.enabled()) ReleaseQa.frame(); }
+    private void release$testFrame(CallbackInfo ci) { if (Ime058Qa.enabled()) Ime058Qa.frame(); else if (Feature058Qa.enabled()) Feature058Qa.frame(); else if (StartupQa.enabled()) StartupQa.frame(); else if (!SessionUiQa.enabled()) ReleaseQa.frame(); }
     @Inject(method = "reloadResources", at = @At("HEAD"))
     private void release$resourceReload(CallbackInfo ci) { if (SessionUiQa.enabled()) SessionUiQa.resourceReloads++; }
 }

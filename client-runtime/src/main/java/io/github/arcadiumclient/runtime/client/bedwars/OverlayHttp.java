@@ -12,13 +12,19 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BooleanSupplier;
 import java.util.function.LongSupplier;
 import java.util.function.Supplier;
@@ -46,22 +52,75 @@ public final class OverlayHttp implements AutoCloseable {
     public interface Transport { Response exchange(URI uri, Map<String, String> headers, String body) throws IOException; }
     private final Transport transport;
     private final LongSupplier clock;
-    private final ThreadPoolExecutor workers = new ThreadPoolExecutor(3, 3, 30, TimeUnit.SECONDS,
-            new ArrayBlockingQueue<>(128), task -> {
-                Thread thread = new Thread(task, "arcadium-bedwars-http");
-                thread.setDaemon(true);
-                return thread;
-            });
+    private final ThreadPoolExecutor workers = workers(8, 128, "arcadium-bedwars-http");
+    private final ThreadPoolExecutor fallbackWorkers = workers(2, 64, "arcadium-bedwars-fallback");
+    private final ScheduledThreadPoolExecutor timers = new ScheduledThreadPoolExecutor(1, task -> {
+        Thread thread = new Thread(task, "arcadium-bedwars-delay");
+        thread.setDaemon(true);
+        return thread;
+    });
+    private final Semaphore timerSlots = new Semaphore(128);
+    private final Set<CompletableFuture<?>> outstanding = ConcurrentHashMap.newKeySet();
+    private final AtomicBoolean closed = new AtomicBoolean();
     private final Map<String, Long> blockedUntil = new ConcurrentHashMap<>();
     private final Map<String, Integer> failures = new ConcurrentHashMap<>();
 
     public OverlayHttp() { this(OverlayHttp::exchange); }
     public OverlayHttp(Transport transport) { this(transport, System::currentTimeMillis); }
-    public OverlayHttp(Transport transport, LongSupplier clock) { this.transport = transport; this.clock = clock; }
+    public OverlayHttp(Transport transport, LongSupplier clock) {
+        this.transport = transport;
+        this.clock = clock;
+        timers.setRemoveOnCancelPolicy(true);
+    }
 
     public <T> CompletableFuture<T> submit(BooleanSupplier active, Supplier<T> action) {
+        return submit(workers, active, action);
+    }
+
+    <T> CompletableFuture<T> submitFallback(BooleanSupplier active, Supplier<T> action) {
+        return submit(fallbackWorkers, active, action);
+    }
+
+    CompletableFuture<Void> defer(Runnable action, long delayMillis) {
+        CompletableFuture<Void> result = new CompletableFuture<>();
+        if (!timerSlots.tryAcquire()) {
+            result.completeExceptionally(new IOException("Overlay delay queue full"));
+            return result;
+        }
+        outstanding.add(result);
+        if (closed.get()) {
+            outstanding.remove(result);
+            timerSlots.release();
+            result.cancel(false);
+            return result;
+        }
+        ScheduledFuture<?> timer;
+        try {
+            timer = timers.schedule(() -> {
+                try { if (!result.isDone()) action.run(); result.complete(null); }
+                catch (Throwable error) {
+                    result.completeExceptionally(error);
+                    if (error instanceof VirtualMachineError) throw (VirtualMachineError) error;
+                }
+            }, delayMillis, TimeUnit.MILLISECONDS);
+        } catch (RejectedExecutionException ignored) {
+            outstanding.remove(result);
+            timerSlots.release();
+            result.completeExceptionally(new IOException("Overlay closed"));
+            return result;
+        }
+        result.whenComplete((value, error) -> {
+            timer.cancel(false);
+            timerSlots.release();
+            outstanding.remove(result);
+        });
+        if (closed.get()) result.cancel(false);
+        return result;
+    }
+
+    private <T> CompletableFuture<T> submit(ThreadPoolExecutor executor, BooleanSupplier active, Supplier<T> action) {
         CompletableFuture<T> result = new CompletableFuture<>();
-        Runnable job = () -> {
+        FutureTask<Void> job = new FutureTask<>(() -> {
             if (result.isCancelled() || !active.getAsBoolean()) { result.cancel(false); return; }
             try {
                 T value = action.get();
@@ -73,11 +132,24 @@ public final class OverlayHttp implements AutoCloseable {
                 result.completeExceptionally(error);
                 if (error instanceof VirtualMachineError) throw (VirtualMachineError) error;
             }
-        };
-        try { workers.execute(job); }
+        }, null);
+        outstanding.add(result);
+        result.whenComplete((value, error) -> {
+            outstanding.remove(result);
+            if (result.isCancelled()) { job.cancel(true); executor.remove(job); }
+        });
+        if (closed.get()) { result.cancel(false); return result; }
+        try { executor.execute(job); }
         catch (RejectedExecutionException ignored) { result.completeExceptionally(new IOException("Overlay queue full")); }
-        result.whenComplete((value, error) -> { if (result.isCancelled()) workers.remove(job); });
         return result;
+    }
+
+    private static ThreadPoolExecutor workers(int count, int queueSize, String name) {
+        return new ThreadPoolExecutor(count, count, 30, TimeUnit.SECONDS, new ArrayBlockingQueue<>(queueSize), task -> {
+            Thread thread = new Thread(task, name);
+            thread.setDaemon(true);
+            return thread;
+        });
     }
 
     public Response request(String address, Credential credential, String key, String body, BooleanSupplier active) {
@@ -128,6 +200,7 @@ public final class OverlayHttp implements AutoCloseable {
                 }
                 return response;
             } catch (IOException ignored) {
+                if (!active.getAsBoolean() || Thread.currentThread().isInterrupted()) throw new CancellationException();
                 if (attempt + 1 == attempts || body != null) {
                     block(host, 30);
                     return new Response(0, "");
@@ -181,5 +254,11 @@ public final class OverlayHttp implements AutoCloseable {
         catch (NumberFormatException ignored) { return -1; }
     }
 
-    @Override public void close() { workers.shutdownNow(); }
+    @Override public void close() {
+        closed.set(true);
+        outstanding.forEach(future -> future.cancel(true));
+        workers.shutdownNow();
+        fallbackWorkers.shutdownNow();
+        timers.shutdownNow();
+    }
 }

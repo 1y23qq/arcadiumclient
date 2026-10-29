@@ -81,6 +81,8 @@ public final class Feature058Qa {
                 ToggleSprintConfig.setShowSprintTextWhileFlying(true);
                 mc.player.abilities.flying = false;
                 ToggleSprintConfig.toggleSprintState = true;
+                mc.player.onGround = false;
+                require(!text.invoke(hud).equals("Flying"), "Airborne non-flying player displayed Flying");
                 require(text.invoke(hud).equals("Sprinting (Toggled)"), "Ground sprint text regressed");
                 mc.player.abilities.flying = true;
                 result.put("flyingHudAndToggle", true);

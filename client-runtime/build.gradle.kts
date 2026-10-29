@@ -138,6 +138,8 @@ if (minecraftVersion == "1.7.10") {
                 "**/client/ServerSwitchConnectionMixin.java", "**/client/DisconnectedPacketMixin.java",
                 "**/client/StaleDisconnectMixin.java",
                 "**/client/PauseResourcesReloadMixin.java",
+                "**/features/GuiKeyboardInput.java", "**/client/GuiKeyboardInputMixin.java",
+                "**/client/GuiTextInputMixin.java", "**/compat/ComposeTextInputAccess.java",
                 "**/client/access/ChatScreenAccessor.java", "**/features/RodThickness.kt", "**/features/PasswordHider.kt",
                 "**/compat/forge/**")
             replacements.forEach { exclude("java/$it", "kotlin/$it") }
