@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "io.github.arcadiumclient"
-version = "0.5.8"
+version = "0.5.9"
 base.archivesName = "ArcadiumRuntime"
 val minecraftVersion = providers.gradleProperty("minecraftVersion").getOrElse("1.8.9")
 require(minecraftVersion in setOf("1.7.10", "1.8.9")) { "Unsupported Minecraft version: $minecraftVersion" }
@@ -140,6 +140,7 @@ if (minecraftVersion == "1.7.10") {
                 "**/client/PauseResourcesReloadMixin.java",
                 "**/features/GuiKeyboardInput.java", "**/client/GuiKeyboardInputMixin.java",
                 "**/client/GuiTextInputMixin.java", "**/compat/ComposeTextInputAccess.java",
+                "**/client/ChatInputLimitMixin.java",
                 "**/client/access/ChatScreenAccessor.java", "**/features/RodThickness.kt", "**/features/PasswordHider.kt",
                 "**/compat/forge/**")
             replacements.forEach { exclude("java/$it", "kotlin/$it") }

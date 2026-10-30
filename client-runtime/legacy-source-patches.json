@@ -371,6 +371,10 @@
   ],
   "java/io/github/arcadiumclient/runtime/mixin/client/EmojiFontMixin.java": [
     {
+      "from": "cursor = this.x;",
+      "to": "cursor = (int) this.x;"
+    },
+    {
       "from": "draw(Ljava/lang/String;FFIZ)I",
       "to": "draw(Ljava/lang/String;IIIZ)I"
     },

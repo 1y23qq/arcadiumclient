@@ -1,3 +1,9 @@
+## 0.5.9
+
+- Fixed emoji spacing in chat and input fields on Minecraft 1.8.9.
+- Respect outgoing chat limits while typing and pasting.
+- Fixed overlapping sweep and extra critical particles on Minecraft 1.21.11.
+
 ## 0.5.8
 
 - Added a height limit of 100 on compmc.net for Minecraft 1.8.9.

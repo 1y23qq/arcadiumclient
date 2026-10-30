@@ -69,6 +69,7 @@ public final class ModernGuiQa implements ClientModInitializer {
     private Map<String, Object> legacyNativeProfilesReport;
     private boolean legacyNativeProfilesDone;
     private WaypointsKeybindQa waypointsQa;
+    private Attack059Qa attack059Qa;
 
     @Override public void onInitializeClient() {
         String destination = System.getProperty("arcadium.guiQa.output");
@@ -80,7 +81,10 @@ public final class ModernGuiQa implements ClientModInitializer {
             minecraft = client;
             try {
                 QaTickScheduler.drain();
-                if (Boolean.getBoolean("arcadium.guiQa.waypointsOnly")) {
+                if (Boolean.getBoolean("arcadium.guiQa.attack059")) {
+                    if (attack059Qa == null) attack059Qa = new Attack059Qa(output);
+                    complete = attack059Qa.tick(client);
+                } else if (Boolean.getBoolean("arcadium.guiQa.waypointsOnly")) {
                     if (waypointsQa == null) waypointsQa = new WaypointsKeybindQa(output);
                     complete = waypointsQa.tick(client);
                 } else tick();

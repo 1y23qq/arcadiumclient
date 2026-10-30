@@ -4,6 +4,7 @@
   "compatibilityLevel": "JAVA_25",
   "client": [
     "AccountSessionAccess",
+    "AttackParticleContextMixin",
     "BadlionBucketMixin",
     "BadlionInventoryMixin",
     "BadlionItemMixin",
@@ -44,6 +45,7 @@
     "NoRenderWeatherMixin",
     "NoRenderWorldEffectsMixin",
     "PlayerInfoSkinMixin",
+    "PlayerSweepAccess",
     "PlayerSkinMixin",
     "SkinDecoderAccess",
     "TabBackgroundMixin",
@@ -61,6 +63,7 @@
     "compat.SharedOptionsKeyNamesMixin",
     "compat.NoRenderBlockHighlightMixin",
     "compat.OverflowSaveMixin",
+    "compat.OverflowCriticalParticlesMixin",
     "compat.ZoomifySaveMixin",
     "compat.chatting.ExcludedChatTabsMixin",
     "compat.damagetint.MixinDamageTintConfig",

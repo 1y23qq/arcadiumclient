@@ -11,6 +11,7 @@
     "client.ChatClickTweaksMixin",
     "client.ChatDecorationColorsMixin",
     "client.ChatInputTweaksMixin",
+    "client.ChatInputLimitMixin",
     "client.ChatTweaksMixin",
     "client.ChatWorldHistoryMixin",
     "client.GuiKeyboardInputMixin",

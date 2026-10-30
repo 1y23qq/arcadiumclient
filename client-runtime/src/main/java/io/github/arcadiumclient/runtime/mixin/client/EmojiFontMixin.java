@@ -6,18 +6,21 @@ package io.github.arcadiumclient.runtime.mixin.client;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import io.github.arcadiumclient.runtime.client.emoji.EmojiPainter;
+import io.github.arcadiumclient.runtime.client.emoji.EmojiLayout;
 import java.util.List;
 import net.minecraft.client.render.TextRenderer;
 import org.polyfrost.oneconfig.internal.emoji.EmojiText;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 
 @Mixin(value = TextRenderer.class, priority = 1500)
 public abstract class EmojiFontMixin {
+    @Shadow private float x;
+
     @WrapMethod(method = "draw(Ljava/lang/String;FFIZ)I")
     private int arcadium$emojiRuns(String text, float x, float y, int color, boolean shadow, Operation<Integer> original) {
         String display = EmojiText.display(text);
         if (display == null || !EmojiText.enabled()) return original.call(display, x, y, color, shadow);
-        TextRenderer font = (TextRenderer) (Object) this;
         float cursor = x;
         int start = 0;
         for (int index = 0; index < display.length(); index++) {
@@ -25,11 +28,14 @@ public abstract class EmojiFontMixin {
             if (!EmojiText.isGlyph(glyph)) continue;
             String inherited = TextRenderer.isolateFormatting(display.substring(0, start));
             String run = inherited + display.substring(start, index);
-            if (!run.isEmpty()) original.call(run, cursor, y, color, shadow);
-            cursor += font.getWidth(run);
+            if (!run.isEmpty()) {
+                original.call(run, cursor, y, color, shadow);
+                cursor = this.x;
+            }
             EmojiPainter.draw(glyph, cursor, y, 8f, color, shadow);
             String style = TextRenderer.isolateFormatting(display.substring(0, index));
-            cursor += font.getWidth(style + glyph);
+            cursor += EmojiLayout.advance(style);
+            this.x = cursor;
             start = index + 1;
         }
         if (start == 0) return original.call(display, x, y, color, shadow);
@@ -50,7 +56,7 @@ public abstract class EmojiFontMixin {
             String inherited = TextRenderer.isolateFormatting(display.substring(0, start));
             width += original.call(inherited + display.substring(start, index));
             String style = TextRenderer.isolateFormatting(display.substring(0, index));
-            width += EmojiText.ADVANCE + (style.contains("§l") ? 1 : 0);
+            width += EmojiLayout.advance(style);
             start = index + 1;
         }
         return start == 0 ? original.call(display)

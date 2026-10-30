@@ -3,6 +3,6 @@
   "minVersion": "0.8",
   "package": "io.github.arcadiumclient.modern.gui.qa.mixin",
   "compatibilityLevel": "JAVA_25",
-  "client": ["KeyboardQaAccess", "MouseQaAccess", "ChatQaAccess", "GameRendererQaAccess", "BenchmarkFrameMixin", "SoundQaMixin", "SoundInstanceQaAccess", "HandRenderQaMixin", "FramerateLimitQaAccess", "GuiCrosshairQaAccess", "LevelSkyQaAccess", "SkyRendererQaAccess", "LegacySkyQaMixin", "SkiaPresentQaMixin", "SharedOptionsQaMixin"],
+  "client": ["KeyboardQaAccess", "MouseQaAccess", "ChatQaAccess", "GameRendererQaAccess", "BenchmarkFrameMixin", "SoundQaMixin", "SoundInstanceQaAccess", "HandRenderQaMixin", "FramerateLimitQaAccess", "GuiCrosshairQaAccess", "LevelSkyQaAccess", "SkyRendererQaAccess", "LegacySkyQaMixin", "SkiaPresentQaMixin", "SharedOptionsQaMixin", "Attack059PlayerAccess", "Attack059ParticleProbe"],
   "injectors": {"defaultRequire": 1}
 }

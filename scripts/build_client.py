@@ -41,6 +41,7 @@ def gradle(project: str, *tasks: str) -> list[str]:
 
 
 def build_commands() -> list[list[str]]:
+    ports = sorted(legacy_ports(ROOT), key=lambda port: port["directory"] != "overflowanimations")
     return [
         gradle("client-ui", ":modules:internal:jar", ":modules:compose-bundle:jar",
                ":minecraft:1.8.9-ornithe:remapJar", ":bootstrap:1.8.9-ornithe:build",
@@ -58,7 +59,7 @@ def build_commands() -> list[list[str]]:
         gradle("game-branding", "build"),
         gradle("game-branding", "-PminecraftVersion=1.7.10", "build"),
         gradle("client-legacy-mods/pylon", "build"),
-        *(gradle("client-legacy-mods/" + port["directory"], port["task"]) for port in legacy_ports(ROOT)),
+        *(gradle("client-legacy-mods/" + port["directory"], port["task"]) for port in ports),
         [sys.executable, str(ROOT / "scripts/package_client.py")],
     ]
 
