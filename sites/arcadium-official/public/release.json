@@ -1,35 +1,35 @@
 {
-  "version": "0.6.0",
+  "version": "0.6.1",
   "prerelease": true,
   "platforms": {
     "windows-x64": {
-      "file": "ArcadiumClientSetup-0.6.0-x64.exe",
-      "bytes": 262866779,
-      "sha256": "aabb7395e8b7569926d1ff3014e15390878f2fc6a7cbfe2347c4d9f512a1ca2a",
-      "version": "0.6.0",
+      "file": "ArcadiumClientSetup-0.6.1-x64.exe",
+      "bytes": 262867533,
+      "sha256": "dbf520a619f7b041115222476efa6edf0e01ae50055d73d3d2148bed603787f9",
+      "version": "0.6.1",
       "prerelease": true,
-      "url": "https://github.com/1y23qq/arcadium-public/releases/download/v0.6.0/ArcadiumClientSetup-0.6.0-x64.exe"
+      "url": "https://github.com/1y23qq/arcadium-public/releases/download/v0.6.1/ArcadiumClientSetup-0.6.1-x64.exe"
     },
     "macos-arm64": {
-      "file": "ArcadiumClient-0.6.0-macos-arm64.dmg",
-      "bytes": 496405953,
-      "sha256": "56aad2cf5220b49b96b38f1c70fdb3cb160cb385544cf2b49f5a7770fc6ff572",
-      "version": "0.6.0",
+      "file": "ArcadiumClient-0.6.1-macos-arm64.dmg",
+      "bytes": 494054812,
+      "sha256": "afc78f773744671a1d9be6dd55dfca569181df688fcf40536d76896bd8bd2260",
+      "version": "0.6.1",
       "prerelease": true,
       "minimumSystemVersion": "13.0",
-      "url": "https://github.com/1y23qq/arcadium-public/releases/download/v0.6.0/ArcadiumClient-0.6.0-macos-arm64.dmg"
+      "url": "https://github.com/1y23qq/arcadium-public/releases/download/v0.6.1/ArcadiumClient-0.6.1-macos-arm64.dmg"
     },
     "macos-x64": {
-      "file": "ArcadiumClient-0.6.0-macos-x64.dmg",
-      "bytes": 491506711,
-      "sha256": "19ad64b3a3755f9cd27c57766ec52664f774189be84b6a987fc904f9df901913",
-      "version": "0.6.0",
+      "file": "ArcadiumClient-0.6.1-macos-x64.dmg",
+      "bytes": 490738655,
+      "sha256": "b63925f1bcdcf350cd5337be912d2e7ece119ba26c5d4c3d861ba98210a8ba48",
+      "version": "0.6.1",
       "prerelease": true,
       "minimumSystemVersion": "12.0",
-      "url": "https://github.com/1y23qq/arcadium-public/releases/download/v0.6.0/ArcadiumClient-0.6.0-macos-x64.dmg"
+      "url": "https://github.com/1y23qq/arcadium-public/releases/download/v0.6.1/ArcadiumClient-0.6.1-macos-x64.dmg"
     }
   },
-  "bytes": 262866779,
-  "sha256": "aabb7395e8b7569926d1ff3014e15390878f2fc6a7cbfe2347c4d9f512a1ca2a",
-  "url": "https://github.com/1y23qq/arcadium-public/releases/download/v0.6.0/ArcadiumClientSetup-0.6.0-x64.exe"
+  "bytes": 262867533,
+  "sha256": "dbf520a619f7b041115222476efa6edf0e01ae50055d73d3d2148bed603787f9",
+  "url": "https://github.com/1y23qq/arcadium-public/releases/download/v0.6.1/ArcadiumClientSetup-0.6.1-x64.exe"
 }
