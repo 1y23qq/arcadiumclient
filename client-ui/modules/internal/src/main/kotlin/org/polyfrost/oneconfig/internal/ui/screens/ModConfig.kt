@@ -8,6 +8,7 @@ import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import org.polyfrost.oneconfig.internal.ui.api.ConfigRegistry
+import org.polyfrost.oneconfig.internal.ui.api.ModuleSettingsPanels
 import org.polyfrost.oneconfig.internal.ui.components.Text
 import org.polyfrost.oneconfig.internal.ui.components.asRenderText
 import org.polyfrost.oneconfig.internal.ui.shell.ShellState
@@ -71,7 +72,28 @@ fun ModConfig(id: String, initialCategory: String? = null) {
             Text("This mod manages its own configuration.", color = LocalTheme.current.textColorSecondary)
         }
         else -> key(revision, tree) {
-            ConfigScreen(tree, initialCategory, pageKey = id)
+            ModuleSettings(tree, id, initialCategory)
+        }
+    }
+}
+
+@Composable
+private fun ModuleSettings(tree: org.polyfrost.oneconfig.api.config.v1.Tree, id: String, initialCategory: String?) {
+    val panels = ModuleSettingsPanels.forModule(id)
+    if (panels.isEmpty()) {
+        ConfigScreen(tree, initialCategory, pageKey = id)
+        return
+    }
+    val selected = ModuleSettingsPanels.selectedTitle(id)
+    val panel = panels.firstOrNull { it.title == selected }
+    Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Chip("Settings", selected == null, onClick = { ModuleSettingsPanels.selectPanel(id, null) })
+            panels.forEach { item -> Chip(item.title, selected == item.title, onClick = { ModuleSettingsPanels.selectPanel(id, item.title) }) }
+        }
+        Box(Modifier.weight(1f).fillMaxWidth()) {
+            if (panel == null) ConfigScreen(tree, initialCategory, pageKey = id)
+            else panel.content()
         }
     }
 }

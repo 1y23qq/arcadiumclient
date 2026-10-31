@@ -1,7 +1,10 @@
 # Custom F3
 
 Enable Custom F3 in the Mods menu, then use F3 normally. The module is disabled
-by default. F3 + M opens the module editor. General settings include font scale,
+by default. All controls are available in Arcadium Options > Mods > Custom F3.
+The Settings tab contains general, graph and specification options; the Layout
+tab contains the embedded layout editor. F3 + M opens this same module settings
+page. General settings include font scale,
 text shadow, background color, opening/closing animation, spacing, automatic
 display and the debug graph/sidebar/bossbar options.
 

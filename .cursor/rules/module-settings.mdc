@@ -1,0 +1,6 @@
+---
+description: Keep every module setting accessible inside the client module settings page
+alwaysApply: true
+---
+
+Unless the user explicitly requests otherwise, expose every module setting in Arcadium Options > Mods > the module's settings page. Use in-page tabs or embedded panels for layouts and other complex editors. Do not require a hotkey, separate Minecraft screen or file editing. Verify navigation from the module card, changing settings, persistence and returning to the game.

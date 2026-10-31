@@ -95,6 +95,7 @@ public final class ModernGuiQa implements ClientModInitializer {
     }
 
     private void tick() throws Exception {
+        if (Settings063Qa.enabled()) { Settings063Qa.tick(); return; }
         if (Boolean.getBoolean("arcadium.guiQa.features062")) {
             if (features062 == null) features062 = new Features062Qa(output);
             complete = features062.tick(minecraft); return;

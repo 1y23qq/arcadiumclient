@@ -1,3 +1,7 @@
+## 0.6.3
+
+- All Custom F3 settings are now available inside the client module settings page.
+
 ## 0.6.2
 
 - Added cross-version resource pack support.

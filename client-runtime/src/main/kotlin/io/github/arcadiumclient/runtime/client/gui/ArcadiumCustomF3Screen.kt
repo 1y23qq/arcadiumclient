@@ -22,6 +22,17 @@ class ArcadiumCustomF3Screen(private val parent: Screen?) : ComposeScreen(Render
     override fun removed() { CustomF3Config.preview = false; super.removed() }
 
     @Composable override fun compose() {
+        Theme {
+            ArcadiumMenuWindow("Custom F3 / Modules", CustomF3Config.layoutError, ::close, maxWidth = 1040.dp, maxHeight = 760.dp) {
+                Column(Modifier.weight(1f).fillMaxWidth()) { CustomF3LayoutSettings() }
+                UiButton("Done", filled = true, modifier = Modifier.fillMaxWidth()) { close() }
+            }
+        }
+    }
+}
+
+@Composable
+fun CustomF3LayoutSettings() {
         var revision by remember { mutableStateOf(0) }
         var right by remember { mutableStateOf(false) }
         var selected by remember { mutableStateOf<String?>(null) }
@@ -31,8 +42,8 @@ class ArcadiumCustomF3Screen(private val parent: Screen?) : ComposeScreen(Render
         val column = if (right) layout.right else layout.left
         val module = column.firstOrNull { it.key == selected }
         fun persist() { CustomF3Config.storeLayout(layout); revision++ }
-        Theme {
-            ArcadiumMenuWindow("Custom F3 / Modules", CustomF3Config.layoutError, ::close, maxWidth = 1040.dp, maxHeight = 760.dp) {
+        DisposableEffect(Unit) { onDispose { CustomF3Config.preview = false } }
+        Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     UiButton("Left", filled = !right) { right = false; selected = null }
                     UiButton("Right", filled = right) { right = true; selected = null }
@@ -92,8 +103,5 @@ class ArcadiumCustomF3Screen(private val parent: Screen?) : ComposeScreen(Render
                         }
                     }
                 }
-                UiButton("Done", filled = true, modifier = Modifier.fillMaxWidth()) { close() }
-            }
         }
-    }
 }

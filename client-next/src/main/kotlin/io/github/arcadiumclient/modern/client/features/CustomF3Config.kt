@@ -2,10 +2,8 @@
 package io.github.arcadiumclient.modern.client.features
 
 import io.github.arcadiumclient.shared.debug.DebugLayout
-import net.minecraft.client.Minecraft
 import org.polyfrost.oneconfig.api.config.v1.Config
 import org.polyfrost.oneconfig.api.config.v1.annotations.*
-import io.github.arcadiumclient.modern.gui.ArcadiumCustomF3Screen
 
 object CustomF3Config : Config("arcadium-custom-f3.json", "Custom F3", Category.QOL) {
     @JvmStatic @Switch(title = "Enabled") var enabled = false
@@ -40,6 +38,9 @@ object CustomF3Config : Config("arcadium-custom-f3.json", "Custom F3", Category.
 
     fun initialize() {
         preload()
+        org.polyfrost.oneconfig.internal.ui.api.ModuleSettingsPanels.register(id, "Layout") {
+            io.github.arcadiumclient.modern.gui.CustomF3LayoutSettings()
+        }
         org.polyfrost.oneconfig.api.event.v1.eventHandler { _: org.polyfrost.oneconfig.api.event.v1.events.TickEvent.End ->
             io.github.arcadiumclient.modern.client.debug.CustomF3Renderer.cleanup()
         }
@@ -70,9 +71,9 @@ object CustomF3Config : Config("arcadium-custom-f3.json", "Custom F3", Category.
         }
         return replacement.take(256).replace("\n", " ").replace("\r", " ").ifBlank { actual }
     }
-    @Button(title = "Debug Modules", text = "Edit modules")
     fun edit() {
-        val mc = Minecraft.getInstance()
-        mc.execute { mc.gui.setScreen(ArcadiumCustomF3Screen(mc.gui.screen())) }
+        org.polyfrost.oneconfig.api.ui.v1.OneConfigUI.open(
+            org.polyfrost.oneconfig.internal.ui.navigation.graph.ModConfigRoute(id)
+        )
     }
 }
