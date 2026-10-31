@@ -1,3 +1,9 @@
+## 0.6.0
+
+- Added Disable Emoji in Scoreboard, enabled by default.
+- Fixed Minecraft settings and resource pack selections failing to persist in some configurations.
+- Preserve legacy smooth lighting settings when sharing options with newer Minecraft versions.
+
 ## 0.5.9
 
 - Fixed emoji spacing in chat and input fields on Minecraft 1.8.9.

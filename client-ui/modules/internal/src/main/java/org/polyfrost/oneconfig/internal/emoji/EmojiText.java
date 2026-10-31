@@ -47,6 +47,8 @@ public final class EmojiText {
         @Override protected boolean removeEldestEntry(Map.Entry<String, String> eldest) { return size() > 512; }
     };
     private static volatile boolean enabled = true;
+    private static volatile boolean hideInScoreboard = true;
+    private static final ThreadLocal<Boolean> SUPPRESSED = new ThreadLocal<>();
 
     static {
         ArrayList<Entry> entries = new ArrayList<>();
@@ -86,13 +88,22 @@ public final class EmojiText {
         return found < 0 ? null : new Match(found, end);
     }
     public static List<Entry> entries() { return ENTRIES; }
-    public static boolean enabled() { return enabled; }
+    public static boolean enabled() { return enabled && SUPPRESSED.get() == null; }
     public static void setEnabled(boolean value) { enabled = value; }
+    public static void setHideInScoreboard(boolean value) { hideInScoreboard = value; }
+    public static boolean beginScoreboard() {
+        boolean previous = SUPPRESSED.get() != null;
+        if (hideInScoreboard) SUPPRESSED.set(Boolean.TRUE);
+        return previous;
+    }
+    public static void endScoreboard(boolean previous) {
+        if (previous) SUPPRESSED.set(Boolean.TRUE); else SUPPRESSED.remove();
+    }
     public static boolean isGlyph(int codepoint) { return codepoint >= FIRST_GLYPH && codepoint < FIRST_GLYPH + ENTRIES.size(); }
     public static int index(int codepoint) { return isGlyph(codepoint) ? codepoint - FIRST_GLYPH : -1; }
 
     public static String display(String text) {
-        if (!enabled || text == null || text.isEmpty()) return text;
+        if (!enabled() || text == null || text.isEmpty()) return text;
         synchronized (CACHE) {
             String cached = CACHE.get(text);
             if (cached != null) return cached;

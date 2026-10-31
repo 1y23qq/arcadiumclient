@@ -30,6 +30,13 @@ public final class SharedGameOptions {
         int separator = line.indexOf(':');
         if (separator < 1) return line;
         String key = line.substring(0, separator);
+        if (key.equals("ao") || key.equals("oneconfig_legacy_ao")) {
+            String value = values.getOrDefault("ao", values.get("oneconfig_legacy_ao"));
+            String hint = values.get("oneconfig_legacy_ao");
+            if ("false".equals(value)) return "ao:0";
+            if ("true".equals(value)) return "ao:" + ("1".equals(hint) ? "1" : "2");
+            if ("0".equals(value) || "1".equals(value) || "2".equals(value)) return "ao:" + value;
+        }
         if (key.equals("clouds") || key.equals("renderClouds")) {
             String clouds = values.getOrDefault("renderClouds", values.getOrDefault("clouds", "true"));
             return legacy ? "clouds:" + !clouds.equals("false") : "renderClouds:" + clouds;
@@ -76,6 +83,7 @@ public final class SharedGameOptions {
         private final Map<String, String> previous;
         private final boolean legacy;
         private boolean failed;
+        private boolean completed;
 
         private Transaction(Path source, Path temporary, Map<String, String> previous, boolean legacy) {
             this.source = source;
@@ -86,15 +94,26 @@ public final class SharedGameOptions {
 
         public Path temporary() { return temporary; }
         public void fail() { failed = true; }
+        public void complete() { completed = true; }
 
-        public void commit() throws IOException {
-            if (failed) throw new IOException("Minecraft could not finish writing its options.");
+        public void commit() throws IOException { commit(-1); }
+
+        public void commit(int ambientOcclusion) throws IOException {
+            if (failed || !completed) throw new IOException("Minecraft could not finish writing its options.");
             var written = read(temporary);
-            if (!written.containsKey("mouseSensitivity") || !written.containsKey("key_key.attack")) {
+            if (!written.containsKey("mouseSensitivity")) {
                 throw new IOException("Minecraft did not finish writing its options.");
             }
+            var merged = merge(previous, written, legacy);
+            if (ambientOcclusion >= 0 && ambientOcclusion <= 2) {
+                boolean modernAo = false;
+                try { modernAo = Integer.parseInt(merged.getOrDefault("version", "0")) >= 3214; }
+                catch (NumberFormatException ignored) { }
+                merged.put("ao", modernAo ? Boolean.toString(ambientOcclusion != 0) : Integer.toString(ambientOcclusion));
+                merged.put("oneconfig_legacy_ao", Integer.toString(ambientOcclusion));
+            }
             var text = new StringBuilder();
-            merge(previous, written, legacy).forEach((key, value) -> text.append(key).append(':').append(value).append('\n'));
+            merged.forEach((key, value) -> text.append(key).append(':').append(value).append('\n'));
             Files.writeString(temporary, text, StandardCharsets.UTF_8);
             try {
                 Files.move(temporary, source, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);

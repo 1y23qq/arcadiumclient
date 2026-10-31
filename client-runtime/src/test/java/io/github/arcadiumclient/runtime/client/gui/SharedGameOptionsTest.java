@@ -20,6 +20,7 @@ class SharedGameOptionsTest {
         Files.writeString(file, REQUIRED + "useVbo:true\nentityShadows:false\nrenderClouds:fast\nmodelPart_hat:false\nkey_key.streamStartStop:64\nresourcePacks:[\"folder/pack.zip\"]\n");
         try (var transaction = SharedGameOptions.begin(file, true)) {
             Files.writeString(transaction.temporary(), REQUIRED + "clouds:true\nshowCape:false\ngamma:0.75\nkey_key.forward:34\n");
+            transaction.complete();
             transaction.commit();
         }
         var saved = SharedGameOptions.read(file);
@@ -39,6 +40,7 @@ class SharedGameOptionsTest {
         Files.writeString(file, REQUIRED + "advancedOpengl:true\nanisotropicFiltering:8\nclouds:true\nshowCape:true\nunknownModSetting:scheme:value\n");
         try (var transaction = SharedGameOptions.begin(file, false)) {
             Files.writeString(transaction.temporary(), REQUIRED + "renderClouds:false\nmodelPart_cape:false\n");
+            transaction.complete();
             transaction.commit();
         }
         var saved = SharedGameOptions.read(file);
@@ -82,5 +84,36 @@ class SharedGameOptionsTest {
             assertThrows(IOException.class, transaction::commit);
         }
         assertEquals(REQUIRED + "guiScale:3\n", Files.readString(file));
+    }
+
+    @Test void completedWritesDoNotRequireAFilteredOrRenamedAttackBinding() throws Exception {
+        Path file = directory.resolve("options.txt");
+        Files.writeString(file, REQUIRED + "resourcePacks:[]\n");
+        try (var transaction = SharedGameOptions.begin(file, false)) {
+            Files.writeString(transaction.temporary(), "mouseSensitivity:0.73\ngamma:0.62\nresourcePacks:[\"日本語.zip\"]\n");
+            transaction.complete();
+            transaction.commit();
+        }
+        var saved = SharedGameOptions.read(file);
+        assertEquals("0.73", saved.get("mouseSensitivity"));
+        assertEquals("[\"日本語.zip\"]", saved.get("resourcePacks"));
+        assertEquals("-100", saved.get("key_key.attack"));
+    }
+
+    @Test void minimumSmoothLightingSurvivesModernBooleanOptionsAndLaterChanges() throws Exception {
+        Path file = directory.resolve("options.txt");
+        Files.writeString(file, REQUIRED + "version:4671\nao:true\n");
+        assertEquals("ao:2", SharedGameOptions.forLoad("ao:true", SharedGameOptions.read(file), false));
+        try (var transaction = SharedGameOptions.begin(file, false)) {
+            Files.writeString(transaction.temporary(), REQUIRED + "version:4671\nao:true\n");
+            transaction.complete(); transaction.commit(1);
+        }
+        var saved = SharedGameOptions.read(file);
+        assertEquals("true", saved.get("ao"));
+        assertEquals("ao:1", SharedGameOptions.forLoad("ao:true", saved, false));
+        saved.put("ao", "false");
+        assertEquals("ao:0", SharedGameOptions.forLoad("ao:1", saved, true));
+        saved.put("ao", "true"); saved.put("oneconfig_legacy_ao", "0");
+        assertEquals("ao:2", SharedGameOptions.forLoad("ao:true", saved, false));
     }
 }

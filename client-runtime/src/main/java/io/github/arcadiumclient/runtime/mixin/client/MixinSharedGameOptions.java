@@ -23,6 +23,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 @Mixin(GameOptions.class)
 public abstract class MixinSharedGameOptions {
     @Shadow private File file;
+    @Shadow public int ambientOcclusion;
     @Unique private Map<String, String> arcadium$loadedOptions = Map.of();
     @Unique private SharedGameOptions.Transaction arcadium$optionsTransaction;
 
@@ -50,7 +51,7 @@ public abstract class MixinSharedGameOptions {
             arcadium$optionsTransaction = transaction;
             file = transaction.temporary().toFile();
             original.call();
-            transaction.commit();
+            transaction.commit(ambientOcclusion);
         } catch (IOException failure) {
             LogManager.getLogger("Arcadium").error("Could not save shared Minecraft options; previous options were retained", failure);
         } finally {
@@ -62,6 +63,9 @@ public abstract class MixinSharedGameOptions {
     @Redirect(method = "save", at = @At(value = "INVOKE", target = "Ljava/io/PrintWriter;close()V"))
     private void arcadium$checkOptionsWrite(PrintWriter writer) {
         writer.close();
-        if (writer.checkError() && arcadium$optionsTransaction != null) arcadium$optionsTransaction.fail();
+        if (arcadium$optionsTransaction != null) {
+            if (writer.checkError()) arcadium$optionsTransaction.fail();
+            else arcadium$optionsTransaction.complete();
+        }
     }
 }

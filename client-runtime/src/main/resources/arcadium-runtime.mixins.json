@@ -121,7 +121,9 @@
     "compat.hybedwars.MixinMinemenHeightConfig",
     "compat.hybedwars.MixinMinemenHeightRenderer",
     "compat.polyhitbox.MixinHitboxBounds",
-    "compat.vanillahud.MixinTabListBackground"
+    "compat.vanillahud.MixinTabListBackground",
+    "client.ScoreboardEmojiMixin",
+    "compat.ScoreboardEmojiMeasureMixin"
   ],
   "injectors": {
     "defaultRequire": 1

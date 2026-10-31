@@ -73,7 +73,9 @@
     "compat.polyhitbox.MixinHitboxBounds",
     "compat.vanillahud.MixinTabListBackground",
     "NoRenderWeatherParticlesMixin",
-    "NickNameWidthMixin"
+    "NickNameWidthMixin",
+    "ScoreboardEmojiMixin",
+    "compat.ScoreboardEmojiMeasureMixin"
   ],
   "injectors": {
     "defaultRequire": 1

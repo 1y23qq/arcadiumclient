@@ -65,7 +65,7 @@ public abstract class EmojiFontMixin {
 
     @WrapMethod(method = "getWidth(C)I")
     private int arcadium$emojiWidth(char glyph, Operation<Integer> original) {
-        return EmojiText.enabled() && EmojiText.isGlyph(glyph) ? EmojiText.ADVANCE : original.call(glyph);
+        return EmojiText.isGlyph(glyph) && EmojiText.enabled() ? EmojiText.ADVANCE : original.call(glyph);
     }
 
     @WrapMethod(method = "trim(Ljava/lang/String;I)Ljava/lang/String;")

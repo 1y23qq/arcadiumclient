@@ -74,7 +74,9 @@
     "compat.evergreenhud.MixinTpsHud",
     "compat.polyhitbox.MixinBadlionHitboxStyle",
     "compat.polyhitbox.MixinHitboxBounds",
-    "compat.vanillahud.MixinTabListBackground"
+    "compat.vanillahud.MixinTabListBackground",
+    "ScoreboardEmojiMixin",
+    "compat.ScoreboardEmojiMeasureMixin"
   ],
   "injectors": {
     "defaultRequire": 1

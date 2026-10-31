@@ -106,6 +106,7 @@ public final class ModernGuiQa implements ClientModInitializer {
             }
             Files.createDirectories(output);
             ClientPreferences.setSetupComplete(true);
+            if (Boolean.getBoolean("arcadium.guiQa.scoreboard060Only")) { Scoreboard060Proof.verify(minecraft, output); complete = true; minecraft.stop(); return; }
             initialBlur = MenuPreferences.getTitleBlurPercent();
             initialPanoramaSpeed = minecraft.options.panoramaSpeed().get();
             seedPacks();

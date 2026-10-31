@@ -92,7 +92,9 @@
     "client.access.HttpSkinImageAccessor",
     "client.MixinLegacySkinTextureReload",
     "client.MixinLegacyFullbright",
-    "client.MixinLegacyFov"
+    "client.MixinLegacyFov",
+    "client.ScoreboardEmojiMixin",
+    "compat.ScoreboardEmojiMeasureMixin"
   ],
   "injectors": {
     "defaultRequire": 1

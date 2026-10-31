@@ -13,7 +13,8 @@
     "NativeGlintDrawQaMixin",
     "NativeHandAttemptQaMixin",
     "NativeHandReturnQaMixin",
-    "NativeGlintTintQaMixin"
+    "NativeGlintTintQaMixin",
+    "FontSource060Access"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -9,7 +9,31 @@ import org.junit.jupiter.api.Test;
 import javax.imageio.ImageIO;
 
 class EmojiTextTest {
-    @AfterEach void enabled() { EmojiText.setEnabled(true); }
+    @AfterEach void enabled() { EmojiText.setEnabled(true); EmojiText.setHideInScoreboard(true); EmojiText.endScoreboard(false); }
+
+    @Test void scoreboardScopeKeepsTextAndRestoresNestedChatRendering() {
+        String text = "Score :smile: 😀";
+        assertNotEquals(text, EmojiText.display(text));
+        boolean previous = EmojiText.beginScoreboard();
+        try {
+            assertEquals(text, EmojiText.display(text));
+            boolean nested = EmojiText.beginScoreboard();
+            try { assertFalse(EmojiText.enabled()); } finally { EmojiText.endScoreboard(nested); }
+            assertFalse(EmojiText.enabled());
+            assertTrue(java.util.concurrent.CompletableFuture.supplyAsync(EmojiText::enabled).join());
+        } finally { EmojiText.endScoreboard(previous); }
+        assertNotEquals(text, EmojiText.display(text));
+    }
+
+    @Test void scoreboardOverrideDoesNotEnableGloballyDisabledEmoji() {
+        EmojiText.setHideInScoreboard(false);
+        boolean previous = EmojiText.beginScoreboard();
+        try { assertNotEquals(":smile:", EmojiText.display(":smile:")); } finally { EmojiText.endScoreboard(previous); }
+        EmojiText.setEnabled(false);
+        previous = EmojiText.beginScoreboard();
+        try { assertEquals(":smile:", EmojiText.display(":smile:")); } finally { EmojiText.endScoreboard(previous); }
+        assertFalse(EmojiText.enabled());
+    }
 
     @Test void replacesSupportedRunsWithoutChangingFormattingOrUnknownShortcodes() {
         String raw = "§aHi :smile: :unknown: 😀 ❤️ テスト";

@@ -20,6 +20,8 @@ object ChatTweaksConfig : Config("chattweaks.json", "Chat Tweaks", Category.QOL)
     var emoji = true
     @JvmStatic @Switch(title = "Show Emoji Picker", description = "Open the picker in chat with the Emoji button or Ctrl+Space.", subcategory = "Emoji")
     var showEmojiPicker = true
+    @JvmStatic @Switch(title = "Disable Emoji in Scoreboard", description = "Keep scoreboard text in its original form without emoji images.", subcategory = "Emoji")
+    var hideEmojiInScoreboard = true
     @JvmStatic @Switch(title = "Remove Blank Messages", subcategory = "Cleanup") var removeBlankMessages = false
     @JvmStatic @Slider(title = "Chat History Limit", min = 100f, max = 16384f, step = 1f, subcategory = "History")
     var increaseChatHistoryLimit = 1000
@@ -68,6 +70,8 @@ object ChatTweaksConfig : Config("chattweaks.json", "Chat Tweaks", Category.QOL)
         super.initialize(byConfigManager)
         val tree = tree ?: return
         EmojiText.setEnabled(emoji)
+        EmojiText.setHideInScoreboard(hideEmojiInScoreboard)
+        tree.getProp("hideEmojiInScoreboard")?.addCallback { value -> EmojiText.setHideInScoreboard(value == true); false }
         tree.getProp("emoji")?.addCallback { value ->
             EmojiText.setEnabled(value == true)
             ChatTweaks.requestRefresh()
