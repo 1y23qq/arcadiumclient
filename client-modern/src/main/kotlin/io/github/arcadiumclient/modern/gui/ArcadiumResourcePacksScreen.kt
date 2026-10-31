@@ -482,7 +482,8 @@ private class PackView(val entry: Pack) {
     }
     val compatibility = file?.let {
         val current = SharedConstants.getCurrentVersion().packVersion(PackType.CLIENT_RESOURCES)
-        ResourcePackCompatibility.read(it.toPath(), current.major(), current.minor())
+        if (io.github.arcadiumclient.shared.packs.PackConversion.prepared(it.toPath(), io.github.arcadiumclient.shared.packs.PackConversion.Target(current.major(), current.minor())))
+            ResourcePackCompatibility.Status.COMPATIBLE else ResourcePackCompatibility.read(it.toPath(), current.major(), current.minor())
     } ?: when (entry.compatibility) {
         PackCompatibility.COMPATIBLE -> ResourcePackCompatibility.Status.COMPATIBLE
         PackCompatibility.TOO_NEW -> ResourcePackCompatibility.Status.TOO_NEW
@@ -490,7 +491,7 @@ private class PackView(val entry: Pack) {
     }
     val compatible: Boolean = compatibility == ResourcePackCompatibility.Status.COMPATIBLE
     val icon: ImageBitmap? by lazy {
-        file?.let { ResourcePackImages.read(it.toPath())?.let(::menuImage) } ?: runCatching {
+        if (file != null) ResourcePackImages.read(file.toPath())?.let(::menuImage) else runCatching {
             entry.open().use { resources ->
                 resources.getRootResource("pack.png")?.get()?.use { image -> ResourcePackImages.read(image)?.let(::menuImage) }
             }

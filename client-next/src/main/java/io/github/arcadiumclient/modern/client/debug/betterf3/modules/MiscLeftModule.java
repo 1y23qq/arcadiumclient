@@ -1,0 +1,101 @@
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2020-2026 cominixo / TreyRuffy. Adapted for Arcadium.
+package io.github.arcadiumclient.modern.client.debug.betterf3.modules;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import io.github.arcadiumclient.modern.client.debug.betterf3.utils.DebugLineList;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.chat.TextColor;
+
+/**
+ * The Misc left module.
+ */
+public class MiscLeftModule extends BaseModule {
+
+    private static final List<String> VANILLA_DEBUG_LEFT = Arrays.asList(
+            "Minecraft",
+            "Integrated",
+            "C:",
+            "E:",
+            "P:",
+            "Client",
+            "ServerChunkCache:",
+            "minecraft:overworld",
+            "XYZ:",
+            "Block:",
+            "Chunk:",
+            "Facing:",
+            "Waiting",
+            "SC:",
+            "Sounds:",
+            "CH",
+            "SH",
+            "Server Light:",
+            "Biome:",
+            "Local Difficulty:",
+            "Chunks[");
+    private int leftSideSize = 0;
+
+    /**
+     * Instantiates a new Misc left module.
+     */
+    public MiscLeftModule() {
+        this.defaultNameColor = TextColor.fromRgb(0xfdfd96);
+        this.defaultValueColor = legacyColor(ChatFormatting.AQUA);
+
+        this.nameColor = defaultNameColor;
+        this.valueColor = defaultValueColor;
+
+        final DebugLineList leftDebugLines = new DebugLineList("misc_left");
+        leftDebugLines.inReducedDebug = true;
+
+        lines.add(leftDebugLines);
+    }
+
+    /**
+     * Does nothing.
+     *
+     * @param client the Minecraft client
+     */
+    public void update(final Minecraft client) {
+        // Do nothing
+    }
+
+    /**
+     * Updates the lines.
+     *
+     * @param lines the lines
+     */
+    public void update(final List<String> lines) {
+
+        // Parse lines to find non-vanilla lines, it's a mess
+        if (!lines.isEmpty()) {
+
+            // copy of list for .remove()
+            final List<String> listCopy = new ArrayList<>(lines);
+
+            for (final String s : listCopy) {
+                if (s.isEmpty()) {
+                    lines.remove(s);
+                }
+                final String[] stringSplit = s.split(" ");
+
+                for (final String vanilla : VANILLA_DEBUG_LEFT) {
+
+                    if (s.startsWith(vanilla) || (stringSplit.length > 1 && stringSplit[1].equals("fps"))) {
+                        lines.remove(s);
+                    }
+                    if (s.contains("tx") && s.contains("rx")) {
+                        // Have to do this to check if it is a vanilla server info line.
+                        lines.remove(s);
+                    }
+                }
+            }
+            this.leftSideSize = lines.size();
+        }
+        ((DebugLineList) this.lines.getFirst()).values(lines);
+    }
+}

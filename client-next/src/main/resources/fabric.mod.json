@@ -32,7 +32,8 @@
     "arcadium-glint.mixins.json",
     "arcadium-baseline-compat.mixins.json",
     "arcadium-modern-profiles.mixins.json",
-    "arcadium-native-migration.mixins.json"
+    "arcadium-native-migration.mixins.json",
+    "arcadium-debug-data.mixins.json"
   ],
   "depends": {
     "minecraft": "26.2",
@@ -42,5 +43,6 @@
     "oneconfigv1": ">=1.5.0",
     "yet_another_config_lib_v3": ">=3.9.7",
     "fabric-language-kotlin": ">=1.13.13"
-  }
+  },
+  "accessWidener": "arcadium-debug.accesswidener"
 }

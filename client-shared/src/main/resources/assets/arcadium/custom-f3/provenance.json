@@ -1,0 +1,8 @@
+{
+  "repository": "https://github.com/TreyRuffy/BetterF3",
+  "commits": {
+    "client-modern": "74e4c046c5c957a6ae2f1c886a4811cd227ba5d7",
+    "client-next": "0060468aa157ccb9bf1aabf2f3105313c73a187e"
+  },
+  "license": "MIT"
+}

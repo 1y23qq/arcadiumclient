@@ -35,6 +35,12 @@ object Skin3DConfig : Config("arcadium-3d-skin.json", "3D Skin", Category.VISUAL
     @JvmStatic @Slider(title = "Render Distance", description = "Use normal skin layers beyond this distance.", min = 4f, max = 64f, step = 1f)
     var distance = 24
 
+    @JvmStatic @Switch(title = "Adaptive Detail", description = "Prioritize nearby players in crowded areas.", category = "Performance")
+    var adaptiveDetail = true
+
+    @JvmStatic @Slider(title = "Detailed Players", description = "Maximum nearby players with voxel skin layers when Adaptive Detail is enabled.", min = 4f, max = 64f, step = 1f, category = "Performance")
+    var detailedPlayers = 12
+
     private var lastApplied: List<Any>? = null
     private var retryTicks = 0
     private var warned = false

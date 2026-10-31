@@ -5,6 +5,8 @@
   "plugin": "com.moulberry.mixinconstraints.ConstraintsMixinPlugin",
   "mixins": [],
   "client": [
+    "client.MixinConvertedResourcePack",
+    "compat.argentum.MixinSkinLayersInstancing",
     "client.EmojiSendMixin",
     "client.EmojiFontMixin",
     "client.EmojiChatPickerMixin",
@@ -123,7 +125,15 @@
     "compat.polyhitbox.MixinHitboxBounds",
     "compat.vanillahud.MixinTabListBackground",
     "client.ScoreboardEmojiMixin",
-    "compat.ScoreboardEmojiMeasureMixin"
+    "compat.ScoreboardEmojiMeasureMixin",
+    "client.CustomF3HudMixin",
+    "client.CustomF3OverlayMixin",
+    "client.CustomF3HotkeyMixin",
+    "client.CustomF3AxisMixin",
+    "compat.argentum.MixinSkinDetailBudget",
+    "client.access.SoundManagerDebugAccess",
+    "client.access.SoundEngineDebugAccess",
+    "client.CustomF3NetworkMixin"
   ],
   "injectors": {
     "defaultRequire": 1

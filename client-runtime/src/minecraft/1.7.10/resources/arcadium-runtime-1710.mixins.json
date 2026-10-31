@@ -94,7 +94,13 @@
     "client.MixinLegacyFullbright",
     "client.MixinLegacyFov",
     "client.ScoreboardEmojiMixin",
-    "compat.ScoreboardEmojiMeasureMixin"
+    "compat.ScoreboardEmojiMeasureMixin",
+    "client.CustomF3HudMixin",
+    "client.MixinConvertedResourcePack",
+    "client.CustomF3HotkeyMixin",
+    "client.access.SoundManagerDebugAccess",
+    "client.access.SoundEngineDebugAccess",
+    "client.CustomF3NetworkMixin"
   ],
   "injectors": {
     "defaultRequire": 1

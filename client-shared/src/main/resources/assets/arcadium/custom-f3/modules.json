@@ -1,0 +1,243 @@
+[
+  {
+    "id": "chunks",
+    "title": "Chunks",
+    "lines": {
+      "chunk_sections": "Chunk Sections",
+      "chunk_culling": "Chunk Culling",
+      "pending_chunks": "Pending Chunks",
+      "pending_uploads": "Pending Uploads to GPU",
+      "available_buffers": "Available Buffers",
+      "client_chunk_cache": "Client Chunk Cache",
+      "loaded_chunks": "Loaded Chunks",
+      "loaded_chunks_server": "Loaded Chunks (Server)",
+      "forceloaded_chunks": "Forceloaded Chunks",
+      "spawn_chunks": "Spawn Chunks",
+      "chunk_file": "Region File"
+    },
+    "colors": {
+      "totalColor": 16755200,
+      "enabledColor": 5635925,
+      "disabledColor": 16733525,
+      "nameColor": 43775,
+      "valueColor": 16777045
+    }
+  },
+  {
+    "id": "coords",
+    "title": "Coordinates",
+    "lines": {
+      "player_coords": "Player Coords",
+      "block_coords": "Block",
+      "chunk_relative_coords": "Chunk Relative",
+      "chunk_coords": "Chunk Coordinates",
+      "velocity": "Velocity",
+      "absolute_velocity": "Absolute Velocity",
+      "horizontal_velocity": "Horizontal Velocity"
+    },
+    "colors": {
+      "colorX": 16733525,
+      "colorY": 5635925,
+      "colorZ": 5636095,
+      "nameColor": 16733525
+    }
+  },
+  {
+    "id": "empty",
+    "title": "Separator",
+    "lines": {
+      "nothing": "Blank Line"
+    },
+    "colors": {}
+  },
+  {
+    "id": "entity",
+    "title": "Entities",
+    "lines": {
+      "particles": "Particles",
+      "entities": "Entities",
+      "monster": "Monsters",
+      "creature": "Creatures",
+      "ambient": "Ambient",
+      "axolotls": "Axolotls",
+      "underground_water_creature": "Underground Water Creatures",
+      "water_creature": "Water Creatures",
+      "water_ambient": "Water Ambient",
+      "misc": "Misc"
+    },
+    "colors": {
+      "totalColor": 16755200,
+      "nameColor": 16733525,
+      "valueColor": 16777045
+    }
+  },
+  {
+    "id": "fps",
+    "title": "FPS",
+    "lines": {
+      "fps": "Fps"
+    },
+    "colors": {
+      "colorHigh": 5635925,
+      "colorMed": 16777045,
+      "colorLow": 16733525
+    }
+  },
+  {
+    "id": "graphics",
+    "title": "Graphics",
+    "lines": {
+      "render_distance": "Render Distance",
+      "graphics": "Graphics",
+      "clouds": "Clouds",
+      "biome_blend_radius": "Biome Blend Radius",
+      "shader": "Shader"
+    },
+    "colors": {
+      "nameColor": 16755200,
+      "valueColor": 5636095
+    }
+  },
+  {
+    "id": "help",
+    "title": "Help",
+    "lines": {
+      "pie_graph_new": "Pie Graph (F3+1)",
+      "fps_tps_new": "FPS / TPS (F3+2)",
+      "ping": "Ping / Bandwidth (F3+3)",
+      "help": "For help"
+    },
+    "colors": {
+      "enabledColor": 5635925,
+      "disabledColor": 16733525,
+      "nameColor": 16645526,
+      "valueColor": 5636095
+    }
+  },
+  {
+    "id": "location",
+    "title": "Location",
+    "lines": {
+      "dimension": "Dimension",
+      "facing": "Facing",
+      "rotation": "Rotation",
+      "light": "Light",
+      "light_server": "Light (Server)",
+      "highest_block": "Highest Block",
+      "highest_block_server": "Highest Block (Server)",
+      "biome": "Biome",
+      "local_difficulty": "Local Difficulty",
+      "day_ticks": "Current Day Ticks",
+      "days_played": "Days Played",
+      "slime_chunk": "Slime Chunk"
+    },
+    "colors": {
+      "nameColor": 43520,
+      "valueColor": 5636095
+    }
+  },
+  {
+    "id": "minecraft",
+    "title": "Minecraft",
+    "lines": {
+      "minecraft": "Minecraft"
+    },
+    "colors": {
+      "nameColor": 10506797,
+      "valueColor": 43520
+    }
+  },
+  {
+    "id": "miscleft",
+    "title": "Misc Left",
+    "lines": {
+      "misc_left": "Misc Left"
+    },
+    "colors": {
+      "nameColor": 16645526,
+      "valueColor": 5636095
+    }
+  },
+  {
+    "id": "miscright",
+    "title": "Misc Right",
+    "lines": {
+      "misc_right": "Misc Right"
+    },
+    "colors": {
+      "nameColor": 16645526,
+      "valueColor": 5636095
+    }
+  },
+  {
+    "id": "server",
+    "title": "Server",
+    "lines": {
+      "server_tick": "Server Tick",
+      "packets_sent": "Packets Sent",
+      "packets_received": "Packets Received",
+      "tick_manager_status": "Tick Manager Status"
+    },
+    "colors": {
+      "nameColor": 11184810,
+      "valueColor": 16777045
+    }
+  },
+  {
+    "id": "sound",
+    "title": "Sounds",
+    "lines": {
+      "sounds": "Sounds",
+      "ambient_sounds": "Ambient Sounds",
+      "mood": "Mood"
+    },
+    "colors": {
+      "maximumColor": 43690,
+      "nameColor": 16755200,
+      "valueColor": 5636095
+    }
+  },
+  {
+    "id": "system",
+    "title": "System",
+    "lines": {
+      "time": "Current Time",
+      "java_version": "Java Version",
+      "memory_usage": "Memory Usage",
+      "allocation_rate": "Allocation Rate",
+      "allocated_memory": "Allocated Memory",
+      "cpu": "CPU",
+      "display": "Display",
+      "gpu": "GPU",
+      "gpu_utilization": "GPU Utilization",
+      "opengl_version": "OpenGL Version",
+      "gpu_driver": "GPU Driver",
+      "os": "Operating System"
+    },
+    "colors": {
+      "nameColor": 16755200,
+      "valueColor": 5636095
+    }
+  },
+  {
+    "id": "target",
+    "title": "Targeted",
+    "lines": {
+      "targeted_block": "Targeted Block",
+      "id_block": "Block ID",
+      "block_states": "Block States",
+      "block_tags": "Block Tags",
+      "nothing": "Blank Line",
+      "targeted_fluid": "Targeted Fluid",
+      "id_fluid": "Fluid ID",
+      "fluid_states": "Fluid States",
+      "fluid_tags": "Fluid Tags",
+      "nothing2": "Another Blank Line",
+      "targeted_entity": "Targeted Entity"
+    },
+    "colors": {
+      "nameColor": 43775,
+      "valueColor": 16777045
+    }
+  }
+]

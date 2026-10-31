@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "io.github.arcadiumclient"
-version = "0.6.1"
+version = "0.6.2"
 base.archivesName = "ArcadiumRuntime"
 val minecraftVersion = providers.gradleProperty("minecraftVersion").getOrElse("1.8.9")
 require(minecraftVersion in setOf("1.7.10", "1.8.9")) { "Unsupported Minecraft version: $minecraftVersion" }
@@ -70,6 +70,7 @@ for (artifact in networkClosure.resolvedConfiguration.resolvedArtifacts) {
 }
 
 java { toolchain.languageVersion.set(JavaLanguageVersion.of(25)) }
+sourceSets.main { java.srcDir("../client-shared/src/main/java"); resources.srcDir("../client-shared/src/main/resources") }
 kotlin { jvmToolchain(25) }
 tasks.withType<JavaCompile>().configureEach { options.encoding = "UTF-8" }
 tasks.test { useJUnitPlatform() }
@@ -142,7 +143,7 @@ if (minecraftVersion == "1.7.10") {
                 "**/client/GuiTextInputMixin.java", "**/compat/ComposeTextInputAccess.java",
                 "**/client/ChatInputLimitMixin.java",
                 "**/client/access/ChatScreenAccessor.java", "**/features/RodThickness.kt", "**/features/PasswordHider.kt",
-                "**/compat/forge/**")
+                "**/compat/forge/**", "**/client/CustomF3OverlayMixin.java", "**/client/CustomF3AxisMixin.java", "**/compat/argentum/MixinSkinLayersInstancing.java", "**/compat/argentum/MixinSkinDetailBudget.java", "**/features/SkinDetailBudget.java")
             replacements.forEach { exclude("java/$it", "kotlin/$it") }
         }
         into(layout.buildDirectory.dir("generated/main"))
@@ -151,7 +152,7 @@ if (minecraftVersion == "1.7.10") {
             val patches = groovy.json.JsonSlurper().parse(patchFile.asFile) as Map<String, List<Map<String, String>>>
             val directory = layout.buildDirectory.dir("generated/main").get().asFile
             directory.walkTopDown().filter { it.isFile && it.extension in setOf("java", "kt") }.forEach { source ->
-                var text = file("src/main/" + source.relativeTo(directory).invariantSeparatorsPath).readText(Charsets.UTF_8)
+                var text = file("src/main/" + source.relativeTo(directory).invariantSeparatorsPath).readText(Charsets.UTF_8).replace("\r\n", "\n")
                 for (patch in patches["*"] ?: emptyList()) text = text.replace(patch.getValue("from"), patch.getValue("to"))
                 for (patch in patches[source.relativeTo(directory).invariantSeparatorsPath] ?: emptyList()) {
                     check(text.contains(patch.getValue("from"))) { "Legacy source patch no longer matches ${source.name}" }
@@ -162,11 +163,11 @@ if (minecraftVersion == "1.7.10") {
         }
     }
     sourceSets.main {
-        java.setSrcDirs(listOf(layout.buildDirectory.dir("generated/main/java"), nativeSources.dir("java")))
+        java.setSrcDirs(listOf(layout.buildDirectory.dir("generated/main/java"), nativeSources.dir("java"), file("../client-shared/src/main/java")))
     }
     kotlin.sourceSets.main {
         kotlin.setSrcDirs(listOf(layout.buildDirectory.dir("generated/main/kotlin"), nativeSources.dir("kotlin"),
-            layout.buildDirectory.dir("generated/main/java"), nativeSources.dir("java")))
+            layout.buildDirectory.dir("generated/main/java"), nativeSources.dir("java"), file("../client-shared/src/main/java")))
     }
     tasks.withType<JavaCompile>().configureEach { dependsOn(generateLegacySources) }
     tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach { dependsOn(generateLegacySources) }
@@ -174,7 +175,7 @@ if (minecraftVersion == "1.7.10") {
         val patchFile = layout.projectDirectory.file("legacy-source-patches.json")
         inputs.file(patchFile)
         from("src/test") {
-            exclude("**/client/bedwars/**", "**/CeraLightmapColorProbe.java", "**/BundledSkinMeshProbe.java")
+            exclude("**/client/bedwars/**", "**/CeraLightmapColorProbe.java", "**/BundledSkinMeshProbe.java", "**/SkinInstancingTest.java", "**/SkinDetailBudgetTest.java")
         }
         into(layout.buildDirectory.dir("generated/test"))
         doLast {

@@ -12,7 +12,7 @@ import tarfile
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE_DIRECTORIES = {".cargo", ".github", ".sqlx", "ci", "client-forge1710", "client-runtime", "client-modern", "client-next", "client-legacy-performance", "client-legacy-mods", "client-ui", "distribution", "docs", "forge-compat", "game-branding", "licenses", "packages", "scripts", "services", "sites"}
+SOURCE_DIRECTORIES = {".cargo", ".github", ".sqlx", "ci", "client-forge1710", "client-runtime", "client-modern", "client-next", "client-shared", "client-legacy-performance", "client-legacy-mods", "client-ui", "distribution", "docs", "forge-compat", "game-branding", "licenses", "packages", "scripts", "services", "sites"}
 SOURCE_ROOT_FILES = {".editorconfig", ".gitattributes", ".gitignore", ".mailmap", "ATTRIBUTION.md", "CHANGELOG.md", "CODE_OF_CONDUCT.md", "CONTRIBUTING.md", "Cargo.lock", "Cargo.toml", "LICENSE", "NOTICE.md", "README.md", "clippy.toml", "rust-toolchain.toml", "rustfmt.toml"}
 WRAPPERS = {f"{project}/gradle/wrapper/gradle-wrapper.jar" for project in ["client-runtime", "client-modern", "client-legacy-performance", "client-ui", "game-branding"]}
 WRAPPERS.add("client-legacy-mods/guiblur/gradle/wrapper/gradle-wrapper.jar")

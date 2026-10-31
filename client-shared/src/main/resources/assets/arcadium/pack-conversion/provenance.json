@@ -1,0 +1,17 @@
+{
+  "repository": "https://github.com/agentdid127/ResourcePackConverter",
+  "commit": "63ba2cd40294be9436a09c22ad49fb9f1b31e1e0",
+  "license": "MIT",
+  "files": "Forwards texture rename tables and atlas slice descriptions",
+  "slicer": {
+    "repository": "https://github.com/Mojang/slicer",
+    "commit": "cc3ef7e12b9cdb188788c2637604b9efb35d18d6",
+    "license": "MIT",
+    "recipes": "26.2 bed and sign atlas layouts"
+  },
+  "texturePaths262": {
+    "source": "Minecraft 1.21.11 and 26.2 client resource indexes",
+    "entries": 86,
+    "contents": "File names only; no Minecraft textures are distributed."
+  }
+}

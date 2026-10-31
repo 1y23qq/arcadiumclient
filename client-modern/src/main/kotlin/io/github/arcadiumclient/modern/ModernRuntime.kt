@@ -37,6 +37,7 @@ class ModernRuntime : ClientModInitializer {
             "Hurt Camera" to { BetterHurtCamConfig.initialize() },
             "Glint" to { io.github.arcadiumclient.modern.client.glint.ModernGlint.initialize() },
             "3D Skin" to { Skin3DConfig.initialize() },
+            "Custom F3" to { CustomF3Config.initialize() },
             "AutoText" to { AutoText.initialize() },
             "Chat" to { ChatTweaksConfig.initialize(); ChatFiltersConfig.initialize() },
             "Crosshair" to { LegacyCrosshairTweaks.initialize(); CustomCrosshairConfig.preload(); CustomCrosshair.initialize() },

@@ -138,9 +138,8 @@ class ArcadiumVideoSettingsScreen private constructor(private val model: VideoSe
         Theme {
             ArcadiumMenuWindow(if (page == VideoPage.MAIN) "Video settings" else "Video settings / ${page.title}", error, ::close,
                 maxWidth = 920.dp, maxHeight = if (page == VideoPage.MAIN) 600.dp else 780.dp, dimBackground = false) {
-                if (page != VideoPage.MAIN) {
-                    UiTextField(query, { query = it }, Modifier.fillMaxWidth(), "Search settings...")
-                }
+                UiTextField(query, { query = it }, Modifier.fillMaxWidth(),
+                    if (page == VideoPage.MAIN) "Search all video settings..." else "Search settings...")
                 BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
                     val compact = maxHeight < 360.dp
                     val dense = maxHeight < 432.dp
@@ -159,7 +158,7 @@ class ArcadiumVideoSettingsScreen private constructor(private val model: VideoSe
                             Modifier.fillMaxSize().verticalScroll(scroll).padding(end = if (scroll.maxValue > 0) 12.dp else 2.dp),
                             verticalArrangement = Arrangement.spacedBy(gap),
                         ) {
-                            if (current == VideoPage.MAIN) {
+                            if (current == VideoPage.MAIN && query.isBlank()) {
                                 val byKey = model.options.associateBy { it.key }
                                 VideoSettingsLayout.mainRows.forEach { (left, right) ->
                                     val first = byKey[left] ?: if (left == "dynamic_lights") byKey["clouds"] else null
@@ -184,7 +183,8 @@ class ArcadiumVideoSettingsScreen private constructor(private val model: VideoSe
                                 }
                             } else {
                                 val visible = model.options.filter {
-                                    it.page == current && (query.isBlank() || it.label.contains(query, true) || it.description.contains(query, true))
+                                    (current == VideoPage.MAIN || it.page == current) &&
+                                        (query.isBlank() || it.label.contains(query, true) || it.description.contains(query, true) || it.key.contains(query, true))
                                 }
                                 if (visible.isEmpty()) UiText("No matching settings.", 13.sp, Modifier.padding(12.dp), color = UiTextSecondary)
                                 visible.groupBy { it.group }.forEach { (group, options) ->

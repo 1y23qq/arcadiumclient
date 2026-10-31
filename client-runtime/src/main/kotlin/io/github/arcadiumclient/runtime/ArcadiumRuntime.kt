@@ -25,6 +25,7 @@ class ArcadiumRuntime : ClientModInitializer {
             "Light Level" to { LightLevelOverlay.initialize() },
             "NoRender" to { NoRender.initialize() },
             "3D Skin" to { Skin3DConfig.initialize() },
+            "Custom F3" to { CustomF3Config.initialize() },
             "Skin library" to { io.github.arcadiumclient.runtime.client.skins.SkinChanger.initialize() },
             "Kill Effects" to { KillEffectsConfig.initialize() },
             "Cute Visuals" to { CuteVisualsConfig.initialize() },

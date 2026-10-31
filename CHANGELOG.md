@@ -1,3 +1,10 @@
+## 0.6.2
+
+- Added cross-version resource pack support.
+- Search all video settings from the main page.
+- Added Custom F3 with configurable modules and hardware text.
+- Fixed third-person 3D skins and reduced their rendering overhead.
+
 ## 0.6.1
 
 - Faster keyless Bedwars stats loading when providers are slow or stalled.

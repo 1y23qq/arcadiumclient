@@ -65,11 +65,11 @@ fun org.gradle.api.file.SourceDirectorySet.inheritSources(kind: String, language
     setSrcDirs(listOf(shared.toFile(), overrides))
     exclude { element ->
         val inherited = element.file.toPath().toAbsolutePath().normalize().startsWith(shared)
-        inherited && (overrides.resolve(element.path).isFile || kind == "main" && language == "java" && element.path in setOf(
+        inherited && (overrides.resolve(element.path).isFile || kind == "main" && language == "java" && (element.path.startsWith("io/github/arcadiumclient/modern/client/debug/betterf3/") || element.path in setOf(
             "io/github/arcadiumclient/modern/client/glint/mixin/GlintBufferMixin.java",
             "io/github/arcadiumclient/modern/client/glint/mixin/GlintUniformMixin.java",
             "io/github/arcadiumclient/modern/client/glint/mixin/ImmediatelyFastGlintMixin.java",
-        ))
+        )))
     }
 }
 
@@ -84,6 +84,7 @@ tasks.named<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>("compileKotlin") { 
 tasks.named<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>("compileTestKotlin") { source(sourceSets.test.get().java) }
 
 java { toolchain.languageVersion.set(JavaLanguageVersion.of(25)) }
+sourceSets.main { java.srcDir("../client-shared/src/main/java"); resources.srcDir("../client-shared/src/main/resources") }
 kotlin { jvmToolchain(25) }
 tasks.withType<JavaCompile>().configureEach { options.encoding = "UTF-8" }
 tasks.test { useJUnitPlatform() }
@@ -174,3 +175,5 @@ tasks.register<Jar>("guiQaJar") {
     from(guiQaSource.output)
     archiveClassifier.set("gui-qa")
 }
+
+loom { accessWidenerPath.set(file("src/main/resources/arcadium-debug.accesswidener")) }

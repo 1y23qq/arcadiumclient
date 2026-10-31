@@ -44,6 +44,7 @@ public final class ModernGuiQa implements ClientModInitializer {
     private final AtomicBoolean capturePending = new AtomicBoolean();
     private Path output;
     private Minecraft minecraft;
+    private Features062Qa features062;
     private int phase = -1;
     private int ticks;
     private int totalTicks;
@@ -83,6 +84,10 @@ public final class ModernGuiQa implements ClientModInitializer {
     }
 
     private void tick() throws Exception {
+        if (Boolean.getBoolean("arcadium.guiQa.features062")) {
+            if (features062 == null) features062 = new Features062Qa(output);
+            complete = features062.tick(minecraft); return;
+        }
         QaRuntimeErrors.check();
         if (minecraft.gui.screen() != null && minecraft.gui.screen().getClass().getSimpleName().equals("CrashScreen")) throw new IllegalStateException("Native crash screen opened: " + minecraft.gui.screen().getClass().getName() + " / " + minecraft.gui.screen().getTitle().getString());
         if (++totalTicks > 4000) throw new IllegalStateException("GUI QA timed out");

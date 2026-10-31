@@ -114,3 +114,13 @@ and source evidence are in [licenses/native/forge-libraries/](licenses/native/fo
 
 This software is provided without warranty. See LICENSE for redistribution and
 source-code rights. Support: https://discord.gg/QbNfaCHjUz
+
+Custom F3 adapts debug data collectors and module definitions from
+[BetterF3](https://github.com/TreyRuffy/BetterF3), copyright 2020-2026
+cominixo / TreyRuffy, under the MIT License. See `licenses/BetterF3-MIT.txt`.
+Resource pack conversion uses MIT-licensed rename and atlas tables from
+[ResourcePackConverter](https://github.com/agentdid127/ResourcePackConverter),
+copyright 2024 agentdid127, and atlas layouts from
+[Mojang Slicer](https://github.com/Mojang/slicer), copyright Microsoft Corporation.
+Their notices are in `licenses/ResourcePackConverter-MIT.txt` and
+`licenses/Mojang-Slicer-MIT.txt`. Pinned source revisions accompany the tables.

@@ -75,7 +75,11 @@
     "NoRenderWeatherParticlesMixin",
     "NickNameWidthMixin",
     "ScoreboardEmojiMixin",
-    "compat.ScoreboardEmojiMeasureMixin"
+    "compat.ScoreboardEmojiMeasureMixin",
+    "CustomF3HudMixin",
+    "CustomF3OverlayMixin",
+    "CustomF3KeyboardMixin",
+    "CustomF3CrosshairMixin"
   ],
   "injectors": {
     "defaultRequire": 1

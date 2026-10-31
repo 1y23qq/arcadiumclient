@@ -467,7 +467,8 @@ private class PackView(val entry: ResourcePacks.UnopenedPack) {
     val searchText: String = ResourcePackSearch.text(id, title, description)
     val modified: Long = file.lastModified()
     val format: Int = runCatching { entry.format }.getOrDefault(-1)
-    val compatibility = ResourcePackCompatibility.read(file.toPath(), 1, 0)
+    val compatibility = if (io.github.arcadiumclient.shared.packs.PackConversion.prepared(file.toPath(), io.github.arcadiumclient.shared.packs.PackConversion.Target(1, 0)))
+        ResourcePackCompatibility.Status.COMPATIBLE else ResourcePackCompatibility.read(file.toPath(), 1, 0)
     val compatible: Boolean = compatibility == ResourcePackCompatibility.Status.COMPATIBLE
     val icon: ImageBitmap? by lazy {
         ResourcePackImages.read(file.toPath())?.let { SkiaImage.makeFromEncoded(it).toComposeImageBitmap() }

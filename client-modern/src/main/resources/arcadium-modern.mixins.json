@@ -76,7 +76,10 @@
     "compat.polyhitbox.MixinHitboxBounds",
     "compat.vanillahud.MixinTabListBackground",
     "ScoreboardEmojiMixin",
-    "compat.ScoreboardEmojiMeasureMixin"
+    "compat.ScoreboardEmojiMeasureMixin",
+    "CustomF3HudMixin",
+    "CustomF3OverlayMixin",
+    "CustomF3KeyboardMixin"
   ],
   "injectors": {
     "defaultRequire": 1

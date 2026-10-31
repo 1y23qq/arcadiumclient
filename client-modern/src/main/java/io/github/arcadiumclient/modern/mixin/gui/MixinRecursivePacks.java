@@ -7,6 +7,10 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.packs.PackLocationInfo;
 import net.minecraft.server.packs.PackSelectionConfig;
 import net.minecraft.server.packs.PackType;
+import net.minecraft.server.packs.FilePackResources;
+import net.minecraft.SharedConstants;
+import io.github.arcadiumclient.shared.packs.PackConversion;
+import io.github.arcadiumclient.modern.client.resourcepack.ConvertedPackSource;
 import net.minecraft.server.packs.repository.FolderRepositorySource;
 import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.repository.PackSource;
@@ -32,25 +36,32 @@ public abstract class MixinRecursivePacks {
     @Shadow @Final private PackSource packSource;
     @Shadow @Final private DirectoryValidator validator;
 
-    @Inject(method = "loadPacks", at = @At("TAIL"))
+    @Inject(method = "loadPacks", at = @At("HEAD"), cancellable = true)
     private void arcadium$nested(Consumer<Pack> output, CallbackInfo callback) {
         if (packType != PackType.CLIENT_RESOURCES) return;
         scan(folder, output, 0);
+        callback.cancel();
     }
 
     private void scan(Path parent, Consumer<Pack> output, int depth) {
         if (depth >= 16) return;
+        try {
+            FolderRepositorySource.discoverPacks(parent, validator, (path, supplier) -> {
+                String relative = folder.relativize(path).toString().replace('\\', '/');
+                var location = new PackLocationInfo("file/" + relative, Component.literal(path.getFileName().toString()), packSource, Optional.empty());
+                var version = SharedConstants.getCurrentVersion().packVersion(PackType.CLIENT_RESOURCES);
+                var resources = new ConvertedPackSource(path, folder.toAbsolutePath().getParent().resolve("arcadium/cache/resource-packs"),
+                        new PackConversion.Target(version.major(),version.minor()),supplier);
+                var pack = Pack.readMetaAndCreate(location, resources, packType, new PackSelectionConfig(false, Pack.Position.TOP, false));
+                if (pack != null) output.accept(pack);
+            });
+        } catch (IOException failure) {
+            LoggerFactory.getLogger("Arcadium Resource Packs").warn("Could not inspect resource pack folder {}", parent, failure);
+        }
         try (var children = Files.newDirectoryStream(parent)) {
             for (Path child : children) {
                 if (Files.isSymbolicLink(child) || !Files.isDirectory(child, LinkOption.NOFOLLOW_LINKS)
                         || Files.isRegularFile(child.resolve("pack.mcmeta"), LinkOption.NOFOLLOW_LINKS)) continue;
-                FolderRepositorySource.discoverPacks(child, validator, (path, supplier) -> {
-                    String relative = folder.relativize(path).toString().replace('\\', '/');
-                    var location = new PackLocationInfo("file/" + relative, Component.literal(path.getFileName().toString()), packSource, Optional.empty());
-                    var pack = Pack.readMetaAndCreate(location, supplier, packType,
-                            new PackSelectionConfig(false, Pack.Position.TOP, false));
-                    if (pack != null) output.accept(pack);
-                });
                 scan(child, output, depth + 1);
             }
         } catch (IOException failure) {

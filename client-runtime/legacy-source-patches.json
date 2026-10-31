@@ -396,5 +396,11 @@
       "from": "    @JvmStatic fun background(original: Int, ownName: Boolean = false): Int {\n        if (!enabled) return original\n        val highlight = ownName && highlightOwnName\n        return BackgroundOpacity.withAlpha(if (highlight) ownNameColor.rgb else backgroundColor.rgb,\n            if (highlight) ownNameOpacity else opacity)\n    }",
       "to": "    @JvmStatic fun background(original: Int, ownName: Boolean = false): Int =\n        if (enabled) BackgroundOpacity.withAlpha(original, opacity) else original"
     }
+  ],
+  "kotlin/io/github/arcadiumclient/runtime/client/features/Skin3DConfig.kt": [
+    {
+      "from": "    @JvmStatic @Switch(title = \"Adaptive Detail\", description = \"Prioritize nearby players in crowded areas.\", category = \"Performance\")\n    var adaptiveDetail = true\n\n    @JvmStatic @Slider(title = \"Detailed Players\", description = \"Maximum nearby players with voxel skin layers when Adaptive Detail is enabled.\", min = 4f, max = 64f, step = 1f, category = \"Performance\")\n    var detailedPlayers = 12\n\n",
+      "to": ""
+    }
   ]
 }

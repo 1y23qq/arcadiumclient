@@ -60,6 +60,7 @@ for (artifact in networkClosure.resolvedConfiguration.resolvedArtifacts) {
 }
 
 java { toolchain.languageVersion.set(JavaLanguageVersion.of(25)) }
+sourceSets.main { java.srcDir("../client-shared/src/main/java"); resources.srcDir("../client-shared/src/main/resources") }
 kotlin { jvmToolchain(25) }
 tasks.withType<JavaCompile>().configureEach { options.encoding = "UTF-8" }
 tasks.test { useJUnitPlatform() }
@@ -151,3 +152,5 @@ tasks.register<net.fabricmc.loom.task.RemapJarTask>("remapGuiQaJar") {
     archiveClassifier.set("gui-qa")
     addNestedDependencies.set(false)
 }
+
+loom { accessWidenerPath.set(file("src/main/resources/arcadium-debug.accesswidener")) }

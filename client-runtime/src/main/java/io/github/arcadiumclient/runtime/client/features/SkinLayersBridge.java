@@ -7,9 +7,42 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 public final class SkinLayersBridge {
+    private record ModelClear(Object binder, Method clear) { }
+    private static final ClassValue<java.util.Optional<ModelClear>> MODEL_CLEAR = new ClassValue<>() {
+        @Override protected java.util.Optional<ModelClear> computeValue(Class<?> type) {
+            try {
+                Class<?> binder=Class.forName("org.polyfrost.skinlayers.PlayerLayerBinder");
+                for(Method method:binder.getMethods()) if(method.getName().equals("clear") && method.getParameterCount()==1 && method.getParameterTypes()[0].isAssignableFrom(type))
+                    return java.util.Optional.of(new ModelClear(binder.getField("INSTANCE").get(null),method));
+            } catch(ReflectiveOperationException | LinkageError ignored) { }
+            return java.util.Optional.empty();
+        }
+    };
+    private static final ClassValue<java.util.Optional<Field>> MESH_FIELDS = new ClassValue<>() {
+        @Override protected java.util.Optional<Field> computeValue(Class<?> type) {
+            for (Class<?> parent = type; parent != null; parent = parent.getSuperclass()) {
+                try {
+                    Field field = parent.getDeclaredField("skinLayers$mesh");
+                    field.setAccessible(true);
+                    return java.util.Optional.of(field);
+                } catch (NoSuchFieldException ignored) { }
+            }
+            return java.util.Optional.empty();
+        }
+    };
     private static final String[] PARTS = {"enableHat", "enableJacket", "enableLeftSleeve", "enableRightSleeve", "enableLeftPants", "enableRightPants"};
 
     private SkinLayersBridge() {}
+    public static boolean clearModel(Object model) {
+        ModelClear clear=MODEL_CLEAR.get(model.getClass()).orElse(null);if(clear==null)return false;
+        try { clear.clear.invoke(clear.binder,model);return true; } catch(ReflectiveOperationException ignored){return false;}
+    }
+
+    public static boolean hasMesh(Object part) {
+        Field field = MESH_FIELDS.get(part.getClass()).orElse(null);
+        try { return field != null && field.get(part) != null; }
+        catch (IllegalAccessException failure) { return false; }
+    }
 
     public static boolean available() {
         try { config(); return true; }
