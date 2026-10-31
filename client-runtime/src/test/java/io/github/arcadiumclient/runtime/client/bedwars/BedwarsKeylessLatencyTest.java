@@ -120,7 +120,7 @@ public class BedwarsKeylessLatencyTest {
             for (CompletableFuture<BedwarsStats> player : players) assertEquals(245, player.get().getStar());
             assertEquals(1, release.getCount());
             assertEquals(0, data.pendingCount());
-            assertTrue(maximum.get() <= 10);
+            assertTrue(maximum.get() <= 16);
         } finally { release.countDown(); }
     }
 
@@ -245,11 +245,11 @@ public class BedwarsKeylessLatencyTest {
     }
 
     @Test public void fallbackAndDelayQueuesHaveSeparateFixedBounds() throws Exception {
-        CountDownLatch entered = new CountDownLatch(2), release = new CountDownLatch(1);
+        CountDownLatch entered = new CountDownLatch(4), release = new CountDownLatch(1);
         AtomicInteger running = new AtomicInteger(), maximum = new AtomicInteger();
         try (OverlayHttp http = new OverlayHttp((uri, headers, body) -> new OverlayHttp.Response(200, ""))) {
             List<CompletableFuture<Integer>> work = new ArrayList<>();
-            for (int i = 0; i < 80; i++) work.add(http.submitFallback(() -> true, () -> {
+            for (int i = 0; i < 80; i++) work.add(http.submitKeyless(1, () -> true, () -> {
                 maximum.accumulateAndGet(running.incrementAndGet(), Math::max);
                 entered.countDown();
                 try { await(release); } catch (IOException cancelled) { return 0; }
@@ -257,14 +257,97 @@ public class BedwarsKeylessLatencyTest {
                 return 1;
             }));
             assertTrue(entered.await(2, TimeUnit.SECONDS));
-            assertTrue(work.stream().filter(CompletableFuture::isCompletedExceptionally).count() >= 14);
+            assertTrue(work.stream().filter(CompletableFuture::isCompletedExceptionally).count() >= 12);
             List<CompletableFuture<Void>> timers = new ArrayList<>();
             for (int i = 0; i < 150; i++) timers.add(http.defer(() -> fail("Delayed work started"), 10000));
             assertEquals(22, timers.stream().filter(CompletableFuture::isCompletedExceptionally).count());
             timers.forEach(timer -> timer.cancel(false));
             release.countDown();
             for (CompletableFuture<Integer> future : work) future.handle((value, error) -> 0).get(2, TimeUnit.SECONDS);
-            assertTrue(maximum.get() <= 2);
+            assertTrue(maximum.get() <= 4);
         } finally { release.countDown(); }
+    }
+
+    @Test public void thirdProviderResolvesTheRosterWhenBothEarlierProvidersAndOtherTasksStall() throws Exception {
+        CountDownLatch genericEntered = new CountDownLatch(8), primaryEntered = new CountDownLatch(8);
+        CountDownLatch release = new CountDownLatch(1);
+        AtomicInteger running = new AtomicInteger(), maximum = new AtomicInteger(), third = new AtomicInteger();
+        try (OverlayHttp http = new OverlayHttp((uri, headers, body) -> {
+            maximum.accumulateAndGet(running.incrementAndGet(), Math::max);
+            try {
+                assertFalse(headers.containsKey("API-Key"));
+                if (uri.getHost().equals("api.bordic.xyz")) primaryEntered.countDown();
+                if (!uri.getHost().equals("api.abyssoverlay.com")) { await(release); return new OverlayHttp.Response(503, ""); }
+                third.incrementAndGet();
+                return new OverlayHttp.Response(200, profile(uri));
+            } finally { running.decrementAndGet(); }
+        })) {
+            for (int i = 0; i < 8; i++) http.submit(() -> true, () -> {
+                genericEntered.countDown();
+                try { await(release); } catch (IOException ignored) { }
+                return 0;
+            });
+            assertTrue(genericEntered.await(1, TimeUnit.SECONDS));
+            var data = new BedwarsData(http);
+            List<CompletableFuture<BedwarsStats>> roster = new ArrayList<>();
+            for (int i = 0; i < 24; i++) roster.add(data.get(player(i), "Player", KEYLESS));
+            assertTrue(primaryEntered.await(500, TimeUnit.MILLISECONDS));
+            CompletableFuture.allOf(roster.toArray(CompletableFuture[]::new)).get(3, TimeUnit.SECONDS);
+            assertEquals(1, release.getCount());
+            assertEquals(24, third.get());
+            for (var result : roster) assertEquals(245, result.get().getStar());
+            assertTrue(maximum.get() <= 16);
+        } finally { release.countDown(); }
+    }
+
+    @Test public void winningProviderKeepsWorkingWhileCancelledLosersIgnoreInterrupts() throws Exception {
+        CountDownLatch release = new CountDownLatch(1);
+        try (OverlayHttp http = new OverlayHttp((uri, headers, body) -> {
+            if (!uri.getHost().equals("api.abyssoverlay.com")) {
+                boolean interrupted = false;
+                while (release.getCount() != 0) try { release.await(100, TimeUnit.MILLISECONDS); }
+                catch (InterruptedException ignored) { interrupted = true; }
+                if (interrupted) Thread.currentThread().interrupt();
+            }
+            return new OverlayHttp.Response(200, profile(uri));
+        })) {
+            var data = new BedwarsData(http);
+            assertEquals(245, data.get(player(0), "Player", KEYLESS).get(3, TimeUnit.SECONDS).getStar());
+            List<CompletableFuture<BedwarsStats>> next = new ArrayList<>();
+            for (int i = 1; i < 25; i++) next.add(data.get(player(i), "Player", KEYLESS));
+            CompletableFuture.allOf(next.toArray(CompletableFuture[]::new)).get(1, TimeUnit.SECONDS);
+            assertEquals(1, release.getCount());
+        } finally { release.countDown(); }
+    }
+
+    @Test public void shortNetworkOutageDoesNotHideRecoveredStatsForThirtySeconds() throws Exception {
+        var now = new java.util.concurrent.atomic.AtomicLong(100000);
+        AtomicBoolean failing = new AtomicBoolean(true);
+        try (OverlayHttp http = new OverlayHttp((uri, headers, body) -> {
+            if (failing.get()) throw new IOException("Temporary outage");
+            return new OverlayHttp.Response(200, profile(uri));
+        }, now::get)) {
+            var data = new BedwarsData(http, now::get);
+            assertTrue(data.get(ID, "Player", KEYLESS).get(1, TimeUnit.SECONDS).isUnavailable());
+            failing.set(false); now.addAndGet(2001);
+            assertEquals(245, data.get(ID, "Player", KEYLESS).get(1, TimeUnit.SECONDS).getStar());
+        }
+    }
+
+    @Test public void oneMissingPlayerDoesNotDisableAWorkingProviderForTheRoster() throws Exception {
+        AtomicInteger primary = new AtomicInteger();
+        try (OverlayHttp http = new OverlayHttp((uri, headers, body) -> {
+            if (uri.getHost().equals("api.bordic.xyz")) {
+                primary.incrementAndGet();
+                return new OverlayHttp.Response(200, compact(uri).equals(ID.toString().replace("-", ""))
+                        ? "{\"success\":true,\"player\":null}" : profile(uri));
+            }
+            return new OverlayHttp.Response(404, "");
+        })) {
+            var data = new BedwarsData(http);
+            assertTrue(data.get(ID, "Missing", KEYLESS).get(1, TimeUnit.SECONDS).isUnavailable());
+            assertEquals(245, data.get(player(1), "Player", KEYLESS).get(500, TimeUnit.MILLISECONDS).getStar());
+            assertEquals(2, primary.get());
+        }
     }
 }

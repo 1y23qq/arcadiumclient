@@ -114,7 +114,7 @@ public final class BedwarsData {
                 Cached previous = cache.get(id);
                 if (result.isUnavailable() && previous != null && !previous.value.isUnavailable()) result = previous.value;
                 if (!result.isUnavailable() || retryRevision.get() == retryTicket)
-                    cache.put(id, new Cached(result, clock.getAsLong() + (result.isUnavailable() ? 10000 : 600000)));
+                    cache.put(id, new Cached(result, clock.getAsLong() + (result.isUnavailable() ? 2000 : 600000)));
                 pending.remove(id, shared);
                 shared.complete(result);
             }
@@ -167,14 +167,15 @@ public final class BedwarsData {
     private BedwarsStats fetchKeyless(UUID id, String name, int provider, BooleanSupplier active) {
         String compact = id.toString().replace("-", "");
         String url = PROVIDERS[provider] + compact + (provider == 1 ? "/network" : "");
-        OverlayHttp.Response response = http.requestOnce(url, OverlayHttp.Credential.NONE, "", active);
+        OverlayHttp.Response response = http.requestKeyless(url, active);
         if (response.status != 200) {
-            if (response.status != 404) providerRetryAt.set(provider, clock.getAsLong() + 5000);
+            if (response.status != 404) providerRetryAt.set(provider, clock.getAsLong() + (response.status == 0 || response.status >= 500 ? 2000 : 5000));
             return null;
         }
         JsonObject player = parseKeyless(provider, response.body);
         if (player == null || !matchesUuid(player, compact)) {
-            if (player == null) providerRetryAt.set(provider, clock.getAsLong() + 5000);
+            if (player == null && (provider == 1 ? !NADESHIKO.matcher(response.body).find() : object(response.body) == null))
+                providerRetryAt.set(provider, clock.getAsLong() + 5000);
             return null;
         }
         BedwarsStats stats = parsePlayer(id, name, player);
@@ -188,7 +189,7 @@ public final class BedwarsData {
         private final Policy policy;
         private final BooleanSupplier active;
         private final Set<CompletableFuture<BedwarsStats>> attempts = new HashSet<>();
-        private CompletableFuture<Void> hedge;
+        private final ArrayList<CompletableFuture<Void>> hedges = new ArrayList<>();
         private int firstProvider;
         private int nextProvider;
         private int running;
@@ -219,25 +220,20 @@ public final class BedwarsData {
         private void startKeyless() {
             if (!policy.keyless) { result.complete(BedwarsStats.unavailable(id, name)); return; }
             firstProvider = preferredProvider;
-            startNext(false);
-            if (!result.isDone() && nextProvider < PROVIDERS.length) {
-                hedge = http.defer(() -> {
-                    synchronized (Fetch.this) {
-                        if (active.getAsBoolean() && running < 2) startNext(true);
-                    }
-                }, KEYLESS_HEDGE_MILLIS);
-            }
+            startNext();
+            for (int step = 1; step < PROVIDERS.length && !result.isDone(); step++)
+                hedges.add(http.defer(() -> {
+                    synchronized (Fetch.this) { if (active.getAsBoolean()) startNext(); }
+                }, KEYLESS_HEDGE_MILLIS * step));
         }
 
-        private void startNext(boolean fallback) {
+        private void startNext() {
             if (!active.getAsBoolean()) { if (!result.isDone()) result.cancel(false); return; }
             while (nextProvider < PROVIDERS.length) {
                 int provider = (firstProvider + nextProvider++) % PROVIDERS.length;
                 if (clock.getAsLong() < providerRetryAt.get(provider)) continue;
                 running++;
-                CompletableFuture<BedwarsStats> attempt = fallback
-                        ? http.submitFallback(active, () -> fetchKeyless(id, name, provider, active))
-                        : http.submit(active, () -> fetchKeyless(id, name, provider, active));
+                CompletableFuture<BedwarsStats> attempt = http.submitKeyless(provider, active, () -> fetchKeyless(id, name, provider, active));
                 attempts.add(attempt);
                 attempt.whenComplete((stats, error) -> {
                     synchronized (Fetch.this) {
@@ -247,7 +243,7 @@ public final class BedwarsData {
                         if (stats != null) {
                             preferredProvider = provider;
                             result.complete(stats);
-                        } else startNext(fallback);
+                        } else startNext();
                     }
                 });
                 return;
@@ -256,7 +252,7 @@ public final class BedwarsData {
         }
 
         private synchronized void cancelAttempts() {
-            if (hedge != null) hedge.cancel(false);
+            for (CompletableFuture<Void> hedge : hedges) hedge.cancel(false);
             for (CompletableFuture<BedwarsStats> attempt : new ArrayList<>(attempts)) attempt.cancel(true);
             attempts.clear();
         }

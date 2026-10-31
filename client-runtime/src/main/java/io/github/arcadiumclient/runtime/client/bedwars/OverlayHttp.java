@@ -3,12 +3,13 @@
 
 package io.github.arcadiumclient.runtime.client.bedwars;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
+import java.net.SocketTimeoutException;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -18,6 +19,8 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.FutureTask;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -53,7 +56,11 @@ public final class OverlayHttp implements AutoCloseable {
     private final Transport transport;
     private final LongSupplier clock;
     private final ThreadPoolExecutor workers = workers(8, 128, "arcadium-bedwars-http");
-    private final ThreadPoolExecutor fallbackWorkers = workers(2, 64, "arcadium-bedwars-fallback");
+    private final ThreadPoolExecutor[] keylessWorkers = {
+            workers(8, 64, "arcadium-bedwars-keyless-0"),
+            workers(4, 64, "arcadium-bedwars-keyless-1"),
+            workers(4, 64, "arcadium-bedwars-keyless-2")
+    };
     private final ScheduledThreadPoolExecutor timers = new ScheduledThreadPoolExecutor(1, task -> {
         Thread thread = new Thread(task, "arcadium-bedwars-delay");
         thread.setDaemon(true);
@@ -77,8 +84,8 @@ public final class OverlayHttp implements AutoCloseable {
         return submit(workers, active, action);
     }
 
-    <T> CompletableFuture<T> submitFallback(BooleanSupplier active, Supplier<T> action) {
-        return submit(fallbackWorkers, active, action);
+    <T> CompletableFuture<T> submitKeyless(int provider, BooleanSupplier active, Supplier<T> action) {
+        return submit(keylessWorkers[provider], active, action);
     }
 
     CompletableFuture<Void> defer(Runnable action, long delayMillis) {
@@ -160,12 +167,20 @@ public final class OverlayHttp implements AutoCloseable {
         return request(address, credential, key, null, active, 1);
     }
 
+    public Response requestKeyless(String address, BooleanSupplier active) {
+        return request(address, Credential.NONE, "", null, active, 1, true);
+    }
+
     public void resetHypixelBackoff() {
         blockedUntil.remove("api.hypixel.net");
         failures.remove("api.hypixel.net");
     }
 
     private Response request(String address, Credential credential, String key, String body, BooleanSupplier active, int attempts) {
+        return request(address, credential, key, body, active, attempts, false);
+    }
+
+    private Response request(String address, Credential credential, String key, String body, BooleanSupplier active, int attempts, boolean keyless) {
         URI uri;
         try { uri = URI.create(address); }
         catch (IllegalArgumentException ignored) { return new Response(0, ""); }
@@ -193,7 +208,10 @@ public final class OverlayHttp implements AutoCloseable {
                 } else if (response.status >= 500 && attempt + 1 < attempts && body == null) {
                     continue;
                 } else if (response.status >= 400 && response.status != 404) {
-                    block(host, Math.min(60, 5L << Math.min(4, failures.merge(host, 1, Integer::sum) - 1)));
+                    long delay = keyless && response.status >= 500
+                            ? Math.min(8, 2L << Math.min(2, failures.merge(host, 1, Integer::sum) - 1))
+                            : Math.min(60, 5L << Math.min(4, failures.merge(host, 1, Integer::sum) - 1));
+                    block(host, Math.max(delay, response.retryAfterSeconds));
                 } else if (response.status >= 200 && response.status < 300) {
                     failures.remove(host);
                     if (response.rateRemaining == 0) block(host, Math.max(1, response.rateResetSeconds));
@@ -202,7 +220,7 @@ public final class OverlayHttp implements AutoCloseable {
             } catch (IOException ignored) {
                 if (!active.getAsBoolean() || Thread.currentThread().isInterrupted()) throw new CancellationException();
                 if (attempt + 1 == attempts || body != null) {
-                    block(host, 30);
+                    block(host, keyless ? 2 : 30);
                     return new Response(0, "");
                 }
             }
@@ -214,51 +232,55 @@ public final class OverlayHttp implements AutoCloseable {
         blockedUntil.merge(host, clock.getAsLong() + Math.min(300, seconds) * 1000L, Math::max);
     }
 
-    private static Response exchange(URI uri, Map<String, String> headers, String body) throws IOException {
-        HttpURLConnection connection = (HttpURLConnection) uri.toURL().openConnection();
-        connection.setInstanceFollowRedirects(false);
-        connection.setConnectTimeout(2000);
-        connection.setReadTimeout(3000);
-        connection.setRequestMethod(body == null ? "GET" : "POST");
-        headers.forEach(connection::setRequestProperty);
-        try {
-            if (body != null) {
-                connection.setDoOutput(true);
-                connection.setRequestProperty("Content-Type", "application/json; charset=utf-8");
-                byte[] bytes = body.getBytes(StandardCharsets.UTF_8);
-                connection.setFixedLengthStreamingMode(bytes.length);
-                try (java.io.OutputStream out = connection.getOutputStream()) { out.write(bytes); }
-            }
-            int status = connection.getResponseCode();
-            String text = "";
-            try (InputStream in = status < 400 ? connection.getInputStream() : connection.getErrorStream()) {
-                if (in != null) {
-                    ByteArrayOutputStream out = new ByteArrayOutputStream();
-                    byte[] bytes = new byte[8192];
-                    int read;
-                    while ((read = in.read(bytes)) != -1) {
-                        if (out.size() + read > 4 * 1024 * 1024) throw new IOException("Overlay response too large");
-                        out.write(bytes, 0, read);
-                        if (Thread.currentThread().isInterrupted()) throw new IOException("Cancelled");
-                    }
-                    text = new String(out.toByteArray(), StandardCharsets.UTF_8);
-                }
-            }
-            return new Response(status, text, numberHeader(connection, "Retry-After"),
-                    numberHeader(connection, "RateLimit-Remaining"), numberHeader(connection, "RateLimit-Reset"));
-        } finally { connection.disconnect(); }
+    private static final class ClientHolder {
+        private static final HttpClient CLIENT = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(2)).followRedirects(HttpClient.Redirect.NEVER).build();
     }
 
-    private static long numberHeader(HttpURLConnection connection, String name) {
-        try { return Long.parseLong(connection.getHeaderField(name)); }
-        catch (NumberFormatException ignored) { return -1; }
+    static Response exchange(URI uri, Map<String, String> headers, String body) throws IOException {
+        return exchange(uri, headers, body, 6000);
+    }
+
+    static Response exchange(URI uri, Map<String, String> headers, String body, long timeoutMillis) throws IOException {
+        HttpRequest.Builder builder = HttpRequest.newBuilder(uri).timeout(Duration.ofMillis(timeoutMillis));
+        headers.forEach(builder::header);
+        if (body == null) builder.GET();
+        else builder.header("Content-Type", "application/json; charset=utf-8").POST(HttpRequest.BodyPublishers.ofString(body));
+        CompletableFuture<HttpResponse<byte[]>> exchange = ClientHolder.CLIENT.sendAsync(builder.build(),
+                response -> HttpResponse.BodySubscribers.limiting(HttpResponse.BodySubscribers.ofByteArray(), 4 * 1024 * 1024));
+        try {
+            HttpResponse<byte[]> response = exchange.get(timeoutMillis, TimeUnit.MILLISECONDS);
+            return new Response(response.statusCode(), new String(response.body(), java.nio.charset.StandardCharsets.UTF_8),
+                    numberHeader(response, "Retry-After"), numberHeader(response, "RateLimit-Remaining"), numberHeader(response, "RateLimit-Reset"));
+        } catch (InterruptedException cancelled) {
+            exchange.cancel(true);
+            Thread.currentThread().interrupt();
+            throw new IOException("Overlay request cancelled", cancelled);
+        } catch (TimeoutException timeout) {
+            exchange.cancel(true);
+            throw new SocketTimeoutException("Overlay request timed out");
+        } catch (ExecutionException failure) {
+            if (failure.getCause() instanceof IOException error) throw error;
+            throw new IOException("Overlay request failed", failure.getCause());
+        }
+    }
+
+    private static long numberHeader(HttpResponse<?> response, String name) {
+        try { return response.headers().firstValueAsLong(name).orElse(-1); }
+        catch (NumberFormatException ignored) {
+            if (name.equals("Retry-After")) try {
+                long at = java.time.ZonedDateTime.parse(response.headers().firstValue(name).orElse(""), java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME).toInstant().toEpochMilli();
+                return Math.max(0, (at - System.currentTimeMillis() + 999) / 1000);
+            } catch (java.time.format.DateTimeParseException invalid) { }
+            return -1;
+        }
     }
 
     @Override public void close() {
         closed.set(true);
         outstanding.forEach(future -> future.cancel(true));
         workers.shutdownNow();
-        fallbackWorkers.shutdownNow();
+        for (ThreadPoolExecutor executor : keylessWorkers) executor.shutdownNow();
         timers.shutdownNow();
     }
 }

@@ -1,3 +1,8 @@
+## 0.6.1
+
+- Faster keyless Bedwars stats loading when providers are slow or stalled.
+- Reduced recovery delays after network errors and improved request cancellation.
+
 ## 0.6.0
 
 - Added Disable Emoji in Scoreboard, enabled by default.
