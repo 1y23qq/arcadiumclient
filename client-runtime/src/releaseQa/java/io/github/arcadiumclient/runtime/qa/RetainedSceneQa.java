@@ -52,4 +52,23 @@ public final class RetainedSceneQa {
         }catch(Throwable problem){failure=problem.toString();}
     }
     private static void set(Class<?> type,String name,Object value)throws ReflectiveOperationException{Field field=type.getDeclaredField(name);field.setAccessible(true);field.set(null,value);}
+    public static void verifyRendererReplacement()throws ReflectiveOperationException{
+        Class<?> type=io.github.arcadiumclient.runtime.client.optimizations.RetainedNameTags.class;
+        Field cache=type.getDeclaredField("plans");cache.setAccessible(true);Map<?,?> plans=(Map<?,?>)cache.get(null);
+        boolean checked=false;
+        for(var entry:plans.entrySet()){
+            for(Object plan:((Map<?,?>)entry.getValue()).values()){
+                var model=plan.getClass();var name=model.getDeclaredField("name");var manager=model.getDeclaredField("manager");name.setAccessible(true);manager.setAccessible(true);
+                var matches=model.getDeclaredMethod("matches",net.minecraft.entity.Entity.class,String.class,io.github.arcadiumclient.runtime.client.optimizations.GpuNameTags.class);matches.setAccessible(true);
+                Object current=manager.get(plan);String text=(String)name.get(plan);
+                if(!(boolean)matches.invoke(plan,entry.getKey(),text,current))continue;
+                if((boolean)matches.invoke(plan,entry.getKey(),text,new io.github.arcadiumclient.runtime.client.optimizations.GpuNameTags()))throw new IllegalStateException("A new renderer reused an old name tag plan");
+                checked=true;break;
+            }
+            if(checked)break;
+        }
+        if(!checked)throw new IllegalStateException("No retained plan was available for renderer replacement testing");
+        io.github.arcadiumclient.runtime.client.optimizations.GpuNameTags.closeAll();
+        if(!plans.isEmpty())throw new IllegalStateException("World cleanup retained name tag plans");
+    }
 }

@@ -15,14 +15,14 @@ import org.joml.Matrix4fc;
 public final class RetainedNameTags {
     private record Packet(TagGeometryCache.Mesh mesh,NameTagPasses.State pass,Matrix4f local,int alpha) { }
     private static final class Plan {
-        final String name;final float height;final boolean sneaking;final int epoch;final long generation;
+        final String name;final float height;final boolean sneaking;final int epoch;final long generation;final GpuNameTags manager;
         final ArrayList<Packet> packets=new ArrayList<>();
         final Matrix4f anchor=new Matrix4f(),inverse=new Matrix4f();
         float offsetX,offsetY,offsetZ;
         int transforms;
         boolean valid=true;
-        Plan(Entity entity,String name,GpuNameTags gpu){this.name=name;height=entity.height;sneaking=entity.isSneaking();epoch=optionsEpoch;generation=gpu.generation();}
-        boolean matches(Entity entity,String text,GpuNameTags gpu){return epoch==optionsEpoch&&generation==gpu.generation()&&height==entity.height&&sneaking==entity.isSneaking()&&name.equals(text);}
+        Plan(Entity entity,String name,GpuNameTags gpu){this.name=name;manager=gpu;height=entity.height;sneaking=entity.isSneaking();epoch=optionsEpoch;generation=gpu.generation();}
+        boolean matches(Entity entity,String text,GpuNameTags gpu){return manager==gpu&&epoch==optionsEpoch&&generation==gpu.generation()&&height==entity.height&&sneaking==entity.isSneaking()&&name.equals(text);}
     }
     private static final Map<Entity,Map<String,Plan>> plans=new WeakHashMap<>();
     private static final Matrix4f anchor=new Matrix4f(),matrix=new Matrix4f();

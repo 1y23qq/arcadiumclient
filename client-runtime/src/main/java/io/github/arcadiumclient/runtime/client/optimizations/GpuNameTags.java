@@ -203,6 +203,6 @@ public final class GpuNameTags {
         program=vao=vertexBuffer=instanceBuffer=commandsBuffer=uploadedWords=gpuCapacity=0;geometry.clear();generation++;groups.clear();checked=failed=false;LIVE.remove(this);
     }
     public static void invalidateAll(){for(var value:LIVE)value.invalidate();RetainedNameTags.invalidate();}
-    public static void closeAll(){for(var value:List.copyOf(LIVE))value.close();}
+    public static void closeAll(){RetainedNameTags.invalidate();for(var value:List.copyOf(LIVE))value.close();}
     public static String status(){return BetaOptimizationsConfig.getGpuNameTags()?"GPU name tags: "+capability+" | Labels: "+visibleLabels+" | Packets: "+packetsDrawn:"GPU name tags: Off";}
 }
