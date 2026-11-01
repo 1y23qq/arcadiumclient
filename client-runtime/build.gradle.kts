@@ -134,6 +134,8 @@ if (minecraftVersion == "1.7.10") {
                 "**/optimizations/**", "**/features/BetaOptimizationsConfig.kt",
                 "**/compat/argentum/MixinGpuModel*.java", "**/client/WorldRenderScaleMixin.java",
                 "**/compat/argentum/MixinGpuPlayerFrame.java",
+                "**/compat/argentum/MixinGpuNameTags.java",
+                "**/client/GpuPlayerPipelineMixin.java", "**/client/access/LivingPipelineAccess.java",
                 "**/compat/argentum/MixinRetainedHud.java", "**/client/BetaRenderCleanupMixin.java",
                 "**/client/MixinBedwars*.java", "**/client/MixinArcadiumPrefixTextRenderer.java",
                 "**/client/MixinBadlionEntityAnimations.java", "**/client/MixinGuiScaleSpectatorHud.java",

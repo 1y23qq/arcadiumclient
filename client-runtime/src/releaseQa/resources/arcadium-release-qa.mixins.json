@@ -22,7 +22,9 @@
     "Skin062DrawProbe",
     "Skin062CaptureProbe",
     "OptimizationGpuProbe",
-    "OptimizationWorldProbe"
+    "OptimizationWorldProbe",
+    "NextGpuReferenceProbe",
+    "NextNameFaultProbe"
   ],
   "injectors": {
     "defaultRequire": 1

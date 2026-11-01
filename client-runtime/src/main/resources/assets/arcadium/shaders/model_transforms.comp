@@ -16,7 +16,13 @@ void main() {
     uint outputOffset = instance * 19u;
     if (words[outputOffset+1] != floatBitsToUint(-9876543.0) ||
             (words[outputOffset+2] != floatBitsToUint(-8765432.0) && words[outputOffset+2] != floatBitsToUint(-7654321.0))) return;
-    uint j = uint(uintBitsToFloat(words[outputOffset])) * 40u;
+    float marker=uintBitsToFloat(words[outputOffset]);
+    if(marker<0.0){
+        mat4 result=playerPart(uint(-marker-1.0));
+        for(uint column=0u;column<4u;column++)for(uint row=0u;row<3u;row++)words[outputOffset+column*3u+row]=floatBitsToUint(result[column][row]);
+        return;
+    }
+    uint j = uint(marker) * 40u;
     float sx = sin(data[j+20]), cx = cos(data[j+20]);
     float sy = sin(data[j+21]), cy = cos(data[j+21]);
     float sz = sin(data[j+22]), cz = cos(data[j+22]);

@@ -608,9 +608,9 @@
     },
     {
       "file": "ArcadiumFeatures-1.8.9.jar",
-      "sha1": "e58a28b7d61af2736577295a0183f0c0a9628f30",
-      "sha256": "83790d91e049506cc7fd1d68dfac7421b029f859fc0a9adb241f9ff739ce5c50",
-      "bytes": 26723092,
+      "sha1": "f918196ced612e9c4a7ee896a0f8d74566bcedef",
+      "sha256": "7ce9c6945c70cf45881b08a6afeef376d4f8dee0c32da2ee3a2eab7b1bad55c4",
+      "bytes": 26773100,
       "modId": "arcadium_runtime",
       "license": "GPL-3.0-only",
       "authors": [

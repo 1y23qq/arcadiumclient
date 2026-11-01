@@ -142,7 +142,10 @@
     "client.BetaRenderCleanupMixin",
     "client.access.BetaModelPartAccess",
     "compat.argentum.MixinGpuModelSort",
-    "compat.argentum.MixinGpuPlayerFrame"
+    "compat.argentum.MixinGpuPlayerFrame",
+    "compat.argentum.MixinGpuNameTags",
+    "client.GpuPlayerPipelineMixin",
+    "client.access.LivingPipelineAccess"
   ],
   "injectors": {
     "defaultRequire": 1

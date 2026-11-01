@@ -6,6 +6,21 @@ package io.github.arcadiumclient.runtime.client.branding;
 public final class NametagText {
     private NametagText() { }
 
+    public static String stripFormatting(String text) {
+        if(text==null||text.indexOf('§')<0)return text;
+        StringBuilder result=null;
+        for(int i=0;i<text.length();i++){
+            if(text.charAt(i)=='§'&&i+1<text.length()){
+                char code=text.charAt(i+1);if(code>='A'&&code<='Z')code=(char)(code+32);
+                if(code>='0'&&code<='9'||code>='a'&&code<='f'||code>='k'&&code<='o'||code=='r'){
+                    if(result==null)result=new StringBuilder(text.length()).append(text,0,i);i++;continue;
+                }
+            }
+            if(result!=null)result.append(text.charAt(i));
+        }
+        return result==null?text:result.toString();
+    }
+
     public static String withoutTrailingPadding(String text) {
         if (text == null || text.isEmpty()) return text;
         int lastVisible = 0;

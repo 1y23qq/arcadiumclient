@@ -5,6 +5,8 @@ import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.moulberry.mixinconstraints.annotations.IfModLoaded;
 import io.github.arcadiumclient.runtime.client.optimizations.RetainedHudBuffers;
+import io.github.arcadiumclient.runtime.client.optimizations.GpuNameTags;
+import io.github.arcadiumclient.runtime.client.optimizations.GpuPlayerPipeline;
 import net.minecraft.client.render.texture.TextureManager;
 import net.minecraft.client.render.vertex.BufferBuilder;
 import net.minecraft.client.render.vertex.VertexBuffer;
@@ -35,5 +37,5 @@ public abstract class MixinRetainedHud {
     }
 
     @Inject(method = "clearCaches", at = @At("HEAD"), remap = false)
-    private void arcadium$invalidate(CallbackInfo callback) { arcadium$retained.close(); }
+    private void arcadium$invalidate(CallbackInfo callback) { arcadium$retained.close(); GpuNameTags.invalidateAll(); GpuPlayerPipeline.reset(); }
 }
