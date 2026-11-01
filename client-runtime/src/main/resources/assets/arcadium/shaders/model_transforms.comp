@@ -1,0 +1,30 @@
+#version 430
+// SPDX-License-Identifier: GPL-3.0-only
+layout(local_size_x = 64) in;
+layout(std430, binding = 0) buffer Instances { uint words[]; };
+layout(std430, binding = 1) readonly buffer Jobs { float data[]; };
+uniform int instanceCount;
+mat4 readMatrix(uint offset) {
+    return mat4(vec4(data[offset], data[offset+1], data[offset+2], data[offset+3]),
+                vec4(data[offset+4], data[offset+5], data[offset+6], data[offset+7]),
+                vec4(data[offset+8], data[offset+9], data[offset+10], data[offset+11]),
+                vec4(data[offset+12], data[offset+13], data[offset+14], data[offset+15]));
+}
+void main() {
+    uint instance = gl_GlobalInvocationID.x;
+    if (instance >= uint(instanceCount)) return;
+    uint outputOffset = instance * 19u;
+    if (words[outputOffset+1] != floatBitsToUint(-9876543.0) ||
+            (words[outputOffset+2] != floatBitsToUint(-8765432.0) && words[outputOffset+2] != floatBitsToUint(-7654321.0))) return;
+    uint j = uint(uintBitsToFloat(words[outputOffset])) * 40u;
+    float sx = sin(data[j+20]), cx = cos(data[j+20]);
+    float sy = sin(data[j+21]), cy = cos(data[j+21]);
+    float sz = sin(data[j+22]), cz = cos(data[j+22]);
+    mat4 t = mat4(1.0); t[3].xyz = vec3(data[j+16], data[j+17], data[j+18]);
+    mat4 x = mat4(1.0); x[1].yz = vec2(cx,sx); x[2].yz = vec2(-sx,cx);
+    mat4 y = mat4(1.0); y[0].xz = vec2(cy,-sy); y[2].xz = vec2(sy,cy);
+    mat4 z = mat4(1.0); z[0].xy = vec2(cz,sz); z[1].xy = vec2(-sz,cz);
+    mat4 result = readMatrix(j) * t * z * y * x * readMatrix(j+24u);
+    for (uint column = 0u; column < 4u; column++) for (uint row = 0u; row < 3u; row++)
+        words[outputOffset + column*3u + row] = floatBitsToUint(result[column][row]);
+}

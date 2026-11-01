@@ -4,6 +4,7 @@ param(
     [string]$TargetDirectory,
     [string]$JavaHome,
     [string]$Makensis,
+    [string]$OutputDirectory,
     [switch]$SkipCompile
 )
 $ErrorActionPreference = 'Stop'
@@ -133,7 +134,7 @@ try {
     Copy-Item -LiteralPath 'distribution/oneclient-1.21.11.lock.json' -Destination (Join-Path $stage 'distribution-lock-1.21.11.json')
     Copy-Item -LiteralPath 'distribution/oneclient-26.2.lock.json' -Destination (Join-Path $stage 'distribution-lock-26.2.json')
 
-    $installerDirectory = Join-Path $buildDirectory 'installers'
+    $installerDirectory = if ($OutputDirectory) { [IO.Path]::GetFullPath($OutputDirectory) } else { Join-Path $buildDirectory 'installers' }
     New-Item -ItemType Directory -Force -Path $installerDirectory | Out-Null
     $output = Join-Path $installerDirectory "ArcadiumClientSetup-$launcherVersion-x64.exe"
     $updateFiles = Join-Path $buildDirectory 'managed-update-files.nsh'

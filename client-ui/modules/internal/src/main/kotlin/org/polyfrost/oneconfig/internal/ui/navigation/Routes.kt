@@ -10,11 +10,14 @@ import org.polyfrost.oneconfig.internal.ui.navigation.graph.ModsGraph
 import org.polyfrost.oneconfig.internal.ui.navigation.graph.PreferencesGraph
 import org.polyfrost.oneconfig.internal.ui.navigation.graph.ProfilesGraph
 import org.polyfrost.oneconfig.internal.ui.navigation.graph.ThemesGraph
+import org.polyfrost.oneconfig.internal.ui.navigation.graph.OptimizationsGraph
+import org.polyfrost.oneconfig.internal.ui.api.BetaOptimizationPage
 
 data class NavigationRoute(
     val id: String,
     val icon: String,
     val route: Any,
+    val visible: () -> Boolean = { true },
 )
 
 class NavigationGroup(
@@ -52,6 +55,12 @@ val NavigationGroups = listOf(
             id = "preferences",
             icon = "cog",
             route = PreferencesGraph
+        ),
+        NavigationRoute(
+            id = "Optimizations (Beta)",
+            icon = "optimizations",
+            route = OptimizationsGraph,
+            visible = { BetaOptimizationPage.available },
         ),
     )
 )

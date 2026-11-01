@@ -133,7 +133,16 @@
     "compat.argentum.MixinSkinDetailBudget",
     "client.access.SoundManagerDebugAccess",
     "client.access.SoundEngineDebugAccess",
-    "client.CustomF3NetworkMixin"
+    "client.CustomF3NetworkMixin",
+    "compat.argentum.MixinGpuModelCapture",
+    "compat.argentum.MixinGpuModelBatch",
+    "compat.argentum.MixinGpuModelUpload",
+    "client.WorldRenderScaleMixin",
+    "compat.argentum.MixinRetainedHud",
+    "client.BetaRenderCleanupMixin",
+    "client.access.BetaModelPartAccess",
+    "compat.argentum.MixinGpuModelSort",
+    "compat.argentum.MixinGpuPlayerFrame"
   ],
   "injectors": {
     "defaultRequire": 1

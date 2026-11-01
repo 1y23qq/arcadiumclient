@@ -127,7 +127,7 @@ private fun NavigationEntries(showTopOptions: Boolean) {
             val currentDestination = entry?.destination
 
             NavigationSection(it.id) {
-                it.routes.forEach { def ->
+                it.routes.filter { def -> def.visible() }.forEach { def ->
                     val selected = currentDestination?.hierarchy?.any { arche ->
                         arche.hasRoute(def.route::class)
                     } ?: false

@@ -20,7 +20,9 @@
     "Scoreboard060WidthProbe",
     "Skin062Probe",
     "Skin062DrawProbe",
-    "Skin062CaptureProbe"
+    "Skin062CaptureProbe",
+    "OptimizationGpuProbe",
+    "OptimizationWorldProbe"
   ],
   "injectors": {
     "defaultRequire": 1

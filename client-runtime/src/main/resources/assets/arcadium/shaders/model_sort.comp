@@ -1,0 +1,33 @@
+#version 430
+// SPDX-License-Identifier: GPL-3.0-only
+layout(local_size_x = 256) in;
+layout(std430, binding = 0) readonly buffer InputInstances { uint words[]; };
+layout(std430, binding = 2) writeonly buffer OutputInstances { uint sortedWords[]; };
+uniform int instanceCount;
+shared uvec2 keys[4096];
+bool before(uvec2 a,uvec2 b) { return a.x>b.x || (a.x==b.x && a.y<b.y); }
+void main() {
+    uint lane=gl_LocalInvocationID.x,n=uint(instanceCount),limit=1u;
+    while(limit<n)limit<<=1u;
+    for(uint i=lane;i<limit;i+=256u) {
+        if(i<n) {
+            vec3 position=vec3(uintBitsToFloat(words[i*19u+9u]),uintBitsToFloat(words[i*19u+10u]),uintBitsToFloat(words[i*19u+11u]));
+            precise float xx=position.x*position.x,yy=position.y*position.y,zz=position.z*position.z;
+            precise float distance=(xx+yy)+zz;
+            keys[i]=uvec2(floatBitsToUint(distance),i);
+        } else keys[i]=uvec2(0u,0xffffffffu);
+    }
+    barrier();
+    for(uint size=2u;size<=limit;size<<=1u) for(uint stride=size>>1u;stride>0u;stride>>=1u) {
+        for(uint i=lane;i<limit;i+=256u) {
+            uint other=i^stride;
+            if(other>i) {
+                uvec2 a=keys[i],b=keys[other];
+                bool descending=(i&size)==0u;
+                if(descending ? before(b,a) : before(a,b)) { keys[i]=b;keys[other]=a; }
+            }
+        }
+        barrier();
+    }
+    for(uint i=lane;i<n;i+=256u) for(uint word=0u;word<19u;word++) sortedWords[i*19u+word]=words[keys[i].y*19u+word];
+}

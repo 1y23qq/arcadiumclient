@@ -131,6 +131,10 @@ if (minecraftVersion == "1.7.10") {
                 it.path.contains("/client/bedwars/") && it.file.name !in setOf("BedwarsData.java", "BedwarsStats.java", "OverlayHttp.java", "PlayerNameUtil.java", "HypixelDataService.java")
             }
             exclude("**/features/NoHitDelayConfig.kt", "**/client/MixinNoHitDelay.java",
+                "**/optimizations/**", "**/features/BetaOptimizationsConfig.kt",
+                "**/compat/argentum/MixinGpuModel*.java", "**/client/WorldRenderScaleMixin.java",
+                "**/compat/argentum/MixinGpuPlayerFrame.java",
+                "**/compat/argentum/MixinRetainedHud.java", "**/client/BetaRenderCleanupMixin.java",
                 "**/client/MixinBedwars*.java", "**/client/MixinArcadiumPrefixTextRenderer.java",
                 "**/client/MixinBadlionEntityAnimations.java", "**/client/MixinGuiScaleSpectatorHud.java",
                 "**/client/MixinBadlionTitleAnimations.java", "**/client/MixinNickHiderTextWrapping.java",
@@ -175,7 +179,7 @@ if (minecraftVersion == "1.7.10") {
         val patchFile = layout.projectDirectory.file("legacy-source-patches.json")
         inputs.file(patchFile)
         from("src/test") {
-            exclude("**/client/bedwars/**", "**/CeraLightmapColorProbe.java", "**/BundledSkinMeshProbe.java", "**/SkinInstancingTest.java", "**/SkinDetailBudgetTest.java")
+            exclude("**/client/bedwars/**", "**/optimizations/**", "**/CeraLightmapColorProbe.java", "**/BundledSkinMeshProbe.java", "**/SkinInstancingTest.java", "**/SkinDetailBudgetTest.java")
         }
         into(layout.buildDirectory.dir("generated/test"))
         doLast {

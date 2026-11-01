@@ -1,10 +1,12 @@
 #Requires -Version 7.0
-param([string]$Version = '0.2.7')
+param([string]$Version = '0.2.7', [string]$InstallerDirectory)
 $ErrorActionPreference = 'Stop'
 $projectRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
-$manifestPath = Join-Path $projectRoot 'build/installers/package-manifest.json'
+if (!$InstallerDirectory) { $InstallerDirectory = Join-Path $projectRoot 'build/installers' }
+$InstallerDirectory = [IO.Path]::GetFullPath($InstallerDirectory)
+$manifestPath = Join-Path $InstallerDirectory 'package-manifest.json'
 $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
-$installer = Join-Path $projectRoot "build/installers/ArcadiumClientSetup-$Version-x64.exe"
+$installer = Join-Path $InstallerDirectory "ArcadiumClientSetup-$Version-x64.exe"
 if ($manifest.launcherVersion -ne $Version -or (Get-FileHash -LiteralPath $installer -Algorithm SHA256).Hash.ToLowerInvariant() -ne $manifest.installerSha256) {
     throw 'Installer version or checksum mismatch'
 }

@@ -19,6 +19,7 @@ class ArcadiumRuntime : ClientModInitializer {
         val log = LogManager.getLogger("Arcadium")
         val components = linkedMapOf<String, () -> Unit>(
             "Client preferences" to { ClientPreferences.preload(); MenuPreferences.preload() },
+            "Beta optimizations" to { BetaOptimizationsConfig.initialize() },
             "Nick Hider" to { NickHider.initialize() },
             "GUI Scale" to { GuiScaling.initialize() },
             "Tab Background" to { TabBackgroundConfig.preload() },
