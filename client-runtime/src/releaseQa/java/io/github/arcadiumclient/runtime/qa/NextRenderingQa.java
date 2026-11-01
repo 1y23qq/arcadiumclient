@@ -57,7 +57,7 @@ public final class NextRenderingQa {
             if(phase==0&&ticks>60&&mc.screen!=null&&mc.screen.getClass().getSimpleName().contains("MainMenu")){
                 io.github.arcadiumclient.runtime.client.ClientPreferences.setSetupComplete(true);
                 Skin3DConfigReset();
-                BetaOptimizationsConfig.setGpuModelTransforms(false);if(!PREVIOUS){BetaOptimizationsConfig.setGpuPlayerPipeline(false);BetaOptimizationsConfig.setGpuNameTags(false);BetaOptimizationsConfig.setGpuEquipmentPipeline(false);}BetaOptimizationsConfig.setRetainedHudBatches(false);BetaOptimizationsConfig.setWorldRenderScale(false);
+                BetaOptimizationsConfig.setGpuModelTransforms(false);if(!PREVIOUS){BetaOptimizationsConfig.setGpuPlayerPipeline(false);BetaOptimizationsConfig.setGpuNameTags(false);BetaOptimizationsConfig.setGpuEquipmentPipeline(false);BetaOptimizationsConfig.setGpuParticles(false);}BetaOptimizationsConfig.setRetainedHudBatches(false);BetaOptimizationsConfig.setWorldRenderScale(false);
                 mc.options.pauseOnUnfocus=false;mc.options.vsync=false;mc.options.viewDistance=4;mc.options.fpsLimit=260;mc.options.cloudRenderMode=0;mc.options.perspective=0;Display.setVSyncEnabled(false);
                 org.polyfrost.oneconfig.internal.OneConfigConfig.limitUnfocusedFps=false;
                 if(Boolean.getBoolean("arcadium.nextRendering.classicGlint")){

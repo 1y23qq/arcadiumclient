@@ -1,3 +1,13 @@
+## 0.6.5
+
+- Fixed Session login for Microsoft refresh tokens.
+- Improved keyless Bedwars stats loading and added customizable stats, formats and proxy addresses.
+- Improved lobby rendering with particle, hologram, name tag and scoreboard optimizations.
+- Added separate world and entity color settings.
+- Resource pack search now keeps active packs visible.
+
+New experimental rendering options are off by default.
+
 ## 0.6.4
 
 - Added Optimizations (Beta) with GPU player, armor and name tag rendering options.

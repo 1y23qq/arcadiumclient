@@ -10,12 +10,16 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(Minecraft.class)
 public abstract class BetaRenderCleanupMixin {
+    @Inject(method = "reloadResources()V", at = @At("HEAD"))
+    private void arcadium$invalidateParticleResources(CallbackInfo callback) {
+        GpuParticles.tick();
+    }
     @Inject(method = "setWorld(Lnet/minecraft/client/world/ClientWorld;Ljava/lang/String;)V", at = @At("HEAD"))
     private void arcadium$releaseWorldBuffers(ClientWorld world, String reason, CallbackInfo callback) {
-        if (world == null) { RetainedHudBuffers.closeAll(); WorldRenderScale.release(); GpuNameTags.closeAll(); GpuPlayerPipeline.reset(); }
+        if (world == null) { RetainedHudBuffers.closeAll(); WorldRenderScale.release(); GpuNameTags.closeAll(); GpuParticles.close(); GpuPlayerPipeline.reset(); }
     }
     @Inject(method = "shutdown", at = @At("HEAD"))
     private void arcadium$releaseGpuBuffers(CallbackInfo callback) {
-        RetainedHudBuffers.closeAll(); WorldRenderScale.release(); GpuModelTransforms.close(); GpuNameTags.closeAll();
+        RetainedHudBuffers.closeAll(); WorldRenderScale.release(); GpuModelTransforms.close(); GpuNameTags.closeAll(); GpuParticles.close();
     }
 }

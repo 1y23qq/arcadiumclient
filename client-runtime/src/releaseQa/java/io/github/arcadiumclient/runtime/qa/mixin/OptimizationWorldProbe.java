@@ -5,6 +5,7 @@ import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import io.github.arcadiumclient.runtime.qa.OptimizationsBetaQa;
 import io.github.arcadiumclient.runtime.qa.NextRenderingQa;
+import io.github.arcadiumclient.runtime.qa.HypixelLabQa;
 import net.minecraft.client.render.GameRenderer;
 import org.spongepowered.asm.mixin.Mixin;
 
@@ -12,6 +13,7 @@ import org.spongepowered.asm.mixin.Mixin;
 public abstract class OptimizationWorldProbe {
     @WrapMethod(method="renderWorld(FJ)V")
     private void optimization$timeWorld(float delta,long deadline,Operation<Void> original) {
+        if(HypixelLabQa.enabled()){long cpu=System.nanoTime();int q=HypixelLabQa.beginGpu();try{original.call(delta,deadline);}finally{HypixelLabQa.endGpu(q,cpu);}return;}
         if(!OptimizationsBetaQa.enabled()&&!NextRenderingQa.enabled()){original.call(delta,deadline);return;}
         boolean next=NextRenderingQa.enabled();long cpu=System.nanoTime();
         int query=next?NextRenderingQa.beginGpuTime():OptimizationsBetaQa.beginGpuTime();

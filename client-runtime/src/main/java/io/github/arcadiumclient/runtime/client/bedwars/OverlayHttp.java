@@ -28,6 +28,7 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BooleanSupplier;
 import java.util.function.LongSupplier;
 import java.util.function.Supplier;
@@ -52,14 +53,30 @@ public final class OverlayHttp implements AutoCloseable {
         }
     }
 
-    public interface Transport { Response exchange(URI uri, Map<String, String> headers, String body) throws IOException; }
+    public interface Transport {
+        Response exchange(URI uri, Map<String, String> headers, String body) throws IOException;
+        default Response exchange(URI uri, Map<String, String> headers, String body, long timeoutMillis) throws IOException {
+            return exchange(uri, headers, body);
+        }
+    }
+    static final long KEYLESS_REQUEST_MILLIS = 2400;
+    static final long KEYLESS_RECOVERY_MILLIS = 4000;
+    static final long KEYLESS_QUEUE_MILLIS = 3500;
+    private static final Transport DEFAULT_TRANSPORT = new Transport() {
+        @Override public Response exchange(URI uri, Map<String, String> headers, String body) throws IOException {
+            return OverlayHttp.exchange(uri, headers, body);
+        }
+        @Override public Response exchange(URI uri, Map<String, String> headers, String body, long timeoutMillis) throws IOException {
+            return OverlayHttp.exchange(uri, headers, body, timeoutMillis);
+        }
+    };
     private final Transport transport;
     private final LongSupplier clock;
     private final ThreadPoolExecutor workers = workers(8, 128, "arcadium-bedwars-http");
     private final ThreadPoolExecutor[] keylessWorkers = {
-            workers(8, 64, "arcadium-bedwars-keyless-0"),
-            workers(4, 64, "arcadium-bedwars-keyless-1"),
-            workers(4, 64, "arcadium-bedwars-keyless-2")
+            workers(8, 24, "arcadium-bedwars-keyless-0"),
+            workers(4, 24, "arcadium-bedwars-keyless-1"),
+            workers(4, 24, "arcadium-bedwars-keyless-2")
     };
     private final ScheduledThreadPoolExecutor timers = new ScheduledThreadPoolExecutor(1, task -> {
         Thread thread = new Thread(task, "arcadium-bedwars-delay");
@@ -70,9 +87,10 @@ public final class OverlayHttp implements AutoCloseable {
     private final Set<CompletableFuture<?>> outstanding = ConcurrentHashMap.newKeySet();
     private final AtomicBoolean closed = new AtomicBoolean();
     private final Map<String, Long> blockedUntil = new ConcurrentHashMap<>();
+    private final Map<String, Long> rateLimitedUntil = new ConcurrentHashMap<>();
     private final Map<String, Integer> failures = new ConcurrentHashMap<>();
 
-    public OverlayHttp() { this(OverlayHttp::exchange); }
+    public OverlayHttp() { this(DEFAULT_TRANSPORT); }
     public OverlayHttp(Transport transport) { this(transport, System::currentTimeMillis); }
     public OverlayHttp(Transport transport, LongSupplier clock) {
         this.transport = transport;
@@ -85,7 +103,7 @@ public final class OverlayHttp implements AutoCloseable {
     }
 
     <T> CompletableFuture<T> submitKeyless(int provider, BooleanSupplier active, Supplier<T> action) {
-        return submit(keylessWorkers[provider], active, action);
+        return submit(keylessWorkers[provider], active, action, KEYLESS_QUEUE_MILLIS);
     }
 
     CompletableFuture<Void> defer(Runnable action, long delayMillis) {
@@ -126,8 +144,17 @@ public final class OverlayHttp implements AutoCloseable {
     }
 
     private <T> CompletableFuture<T> submit(ThreadPoolExecutor executor, BooleanSupplier active, Supplier<T> action) {
+        return submit(executor, active, action, 0);
+    }
+
+    private <T> CompletableFuture<T> submit(ThreadPoolExecutor executor, BooleanSupplier active, Supplier<T> action, long queueMillis) {
         CompletableFuture<T> result = new CompletableFuture<>();
+        AtomicBoolean claimed = new AtomicBoolean();
+        AtomicReference<CompletableFuture<Void>> expiry = new AtomicReference<>();
         FutureTask<Void> job = new FutureTask<>(() -> {
+            if (!claimed.compareAndSet(false, true)) return;
+            CompletableFuture<Void> deadline = expiry.get();
+            if (deadline != null) deadline.cancel(false);
             if (result.isCancelled() || !active.getAsBoolean()) { result.cancel(false); return; }
             try {
                 T value = action.get();
@@ -143,20 +170,37 @@ public final class OverlayHttp implements AutoCloseable {
         outstanding.add(result);
         result.whenComplete((value, error) -> {
             outstanding.remove(result);
+            CompletableFuture<Void> deadline = expiry.get();
+            if (deadline != null) deadline.cancel(false);
             if (result.isCancelled()) { job.cancel(true); executor.remove(job); }
         });
         if (closed.get()) { result.cancel(false); return result; }
+        if (queueMillis > 0) {
+            CompletableFuture<Void> deadline = defer(() -> {
+                if (!claimed.compareAndSet(false, true)) return;
+                job.cancel(false);
+                executor.remove(job);
+                result.completeExceptionally(new IOException("Overlay queue deadline exceeded"));
+            }, queueMillis);
+            expiry.set(deadline);
+            deadline.whenComplete((value, error) -> {
+                if (error != null && !deadline.isCancelled()) result.completeExceptionally(error);
+            });
+            if (result.isDone()) { deadline.cancel(false); return result; }
+        }
         try { executor.execute(job); }
         catch (RejectedExecutionException ignored) { result.completeExceptionally(new IOException("Overlay queue full")); }
         return result;
     }
 
     private static ThreadPoolExecutor workers(int count, int queueSize, String name) {
-        return new ThreadPoolExecutor(count, count, 30, TimeUnit.SECONDS, new ArrayBlockingQueue<>(queueSize), task -> {
+        ThreadPoolExecutor executor = new ThreadPoolExecutor(count, count, 30, TimeUnit.SECONDS, new ArrayBlockingQueue<>(queueSize), task -> {
             Thread thread = new Thread(task, name);
             thread.setDaemon(true);
             return thread;
         });
+        executor.allowCoreThreadTimeOut(true);
+        return executor;
     }
 
     public Response request(String address, Credential credential, String key, String body, BooleanSupplier active) {
@@ -184,12 +228,13 @@ public final class OverlayHttp implements AutoCloseable {
         URI uri;
         try { uri = URI.create(address); }
         catch (IllegalArgumentException ignored) { return new Response(0, ""); }
-        String host = uri.getHost();
+        String host = uri.getHost() == null ? null : uri.getHost().toLowerCase(java.util.Locale.ROOT);
         if (!"https".equalsIgnoreCase(uri.getScheme()) || host == null || uri.getUserInfo() != null) return new Response(0, "");
         if (credential == Credential.HYPIXEL && !"api.hypixel.net".equalsIgnoreCase(host)) throw new IllegalArgumentException("Hypixel credential host");
         if (credential == Credential.SERAPH && !"api.seraph.si".equalsIgnoreCase(host)) throw new IllegalArgumentException("Seraph credential host");
         if (!active.getAsBoolean()) throw new CancellationException();
-        if (clock.getAsLong() < blockedUntil.getOrDefault(host, 0L)) return new Response(429, "");
+        if (clock.getAsLong() < Math.max(blockedUntil.getOrDefault(host, 0L), rateLimitedUntil.getOrDefault(host, 0L)))
+            return new Response(429, "");
         Map<String, String> headers = new HashMap<>();
         headers.put("Accept", "application/json,text/html;q=0.8");
         headers.put("User-Agent", "Arcadium Hypixel Stats (+https://arcadiumclient.com)");
@@ -199,10 +244,11 @@ public final class OverlayHttp implements AutoCloseable {
         for (int attempt = 0; attempt < attempts; attempt++) {
             if (!active.getAsBoolean() || Thread.currentThread().isInterrupted()) throw new CancellationException();
             try {
-                Response response = transport.exchange(uri, Collections.unmodifiableMap(headers), body);
+                long timeout = keyless ? failures.getOrDefault(host, 0) > 0 ? KEYLESS_RECOVERY_MILLIS : KEYLESS_REQUEST_MILLIS : 6000;
+                Response response = transport.exchange(uri, Collections.unmodifiableMap(headers), body, timeout);
                 if (!active.getAsBoolean()) throw new CancellationException();
                 if (response.status == 429) {
-                    block(host, Math.max(30, response.retryAfterSeconds));
+                    block(rateLimitedUntil, host, Math.max(30, response.retryAfterSeconds));
                 } else if (credential == Credential.HYPIXEL && (response.status == 401 || response.status == 403)) {
                     return response;
                 } else if (response.status >= 500 && attempt + 1 < attempts && body == null) {
@@ -214,12 +260,14 @@ public final class OverlayHttp implements AutoCloseable {
                     block(host, Math.max(delay, response.retryAfterSeconds));
                 } else if (response.status >= 200 && response.status < 300) {
                     failures.remove(host);
-                    if (response.rateRemaining == 0) block(host, Math.max(1, response.rateResetSeconds));
+                    if (response.rateRemaining == 0)
+                        block(rateLimitedUntil, host, Math.max(1, Math.max(response.rateResetSeconds, response.retryAfterSeconds)));
                 }
                 return response;
             } catch (IOException ignored) {
                 if (!active.getAsBoolean() || Thread.currentThread().isInterrupted()) throw new CancellationException();
                 if (attempt + 1 == attempts || body != null) {
+                    failures.merge(host, 1, Integer::sum);
                     block(host, keyless ? 2 : 30);
                     return new Response(0, "");
                 }
@@ -229,7 +277,13 @@ public final class OverlayHttp implements AutoCloseable {
     }
 
     private void block(String host, long seconds) {
-        blockedUntil.merge(host, clock.getAsLong() + Math.min(300, seconds) * 1000L, Math::max);
+        block(blockedUntil, host, seconds);
+    }
+
+    private void block(Map<String, Long> limits, String host, long seconds) {
+        long now = clock.getAsLong();
+        long delay = Math.min(Long.MAX_VALUE / 1000, Math.max(0, seconds)) * 1000;
+        limits.merge(host, now > Long.MAX_VALUE - delay ? Long.MAX_VALUE : now + delay, Math::max);
     }
 
     private static final class ClientHolder {

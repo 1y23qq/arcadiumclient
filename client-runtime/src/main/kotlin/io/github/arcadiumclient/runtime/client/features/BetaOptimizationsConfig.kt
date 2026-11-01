@@ -8,6 +8,10 @@ import io.github.arcadiumclient.runtime.client.optimizations.GpuNameTags
 import io.github.arcadiumclient.runtime.client.optimizations.GpuPlayerPipeline
 import io.github.arcadiumclient.runtime.client.optimizations.GpuEquipmentPipeline
 import io.github.arcadiumclient.runtime.client.optimizations.RetainedNameTags
+import io.github.arcadiumclient.runtime.client.optimizations.GpuParticles
+import io.github.arcadiumclient.runtime.client.optimizations.FastInvisibleHolograms
+import io.github.arcadiumclient.runtime.client.optimizations.ScoreboardPreparation
+import io.github.arcadiumclient.runtime.client.optimizations.FastFramePresentation
 import org.polyfrost.oneconfig.api.config.v1.Config
 import org.polyfrost.oneconfig.api.config.v1.annotations.Slider
 import org.polyfrost.oneconfig.api.config.v1.annotations.Switch
@@ -35,11 +39,29 @@ object BetaOptimizationsConfig : Config("arcadium-optimizations-beta.json", "Opt
     @JvmStatic @Switch(title = "Retained Name Tag Scenes", description = "Keep unchanged name tag draw plans and update their position and camera facing every frame. Requires GPU Name Tags. Unsupported labels keep their original preparation.", category = "Name Tags")
     var retainedNameTagScenes = false
 
+    @JvmStatic @Switch(title = "Invisible Hologram Fast Path", description = "Skip unused model preparation for invisible, unequipped vanilla armor stands. Their name tags keep the original renderer; visible stands, equipment and custom renderers use the original path.", category = "Name Tags")
+    var fastInvisibleHolograms = false
+
+    @JvmStatic @Switch(title = "GPU Particle Batches", description = "Expand standard particle billboards on the GPU. Keeps particle counts, animation, custom size, fading and static colors. Mixed or unsupported batches use the original path. Requires OpenGL 3.3.", category = "Particles")
+    var gpuParticles = false
+
+    @JvmStatic @Switch(title = "Retained Particle Recipes", description = "Reuse stable vanilla spell-particle appearance between game ticks. Positions and camera-facing geometry still update every frame; animated colors and custom particles use the original preparation.", category = "Particles")
+    var retainedParticleRecipes = false
+
+    @JvmStatic @Slider(title = "Minimum Visible Particles", description = "Keep small particle scenes on the original renderer.", min = 1f, max = 512f, step = 1f, category = "Particles")
+    var minimumGpuParticles = 64
+
     @JvmStatic @Slider(title = "Minimum Visible Labels", description = "Use the GPU path only for crowded views. All labels keep updating every frame.", min = 1f, max = 128f, step = 1f, category = "Name Tags")
     var minimumGpuLabels = 16
 
     @JvmStatic @Switch(title = "Retained HUD Batches", description = "Keep unchanged Argentum HUD text batches in GPU memory instead of uploading them every frame. Animated text, chat fading and changed settings still update immediately.", category = "HUD")
     var retainedHudBatches = false
+
+    @JvmStatic @Switch(title = "Retained Scoreboard Preparation", description = "Share the current score ordering and point-visibility decision across sidebar rows. Score changes, live settings and every native draw still update immediately.", category = "HUD")
+    var retainedScoreboardPreparation = false
+
+    @JvmStatic @Switch(title = "Fast Frame Presentation", description = "Cache the final full-screen frame quad while keeping native colors, resolution and frame timing. Unsupported render states use the original path.", category = "Display")
+    var directFramebufferPresentation = false
 
     @JvmStatic @Switch(title = "World Render Scale", description = "Render the world and held items at a lower resolution. HUD and menus stay at full resolution. This reduces image detail and helps GPU-limited scenes.", category = "World")
     var worldRenderScale = false
@@ -47,13 +69,17 @@ object BetaOptimizationsConfig : Config("arcadium-optimizations-beta.json", "Opt
     @JvmStatic @Slider(title = "World Resolution", description = "Percentage of the window resolution used for the world. 100% keeps the original resolution.", min = 50f, max = 100f, step = 5f, category = "World")
     var worldResolution = 75
 
-    init { addDependency("retainedNameTagScenes", "gpuNameTags") }
+    init {
+        addDependency("retainedNameTagScenes", "gpuNameTags")
+        addDependency("retainedParticleRecipes", "gpuParticles")
+        addDependency("minimumGpuParticles", "gpuParticles")
+    }
 
     fun initialize() {
         preload()
         eventHandler { _: TickEvent.End -> NametagLayout.optimized = gpuNameTags || gpuPlayerPipeline }
         BetaOptimizationPage.register(id) {
-            listOf(GpuModelTransforms.status(), GpuPlayerPipeline.status(), GpuEquipmentPipeline.status(), GpuNameTags.status(), RetainedNameTags.status(), RetainedHudBuffers.status(), WorldRenderScale.status())
+            listOf(GpuModelTransforms.status(), GpuPlayerPipeline.status(), GpuEquipmentPipeline.status(), GpuNameTags.status(), RetainedNameTags.status(), FastInvisibleHolograms.status(), GpuParticles.status(), ScoreboardPreparation.status(), FastFramePresentation.status(), RetainedHudBuffers.status(), WorldRenderScale.status())
         }
     }
 }

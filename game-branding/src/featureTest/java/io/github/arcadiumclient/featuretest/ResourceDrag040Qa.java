@@ -82,15 +82,21 @@ final class ResourceDrag040Qa {
             }
             case 5 -> {
                 require(active().size() == 3, "Third pack drag failed");
+                RESULT.put("activeBeforeUnrelatedSearch", active());
+                search("no-pack-matches-this-query");
+            }
+            case 6 -> {
+                require(hasText(screen, "No matching packs"), "A nonmatching query did not empty Available");
+                require(active().equals(RESULT.get("activeBeforeUnrelatedSearch")), "Searching Available changed Active order");
                 List<String> order = active();
                 String bottom = order.get(order.size() - 1);
                 List<Float> top = rectangle(description("Resource pack " + order.get(0), 0), mc, "Top active card");
                 begin(mc, body(bottom), new Point(top.get(0) + 50, top.get(1) + 2), 0);
                 RESULT.put("movedToTop", bottom);
             }
-            case 6 -> {
+            case 7 -> {
                 require(active().get(0).equals(RESULT.get("movedToTop")), "Active priority drag did not move the last card to the top");
-                RESULT.put("activePriorityReorder", true);
+                RESULT.put("activePriorityReorderWhileAvailableHasNoMatches", true);
                 String remove = active().get(1);
                 RESULT.put("removed", remove);
                 List<Float> bounds = rectangle(description("Disable pack", 0), mc, "Disable pack");
@@ -98,66 +104,66 @@ final class ResourceDrag040Qa {
                 RESULT.put("disableBounds", bounds);
                 begin(mc, body(remove), pane("availableBounds"), 0);
             }
-            case 7 -> {
+            case 8 -> {
                 require(!active().contains(RESULT.get("removed")) && active().size() == 2, "Active pack did not drag back to Available");
-                RESULT.put("activeToAvailable", true);
+                RESULT.put("activeToAvailableWhileAvailableHasNoMatches", true);
                 String id = active().get(0);
                 RESULT.put("outsideOrder", active());
                 begin(mc, body(id), new Point(3, 3), 0);
             }
-            case 8 -> {
+            case 9 -> {
                 require(active().equals(RESULT.get("outsideOrder")), "Dropping outside both lists changed selection");
                 RESULT.put("outsideDropCancelled", true);
                 search("Drag040 New");
             }
-            case 9 -> begin(mc, body(NEW), pane("activeBounds"), 0);
-            case 10 -> {
+            case 10 -> begin(mc, body(NEW), pane("activeBounds"), 0);
+            case 11 -> {
                 require(hasText(screen, "Use this pack?") && !active().contains(NEW), "An incompatible dragged pack bypassed confirmation");
                 click(screen, "Cancel");
             }
-            case 11 -> {
+            case 12 -> {
                 require(!active().contains(NEW), "Cancelling the compatibility dialog selected the pack");
                 begin(mc, body(NEW), pane("activeBounds"), 0);
             }
-            case 12 -> click(screen, "Use pack");
-            case 13 -> {
+            case 13 -> click(screen, "Use pack");
+            case 14 -> {
                 require(active().contains(NEW), "Confirming the dragged incompatible pack failed");
                 RESULT.put("incompatibleConfirmationAndCancel", true);
                 call(screen, "setActive", List.of(A, B, C)); search("Drag040");
             }
-            case 14 -> {
+            case 15 -> {
                 Object button = description("Disable pack", 0);
                 pointer(mc, center(button), 0);
             }
-            case 15 -> {
+            case 16 -> {
                 require(active().equals(List.of(B, C)), "The enlarged remove button did not receive a normal pointer click");
                 RESULT.put("normalActionClick", true);
                 click(screen, "Apply");
             }
-            case 16 -> {
+            case 17 -> {
                 require(!(boolean) call(screen, "getApplying"), "Pack application did not finish");
                 List<String> persisted = mc.options.resourcePacks;
                 require(persisted.equals(List.of(C, B)), "The real repository priority did not match the visual order: " + persisted);
                 mc.openScreen(new ResourcePacksScreen(parent)); screen = mc.screen;
             }
-            case 17 -> {
+            case 18 -> {
                 require(active().equals(List.of(B, C)), "Reopening the pack screen lost applied priority");
                 RESULT.put("applyAndReopenPersistedPriority", true);
                 call(screen, "setActive", new ArrayList<String>());
                 search("Drag040");
             }
-            case 18 -> {
+            case 19 -> {
                 Point edge = pane("availableListBounds");
                 Object bounds = field(screen, "availableListBounds");
                 edge = new Point(edge.x, ((Number) call(bounds, "getBottom")).doubleValue() - 5);
                 begin(mc, body(B), edge, 50);
             }
-            case 19 -> {
+            case 20 -> {
                 require(scroll(0) > 0, "Dragging to the available list edge did not auto-scroll");
                 RESULT.put("edgeAutoScroll", true);
                 call(screen, "setActive", original); click(screen, "Apply");
             }
-            case 20 -> {
+            case 21 -> {
                 require(!(boolean) call(screen, "getApplying"), "Restoring fixture packs did not finish");
                 capture(mc, "resource-drag040.png");
                 RESULT.put("completed", true);

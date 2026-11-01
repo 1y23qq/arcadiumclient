@@ -21,8 +21,14 @@ public final class BedwarsStats {
     private final String monthlyRankColor;
     private final String prefix;
     private final int networkLevel;
+    private final double kdr;
+    private final long wins;
+    private final double wlr;
 
     public int getNetworkLevel() { return networkLevel; }
+    public double getKdr() { return kdr; }
+    public long getWins() { return wins; }
+    public double getWlr() { return wlr; }
 
     public BedwarsStats(
             UUID uuid,
@@ -48,6 +54,14 @@ public final class BedwarsStats {
                         boolean nicked, boolean unavailable, String packageRank, String newPackageRank,
                         String monthlyPackageRank, String rankPlusColor, String monthlyRankColor, String prefix,
                         int networkLevel) {
+        this(uuid, name, star, fkdr, finalKills, finalDeaths, nicked, unavailable, packageRank, newPackageRank,
+                monthlyPackageRank, rankPlusColor, monthlyRankColor, prefix, networkLevel, Double.NaN, -1, Double.NaN);
+    }
+
+    public BedwarsStats(UUID uuid, String name, int star, double fkdr, int finalKills, int finalDeaths,
+                        boolean nicked, boolean unavailable, String packageRank, String newPackageRank,
+                        String monthlyPackageRank, String rankPlusColor, String monthlyRankColor, String prefix,
+                        int networkLevel, double kdr, long wins, double wlr) {
         this.uuid = uuid;
         this.name = name;
         this.star = star;
@@ -63,6 +77,9 @@ public final class BedwarsStats {
         this.monthlyRankColor = monthlyRankColor;
         this.prefix = prefix;
         this.networkLevel = networkLevel;
+        this.kdr = kdr;
+        this.wins = wins;
+        this.wlr = wlr;
     }
 
     public static BedwarsStats nicked(UUID uuid, String name) {

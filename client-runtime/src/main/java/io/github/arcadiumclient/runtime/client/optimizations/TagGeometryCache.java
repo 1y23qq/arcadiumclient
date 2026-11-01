@@ -6,12 +6,19 @@ import java.util.*;
 public final class TagGeometryCache {
     public record Mesh(int firstVertex, int vertexCount, int[] quads) { }
     private record Variant(int stride, int color, boolean flat, boolean overrideAlpha, int[] source, Mesh mesh) { }
-    private static final class Key {
+    private static final class Key implements Comparable<Key> {
         final int[] data;
         final int hash;
-        Key(int[] data) { this.data=data; this.hash=Arrays.hashCode(data); }
+        Key(int[] data) {
+            this.data=data;
+            long mixed=0xcbf29ce484222325L;
+            for(int value:data)mixed=(mixed^Integer.toUnsignedLong(value))*0x100000001b3L;
+            mixed^=mixed>>>33;mixed*=0xff51afd7ed558ccdL;mixed^=mixed>>>33;
+            this.hash=(int)(mixed^(mixed>>>32));
+        }
         @Override public int hashCode(){return hash;}
         @Override public boolean equals(Object other){return other instanceof Key key && Arrays.equals(data,key.data);}
+        @Override public int compareTo(Key other){return Arrays.compare(data,other.data);}
     }
     private final IdentityHashMap<int[],ArrayDeque<Variant>> hints=new IdentityHashMap<>();
     private final Map<Key,Mesh> meshes=new HashMap<>();

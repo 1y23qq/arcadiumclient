@@ -397,6 +397,11 @@ impl AuthService {
         access_token: &str,
         cancel: &CancellationToken,
     ) -> AuthResult<MinecraftAccount> {
+        if crate::session::is_microsoft_refresh_token(access_token) {
+            return self
+                .add_refresh_token_account(access_token, "", cancel)
+                .await;
+        }
         let account = tokio::select! {
             biased;
             () = cancel.cancelled() => return Err(AuthError::LoginCancelled),

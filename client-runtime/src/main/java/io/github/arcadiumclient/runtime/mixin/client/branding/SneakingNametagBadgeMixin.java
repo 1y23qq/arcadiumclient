@@ -14,6 +14,10 @@ import org.spongepowered.asm.mixin.Mixin;
 public abstract class SneakingNametagBadgeMixin {
     @WrapMethod(method = "renderNameTag(Lnet/minecraft/entity/living/LivingEntity;DDD)V")
     private void arcadium$sneakingLayout(LivingEntity entity, double x, double y, double z, Operation<Void> original) {
+        if (!entity.isSneaking()) {
+            original.call(entity, x, y, z);
+            return;
+        }
         NametagLayout.Scope previous = NametagLayout.begin(entity, entity.getDisplayName().getFormattedString());
         try { original.call(entity, x, y, z); }
         finally { NametagLayout.end(previous); }

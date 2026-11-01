@@ -212,14 +212,14 @@ private fun AccountMenu(modifier: Modifier, initiallyExpanded: Boolean, onSkins:
             val offline = method == "Cracked"
             if (!offline) {
                 UiDropdown("", listOf(false, true), refreshToken,
-                    { if (it) "Microsoft refresh token" else "Minecraft access token" }, Modifier.fillMaxWidth()) { if (!busy) refreshToken = it }
+                    { if (it) "Microsoft refresh token" else "Auto-detect token type" }, Modifier.fillMaxWidth()) { if (!busy) refreshToken = it }
                 if (refreshToken) {
                     UiTextField(oauthClientId, { if (!busy) oauthClientId = it }, Modifier.fillMaxWidth(), "OAuth client ID (optional)", maxLength = 36)
-                    UiText("Use the issuing app's client ID. Leave empty for an Arcadium token.", 11.sp, color = UiTextSecondary, maxLines = 3)
+                    UiText("Leave empty for automatic client selection.", 11.sp, color = UiTextSecondary, maxLines = 3)
                 }
             }
             UiTextField(input, { if (!busy) input = it }, Modifier.fillMaxWidth(),
-                if (offline) "Username" else if (refreshToken) "Microsoft refresh token" else "Minecraft access token",
+                if (offline) "Username" else if (refreshToken) "Microsoft refresh token" else "Session token",
                 maxLength = if (offline) 16 else 16384, password = !offline)
             UiButton("Add", Modifier.fillMaxWidth(), filled = true, enabled = !busy && input.isNotBlank()) {
                 val value = input

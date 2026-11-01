@@ -10,9 +10,18 @@ const PROFILE_URL: &str = "https://api.minecraftservices.com/minecraft/profile";
 const MAX_TOKEN_BYTES: usize = 8192;
 const MAX_PROFILE_BYTES: usize = 64 * 1024;
 
+pub(crate) fn is_microsoft_refresh_token(raw: &str) -> bool {
+    let token = raw
+        .trim()
+        .strip_prefix("Bearer ")
+        .unwrap_or(raw.trim())
+        .trim();
+    token.starts_with("M.") && token.contains(".0.U.")
+}
+
 #[derive(Debug, thiserror::Error)]
 pub enum SessionLoginError {
-    #[error("Enter a valid token and select its token type")]
+    #[error("Enter a valid Minecraft access token or Microsoft refresh token")]
     InvalidToken,
     #[error("This session has expired or was revoked. Add a new token or sign in with Microsoft")]
     Expired,
@@ -138,6 +147,18 @@ mod tests {
     use super::*;
     use std::io::{Read, Write};
     use std::net::TcpListener;
+
+    #[test]
+    fn recognizes_legacy_microsoft_refresh_tokens() {
+        assert!(is_microsoft_refresh_token(
+            " M.C512_BAY.0.U.MsaArtifacts.fixture!* "
+        ));
+        assert!(is_microsoft_refresh_token("Bearer M.C507_SN1.0.U.fixture"));
+        assert!(!is_microsoft_refresh_token(
+            "eyJhbGciOiJIUzI1NiJ9.fixture.signature"
+        ));
+        assert!(!is_microsoft_refresh_token("fixture-access"));
+    }
 
     async fn reply(status: &str, body: &str) -> Result<MinecraftAccount, SessionLoginError> {
         let listener = TcpListener::bind("127.0.0.1:0").unwrap();

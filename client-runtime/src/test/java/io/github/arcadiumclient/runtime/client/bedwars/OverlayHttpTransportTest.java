@@ -12,6 +12,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -92,5 +93,36 @@ class OverlayHttpTransportTest {
             long retry = OverlayHttp.exchange(URI.create(base + "/limited"), Map.of(), null).retryAfterSeconds;
             assertTrue(retry >= 43 && retry <= 46);
         } finally { server.stop(0); }
+    }
+
+    @Test void aSlowHealthyLinkCanRecoverWithTheLongerRetryBudget() throws Exception {
+        HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+        var executor = Executors.newFixedThreadPool(2);
+        server.setExecutor(executor);
+        server.createContext("/slow", response -> {
+            try {
+                try { Thread.sleep(2700); } catch (InterruptedException ignored) { }
+                response.sendResponseHeaders(200, 2);
+                response.getResponseBody().write(new byte[]{'o', 'k'});
+            } catch (IOException ignored) { } finally { response.close(); }
+        });
+        server.start();
+        AtomicLong now = new AtomicLong(100000);
+        var timeouts = new ArrayList<Long>();
+        OverlayHttp.Transport transport = new OverlayHttp.Transport() {
+            @Override public OverlayHttp.Response exchange(URI uri, Map<String, String> headers, String body) {
+                throw new AssertionError("Missing request deadline");
+            }
+            @Override public OverlayHttp.Response exchange(URI uri, Map<String, String> headers, String body, long timeoutMillis) throws IOException {
+                timeouts.add(timeoutMillis);
+                return OverlayHttp.exchange(URI.create("http://127.0.0.1:" + server.getAddress().getPort() + "/slow"), headers, body, timeoutMillis);
+            }
+        };
+        try (OverlayHttp http = new OverlayHttp(transport, now::get)) {
+            assertEquals(0, http.requestKeyless("https://api.bordic.xyz/slow", () -> true).status);
+            now.addAndGet(2001);
+            assertEquals(200, http.requestKeyless("https://api.bordic.xyz/slow", () -> true).status);
+            assertEquals(java.util.List.of(2400L, 4000L), timeouts);
+        } finally { server.stop(0); executor.shutdownNow(); }
     }
 }

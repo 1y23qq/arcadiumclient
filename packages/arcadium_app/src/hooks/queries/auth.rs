@@ -1,4 +1,8 @@
-use std::sync::Mutex;
+use std::{
+    fmt,
+    hash::{Hash, Hasher},
+    sync::Mutex,
+};
 
 use arcadium_auth::{AccountKind, MicrosoftLoginSession, MinecraftAccount};
 use arcadium_core::LauncherError;
@@ -6,6 +10,7 @@ use freya::query::{
     Mutation, MutationCapability, MutationStateData, QueriesStorage, Query, QueryCapability,
     UseMutation, UseQuery, use_mutation, use_query,
 };
+use tokio_util::sync::CancellationToken;
 use uuid::Uuid;
 
 static HANDLED_LOGIN_CODE: Mutex<Option<String>> = Mutex::new(None);
@@ -234,6 +239,86 @@ impl MutationCapability for AddOfflineAccountMutation {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct AddSessionAccountMutation;
+
+#[derive(Clone)]
+pub struct AddSessionAccountKeys {
+    request_id: Uuid,
+    token: String,
+    refresh: bool,
+    client_id: String,
+    cancel: CancellationToken,
+}
+
+impl AddSessionAccountKeys {
+    pub fn new(token: String, refresh: bool, client_id: String) -> Self {
+        Self {
+            request_id: Uuid::new_v4(),
+            token,
+            refresh,
+            client_id,
+            cancel: CancellationToken::new(),
+        }
+    }
+
+    pub fn cancellation_token(&self) -> CancellationToken {
+        self.cancel.clone()
+    }
+}
+
+impl fmt::Debug for AddSessionAccountKeys {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("AddSessionAccountKeys")
+            .field("request_id", &self.request_id)
+            .field("token", &"[redacted]")
+            .field("refresh", &self.refresh)
+            .finish_non_exhaustive()
+    }
+}
+
+impl PartialEq for AddSessionAccountKeys {
+    fn eq(&self, other: &Self) -> bool {
+        self.request_id == other.request_id
+    }
+}
+
+impl Eq for AddSessionAccountKeys {}
+
+impl Hash for AddSessionAccountKeys {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.request_id.hash(state);
+    }
+}
+
+impl MutationCapability for AddSessionAccountMutation {
+    type Ok = MinecraftAccount;
+    type Err = LauncherError;
+    type Keys = AddSessionAccountKeys;
+
+    async fn run(&self, keys: &Self::Keys) -> Result<Self::Ok, Self::Err> {
+        let state = crate::launcher::state()?;
+        Ok(if keys.refresh {
+            state
+                .auth
+                .add_refresh_token_account(&keys.token, &keys.client_id, &keys.cancel)
+                .await?
+        } else {
+            state
+                .auth
+                .add_session_account(&keys.token, &keys.cancel)
+                .await?
+        })
+    }
+
+    async fn on_settled(&self, _keys: &Self::Keys, result: &Result<Self::Ok, Self::Err>) {
+        if let Ok(account) = result {
+            invalidate_auth_queries(Some(account.id)).await;
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct RemoveAccountMutation;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -360,6 +445,10 @@ pub fn use_add_offline_account() -> UseMutation<AddOfflineAccountMutation> {
     use_mutation(Mutation::new(AddOfflineAccountMutation))
 }
 
+pub fn use_add_session_account() -> UseMutation<AddSessionAccountMutation> {
+    use_mutation(Mutation::new(AddSessionAccountMutation))
+}
+
 pub fn use_remove_account() -> UseMutation<RemoveAccountMutation> {
     use_mutation(Mutation::new(RemoveAccountMutation))
 }
@@ -418,4 +507,46 @@ where
 
 pub fn accounts_have_microsoft(accounts: &[MinecraftAccount]) -> bool {
     accounts.iter().any(|a| a.kind == AccountKind::Microsoft)
+}
+
+#[cfg(test)]
+mod session_import_tests {
+    use super::*;
+
+    #[test]
+    fn session_request_identity_and_debug_do_not_include_credentials() {
+        let request = AddSessionAccountKeys::new(
+            "fixture-secret-token".into(),
+            true,
+            "fixture-client".into(),
+        );
+        let debug = format!("{request:?}");
+        assert!(!debug.contains("fixture-secret-token"));
+        assert!(!debug.contains("fixture-client"));
+        assert!(debug.contains("[redacted]"));
+        assert_eq!(request, request.clone());
+        assert_ne!(
+            request,
+            AddSessionAccountKeys::new(
+                "fixture-secret-token".into(),
+                true,
+                "fixture-client".into()
+            )
+        );
+        let mut original = std::collections::hash_map::DefaultHasher::new();
+        let mut changed = std::collections::hash_map::DefaultHasher::new();
+        request.hash(&mut original);
+        let mut clone = request.clone();
+        clone.token = "a-different-secret".into();
+        clone.hash(&mut changed);
+        assert_eq!(original.finish(), changed.finish());
+    }
+
+    #[test]
+    fn cancellation_reaches_all_copies_of_a_session_request() {
+        let request = AddSessionAccountKeys::new("fixture-token".into(), false, String::new());
+        let running = request.clone();
+        request.cancellation_token().cancel();
+        assert!(running.cancel.is_cancelled());
+    }
 }

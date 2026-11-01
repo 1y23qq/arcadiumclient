@@ -44,6 +44,7 @@ public final class BedwarsData {
             "https://api.abyssoverlay.com/player?uuid="
     };
     private static final long KEYLESS_HEDGE_MILLIS = 600;
+    private static final long KEYLESS_LOOKUP_MILLIS = 6500;
     private final OverlayHttp http;
     private final Map<UUID, Cached> cache = new LinkedHashMap<>(64, 0.75f, true);
     private final Map<UUID, CompletableFuture<BedwarsStats>> pending = new HashMap<>();
@@ -190,6 +191,7 @@ public final class BedwarsData {
         private final BooleanSupplier active;
         private final Set<CompletableFuture<BedwarsStats>> attempts = new HashSet<>();
         private final ArrayList<CompletableFuture<Void>> hedges = new ArrayList<>();
+        private CompletableFuture<Void> deadline;
         private int firstProvider;
         private int nextProvider;
         private int running;
@@ -219,6 +221,14 @@ public final class BedwarsData {
 
         private void startKeyless() {
             if (!policy.keyless) { result.complete(BedwarsStats.unavailable(id, name)); return; }
+            deadline = http.defer(() -> {
+                synchronized (Fetch.this) {
+                    if (active.getAsBoolean()) result.complete(BedwarsStats.unavailable(id, name));
+                }
+            }, KEYLESS_LOOKUP_MILLIS);
+            deadline.whenComplete((value, error) -> {
+                if (error != null && !deadline.isCancelled()) result.complete(BedwarsStats.unavailable(id, name));
+            });
             firstProvider = preferredProvider;
             startNext();
             for (int step = 1; step < PROVIDERS.length && !result.isDone(); step++)
@@ -252,6 +262,7 @@ public final class BedwarsData {
         }
 
         private synchronized void cancelAttempts() {
+            if (deadline != null) deadline.cancel(false);
             for (CompletableFuture<Void> hedge : hedges) hedge.cancel(false);
             for (CompletableFuture<BedwarsStats> attempt : new ArrayList<>(attempts)) attempt.cancel(true);
             attempts.clear();
@@ -282,13 +293,21 @@ public final class BedwarsData {
         int star = integer(child(player, "achievements"), "bedwars_level", -1);
         int experience = integer(bw, "Experience", integer(bw, "Experience_bedwars", -1));
         int kills = integer(bw, "final_kills_bedwars", -1), deaths = integer(bw, "final_deaths_bedwars", -1);
+        int regularKills = integer(bw, "kills_bedwars", -1), regularDeaths = integer(bw, "deaths_bedwars", -1);
+        int wins = integer(bw, "wins_bedwars", -1), losses = integer(bw, "losses_bedwars", -1);
         int networkLevel = networkLevel(player);
-        if (star < 0 && experience < 0 && kills < 0 && deaths < 0 && networkLevel < 0) return BedwarsStats.unavailable(id, name);
+        if (star < 0 && experience < 0 && kills < 0 && deaths < 0 && regularKills < 0 && regularDeaths < 0
+                && wins < 0 && losses < 0 && networkLevel < 0) return BedwarsStats.unavailable(id, name);
         if (star < 0) star = experienceToStar(Math.max(0, experience));
         kills = Math.max(0, kills); deaths = Math.max(0, deaths);
         return new BedwarsStats(id, name, Math.max(0, star), deaths == 0 ? kills : (double) kills / deaths, kills, deaths, false, false,
                 string(player, "packageRank"), string(player, "newPackageRank"), string(player, "monthlyPackageRank"),
-                string(player, "rankPlusColor"), string(player, "monthlyRankColor"), string(player, "prefix"), networkLevel);
+                string(player, "rankPlusColor"), string(player, "monthlyRankColor"), string(player, "prefix"), networkLevel,
+                ratio(regularKills, regularDeaths), wins, ratio(wins, losses));
+    }
+
+    private static double ratio(int numerator, int denominator) {
+        return numerator < 0 || denominator < 0 ? Double.NaN : (double) numerator / Math.max(1, denominator);
     }
 
     public static int networkLevel(JsonObject player) {

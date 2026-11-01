@@ -31,6 +31,8 @@ public final class GpuPlayerPipeline {
     private static MethodHandle cosmeticModels;
     private static Object cosmetics;
     private static volatile String state="Waiting for a supported scene";
+    private static String waitingState=state;
+    private static int waitingPlayers=-1,waitingMinimum=-1;
     public static long playersDrawn,partsQueued,rejectedState,rejectedLayers,rejectedModel;
     private static final int MAGIC_1=Float.floatToRawIntBits(-9876543f),MAGIC_2=Float.floatToRawIntBits(-8765432f);
 
@@ -62,8 +64,14 @@ public final class GpuPlayerPipeline {
 
     public static boolean capture(PlayerRenderer renderer,ClientPlayerEntity player,double x,double y,double z,float delta){
         if(!BetaOptimizationsConfig.getGpuPlayerPipeline()||failed)return false;
-        if(!PlayerPoseOptions.compatible()||renderer.getClass()!=PlayerRenderer.class||((LivingPipelineAccess)renderer).arcadium$outline()||player.isInvisible()||player.shouldRenderOnFire()||player.isBaby()||player.isRiding()||player.isSleeping()||player.isSpectator()||player.damagedTimer>0||player.deathTicks>0
-                ||player.getName().equals("Dinnerbone")||player.getName().equals("Grumm")||!GpuModelTransforms.ready()){rejectedState++;return false;}
+        if(!GpuModelTransforms.ready()){
+            int visible=GpuModelTransforms.visiblePlayers(),minimum=BetaOptimizationsConfig.getMinimumPlayers();
+            if(visible!=waitingPlayers||minimum!=waitingMinimum){waitingPlayers=visible;waitingMinimum=minimum;waitingState="Waiting for player budget ("+visible+"/"+minimum+")";}
+            state=waitingState;rejectedState++;return false;
+        }
+        if(!PlayerPoseOptions.compatible()){state="Custom animation pose; using original";rejectedState++;return false;}
+        if(renderer.getClass()!=PlayerRenderer.class||((LivingPipelineAccess)renderer).arcadium$outline()||player.isInvisible()||player.shouldRenderOnFire()||player.isBaby()||player.isRiding()||player.isSleeping()||player.isSpectator()||player.damagedTimer>0||player.deathTicks>0
+                ||player.getName().equals("Dinnerbone")||player.getName().equals("Grumm")){rejectedState++;return false;}
         if(Skin3DConfig.getEnabled()&&SkinDetailBudget.allow(player)){rejectedModel++;return false;}
         LivingPipelineAccess renderAccess=(LivingPipelineAccess)renderer;
         if(!supportedLayers(renderAccess.arcadium$layers())){rejectedLayers++;return false;}

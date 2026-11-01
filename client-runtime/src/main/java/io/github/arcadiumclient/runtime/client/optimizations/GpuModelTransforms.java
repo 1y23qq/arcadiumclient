@@ -39,10 +39,12 @@ public final class GpuModelTransforms {
     public static void notePlayer() { if(BetaOptimizationsConfig.getGpuModelTransforms()||BetaOptimizationsConfig.getGpuPlayerPipeline()||BetaOptimizationsConfig.getGpuEquipmentPipeline())observedPlayers++; }
 
     public static boolean ready() {
-        if ((!BetaOptimizationsConfig.getGpuModelTransforms()&&!BetaOptimizationsConfig.getGpuPlayerPipeline()&&!BetaOptimizationsConfig.getGpuEquipmentPipeline()) || players < BetaOptimizationsConfig.getMinimumPlayers() || failed) return false;
+        int minimum=BetaOptimizationsConfig.getMinimumPlayers();
+        if ((!BetaOptimizationsConfig.getGpuModelTransforms()&&!BetaOptimizationsConfig.getGpuPlayerPipeline()&&!BetaOptimizationsConfig.getGpuEquipmentPipeline()) || players < minimum || failed) return false;
         if (!checked) initialize();
         return supported;
     }
+    public static int visiblePlayers(){return players;}
 
     private static void initialize() {
         checked = true;

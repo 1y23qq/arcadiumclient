@@ -97,11 +97,12 @@ public final class BedwarsOverlay {
     private void tick() {
         Object nowWorld = BedwarsRuntime.world();
         String nowServer = BedwarsRuntime.server();
-        if (world != nowWorld || !server.equals(nowServer)) {
+        boolean nowHypixel = nowWorld != null && onHypixel(nowServer);
+        if (world != nowWorld || !server.equals(nowServer) || hypixel != nowHypixel) {
             if (!server.equals(nowServer) || !onHypixel(nowServer)) data.releaseMatch();
             world = nowWorld;
             server = nowServer;
-            hypixel = nowWorld != null && onHypixel(nowServer);
+            hypixel = nowHypixel;
             resetWorld();
         }
         BedwarsData.Policy policy = new BedwarsData.Policy(config.keyless, config.useHypixelApiKey, config.hypixelApiKey);
@@ -170,7 +171,8 @@ public final class BedwarsOverlay {
                 if (stats == null && data.pendingCount() < 24) data.get(entry.id, entry.name, policy);
                 if (stats != null && !stats.isUnavailable() && (stats.isNicked() || PlayerNameUtil.sameAccountName(entry.name, stats.getName()))) {
                     if (config.tabStats) text = BedwarsTabLineFormatter.format(stats, entry.name,
-                            BedwarsTabLineFormatter.resolveTabNameColor(entry.vanilla, entry.name, entry.teamPrefix));
+                            BedwarsTabLineFormatter.resolveTabNameColor(entry.vanilla, entry.name, entry.teamPrefix),
+                            config.showRank, config.displayedStat, config.useCustomFormat ? config.tabFormat : null);
                     if (announceReady && config.chatStats && !entry.id.equals(local) && announced.add(entry.id + ":" + entry.name)) announce(entry, stats);
                 }
             }
@@ -414,11 +416,7 @@ public final class BedwarsOverlay {
     private static String safe(String text) { return text == null ? "" : text.trim(); }
 
     public static boolean onHypixel(String address) {
-        if (address == null) return false;
-        String host = address.toLowerCase(Locale.ROOT).trim();
-        int colon = host.lastIndexOf(':');
-        if (colon >= 0) host = host.substring(0, colon);
-        return host.equals("hypixel.net") || host.endsWith(".hypixel.net");
+        return HypixelHosts.matches(address, BedwarsOverlayConfig.INSTANCE.additionalHypixelAddresses);
     }
 
     private static final class TabLine {

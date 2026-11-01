@@ -306,10 +306,7 @@ class ArcadiumResourcePacksScreen(private val parent: Screen?) : ComposeScreen(R
             val tree = remember(packs, active, expanded, query, sort, onlyCompatible) {
                 packRows(packs.filter { it.id !in active && (!onlyCompatible || it.compatible) }, expanded, query, sort)
             }
-            val activeResults = remember(packs, active, query) {
-                val terms = ResourcePackSearch.terms(query)
-                active.filter { id -> byId[id]?.let { ResourcePackSearch.matches(terms, it.searchText) } == true }
-            }
+            val activeResults = active
             Box(
                 Modifier.fillMaxSize().background(UiScrim).onPreviewKeyEvent {
                     if (it.key == Key.Escape && it.type == KeyEventType.KeyDown) {
@@ -362,7 +359,7 @@ class ArcadiumResourcePacksScreen(private val parent: Screen?) : ComposeScreen(R
                         }
                         PackPane(Modifier.weight(1f).onGloballyPositioned { activeBounds = it.boundsInRoot() }, "Active",
                             dragging != null && activeBounds.contains(dragPosition)) {
-                            PackScrollList(activeResults, { it }, query, activeList, { activeListBounds = it }) { id ->
+                            PackScrollList(activeResults, { it }, "", activeList, { activeListBounds = it }) { id ->
                                 byId[id]?.let { pack ->
                                     PackCard(pack, 0, cardModifier(id, true)) {
                                         Column {

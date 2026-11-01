@@ -452,7 +452,7 @@ async fn serve() -> Result<()> {
                 let cancel = CancellationToken::new();
                 let flow_cancel = cancel.clone();
                 let refresh_token = match request["token_type"].as_str() {
-                    None | Some("access") => false,
+                    None | Some("auto") | Some("access") => false,
                     Some("refresh") => true,
                     _ => {
                         response(

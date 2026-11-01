@@ -201,6 +201,38 @@ public class BedwarsCacheTest {
         }
     }
 
+    @Test public void longProviderRetryAfterIsNeverClampedToFiveMinutes() {
+        AtomicLong now = new AtomicLong(100000);
+        AtomicInteger calls = new AtomicInteger();
+        try (OverlayHttp http = new OverlayHttp((uri, headers, body) -> calls.incrementAndGet() == 1
+                ? new OverlayHttp.Response(429, "", 900, -1, 0) : new OverlayHttp.Response(200, ""), now::get)) {
+            assertEquals(429, http.requestKeyless("https://api.bordic.xyz/test", () -> true).status);
+            now.addAndGet(300001);
+            assertEquals(429, http.requestKeyless("https://API.BORDIC.XYZ/test", () -> true).status);
+            assertEquals(1, calls.get());
+            now.addAndGet(600000);
+            assertEquals(200, http.requestKeyless("https://api.bordic.xyz/test", () -> true).status);
+            assertEquals(2, calls.get());
+        }
+    }
+
+    @Test public void changingSettingsCannotBypassHypixelRateLimits() {
+        AtomicLong now = new AtomicLong(100000);
+        AtomicInteger calls = new AtomicInteger();
+        try (OverlayHttp http = new OverlayHttp((uri, headers, body) -> {
+            calls.incrementAndGet();
+            return new OverlayHttp.Response(200, "", 0, 0, 120);
+        }, now::get)) {
+            assertEquals(200, http.requestOnce("https://api.hypixel.net/v2/player", OverlayHttp.Credential.HYPIXEL, "test-key", () -> true).status);
+            http.resetHypixelBackoff();
+            assertEquals(429, http.requestOnce("https://API.HYPIXEL.NET/v2/player", OverlayHttp.Credential.HYPIXEL, "new-key", () -> true).status);
+            assertEquals(1, calls.get());
+            now.addAndGet(120001);
+            assertEquals(200, http.requestOnce("https://api.hypixel.net/v2/player", OverlayHttp.Credential.HYPIXEL, "new-key", () -> true).status);
+            assertEquals(2, calls.get());
+        }
+    }
+
     @Test public void networkExperienceUsesTheHypixelLevelCurveAndDoesNotInventUnknownLevels() {
         assertEquals(1, BedwarsData.networkLevel(BedwarsData.object("{\"networkExp\":0}")));
         assertEquals(2, BedwarsData.networkLevel(BedwarsData.object("{\"networkExp\":10000}")));

@@ -39,7 +39,7 @@ public abstract class MixinGpuModelCapture {
 
     @WrapMethod(method = "recordPart")
     private void arcadium$compactPart(ModelPart part, float scale, Operation<Void> original) {
-        if (!BetaOptimizationsConfig.getGpuModelTransforms()) { original.call(part, scale); return; }
+        if (!BetaOptimizationsConfig.getGpuModelTransforms()||!GpuModelTransforms.ready()) { original.call(part, scale); return; }
         if (!player || item || armorLayer || ((BetaModelPartAccess)part).arcadium$baseModel().getClass() != PlayerModel.class
                 || part.getClass() != ModelPart.class || part.invisible || !part.visible
                 || part.boxes.size() != 1 || (part.children != null && !part.children.isEmpty()) || !GpuModelTransforms.ready()) {

@@ -8,12 +8,14 @@ use uuid::Uuid;
 
 use super::{section_header, settings_page};
 use crate::components::{
-    Avatar, Button, Icon, IconType, OverlayPopup, PlayerModel, TextInput, use_microsoft_login,
+    Avatar, Button, Dropdown, Icon, IconType, OverlayPopup, PlayerModel, TextInput,
+    use_microsoft_login,
 };
 use crate::hooks::{
-    AddOfflineAccountKeys, RefreshAccountKeys, RemoveAccountKeys, SetDefaultAccountKeys,
-    try_accounts, try_default_account, use_accounts, use_add_offline_account, use_current_account,
-    use_refresh_account, use_remove_account, use_set_default_account,
+    AddOfflineAccountKeys, AddSessionAccountKeys, RefreshAccountKeys, RemoveAccountKeys,
+    SetDefaultAccountKeys, try_accounts, try_default_account, use_accounts,
+    use_add_offline_account, use_add_session_account, use_current_account, use_refresh_account,
+    use_remove_account, use_set_default_account,
 };
 use crate::theme::colors;
 use crate::ui::border_all_color;
@@ -40,6 +42,7 @@ impl Component for SettingsAccounts {
 
         let mut username = use_state(String::new);
         let mut show_offline = use_state(|| false);
+        let mut show_session = use_state(|| false);
         let mut closing_offline = use_state(|| false);
 
         use_side_effect(move || {
@@ -104,6 +107,7 @@ impl Component for SettingsAccounts {
                 msa.pending,
                 msa.error.clone(),
                 move |_| show_offline.set(true),
+                move |_| show_session.set(true),
                 {
                     let msa = msa.clone();
                     move |_| msa.start()
@@ -121,6 +125,9 @@ impl Component for SettingsAccounts {
                 )
             }))
             .maybe_child(msa.popup())
+            .maybe_child(show_session.read().then(|| SessionAccountDialog {
+                visible: show_session,
+            }))
             .into_element()
     }
 }
@@ -130,6 +137,7 @@ fn hero(
     microsoft_pending: bool,
     error: Option<String>,
     on_open_offline: impl FnMut(Event<PressEventData>) + 'static,
+    on_open_session: impl FnMut(Event<PressEventData>) + 'static,
     on_add_microsoft: impl FnMut(Event<PressEventData>) + 'static,
 ) -> impl IntoElement {
     let (name, subtitle) = match &account {
@@ -188,7 +196,6 @@ fn hero(
                         .width(Size::fill())
                         .spacing(8.)
                         .child(
-                            // The two buttons overflow the ~245px beside the model at the 800px minimum so they wrap
                             rect()
                                 .horizontal()
                                 .width(Size::fill())
@@ -213,6 +220,13 @@ fn hero(
                                         .on_press(on_open_offline)
                                         .child(Icon::new(IconType::Plus).size(16.))
                                         .text("Add Cracked"),
+                                )
+                                .child(
+                                    Button::new()
+                                        .secondary()
+                                        .enabled(!microsoft_pending)
+                                        .on_press(on_open_session)
+                                        .text("Add Session"),
                                 ),
                         )
                         .map(error, |el, msg| {
@@ -365,6 +379,191 @@ fn field_label(text: &str) -> impl IntoElement {
         .font_size(11.)
         .font_weight(FontWeight::MEDIUM)
         .color(colors::fg_secondary())
+        .into_element()
+}
+
+#[derive(PartialEq)]
+struct SessionAccountDialog {
+    visible: State<bool>,
+}
+
+impl Component for SessionAccountDialog {
+    fn render(&self) -> impl IntoElement {
+        let mut token = use_state(String::new);
+        let refresh = use_state(|| false);
+        let mut client_id = use_state(String::new);
+        let mut error = use_state(|| None::<String>);
+        let mut request = use_state(|| None::<tokio_util::sync::CancellationToken>);
+        let add_session = use_add_session_account();
+        let mut visible = self.visible;
+
+        use_drop(move || {
+            if let Some(cancel) = request.peek().as_ref() {
+                cancel.cancel();
+            }
+        });
+
+        let on_close = EventHandler::new(move |()| {
+            if let Some(cancel) = request.peek().as_ref() {
+                cancel.cancel();
+            }
+            token.set(String::new());
+            client_id.set(String::new());
+            visible.set(false);
+        });
+        let on_confirm = EventHandler::new(move |()| {
+            let value = token.peek().trim().to_string();
+            if value.is_empty() || request.peek().is_some() {
+                return;
+            }
+            let keys = AddSessionAccountKeys::new(
+                value,
+                *refresh.peek(),
+                client_id.peek().trim().to_string(),
+            );
+            let cancel = keys.cancellation_token();
+            request.set(Some(cancel.clone()));
+            token.set(String::new());
+            error.set(None);
+            spawn(async move {
+                let result = add_session.mutate_async(keys).await;
+                if cancel.is_cancelled() {
+                    return;
+                }
+                request.set(None);
+                match &*result.state() {
+                    MutationStateData::Settled { res: Ok(_), .. } => visible.set(false),
+                    MutationStateData::Settled { res: Err(err), .. } => {
+                        if !err.is_login_cancelled() {
+                            error.set(Some(err.to_string()));
+                        }
+                    }
+                    _ => {}
+                }
+            });
+        });
+
+        session_dialog(
+            token,
+            refresh,
+            client_id,
+            request.read().is_some(),
+            error.read().clone(),
+            on_confirm,
+            on_close,
+        )
+    }
+}
+
+#[expect(clippy::too_many_arguments)]
+fn session_dialog(
+    token: State<String>,
+    mut refresh: State<bool>,
+    client_id: State<String>,
+    busy: bool,
+    error: Option<String>,
+    on_confirm: EventHandler<()>,
+    on_close: EventHandler<()>,
+) -> impl IntoElement {
+    let close_scrim = on_close.clone();
+    let submit = on_confirm.clone();
+    let can_submit = !busy && !token.read().trim().is_empty();
+    let is_refresh = *refresh.read();
+    OverlayPopup::new()
+        .on_close(move |()| close_scrim.call(()))
+        .child(
+            rect()
+                .width(Size::window_percent(100.))
+                .height(Size::window_percent(100.))
+                .center()
+                .child(
+                    rect()
+                        .vertical()
+                        .width(Size::px(420.))
+                        .max_width(Size::window_percent(90.))
+                        .max_height(Size::window_percent(90.))
+                        .spacing(16.)
+                        .padding(Gaps::new_all(20.))
+                        .corner_radius(CornerRadius::new_all(16.))
+                        .background(colors::page_elevated())
+                        .themed_border(border_all_color(1., colors::component_border()))
+                        .child(
+                            label()
+                                .text("Add Session account")
+                                .font_size(18.)
+                                .font_weight(FontWeight::SEMI_BOLD)
+                                .color(colors::fg_primary()),
+                        )
+                        .child(
+                            ScrollView::new()
+                                .width(Size::fill())
+                                .height(Size::auto())
+                                .max_height(Size::window_percent(60.))
+                                .child(
+                                    rect()
+                                        .vertical()
+                                        .width(Size::fill())
+                                        .spacing(12.)
+                                        .child(
+                                            Dropdown::new(
+                                                if is_refresh { "Microsoft refresh token" } else { "Auto-detect token type" },
+                                                vec!["Auto-detect token type".into(), "Microsoft refresh token".into()],
+                                            )
+                                            .width(Size::fill())
+                                            .height(Size::px(34.))
+                                            .on_select(move |index: usize| {
+                                                if !busy { refresh.set(index == 1); }
+                                            }),
+                                        )
+                                        .child(
+                                            rect()
+                                                .vertical()
+                                                .width(Size::fill())
+                                                .spacing(6.)
+                                                .child(field_label(if is_refresh { "Microsoft refresh token" } else { "Session token" }))
+                                                .child(
+                                                    TextInput::new(token)
+                                                        .placeholder("Paste a token")
+                                                        .mode(InputMode::new_password())
+                                                        .enabled(!busy)
+                                                        .auto_focus(true)
+                                                        .on_submit(move |_| submit.call(())),
+                                                ),
+                                        )
+                                        .maybe_child(is_refresh.then(|| {
+                                            rect()
+                                                .vertical()
+                                                .width(Size::fill())
+                                                .spacing(6.)
+                                                .child(field_label("OAuth client ID (optional)"))
+                                                .child(TextInput::new(client_id).enabled(!busy))
+                                                .child(
+                                                    label()
+                                                        .text("Leave empty for automatic client selection.")
+                                                        .font_size(12.)
+                                                        .color(colors::fg_secondary()),
+                                                )
+                                        }))
+                                        .map(error, |el, msg| el.child(hint_line(IconType::AlertTriangle, msg, colors::danger()))),
+                                ),
+                        )
+                        .child(
+                            rect()
+                                .horizontal()
+                                .width(Size::fill())
+                                .main_align(Alignment::End)
+                                .spacing(8.)
+                                .child(Button::new().ghost().on_press(move |_| on_close.call(())).text("Cancel"))
+                                .child(
+                                    Button::new()
+                                        .primary()
+                                        .enabled(can_submit)
+                                        .on_press(move |_| on_confirm.call(()))
+                                        .text(if busy { "Verifying..." } else { "Add account" }),
+                                ),
+                        ),
+                ),
+        )
         .into_element()
 }
 
@@ -647,4 +846,170 @@ fn empty_state() -> Element {
                 .color(colors::fg_secondary()),
         )
         .into_element()
+}
+
+#[cfg(test)]
+mod session_ui_tests {
+    use super::*;
+    use freya_testing::TestingRunner;
+    use std::collections::HashMap;
+
+    fn click_label(test: &mut TestingRunner, text: &str) {
+        let position = test
+            .find(|node, element| {
+                Label::try_downcast(element)
+                    .filter(|label| label.text == text)
+                    .map(|_| {
+                        let area = node.layout().area;
+                        (
+                            area.min_x() as f64 + area.size.width as f64 / 2.,
+                            area.min_y() as f64 + area.size.height as f64 / 2.,
+                        )
+                    })
+            })
+            .unwrap_or_else(|| panic!("Missing account action: {text}"));
+        test.click_cursor(position);
+        test.sync_and_update();
+    }
+
+    fn paragraphs(test: &TestingRunner) -> Vec<String> {
+        test.find_many(|_, element| {
+            Paragraph::try_downcast(element).map(|paragraph| {
+                paragraph
+                    .spans
+                    .iter()
+                    .map(|span| span.text.to_string())
+                    .collect()
+            })
+        })
+    }
+
+    fn set_fonts(test: &mut TestingRunner) {
+        test.set_fonts(HashMap::from([(
+            "Inter",
+            include_bytes!("../../../../assets/fonts/Inter-Regular.ttf").as_slice(),
+        )]));
+        test.sync_and_update();
+    }
+
+    #[test]
+    fn session_entry_from_account_actions_masks_and_clears_the_token_on_cancel() {
+        let app = || {
+            let mut visible = use_state(|| false);
+            rect()
+                .width(Size::fill())
+                .height(Size::fill())
+                .background(colors::page())
+                .child(hero(
+                    None,
+                    false,
+                    None,
+                    |_| {},
+                    move |_| visible.set(true),
+                    |_| {},
+                ))
+                .maybe_child(visible.read().then(|| SessionAccountDialog { visible }))
+        };
+        let (mut test, _) = TestingRunner::new(app, Size2D::new(800., 600.), |_| (), 1.);
+        set_fonts(&mut test);
+        let directory = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../build/accounts-session-ui");
+        std::fs::create_dir_all(&directory).unwrap();
+        test.render_to_file(directory.join("session-accounts-actions.png"));
+        click_label(&mut test, "Add Session");
+        assert!(
+            test.find(|_, element| Label::try_downcast(element)
+                .filter(|label| label.text == "Auto-detect token type")
+                .map(|_| ()))
+                .is_some()
+        );
+        let position = test
+            .find(|node, element| {
+                Paragraph::try_downcast(element)
+                    .filter(|paragraph| {
+                        paragraph
+                            .spans
+                            .iter()
+                            .any(|span| span.text == "Paste a token")
+                    })
+                    .map(|_| {
+                        let area = node.layout().area;
+                        (
+                            area.min_x() as f64 + 8.,
+                            area.min_y() as f64 + area.size.height as f64 / 2.,
+                        )
+                    })
+            })
+            .expect("Session token input");
+        test.click_cursor(position);
+        test.write_text("fixture-session-token");
+        test.sync_and_update();
+        let rendered = paragraphs(&test);
+        assert!(
+            rendered
+                .iter()
+                .any(|value| value == "*********************"),
+            "{rendered:?}"
+        );
+        assert!(
+            rendered
+                .iter()
+                .all(|value| !value.contains("fixture-session-token"))
+        );
+        test.render_to_file(directory.join("session-masked-form.png"));
+        click_label(&mut test, "Cancel");
+        click_label(&mut test, "Add Session");
+        assert!(
+            paragraphs(&test)
+                .iter()
+                .any(|value| value == "Paste a token")
+        );
+        assert!(paragraphs(&test).iter().all(|value| !value.contains('*')));
+        click_label(&mut test, "Auto-detect token type");
+        click_label(&mut test, "Microsoft refresh token");
+        assert!(
+            test.find(|_, element| Label::try_downcast(element)
+                .filter(|label| label.text == "OAuth client ID (optional)")
+                .map(|_| ()))
+                .is_some()
+        );
+        test.render_to_file(directory.join("session-refresh-form.png"));
+    }
+
+    #[test]
+    fn pending_session_import_keeps_cancel_available_in_a_small_window() {
+        let app = || {
+            let mut cancelled = use_consume::<State<bool>>();
+            let token = use_state(String::new);
+            let refresh = use_state(|| true);
+            let client_id = use_state(String::new);
+            rect()
+                .width(Size::fill())
+                .height(Size::fill())
+                .background(colors::page())
+                .child(session_dialog(
+                    token,
+                    refresh,
+                    client_id,
+                    true,
+                    None,
+                    EventHandler::new(|()| panic!("A pending import must not submit twice")),
+                    EventHandler::new(move |()| cancelled.set(true)),
+                ))
+        };
+        let (mut test, cancelled) = TestingRunner::new(
+            app,
+            Size2D::new(600., 430.),
+            |runner| runner.provide_root_context(|| State::create(false)),
+            1.,
+        );
+        set_fonts(&mut test);
+        click_label(&mut test, "Verifying...");
+        let directory = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../build/accounts-session-ui");
+        std::fs::create_dir_all(&directory).unwrap();
+        test.render_to_file(directory.join("session-pending-small.png"));
+        click_label(&mut test, "Cancel");
+        assert!(*cancelled.peek());
+    }
 }

@@ -48,6 +48,52 @@ class NativeAccountBridgeTest {
         }
     }
 
+    @Test fun sessionImportsAutodetectTokensAndPreserveExplicitRefreshClientIds() = runBlocking {
+        for (token in listOf("fixture-input-access", "M.fixture.0.U.refresh")) {
+            Fixture().use { fixture ->
+                NativeAccountBridge.importSession(token)
+                val request = fixture.requests.first()
+                assertEquals("auto", request["token_type"]!!.jsonPrimitive.content)
+                assertEquals(token, request["access_token"]!!.jsonPrimitive.content)
+                assertFalse(request.containsKey("client_id"))
+            }
+        }
+        Fixture().use { fixture ->
+            NativeAccountBridge.importSession("fixture-input-refresh", true, "  custom-client-id  ")
+            val request = fixture.requests.first()
+            assertEquals("refresh", request["token_type"]!!.jsonPrimitive.content)
+            assertEquals("custom-client-id", request["client_id"]!!.jsonPrimitive.content)
+        }
+        Fixture().use { fixture ->
+            NativeAccountBridge.importSession("fixture-input-refresh", true)
+            assertEquals("refresh", fixture.requests.first()["token_type"]!!.jsonPrimitive.content)
+            assertFalse(fixture.requests.first().containsKey("client_id"))
+        }
+    }
+
+    @Test fun rejectedSessionImportDoesNotSwitchAccounts() = runBlocking {
+        Fixture(rejectSession = true).use { fixture ->
+            val failure = runCatching { NativeAccountBridge.importSession("fixture-input-access") }.exceptionOrNull()
+            assertNotNull(failure)
+            assertEquals(listOf("session"), fixture.requests.map { it["op"]!!.jsonPrimitive.content })
+        }
+    }
+
+    @Test fun accountMetadataKeepsSessionAndLegacyAccountsCompatible() {
+        val session = AccountRepository.decode(Json.parseToJsonElement("""
+            {"id":"$ID","username":"FixtureUser","kind":"session","refreshable":false,"expires":"2099-01-01T00:00:00Z"}
+        """))
+        assertEquals("session", session.kind)
+        assertEquals("", session.accessToken)
+        assertFalse(session.refreshable)
+        assertTrue(AccountRepository.isOnline(session))
+        val legacy = AccountRepository.decode(Json.parseToJsonElement("""
+            {"id":"$ID","username":"FixtureUser","expires":"2099-01-01T00:00:00Z"}
+        """))
+        assertEquals("microsoft", legacy.kind)
+        assertTrue(AccountRepository.isOnline(legacy))
+    }
+
     @Test fun offlineAdditionAlsoSelectsTheSavedAccount() {
         Fixture(offline = true).use { fixture ->
             val account = NativeAccountBridge.addOffline("FixtureUser")
@@ -58,7 +104,8 @@ class NativeAccountBridgeTest {
         }
     }
 
-    private class Fixture(private val offline: Boolean = false, private val cancelCookie: Boolean = false) : AutoCloseable {
+    private class Fixture(private val offline: Boolean = false, private val cancelCookie: Boolean = false,
+                          private val rejectSession: Boolean = false) : AutoCloseable {
         val requests = mutableListOf<JsonObject>()
         private val state = NativeAccountBridge::class.java.getDeclaredField("connection").apply { isAccessible = true }
         private val previous = state.get(NativeAccountBridge)
@@ -76,6 +123,11 @@ class NativeAccountBridgeTest {
                     val request = Json.parseToJsonElement(line).jsonObject
                     requests += request
                     val operation = request["op"]!!.jsonPrimitive.content
+                    if (operation == "session" && rejectSession) {
+                        requireNotNull(pending[request["id"]!!.jsonPrimitive.long])
+                            .completeExceptionally(IllegalStateException("Sign-in cancelled"))
+                        continue
+                    }
                     val response = if (operation == "cookie" && cancelCookie) JsonNull else buildJsonObject {
                         put("id", ID)
                         put("username", "FixtureUser")

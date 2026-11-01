@@ -3,11 +3,20 @@
 
 package io.github.arcadiumclient.runtime.client.bedwars;
 
+import java.util.Locale;
+import java.util.regex.Pattern;
+
 public final class BedwarsTabLineFormatter {
+    private static final Pattern TOKENS = Pattern.compile("%([A-Z_]+)%", Pattern.CASE_INSENSITIVE);
+    private static final Pattern COLOR_CODES = Pattern.compile("(?i)[§&]([0-9a-fk-or])");
     private BedwarsTabLineFormatter() {
     }
 
     public static String format(BedwarsStats stats, String fallbackName, String tabNameColor) {
+        return format(stats, fallbackName, tabNameColor, true, 0, null);
+    }
+
+    public static String format(BedwarsStats stats, String fallbackName, String tabNameColor, boolean showRank, int metric, String template) {
         String name = fallbackName != null && !fallbackName.isEmpty() ? fallbackName : "?";
         String nameColor = tabNameColor != null && !tabNameColor.isEmpty()
                 ? tabNameColor
@@ -16,9 +25,52 @@ public final class BedwarsTabLineFormatter {
             return nameColor + name + " §7: §cNicked";
         }
         String star = BedwarsStarFormatter.formatBracketed(stats.getStar());
-        String rank = HypixelRankFormatter.formatRankPrefix(stats);
-        String fkdr = FkdrColorFormatter.format(stats.getFkdr());
-        return star + " " + rank + nameColor + name + " §7: " + fkdr;
+        String rank = showRank ? HypixelRankFormatter.formatRankPrefix(stats) : "";
+        if (template != null && !template.isBlank()) {
+            String input = template.length() > 512 ? template.substring(0, 512) : template;
+            input = COLOR_CODES.matcher(input).replaceAll(match -> "§" + match.group(1).toLowerCase(Locale.ROOT));
+            input = input.replace('\r', ' ').replace('\n', ' ').replace('\t', ' ');
+            var matcher = TOKENS.matcher(input);
+            StringBuilder out = new StringBuilder();
+            int end = 0;
+            boolean userStyle = false;
+            while (matcher.find()) {
+                userStyle |= COLOR_CODES.matcher(input.substring(end, matcher.start())).find();
+                String replacement = switch (matcher.group(1).toUpperCase(Locale.ROOT)) {
+                    case "STAR", "STARS" -> star;
+                    case "RANK" -> rank.stripTrailing();
+                    case "USERNAME", "NAME" -> nameColor + name;
+                    case "FKDR" -> value(stats, 0, rank);
+                    case "KDR" -> value(stats, 1, rank);
+                    case "WINS" -> value(stats, 2, rank);
+                    case "WLR" -> value(stats, 3, rank);
+                    case "LEVEL", "HYPIXEL_LEVEL" -> value(stats, 4, rank);
+                    default -> matcher.group();
+                };
+                if (userStyle) replacement = COLOR_CODES.matcher(replacement).replaceAll("");
+                matcher.appendReplacement(out, java.util.regex.Matcher.quoteReplacement(replacement));
+                end = matcher.end();
+            }
+            matcher.appendTail(out);
+            return out.toString();
+        }
+        return star + " " + rank + nameColor + name + " §7: " + value(stats, metric, rank);
+    }
+
+    private static String value(BedwarsStats stats, int metric, String rank) {
+        return switch (metric) {
+            case 1 -> ratio(stats.getKdr());
+            case 2 -> stats.getWins() < 0 ? "§7--" : "§f" + String.format(Locale.ROOT, "%,d", stats.getWins());
+            case 3 -> ratio(stats.getWlr());
+            case 4 -> stats.getNetworkLevel() < 0 ? "§7--" : "§f" + stats.getNetworkLevel();
+            case 5 -> BedwarsStarFormatter.formatColoredStarValue(stats.getStar());
+            case 6 -> rank.isEmpty() ? "§7--" : rank.stripTrailing();
+            default -> FkdrColorFormatter.format(stats.getFkdr());
+        };
+    }
+
+    private static String ratio(double value) {
+        return Double.isFinite(value) ? "§f" + String.format(Locale.ROOT, "%.2f", value) : "§7--";
     }
 
     public static String resolveTabNameColor(String vanillaFormatted, String username, String teamPrefix) {

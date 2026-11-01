@@ -26,7 +26,18 @@
     "NextGpuReferenceProbe",
     "NextNameFaultProbe",
     "RetainedSceneProbe",
-    "RetainedPacketProbe"
+    "RetainedPacketProbe",
+    "ParticlePackets065Probe",
+    "NamePreparation065LivingProbe",
+    "NamePreparation065PacketProbe",
+    "NamePreparation065LayoutProbe",
+    "NamePreparation065DisplayProbe",
+    "Hologram065Probe",
+    "CategoryColorPostPassProbe",
+    "ScoreboardPreparation065SortProbe",
+    "ScoreboardPreparation065VisibilityProbe",
+    "ScoreboardPreparation065MutationProbe",
+    "HypixelLabKeyProbe"
   ],
   "injectors": {
     "defaultRequire": 1

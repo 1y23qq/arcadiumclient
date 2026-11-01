@@ -8,6 +8,7 @@ import org.polyfrost.oneconfig.api.config.v1.annotations.Button;
 import org.polyfrost.oneconfig.api.config.v1.annotations.Number;
 import org.polyfrost.oneconfig.api.config.v1.annotations.Switch;
 import org.polyfrost.oneconfig.api.config.v1.annotations.Text;
+import org.polyfrost.oneconfig.api.config.v1.annotations.Dropdown;
 
 public final class BedwarsOverlayConfig extends Config {
     public static final BedwarsOverlayConfig INSTANCE = new BedwarsOverlayConfig();
@@ -16,6 +17,16 @@ public final class BedwarsOverlayConfig extends Config {
     public boolean enabled = true;
     @Switch(title = "Tab Stats", category = "Overlay")
     public boolean tabStats = true;
+    @Switch(title = "Show Rank", category = "Overlay", subcategory = "Tab Display")
+    public boolean showRank = true;
+    @Dropdown(title = "Displayed Stat", options = {"FKDR", "KDR", "Wins", "WLR", "Hypixel Level", "Bedwars Stars", "Rank"}, category = "Overlay", subcategory = "Tab Display")
+    public int displayedStat = 0;
+    @Switch(title = "Custom Format", category = "Overlay", subcategory = "Tab Display")
+    public boolean useCustomFormat = false;
+    @Text(title = "Tab Format", description = "Tokens: %STAR%, %RANK%, %USERNAME%, %LEVEL%, %FKDR%, %KDR%, %WINS%, %WLR%. Use & or § for Minecraft colors and styles.", category = "Overlay", subcategory = "Tab Display")
+    public String tabFormat = "%STAR% %RANK% %USERNAME% : %FKDR% | %WLR%";
+    @Text(title = "Additional Hypixel Addresses", description = "Proxy hosts, separated by commas or new lines. *.example.net also includes subdomains. Changes apply immediately.", multiline = true, category = "Overlay", subcategory = "Connection")
+    public String additionalHypixelAddresses = "";
     @Switch(title = "Chat Stats", description = "Announce players after names are revealed at match start.", category = "Overlay")
     public boolean chatStats = true;
     @Switch(title = "Use Star Threshold", category = "Overlay", subcategory = "Chat Thresholds")
@@ -104,6 +115,8 @@ public final class BedwarsOverlayConfig extends Config {
     private BedwarsOverlayConfig() {
         super("arcadium-bedwars-overlay.json", "Bedwars Overlay", Category.HYPIXEL);
         hideIf("hypixelApiKey", () -> !useHypixelApiKey);
+        hideIf("tabFormat", () -> !useCustomFormat);
+        hideIf("displayedStat", () -> useCustomFormat);
         hideIf("seraphApiKey", () -> !seraphAlerts);
         hideIf("useStarThreshold", () -> !chatStats);
         hideIf("starThreshold", () -> !chatStats || !useStarThreshold);

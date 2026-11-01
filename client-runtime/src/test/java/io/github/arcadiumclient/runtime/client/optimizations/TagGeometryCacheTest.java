@@ -36,4 +36,20 @@ class TagGeometryCacheTest {
         source[3]=0x90000000;assertNotSame(mesh,cache.mesh(source,source.length,4,3,false,false));
     }
     @Test void rejectsIncompleteQuads(){var cache=new TagGeometryCache();assertThrows(IllegalArgumentException.class,()->cache.mesh(new int[6],6,6,5,true,true));}
+
+    @Test void repeatedMutableQuadsWithCollidingPolynomialHashesRemainDistinct(){
+        var cache=new TagGeometryCache();int[][] shapes=new int[256][];var meshes=new TagGeometryCache.Mesh[256];int[] shared=quad();
+        for(int i=0;i<shapes.length;i++){
+            shapes[i]=quad();shapes[i][0]+=i;shapes[i][1]-=31*i;
+            assertEquals(java.util.Arrays.hashCode(shapes[0]),java.util.Arrays.hashCode(shapes[i]));
+            System.arraycopy(shapes[i],0,shared,0,shared.length);meshes[i]=cache.mesh(shared,shared.length,6,5,false,false);
+            assertArrayEquals(shapes[i],meshes[i].quads());
+            if(i>0)assertNotEquals(meshes[i-1].firstVertex(),meshes[i].firstVertex());
+        }
+        for(int round=0;round<4;round++)for(int i=0;i<shapes.length;i++){
+            System.arraycopy(shapes[i],0,shared,0,shared.length);
+            assertSame(meshes[i],cache.mesh(shared,shared.length,6,5,false,false));
+        }
+        assertEquals(shapes.length,cache.misses);
+    }
 }

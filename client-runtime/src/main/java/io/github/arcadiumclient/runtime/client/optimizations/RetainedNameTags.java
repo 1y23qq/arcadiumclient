@@ -8,6 +8,7 @@ import java.lang.reflect.*;
 import java.util.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
+import net.minecraft.client.render.vertex.BufferBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.joml.Matrix4f;
 import org.joml.Matrix4fc;
@@ -25,6 +26,8 @@ public final class RetainedNameTags {
         boolean matches(Entity entity,String text,GpuNameTags gpu){return manager==gpu&&epoch==optionsEpoch&&generation==gpu.generation()&&height==entity.height&&sneaking==entity.isSneaking()&&name.equals(text);}
     }
     private static final Map<Entity,Map<String,Plan>> plans=new WeakHashMap<>();
+    private static final IdentityHashMap<NameTagPasses.State,BufferBuilder> framePasses=new IdentityHashMap<>();
+    private static Object passBatch;
     private static final Matrix4f anchor=new Matrix4f(),matrix=new Matrix4f();
     private static final ArrayList<Field> optionFields=new ArrayList<>();
     private static MethodHandle active;
@@ -36,11 +39,13 @@ public final class RetainedNameTags {
     private static Object recordingBatch;
     private static Entity owner;
     private static double originX,originY,originZ;
-    public static long reused,built,rejected;
+    public static long reused,built,rejected,passBindingHits,passBindingsResolved;
+    public static long nativeTextCandidates,emojiRejected,animatedRejected,dormantTextRejected,unsafeTextRejected;
     private RetainedNameTags() { }
 
     public static void frame(){
         recording=null;recordingBatch=null;owner=null;
+        framePasses.clear();passBatch=null;
         if(!BetaOptimizationsConfig.getRetainedNameTagScenes()||!BetaOptimizationsConfig.getGpuNameTags()||failed)return;
         try{
             if(!initialized){
@@ -66,7 +71,7 @@ public final class RetainedNameTags {
     }
     public static boolean begin(Entity entity,String name,double x,double y,double z){
         if(!BetaOptimizationsConfig.getRetainedNameTagScenes()||failed||active==null||recording!=null)return false;
-        if(name==null||name.contains("§k")||specialText(name)||customBackground||customFont||PlayerBadgeRenderer.nametagEligible(entity)||GpuPlayerPipeline.hasForgeHooks()){rejected++;return false;}
+        if(name==null||customBackground||customFont||PlayerBadgeRenderer.nametagEligible(entity)||GpuPlayerPipeline.hasForgeHooks()){rejected++;return false;}
         GpuNameTags pending=null;
         try{
             Object batch=active.invoke();if(!(batch instanceof NameTagSceneAccess scene)||!scene.arcadium$packets().enabled())return false;
@@ -78,10 +83,22 @@ public final class RetainedNameTags {
                 gpu.checkpointRetained();pending=gpu;
                 for(Packet packet:plan.packets){
                     matrix.set(anchor).mul(packet.local);
-                    gpu.queueRetained(passes.restore(batch,packet.pass),packet.mesh,packet.alpha,matrix,scene.arcadium$lightU(),scene.arcadium$lightV());
+                    gpu.queueRetained(restorePass(batch,packet.pass),packet.mesh,packet.alpha,matrix,scene.arcadium$lightU(),scene.arcadium$lightV());
                 }
                 gpu.noteLabel();reused++;return true;
             }
+            RetainedTagText.Eligibility text=RetainedTagText.classify(name);
+            if(text!=RetainedTagText.Eligibility.NATIVE){
+                rejected++;
+                switch(text){
+                    case EMOJI -> emojiRejected++;
+                    case OBFUSCATED, ANIMATED -> animatedRejected++;
+                    case EMOJI_DISABLED -> dormantTextRejected++;
+                    default -> unsafeTextRejected++;
+                }
+                return false;
+            }
+            nativeTextCandidates++;
             if(plans.size()>8192)plans.clear();
             recording=new Plan(entity,name,gpu);recordingBatch=batch;owner=entity;originX=x;originY=y;originZ=z;return false;
         }catch(Throwable error){if(pending!=null)pending.rollbackRetained();disable(error);return false;}
@@ -110,12 +127,14 @@ public final class RetainedNameTags {
         }else rejected++;
         recording=null;recordingBatch=null;owner=null;
     }
-    public static void invalidate(){plans.clear();optionsEpoch++;}
-    public static void flushed(){if(passes!=null)passes.begin();if(recording!=null)recording.valid=false;}
-    private static boolean specialText(String text){
-        for(int i=0;i<text.length();i++){char c=text.charAt(i);if(c==':'||c>=0x2000)return true;}
-        return false;
+    private static BufferBuilder restorePass(Object batch,NameTagPasses.State state)throws Throwable{
+        if(passBatch!=batch){framePasses.clear();passBatch=batch;}
+        BufferBuilder buffer=framePasses.get(state);
+        if(buffer!=null){passBindingHits++;return buffer;}
+        buffer=passes.restore(batch,state);framePasses.put(state,buffer);passBindingsResolved++;return buffer;
     }
-    private static void disable(Throwable error){failed=true;recording=null;recordingBatch=null;owner=null;plans.clear();LogManager.getLogger("Arcadium/Retained Name Tags").warn("Retained name tag scenes disabled; using original preparation",error);}
-    public static String status(){return !BetaOptimizationsConfig.getRetainedNameTagScenes()?"Retained name tag scenes: Off":failed?"Retained name tag scenes: Using original preparation":"Retained name tag scenes: "+reused+" reused | "+built+" rebuilt";}
+    public static void invalidate(){plans.clear();framePasses.clear();passBatch=null;optionsEpoch++;}
+    public static void flushed(){framePasses.clear();passBatch=null;if(passes!=null)passes.begin();if(recording!=null)recording.valid=false;}
+    private static void disable(Throwable error){failed=true;recording=null;recordingBatch=null;owner=null;plans.clear();framePasses.clear();passBatch=null;LogManager.getLogger("Arcadium/Retained Name Tags").warn("Retained name tag scenes disabled; using original preparation",error);}
+    public static String status(){return !BetaOptimizationsConfig.getRetainedNameTagScenes()?"Retained name tag scenes: Off":failed?"Retained name tag scenes: Using original preparation":"Retained name tag scenes: "+reused+" reused | "+built+" rebuilt | Emoji/animated fallback: "+(emojiRejected+animatedRejected);}
 }

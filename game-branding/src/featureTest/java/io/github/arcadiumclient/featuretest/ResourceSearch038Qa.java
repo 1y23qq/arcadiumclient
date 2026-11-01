@@ -29,6 +29,7 @@ public final class ResourceSearch038Qa {
     private static final Map<String, Object> RESULT = new LinkedHashMap<>();
     private static Screen screen, parent;
     private static int stage, ticks;
+    private static float activeScroll;
     private static boolean begun, done;
 
     private ResourceSearch038Qa() { }
@@ -63,15 +64,19 @@ public final class ResourceSearch038Qa {
             }
             case 1 -> {
                 for (Object list : lists()) require(scrollValue(list) > 0, "The pack list did not scroll before the query changed");
+                activeScroll = scrollValue(lists().get(1));
                 setSearch("Search038");
             }
             case 2 -> {
-                for (Object list : lists()) require(scrollValue(list) == 0, "A changed search query retained the old scroll position");
-                RESULT.put("availableAndActiveScrollReset", true);
+                require(scrollValue(lists().get(0)) == 0, "A changed search query retained the Available scroll position");
+                require(scrollValue(lists().get(1)) == activeScroll, "Searching Available changed the Active scroll position");
+                RESULT.put("availableScrollResetAndActiveScrollPreserved", true);
+                call(screen, "setActive", List.of(ACTIVE, ROOT + "/Active/Pack 0.zip"));
                 setSearch("ＮＥＥＤＬＥ　ＰＡＣＫ");
             }
             case 3 -> {
                 require(hasText("Needle Pack.zip"), "The visible search missed a colored pack inside a nested folder");
+                require(hasText("Active Needle.zip") && hasText("Pack 0.zip"), "Searching Available hid nonmatching Active packs");
                 verifyColor("Needle Pack.zip", 0xff55ffff);
                 capture(mc, "resource-search038-available.png");
                 setSearch("§bneedle   §lpack");
@@ -82,11 +87,17 @@ public final class ResourceSearch038Qa {
                 setSearch("active needle");
             }
             case 5 -> {
-                require(hasText("Active Needle.zip"), "The search did not reveal an already active resource pack");
+                require(hasText("Active Needle.zip") && hasText("Pack 0.zip"), "A changed search query filtered the Active list");
                 require(!hasText("Needle Pack.zip"), "The available list did not apply all query tokens");
                 verifyColor("Active Needle.zip", 0xffff55ff);
                 capture(mc, "resource-search038-active.png");
-                RESULT.put("activePackSearch", true);
+                setSearch("no-pack-matches-this-query");
+            }
+            case 6 -> {
+                require(hasText("No matching packs"), "A nonmatching query did not empty Available");
+                require(hasText("Active Needle.zip") && hasText("Pack 0.zip"), "A nonmatching query hid Active packs");
+                require(List.of(ACTIVE, ROOT + "/Active/Pack 0.zip").equals(call(screen, "getActive")), "Searching Available changed Active order");
+                RESULT.put("searchOnlyFiltersAvailable", true);
                 RESULT.put("minecraftFormattingPreserved", true);
                 mc.openScreen(parent);
                 done = true;

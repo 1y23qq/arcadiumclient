@@ -258,6 +258,7 @@ public class BedwarsKeylessLatencyTest {
             }));
             assertTrue(entered.await(2, TimeUnit.SECONDS));
             assertTrue(work.stream().filter(CompletableFuture::isCompletedExceptionally).count() >= 12);
+            work.forEach(future -> future.cancel(true));
             List<CompletableFuture<Void>> timers = new ArrayList<>();
             for (int i = 0; i < 150; i++) timers.add(http.defer(() -> fail("Delayed work started"), 10000));
             assertEquals(22, timers.stream().filter(CompletableFuture::isCompletedExceptionally).count());
@@ -349,5 +350,98 @@ public class BedwarsKeylessLatencyTest {
             assertEquals(245, data.get(player(1), "Player", KEYLESS).get(500, TimeUnit.MILLISECONDS).getStar());
             assertEquals(2, primary.get());
         }
+    }
+
+    @Test public void oneSecondHealthyPrimaryStillCompletesTheEntireRoster() throws Exception {
+        AtomicInteger active = new AtomicInteger(), maximum = new AtomicInteger();
+        try (OverlayHttp http = new OverlayHttp((uri, headers, body) -> {
+            if (!uri.getHost().equals("api.bordic.xyz")) return new OverlayHttp.Response(404, "");
+            maximum.accumulateAndGet(active.incrementAndGet(), Math::max);
+            try {
+                try { Thread.sleep(1000); }
+                catch (InterruptedException cancelled) { Thread.currentThread().interrupt(); throw new IOException(cancelled); }
+                return new OverlayHttp.Response(200, profile(uri));
+            } finally { active.decrementAndGet(); }
+        })) {
+            BedwarsData data = new BedwarsData(http);
+            List<CompletableFuture<BedwarsStats>> roster = new ArrayList<>();
+            for (int i = 0; i < 24; i++) roster.add(data.get(player(i), "Player", KEYLESS));
+            CompletableFuture.allOf(roster.toArray(CompletableFuture[]::new)).get(5, TimeUnit.SECONDS);
+            assertEquals(24, roster.stream().filter(future -> !future.join().isUnavailable()).count());
+            assertEquals(0, data.pendingCount());
+            assertTrue(maximum.get() <= 8);
+        }
+    }
+
+    @Test public void aSixHundredMillisecondThirdProviderStillCompletesTheEntireRoster() throws Exception {
+        CountDownLatch release = new CountDownLatch(1);
+        try (OverlayHttp http = new OverlayHttp((uri, headers, body) -> {
+            if (!uri.getHost().equals("api.abyssoverlay.com")) {
+                await(release);
+                return new OverlayHttp.Response(503, "");
+            }
+            try { Thread.sleep(600); }
+            catch (InterruptedException cancelled) { Thread.currentThread().interrupt(); throw new IOException(cancelled); }
+            return new OverlayHttp.Response(200, profile(uri));
+        })) {
+            BedwarsData data = new BedwarsData(http);
+            List<CompletableFuture<BedwarsStats>> roster = new ArrayList<>();
+            for (int i = 0; i < 24; i++) roster.add(data.get(player(i), "Player", KEYLESS));
+            CompletableFuture.allOf(roster.toArray(CompletableFuture[]::new)).get(6, TimeUnit.SECONDS);
+            assertEquals(24, roster.stream().filter(future -> !future.join().isUnavailable()).count());
+            assertEquals(1, release.getCount());
+        } finally { release.countDown(); }
+    }
+
+    @Test public void fullProviderQueuesExpireWithoutContactingOrBackingOffHealthyHosts() throws Exception {
+        CountDownLatch entered = new CountDownLatch(16), release = new CountDownLatch(1);
+        AtomicInteger calls = new AtomicInteger();
+        try (OverlayHttp http = new OverlayHttp((uri, headers, body) -> {
+            calls.incrementAndGet();
+            return new OverlayHttp.Response(200, profile(uri));
+        })) {
+            for (int provider = 0; provider < 3; provider++) for (int i = 0; i < (provider == 0 ? 8 : 4); i++)
+                http.submitKeyless(provider, () -> true, () -> {
+                    entered.countDown();
+                    try { await(release); } catch (IOException ignored) { }
+                    return 0;
+                });
+            assertTrue(entered.await(2, TimeUnit.SECONDS));
+            BedwarsData data = new BedwarsData(http);
+            List<CompletableFuture<BedwarsStats>> roster = new ArrayList<>();
+            for (int i = 0; i < 24; i++) roster.add(data.get(player(i), "Player", KEYLESS));
+            CompletableFuture.allOf(roster.toArray(CompletableFuture[]::new)).get(6, TimeUnit.SECONDS);
+            assertEquals(24, roster.stream().filter(future -> future.join().isUnavailable()).count());
+            assertEquals(0, calls.get());
+            assertEquals(0, data.pendingCount());
+            release.countDown();
+            assertEquals(245, data.get(player(100), "Player", KEYLESS).get(1, TimeUnit.SECONDS).getStar());
+            assertEquals(1, calls.get());
+        } finally { release.countDown(); }
+    }
+
+    @Test public void stalledRunningRequestsHaveAnOverallDeadlineAndCannotHoldTheRosterForever() throws Exception {
+        CountDownLatch release = new CountDownLatch(1), interrupted = new CountDownLatch(1);
+        try (OverlayHttp http = new OverlayHttp((uri, headers, body) -> {
+            try {
+                if (!release.await(12, TimeUnit.SECONDS)) throw new IOException("Stalled provider");
+            } catch (InterruptedException cancelled) {
+                interrupted.countDown();
+                Thread.currentThread().interrupt();
+                throw new IOException(cancelled);
+            }
+            return new OverlayHttp.Response(200, profile(uri));
+        })) {
+            BedwarsData data = new BedwarsData(http);
+            List<CompletableFuture<BedwarsStats>> roster = new ArrayList<>();
+            long before = System.nanoTime();
+            for (int i = 0; i < 24; i++) roster.add(data.get(player(i), "Player", KEYLESS));
+            CompletableFuture.allOf(roster.toArray(CompletableFuture[]::new)).get(8, TimeUnit.SECONDS);
+            assertEquals(24, roster.stream().filter(future -> future.join().isUnavailable()).count());
+            assertEquals(0, data.pendingCount());
+            assertTrue(TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - before) < 7800);
+            assertTrue(interrupted.await(1, TimeUnit.SECONDS));
+            assertEquals(1, release.getCount());
+        } finally { release.countDown(); }
     }
 }

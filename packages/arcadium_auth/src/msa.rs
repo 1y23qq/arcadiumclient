@@ -21,6 +21,7 @@ use super::error::{MinecraftAuthError, MinecraftAuthStep, friendly_xbox_error};
 use arcadium_common::constants::{MICROSOFT_CLIENT_ID, MINECRAFT_SCOPES};
 
 const DEVICE_CODE_URL: &str = "https://login.microsoftonline.com/consumers/oauth2/v2.0/devicecode";
+const MINECRAFT_LEGACY_CLIENT_ID: &str = "00000000402b5328";
 
 fn authorize_url() -> &'static str {
     if MICROSOFT_CLIENT_ID == "42a60a84-599d-44b2-a7c6-b00cdef1d6a2" {
@@ -674,8 +675,13 @@ fn normalize_refresh_import<'a>(
     token: &'a str,
     client_id: &str,
 ) -> Result<(&'a str, String), crate::SessionLoginError> {
-    let token = token.trim();
+    let token = token
+        .trim()
+        .strip_prefix("Bearer ")
+        .unwrap_or(token.trim())
+        .trim();
     if token.is_empty()
+        || token.eq_ignore_ascii_case("Bearer")
         || token.len() > 16384
         || !token.bytes().all(|value| value.is_ascii_graphic())
     {
@@ -683,7 +689,11 @@ fn normalize_refresh_import<'a>(
     }
     let client_id = client_id.trim();
     let client_id = if client_id.is_empty() {
-        MICROSOFT_CLIENT_ID.to_string()
+        if crate::session::is_microsoft_refresh_token(token) {
+            MINECRAFT_LEGACY_CLIENT_ID.to_string()
+        } else {
+            MICROSOFT_CLIENT_ID.to_string()
+        }
     } else if legacy_client(client_id) {
         client_id.to_ascii_lowercase()
     } else {
@@ -1009,7 +1019,24 @@ mod tests {
                 .1,
             "42a60a84-599d-44b2-a7c6-b00cdef1d6a2"
         );
-        for invalid in ["", "Bearer fixture", "line\r\nsecret", "not\u{200b}ascii"] {
+        let legacy = "M.C512_BAY.0.U.MsaArtifacts.fixture!*";
+        assert_eq!(
+            normalize_refresh_import(legacy, "").unwrap().1,
+            MINECRAFT_LEGACY_CLIENT_ID
+        );
+        assert_eq!(
+            normalize_refresh_import(legacy, MICROSOFT_CLIENT_ID)
+                .unwrap()
+                .1,
+            MICROSOFT_CLIENT_ID
+        );
+        assert_eq!(
+            normalize_refresh_import(&format!("Bearer {legacy}"), "")
+                .unwrap()
+                .0,
+            legacy
+        );
+        for invalid in ["", "Bearer ", "line\r\nsecret", "not\u{200b}ascii"] {
             assert!(normalize_refresh_import(invalid, "").is_err());
         }
         assert!(normalize_refresh_import(&"x".repeat(16385), "").is_err());

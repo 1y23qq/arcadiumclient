@@ -64,7 +64,7 @@ object NativeAccountBridge {
     suspend fun importSession(accessToken: String, refresh: Boolean = false, clientId: String = ""): AccountRepository.StoredAccount =
         addedAccount(request("session", buildMap {
             put("access_token", accessToken)
-            put("token_type", if (refresh) "refresh" else "access")
+            put("token_type", if (refresh) "refresh" else "auto")
             if (clientId.isNotBlank()) put("client_id", clientId.trim())
         }).await())
 
