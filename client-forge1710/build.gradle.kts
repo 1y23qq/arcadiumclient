@@ -1,7 +1,7 @@
 plugins { java }
 
 group = "io.github.arcadiumclient"
-version = "0.6.3"
+version = "0.6.4"
 
 repositories {
     mavenCentral()

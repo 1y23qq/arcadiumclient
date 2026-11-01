@@ -6,6 +6,8 @@ import io.github.arcadiumclient.runtime.client.optimizations.WorldRenderScale
 import io.github.arcadiumclient.runtime.client.optimizations.RetainedHudBuffers
 import io.github.arcadiumclient.runtime.client.optimizations.GpuNameTags
 import io.github.arcadiumclient.runtime.client.optimizations.GpuPlayerPipeline
+import io.github.arcadiumclient.runtime.client.optimizations.GpuEquipmentPipeline
+import io.github.arcadiumclient.runtime.client.optimizations.RetainedNameTags
 import org.polyfrost.oneconfig.api.config.v1.Config
 import org.polyfrost.oneconfig.api.config.v1.annotations.Slider
 import org.polyfrost.oneconfig.api.config.v1.annotations.Switch
@@ -21,11 +23,17 @@ object BetaOptimizationsConfig : Config("arcadium-optimizations-beta.json", "Opt
     @JvmStatic @Switch(title = "GPU Player Pipeline", description = "Build standard player poses from compact snapshots and submit their parts in bulk. Unsupported models and layers use the original renderer. Requires OpenGL 4.3.", category = "Players")
     var gpuPlayerPipeline = false
 
+    @JvmStatic @Switch(title = "GPU Equipment Pipeline", description = "Build standard player armor poses and submit armor parts in bulk on the GPU. Native texture selection, leather colors and enchantment effects are preserved. Requires OpenGL 4.3.", category = "Equipment")
+    var gpuEquipmentPipeline = false
+
     @JvmStatic @Slider(title = "Minimum Visible Players", description = "Use GPU transforms only when at least this many players were rendered in the last batch, to avoid dispatch overhead in small scenes.", min = 1f, max = 128f, step = 1f, category = "Players")
     var minimumPlayers = 24
 
     @JvmStatic @Switch(title = "GPU Name Tags", description = "Keep name tag shapes on the GPU and draw their text and backgrounds with compact per-label commands. Requires OpenGL 4.3.", category = "Name Tags")
     var gpuNameTags = false
+
+    @JvmStatic @Switch(title = "Retained Name Tag Scenes", description = "Keep unchanged name tag draw plans and update their position and camera facing every frame. Requires GPU Name Tags. Unsupported labels keep their original preparation.", category = "Name Tags")
+    var retainedNameTagScenes = false
 
     @JvmStatic @Slider(title = "Minimum Visible Labels", description = "Use the GPU path only for crowded views. All labels keep updating every frame.", min = 1f, max = 128f, step = 1f, category = "Name Tags")
     var minimumGpuLabels = 16
@@ -39,11 +47,13 @@ object BetaOptimizationsConfig : Config("arcadium-optimizations-beta.json", "Opt
     @JvmStatic @Slider(title = "World Resolution", description = "Percentage of the window resolution used for the world. 100% keeps the original resolution.", min = 50f, max = 100f, step = 5f, category = "World")
     var worldResolution = 75
 
+    init { addDependency("retainedNameTagScenes", "gpuNameTags") }
+
     fun initialize() {
         preload()
         eventHandler { _: TickEvent.End -> NametagLayout.optimized = gpuNameTags || gpuPlayerPipeline }
         BetaOptimizationPage.register(id) {
-            listOf(GpuModelTransforms.status(), GpuPlayerPipeline.status(), GpuNameTags.status(), RetainedHudBuffers.status(), WorldRenderScale.status())
+            listOf(GpuModelTransforms.status(), GpuPlayerPipeline.status(), GpuEquipmentPipeline.status(), GpuNameTags.status(), RetainedNameTags.status(), RetainedHudBuffers.status(), WorldRenderScale.status())
         }
     }
 }

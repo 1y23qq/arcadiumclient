@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "io.github.arcadiumclient"
-version = "0.6.3"
+version = "0.6.4"
 base.archivesName = "ArcadiumRuntime"
 val minecraftVersion = providers.gradleProperty("minecraftVersion").getOrElse("1.8.9")
 require(minecraftVersion in setOf("1.7.10", "1.8.9")) { "Unsupported Minecraft version: $minecraftVersion" }
@@ -136,6 +136,8 @@ if (minecraftVersion == "1.7.10") {
                 "**/compat/argentum/MixinGpuPlayerFrame.java",
                 "**/compat/argentum/MixinGpuNameTags.java",
                 "**/client/GpuPlayerPipelineMixin.java", "**/client/access/LivingPipelineAccess.java",
+                "**/client/GpuEquipmentPipelineMixin.java",
+                "**/client/RetainedNameTagSceneMixin.java",
                 "**/compat/argentum/MixinRetainedHud.java", "**/client/BetaRenderCleanupMixin.java",
                 "**/client/MixinBedwars*.java", "**/client/MixinArcadiumPrefixTextRenderer.java",
                 "**/client/MixinBadlionEntityAnimations.java", "**/client/MixinGuiScaleSpectatorHud.java",

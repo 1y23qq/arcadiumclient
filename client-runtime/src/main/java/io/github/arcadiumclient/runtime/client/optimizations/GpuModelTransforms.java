@@ -31,15 +31,15 @@ public final class GpuModelTransforms {
     }
 
     public static void beginFrame() {
-        if(BetaOptimizationsConfig.getGpuPlayerPipeline())PlayerPoseOptions.refresh();
-        players = (BetaOptimizationsConfig.getGpuModelTransforms() || BetaOptimizationsConfig.getGpuPlayerPipeline()) ? observedPlayers : 0;
+        if(BetaOptimizationsConfig.getGpuPlayerPipeline()||BetaOptimizationsConfig.getGpuEquipmentPipeline())PlayerPoseOptions.refresh();
+        players = (BetaOptimizationsConfig.getGpuModelTransforms() || BetaOptimizationsConfig.getGpuPlayerPipeline()||BetaOptimizationsConfig.getGpuEquipmentPipeline()) ? observedPlayers : 0;
         observedPlayers = 0;
     }
 
-    public static void notePlayer() { if(BetaOptimizationsConfig.getGpuModelTransforms()||BetaOptimizationsConfig.getGpuPlayerPipeline())observedPlayers++; }
+    public static void notePlayer() { if(BetaOptimizationsConfig.getGpuModelTransforms()||BetaOptimizationsConfig.getGpuPlayerPipeline()||BetaOptimizationsConfig.getGpuEquipmentPipeline())observedPlayers++; }
 
     public static boolean ready() {
-        if ((!BetaOptimizationsConfig.getGpuModelTransforms()&&!BetaOptimizationsConfig.getGpuPlayerPipeline()) || players < BetaOptimizationsConfig.getMinimumPlayers() || failed) return false;
+        if ((!BetaOptimizationsConfig.getGpuModelTransforms()&&!BetaOptimizationsConfig.getGpuPlayerPipeline()&&!BetaOptimizationsConfig.getGpuEquipmentPipeline()) || players < BetaOptimizationsConfig.getMinimumPlayers() || failed) return false;
         if (!checked) initialize();
         return supported;
     }

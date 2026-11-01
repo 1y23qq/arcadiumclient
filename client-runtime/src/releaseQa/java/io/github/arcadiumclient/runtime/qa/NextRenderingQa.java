@@ -25,6 +25,10 @@ public final class NextRenderingQa {
     private static final boolean AUTO_BUDGET=Boolean.getBoolean("arcadium.nextRendering.autoBudget");
     private static final String[] CASES=PREVIOUS?new String[]{"normal-a","previous-a","normal-b","previous-b"}:AUTO_BUDGET?new String[]{"normal-a","players-all-a","normal-b","players-all-b"}:switch(System.getProperty("arcadium.nextRendering.focus","")){
         case "players" -> new String[]{"normal-a","players-a","players-all-a"};
+        case "profile" -> new String[]{"players-all-a"};
+        case "scene-verify" -> new String[]{"latest-a","retained-a"};
+        case "retained" -> new String[]{"latest-a","retained-a","latest-b","retained-b"};
+        case "equipment" -> new String[]{"latest-a","equipment-a","latest-b","equipment-b"};
         case "compat" -> new String[]{"normal-a","players-a","skin-resource","budget","fault"};
         default -> new String[]{"normal-a","previous-a","names-a","players-a","players-all-a","normal-b","previous-b","names-b","players-b","players-all-b"};
     };
@@ -47,16 +51,21 @@ public final class NextRenderingQa {
     public static void tick(){
         if(done)return;var mc=Minecraft.getInstance();wait++;
         try{
+            require(RetainedSceneQa.failure==null,RetainedSceneQa.failure==null?"":RetainedSceneQa.failure);
             require(validationFailure==null,validationFailure==null?"":validationFailure);
             require(++ticks<9000,"Next rendering QA timed out");
             if(phase==0&&ticks>60&&mc.screen!=null&&mc.screen.getClass().getSimpleName().contains("MainMenu")){
                 io.github.arcadiumclient.runtime.client.ClientPreferences.setSetupComplete(true);
                 Skin3DConfigReset();
-                BetaOptimizationsConfig.setGpuModelTransforms(false);if(!PREVIOUS){BetaOptimizationsConfig.setGpuPlayerPipeline(false);BetaOptimizationsConfig.setGpuNameTags(false);}BetaOptimizationsConfig.setRetainedHudBatches(false);BetaOptimizationsConfig.setWorldRenderScale(false);
+                BetaOptimizationsConfig.setGpuModelTransforms(false);if(!PREVIOUS){BetaOptimizationsConfig.setGpuPlayerPipeline(false);BetaOptimizationsConfig.setGpuNameTags(false);BetaOptimizationsConfig.setGpuEquipmentPipeline(false);}BetaOptimizationsConfig.setRetainedHudBatches(false);BetaOptimizationsConfig.setWorldRenderScale(false);
                 mc.options.pauseOnUnfocus=false;mc.options.vsync=false;mc.options.viewDistance=4;mc.options.fpsLimit=260;mc.options.cloudRenderMode=0;mc.options.perspective=0;Display.setVSyncEnabled(false);
                 org.polyfrost.oneconfig.internal.OneConfigConfig.limitUnfocusedFps=false;
+                if(Boolean.getBoolean("arcadium.nextRendering.classicGlint")){
+                    Class<?> type=Class.forName("org.polyfrost.overflowanimations.config.OverflowAnimationsConfig");Object config=type.getMethod("instance").invoke(null),items=type.getField("items").get(config);var field=items.getClass().getField("armorGlint");
+                    for(Object value:field.getType().getEnumConstants())if(((Enum<?>)value).name().equals("VANILLA"))field.set(items,value);
+                }
                 if(System.getProperty("arcadium.nextRendering.focus","").equals("compat")){
-                    for(String id:List.of("gpuPlayerPipeline","gpuNameTags","minimumGpuLabels","gpuModelTransforms","minimumPlayers","retainedHudBatches","worldRenderScale","worldResolution")){
+                    for(String id:List.of("gpuEquipmentPipeline","retainedNameTagScenes","gpuPlayerPipeline","gpuNameTags","minimumGpuLabels","gpuModelTransforms","minimumPlayers","retainedHudBatches","worldRenderScale","worldResolution")){
                         var property=BetaOptimizationsConfig.INSTANCE.getTree().getProp(id);require(property!=null&&property.getMetadata("visualizer")!=null,"Beta setting missing from the GUI: "+id);
                     }
                     org.polyfrost.oneconfig.api.ui.v1.OneConfigUI.open(org.polyfrost.oneconfig.internal.ui.navigation.graph.OptimizationsRoute.INSTANCE);phase=10;wait=0;
@@ -87,17 +96,26 @@ public final class NextRenderingQa {
                         p.setEquipment(2,new net.minecraft.item.ItemStack(net.minecraft.item.Items.DIAMOND_LEGGINGS));
                         p.setEquipment(3,new net.minecraft.item.ItemStack(net.minecraft.item.Items.DIAMOND_CHESTPLATE));
                         p.setEquipment(4,new net.minecraft.item.ItemStack(net.minecraft.item.Items.DIAMOND_HELMET));
+                        if(Boolean.getBoolean("arcadium.nextRendering.enchanted"))for(int slot=1;slot<=4;slot++)p.getEquipment(slot).addEnchantment(net.minecraft.enchantment.Enchantment.UNBREAKING,1);
+                        if(Boolean.getBoolean("arcadium.nextRendering.leather")){
+                            var armor=new net.minecraft.item.Item[]{net.minecraft.item.Items.LEATHER_BOOTS,net.minecraft.item.Items.LEATHER_LEGGINGS,net.minecraft.item.Items.LEATHER_CHESTPLATE,net.minecraft.item.Items.LEATHER_HELMET};
+                            for(int slot=1;slot<=4;slot++){var stack=new net.minecraft.item.ItemStack(armor[slot-1]);((net.minecraft.item.ArmorItem)stack.getItem()).setColor(stack,0x245CA8);if(Boolean.getBoolean("arcadium.nextRendering.enchanted"))stack.addEnchantment(net.minecraft.enchantment.Enchantment.UNBREAKING,1);p.setEquipment(slot,stack);}
+                        }
                     }
                 }
                 report.put("players",n);report.put("gpu",GL11.glGetString(GL11.GL_RENDERER));report.put("resolution",mc.width+"x"+mc.height);phase=2;wait=0;
             }else if(phase==2&&wait>100){phase=3;next();}
-            else if(phase==3&&System.nanoTime()-started>9_000_000_000L){
+            else if(phase==3&&System.nanoTime()-started>Long.getLong("arcadium.nextRendering.caseSeconds",9)*1_000_000_000L){
                 report.put(CASES[scenario],summary());
+                if(CASES[scenario].startsWith("latest")||CASES[scenario].startsWith("equipment"))report.put(CASES[scenario]+"-diagnostics",List.of(GpuModelTransforms.status(),GpuPlayerPipeline.status(),GpuEquipmentPipeline.status(),RetainedNameTags.status()));
                 if(CASES[scenario].equals("normal-a"))capture("normal.png");
                 if(CASES[scenario].equals("names-a")){if(!AUTO_BUDGET)require(GpuNameTags.packetsDrawn>0,"GPU name tags were not used: "+GpuNameTags.status());capture("gpu-names.png");}
                 if(CASES[scenario].equals("combined-a"))capture("combined.png");
                 if(CASES[scenario].equals("players-a")){require(GpuPlayerPipeline.playersDrawn>0,"Full player pipeline was not used: "+GpuPlayerPipeline.status());capture("gpu-players.png");}
                 if(CASES[scenario].equals("players-all-a"))capture("gpu-players-and-names.png");
+                if(CASES[scenario].equals("latest-a"))capture("latest-baseline.png");
+                if(CASES[scenario].equals("retained-a")){if(Boolean.getBoolean("arcadium.nextRendering.defaultBudgets"))require(RetainedNameTags.reused==0&&GpuNameTags.packetsDrawn==0,"Small scene used the retained GPU path");else require(RetainedNameTags.reused>0,"No name tag scenes reused: "+RetainedNameTags.status());capture("retained-names.png");}
+                if(CASES[scenario].equals("equipment-a")){require(GpuEquipmentPipeline.partsQueued>0,"GPU equipment path was never used: "+GpuEquipmentPipeline.status());capture("gpu-equipment.png");}
                 if(CASES[scenario].equals("skin-resource")){
                     require(Features062Qa.voxelDraws>0,"Voxel skins stopped rendering");require(GpuPlayerPipeline.rejectedModel>0,"Detailed skin players did not use the original path");
                     report.put("voxelDraws",Features062Qa.voxelDraws);report.put("voxelMeshCompiles",Features062Qa.meshCompiles);report.put("resourceReload",reloaded);capture("gpu-with-skins.png");
@@ -113,7 +131,7 @@ public final class NextRenderingQa {
             }
             if(phase==3&&CASES[scenario].equals("skin-resource")&&!reloaded&&System.nanoTime()-started>4_000_000_000L){mc.reloadResources();reloaded=true;}
             if(phase==3&&CASES[scenario].equals("budget")&&!budgetMeasured&&System.nanoTime()-started>2_000_000_000L){budgetParts=GpuModelTransforms.offloadedParts;budgetNames=GpuNameTags.packetsDrawn;budgetMeasured=true;report.put("budgetVisibleLabels",GpuNameTags.visibleLabels);}
-            if(mc.world!=null)mc.world.setTimeOfDay(6000);
+            if(mc.world!=null){mc.world.setTimeOfDay(6000);if(RetainedSceneQa.enabled()&&phase==3){RetainedSceneQa.tick(mc);mc.player.yaw=(float)Math.sin(ticks*.013)*18;mc.player.pitch=9+(float)Math.cos(ticks*.01)*7;mc.player.lastYaw=mc.player.yaw;mc.player.lastPitch=mc.player.pitch;}}
         }catch(Throwable error){finish(error);}
     }
     private static void Skin3DConfigReset(){io.github.arcadiumclient.runtime.client.features.Skin3DConfig.INSTANCE.chooseEnabled(false);}
@@ -124,16 +142,19 @@ public final class NextRenderingQa {
             report.put("namePackets",GpuNameTags.packetsDrawn);report.put("gpuVertices",GpuNameTags.verticesReused);report.put("geometryUploads",GpuNameTags.geometryUploads);report.put("multiDraws",GpuNameTags.multiDraws);report.put("cpuRecoveries",GpuNameTags.cpuRecoveries);
             report.put("compactPlayers",GpuPlayerPipeline.playersDrawn);report.put("compactParts",GpuPlayerPipeline.partsQueued);report.put("playerStateFallback",GpuPlayerPipeline.rejectedState);report.put("playerLayerFallback",GpuPlayerPipeline.rejectedLayers);report.put("playerModelFallback",GpuPlayerPipeline.rejectedModel);
             report.put("goldenMatrices",golden.size());report.put("verifiedAgainstNativeMatrices",verifiedMatrices);report.put("maximumNativeMatrixError",maximumMatrixError);
-            if(!AUTO_BUDGET)require(verifiedMatrices>0,"No GPU player matrices were checked against the original renderer");
-            else require(GpuModelTransforms.offloadedParts==0&&GpuNameTags.packetsDrawn==0,"Small scene default budget used GPU work");
+            report.put("equipmentStates",GpuEquipmentPipeline.statesQueued);report.put("equipmentParts",GpuEquipmentPipeline.partsQueued);report.put("glintStates",GpuEquipmentPipeline.glintStates);report.put("leatherStates",GpuEquipmentPipeline.leatherStates);report.put("equipmentFallbacks",GpuEquipmentPipeline.fallbacks);
+            report.put("retainedLabels",RetainedNameTags.reused);report.put("retainedSceneChecks",RetainedSceneQa.checks);report.put("retainedSceneMatrixError",RetainedSceneQa.error);report.put("retainedOptionsTested",RetainedSceneQa.testedOptions());if(RetainedSceneQa.enabled())require(RetainedSceneQa.checks>4000,"Too few scene comparisons");
+            if(!AUTO_BUDGET&&!Set.of("profile","retained","scene-verify").contains(System.getProperty("arcadium.nextRendering.focus","")))require(verifiedMatrices>0,"No GPU player matrices were checked against the original renderer");
+            else if(AUTO_BUDGET)require(GpuModelTransforms.offloadedParts==0&&GpuNameTags.packetsDrawn==0,"Small scene default budget used GPU work");
             }
             require(GL11.glGetError()==GL11.GL_NO_ERROR,"OpenGL error after packet test");finish(null);return;
         }
         String mode=CASES[scenario];
         BetaOptimizationsConfig.setGpuModelTransforms(mode.startsWith("previous")||mode.startsWith("combined"));BetaOptimizationsConfig.setMinimumPlayers(1);
         if(!PREVIOUS){
-            BetaOptimizationsConfig.setGpuPlayerPipeline(mode.startsWith("players")||mode.equals("skin-resource")||mode.equals("budget")||mode.equals("fault"));
-            BetaOptimizationsConfig.setGpuNameTags(mode.startsWith("names")||mode.startsWith("combined")||mode.startsWith("players-all")||mode.equals("skin-resource")||mode.equals("budget")||mode.equals("fault"));BetaOptimizationsConfig.setMinimumGpuLabels(1);
+            BetaOptimizationsConfig.setGpuPlayerPipeline(mode.startsWith("players")||mode.startsWith("latest")||mode.startsWith("retained")||mode.startsWith("equipment")||mode.equals("skin-resource")||mode.equals("budget")||mode.equals("fault"));
+            BetaOptimizationsConfig.setGpuEquipmentPipeline(mode.startsWith("equipment"));BetaOptimizationsConfig.setRetainedNameTagScenes(mode.startsWith("retained")||mode.equals("skin-resource")||mode.equals("budget")||mode.equals("fault"));
+            BetaOptimizationsConfig.setGpuNameTags(mode.startsWith("names")||mode.startsWith("combined")||mode.startsWith("players-all")||mode.startsWith("latest")||mode.startsWith("retained")||mode.startsWith("equipment")||mode.equals("skin-resource")||mode.equals("budget")||mode.equals("fault"));BetaOptimizationsConfig.setMinimumGpuLabels(1);
         }
         if(mode.equals("skin-resource"))try{
             var seed=Features062Qa.class.getDeclaredMethod("seedSkin",Minecraft.class);seed.setAccessible(true);seed.invoke(null,Minecraft.getInstance());
@@ -144,13 +165,37 @@ public final class NextRenderingQa {
             int visible=0;for(var player:Minecraft.getInstance().world.players)if(player instanceof Frozen)player.setInvisible(visible++>=8);
         }
         if(mode.equals("fault")){for(var player:Minecraft.getInstance().world.players)if(player instanceof Frozen)player.setInvisible(false);modelFaultRequested=nameFaultRequested=true;}
-        if(AUTO_BUDGET){BetaOptimizationsConfig.setMinimumPlayers(24);BetaOptimizationsConfig.setMinimumGpuLabels(16);}
+        if(AUTO_BUDGET||Boolean.getBoolean("arcadium.nextRendering.defaultBudgets")){BetaOptimizationsConfig.setMinimumPlayers(24);BetaOptimizationsConfig.setMinimumGpuLabels(16);}
         samples.clear();worldSubmit.clear();gpuTimes.clear();started=System.nanoTime();last=0;
     }
     public static void frame(){if(done||phase!=3)return;long now=System.nanoTime();if(last!=0&&now-started>3_000_000_000L)samples.add((now-last)/1e6);last=now;if(!golden.isEmpty())goldenComplete=true;}
-    public static boolean captureGolden(){return enabled()&&!done&&phase==3&&CASES[scenario].equals("normal-a")&&!goldenComplete&&System.nanoTime()-started>1_000_000_000L;}
+    public static boolean captureGolden(){return enabled()&&!done&&phase==3&&(CASES[scenario].equals("normal-a")||CASES[scenario].equals("latest-a"))&&!goldenComplete&&System.nanoTime()-started>1_000_000_000L;}
     public static void storeGolden(IntBuffer source){for(int p=source.position();p<source.limit();p+=19){int[] entry=new int[19];for(int i=0;i<19;i++)entry[i]=source.get(p+i);golden.add(entry);}}
     public static boolean validateDense(){return enabled()&&!done&&validationFailure==null&&phase==3&&CASES[scenario].equals("players-a")&&verifiedDraws<2;}
+    public static boolean validateEquipment(){return enabled()&&!done&&validationFailure==null&&phase==3&&CASES[scenario].equals("equipment-a")&&verifiedDraws<2;}
+    public static void verifyEquipmentGpu(int buffer,IntBuffer original){
+        int previous=GL11.glGetInteger(GL31.GL_COPY_READ_BUFFER);IntBuffer actual=BufferUtils.createIntBuffer(original.remaining());
+        try{GL15.glBindBuffer(GL31.GL_COPY_READ_BUFFER,buffer);GL15.glGetBufferSubData(GL31.GL_COPY_READ_BUFFER,0,actual);}finally{GL15.glBindBuffer(GL31.GL_COPY_READ_BUFFER,previous);}
+        List<int[]> output=new ArrayList<>();for(int p=0;p<actual.limit();p+=19){int[] row=new int[19];for(int i=0;i<19;i++)row[i]=actual.get(p+i);output.add(row);}
+        for(int p=original.position();p<original.limit();p+=19){
+            if(Float.intBitsToFloat(original.get(p+1))!=-9876543f)continue;
+            var matrix=GpuModelTransforms.resolve((int)Float.intBitsToFloat(original.get(p)),new org.joml.Matrix4f());int[] expected=new int[19];
+            for(int c=0;c<4;c++)for(int r=0;r<3;r++)expected[c*3+r]=Float.floatToRawIntBits(matrix.get(c,r));for(int i=12;i<19;i++)expected[i]=original.get(p+i);
+            double nativeError=match(expected,golden),gpuError=match(expected,output);
+            if(nativeError>=.001||gpuError>=.001){report.put("failedEquipmentInstance",expected);validationFailure="Armor differs from native/GPU reference: "+nativeError+" / "+gpuError;return;}
+            verifiedMatrices++;maximumMatrixError=Math.max(maximumMatrixError,Math.max(nativeError,gpuError));
+        }
+        verifiedDraws++;
+    }
+    private static double match(int[] expected,List<int[]> candidates){
+        double best=Double.POSITIVE_INFINITY;float x=Float.intBitsToFloat(expected[9]),y=Float.intBitsToFloat(expected[10]),z=Float.intBitsToFloat(expected[11]);
+        for(int[] entry:candidates){
+            if(Math.abs(Float.intBitsToFloat(entry[9])-x)>.001||Math.abs(Float.intBitsToFloat(entry[10])-y)>.001||Math.abs(Float.intBitsToFloat(entry[11])-z)>.001)continue;
+            boolean same=true;for(int i=12;i<19;i++)if(entry[i]!=expected[i]){same=false;break;}if(!same)continue;
+            double error=0;for(int i=0;i<12;i++)error=Math.max(error,Math.abs(Float.intBitsToFloat(entry[i])-Float.intBitsToFloat(expected[i])));best=Math.min(best,error);
+        }
+        return best;
+    }
     public static int beginGpuTime(){
         if(phase!=3||done)return 0;
         int slot=gpuCursor++%gpuQueries.length;

@@ -21,6 +21,7 @@ public final class GpuNameTags {
     private int observed,previousVisible,program,vao,vertexBuffer,instanceBuffer,commandsBuffer,uploadedWords,gpuCapacity;
     private int texturedUniform,lightmapUniform,fogUniform,radialUniform;
     private boolean checked,failed,invalidate;
+    private long generation;
     private static volatile String capability="Not tested yet";
     public static long packetsDrawn,verticesReused,geometryUploads,multiDraws,cpuRecoveries,visibleLabels;
 
@@ -28,7 +29,7 @@ public final class GpuNameTags {
         TagGeometryCache.Mesh[] meshes=new TagGeometryCache.Mesh[128];
         FloatBuffer instances=BufferUtils.createFloatBuffer(128*INSTANCE_FLOATS);
         IntBuffer commands=BufferUtils.createIntBuffer(128*4);
-        int count;
+        int count,saved;
         void ensure(){
             if(count<meshes.length)return;
             meshes=Arrays.copyOf(meshes,meshes.length*2);
@@ -41,7 +42,7 @@ public final class GpuNameTags {
 
     public void beginFrame(){
         previousVisible=observed;visibleLabels=observed;observed=0;discard();
-        if(invalidate||geometry.size()>TagGeometryCache.MAX_WORDS*3/4){geometry.clear();uploadedWords=0;invalidate=false;}
+        if(invalidate||geometry.size()>TagGeometryCache.MAX_WORDS*3/4){geometry.clear();uploadedWords=0;invalidate=false;generation++;}
     }
     public void noteLabel(){observed++;}
     public boolean enabled(){
@@ -49,12 +50,26 @@ public final class GpuNameTags {
         if(!checked)initialize();return !failed&&program!=0;
     }
 
-    public boolean queue(BufferBuilder pass,int[] source,int length,int stride,int color,boolean text,int alpha,
+    public boolean queue(BufferBuilder pass,Object nativePass,int[] source,int length,int stride,int color,boolean text,int alpha,
                          Matrix4fc matrix,float x,float y,float lightU,float lightV){
         if(!enabled())return false;
         try{
             var mesh=geometry.mesh(source,length,stride,color,text,text);
             if(mesh.vertexCount()==0)return true;
+            RetainedNameTags.packet(nativePass,mesh,matrix,x,y,text?alpha:-1,lightU,lightV);
+            append(pass,mesh,text?alpha:-1,matrix,x,y,lightU,lightV);
+            return true;
+        }catch(Throwable error){
+            fail(error);replayPending();return false;
+        }
+    }
+    public long generation(){return generation;}
+    public void checkpointRetained(){for(Group group:groups.values())group.saved=group.count;}
+    public void rollbackRetained(){for(Group group:groups.values()){Arrays.fill(group.meshes,group.saved,group.count,null);group.count=group.saved;}}
+    public void queueRetained(BufferBuilder pass,TagGeometryCache.Mesh mesh,int alpha,Matrix4fc matrix,float lightU,float lightV){
+        append(pass,mesh,alpha,matrix,0,0,lightU,lightV);
+    }
+    private void append(BufferBuilder pass,TagGeometryCache.Mesh mesh,int alpha,Matrix4fc matrix,float x,float y,float lightU,float lightV){
             Group group=groups.get(pass);
             if(group==null){group=new Group();groups.put(pass,group);}
             group.ensure();int i=group.count++*INSTANCE_FLOATS;group.meshes[group.count-1]=mesh;
@@ -65,11 +80,7 @@ public final class GpuNameTags {
             out.put(i+9,matrix.m30()+matrix.m00()*x+matrix.m10()*y);
             out.put(i+10,matrix.m31()+matrix.m01()*x+matrix.m11()*y);
             out.put(i+11,matrix.m32()+matrix.m02()*x+matrix.m12()*y);
-            out.put(i+12,text?alpha:-1).put(i+13,lightU).put(i+14,lightV).put(i+15,0);
-            return true;
-        }catch(Throwable error){
-            fail(error);replayPending();return false;
-        }
+            out.put(i+12,alpha).put(i+13,lightU).put(i+14,lightV).put(i+15,0);
     }
 
     public boolean draw(BufferBuilder builder){
@@ -189,9 +200,9 @@ public final class GpuNameTags {
     public void close(){
         discard();if(program!=0)GL20.glDeleteProgram(program);if(vao!=0)GL30.glDeleteVertexArrays(vao);
         if(vertexBuffer!=0)GL15.glDeleteBuffers(vertexBuffer);if(instanceBuffer!=0)GL15.glDeleteBuffers(instanceBuffer);if(commandsBuffer!=0)GL15.glDeleteBuffers(commandsBuffer);
-        program=vao=vertexBuffer=instanceBuffer=commandsBuffer=uploadedWords=gpuCapacity=0;geometry.clear();groups.clear();checked=failed=false;LIVE.remove(this);
+        program=vao=vertexBuffer=instanceBuffer=commandsBuffer=uploadedWords=gpuCapacity=0;geometry.clear();generation++;groups.clear();checked=failed=false;LIVE.remove(this);
     }
-    public static void invalidateAll(){for(var value:LIVE)value.invalidate();}
+    public static void invalidateAll(){for(var value:LIVE)value.invalidate();RetainedNameTags.invalidate();}
     public static void closeAll(){for(var value:List.copyOf(LIVE))value.close();}
     public static String status(){return BetaOptimizationsConfig.getGpuNameTags()?"GPU name tags: "+capability+" | Labels: "+visibleLabels+" | Packets: "+packetsDrawn:"GPU name tags: Off";}
 }

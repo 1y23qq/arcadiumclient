@@ -24,7 +24,9 @@
     "OptimizationGpuProbe",
     "OptimizationWorldProbe",
     "NextGpuReferenceProbe",
-    "NextNameFaultProbe"
+    "NextNameFaultProbe",
+    "RetainedSceneProbe",
+    "RetainedPacketProbe"
   ],
   "injectors": {
     "defaultRequire": 1

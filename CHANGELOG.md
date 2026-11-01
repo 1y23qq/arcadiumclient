@@ -1,3 +1,11 @@
+## 0.6.4
+
+- Added Optimizations (Beta) with GPU player, armor and name tag rendering options.
+- Added retained name tag scenes and HUD batches to reduce repeated rendering work.
+- Added adjustable world render resolution while keeping HUD and menus sharp.
+
+Experimental options are off by default. GPU player and name tag modes require OpenGL 4.3.
+
 ## 0.6.3
 
 - All Custom F3 settings are now available inside the client module settings page.

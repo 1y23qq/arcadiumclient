@@ -159,7 +159,8 @@ public final class GpuPlayerPipeline {
         if(!forgeChecked){forgeChecked=true;try{var type=Class.forName("io.github.arcadiumclient.forgecompat.ForgeRuntimeContext");var field=type.getDeclaredField("configuration");field.setAccessible(true);forgeActive=field.get(null)!=null;}catch(ClassNotFoundException ignored){}catch(Exception error){forgeActive=true;}}
         return forgeActive;
     }
+    static boolean hasForgeHooks(){return forge();}
     private static float angle(float old,float current,float delta){float difference=current-old;while(difference< -180)difference+=360;while(difference>=180)difference-=360;return old+delta*difference;}
-    public static void reset(){profiles.clear();unsupported.clear();lastBackend=null;}
+    public static void reset(){profiles.clear();unsupported.clear();lastBackend=null;GpuEquipmentPipeline.reset();}
     public static String status(){return BetaOptimizationsConfig.getGpuPlayerPipeline()?"GPU player pipeline: "+state+" | Players: "+playersDrawn+" | Layer/model fallback: "+(rejectedLayers+rejectedModel):"GPU player pipeline: Off";}
 }

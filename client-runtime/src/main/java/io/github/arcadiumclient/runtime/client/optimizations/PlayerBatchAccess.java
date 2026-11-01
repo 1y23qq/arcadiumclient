@@ -10,7 +10,8 @@ import net.minecraft.resource.Identifier;
 
 final class PlayerBatchAccess {
     final MethodHandle current,active,select,boxGeometry,boxTemplates,instances,nameAdd,beginCapture,firstPass,recorded;
-    final VarHandle backend,nameTags,selectedLayer,backendCount,batchCount,data,size,count,entityCount,playerCount,captureMatrices;
+    final VarHandle backend,nameTags,selectedLayer,backendCount,batchCount,data,size,count,entityCount,playerCount,captureMatrices,activeCapture;
+    final VarHandle capturePlayer,captureArmor,captureActive,captureFinished,captureMode,capturePass,captureTexture,captureLight,captureColor,captureOverlay,captureTime,captureRecorded,captureGlint;
     private final MethodHandle[] templateFields;
     private static final String ROOT="dev.rdh.argentum.impl.render.entity.instancing.";
     PlayerBatchAccess()throws ReflectiveOperationException{
@@ -24,6 +25,8 @@ final class PlayerBatchAccess {
         Class<?> capture=Class.forName(ROOT+"EntityCapture");
         beginCapture=method(actor,"beginEntity",Model.class,Identifier.class,boolean.class,boolean.class,int.class,float.class,float.class,float.class,float.class,float.class);
         firstPass=method(capture,"firstModelPass");recorded=method(capture,"recorded");captureMatrices=field(capture,"matrices");
+        activeCapture=field(actor,"activeCapture");capturePlayer=field(capture,"player");captureArmor=field(capture,"armorLayer");captureActive=field(capture,"modelActive");captureFinished=field(capture,"finished");captureMode=field(capture,"matrixMode");
+        capturePass=field(capture,"pass");captureTexture=field(capture,"boundTexture");captureLight=field(capture,"packedLight");captureColor=field(capture,"color");captureOverlay=field(capture,"currentOverlayColor");captureTime=field(capture,"effectTime");captureRecorded=field(capture,"recorded");captureGlint=field(capture,"glintParts");
         String[] fields={"originX","minY","minZ","spanX","spanY","spanZ","flipped","textureU","textureV","textureWidth","textureHeight","sizeX","sizeY","sizeZ"};
         templateFields=new MethodHandle[fields.length];for(int i=0;i<fields.length;i++)templateFields[i]=method(box,fields[i]);
     }

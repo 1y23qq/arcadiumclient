@@ -9,7 +9,7 @@ import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.*;
 
 public final class GpuPlayerPackets {
-    public static final int PLAYER_WORDS=32,PART_WORDS=16,PARTS=12,MAX_PLAYERS=2048;
+    public static final int PLAYER_WORDS=32,PART_WORDS=16,PARTS=12,MAX_PLAYERS=8192;
     private static FloatBuffer players=BufferUtils.createFloatBuffer(256*PLAYER_WORDS);
     private static float[] templates=new float[PARTS*PART_WORDS*4];
     private static int playerCount,templateWords,uploadedPlayers,uploadedTemplates,playerBuffer,templateBuffer,sineBuffer;
