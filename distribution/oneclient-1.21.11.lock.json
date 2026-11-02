@@ -2155,9 +2155,9 @@
     },
     {
       "file": "ArcadiumFeatures-1.21.11.jar",
-      "sha1": "738af35898e399a3558ea437ee47d2530a56604f",
-      "sha256": "62218024733a176c050a923cdc6876f5b2ab563d744e5c0ca1f26efb65a1d99e",
-      "bytes": 26024956,
+      "sha1": "d6a1aa52ebb462ed5e4ee14bcc9e5513f7d211b5",
+      "sha256": "08cf7455f9ca641107684a55eacb39c01016195f83c0396c4e14d836b852ddde",
+      "bytes": 26024957,
       "modId": "arcadium_runtime",
       "license": "GPL-3.0-only",
       "authors": [

@@ -19,9 +19,9 @@
     },
     {
       "file": "ArcadiumFeatures-1.8.9.jar",
-      "sha1": "da866a9be239eb15a5faca05703e974b5ebeef84",
-      "sha256": "3a93865871ff4a4a24b0cb60f8375f651476bc48e3f2cfda87525f4ff7be732d",
-      "bytes": 26980533,
+      "sha1": "2359d9bc465e6ca2e7b5d6a36d95ed4fe0f3990d",
+      "sha256": "3cd850d34bd6beae6118774bd664e39b12c5c944cc8a0fd9cb7169b532003f96",
+      "bytes": 26980531,
       "modId": "arcadium_runtime",
       "license": "GPL-3.0-only",
       "authors": [
@@ -50,9 +50,9 @@
     },
     {
       "file": "ArcadiumForgeCompat-1.8.9.jar",
-      "sha1": "05af5aa4f7186c8de5d091e51450c4b21e0efe23",
-      "sha256": "63cf67f8d11102f4d7b69a4d2341820fcbae2dd22d9c1895ba9c696519943c66",
-      "bytes": 3289960,
+      "sha1": "90659fc912082a731a23c3752af4460d0a39133e",
+      "sha256": "4921e930b266305149a5a36ca329a7e8721a8a423539bacf1d8779adccaddc6b",
+      "bytes": 3289961,
       "modId": "arcadium_forge_compat",
       "license": "GPL-3.0-only",
       "authors": [
@@ -85,9 +85,9 @@
   "1.7.10": [
     {
       "file": "ArcadiumForge-1.7.10.jar",
-      "sha1": "55c20e55775c1e1c0f929132b834fd9e1c1d3f5e",
-      "sha256": "c4eac76f7ebcff61f63d2c18b8cbb42a3b59744e3a3c0ea06067afd476b64526",
-      "bytes": 118614901,
+      "sha1": "6743197d4fdb3cccd1528d456f8888a8b90f52f7",
+      "sha256": "c27cfcc988f4ec7ae45476c8a880de44ca7f5a2f001de6eab112e054cb778800",
+      "bytes": 118614903,
       "modId": "arcadiumclient",
       "license": "GPL-3.0-only",
       "authors": [
@@ -97,8 +97,8 @@
     },
     {
       "file": "ArcadiumBootstrap-1.7.10.jar",
-      "sha1": "a0dab4cab11d4c135ecd1980d786f318fd460b71",
-      "sha256": "146a6d93ba7fe932c9787587cecba2f70d309b14e3cd366034f0779dd2d0e28d",
+      "sha1": "e0b47b238f353559c4c03e3601565b67aab1c3c4",
+      "sha256": "66bd63912d47066209c6fa9d1ba316b296967dba2a9a6bc2d3f241a3d0d7cb3a",
       "bytes": 47859,
       "modId": "arcadium_forge_bootstrap",
       "license": "GPL-3.0-only",
@@ -129,9 +129,9 @@
     },
     {
       "file": "ArcadiumFeatures-1.21.11.jar",
-      "sha1": "738af35898e399a3558ea437ee47d2530a56604f",
-      "sha256": "62218024733a176c050a923cdc6876f5b2ab563d744e5c0ca1f26efb65a1d99e",
-      "bytes": 26024956,
+      "sha1": "d6a1aa52ebb462ed5e4ee14bcc9e5513f7d211b5",
+      "sha256": "08cf7455f9ca641107684a55eacb39c01016195f83c0396c4e14d836b852ddde",
+      "bytes": 26024957,
       "modId": "arcadium_runtime",
       "license": "GPL-3.0-only",
       "authors": [
@@ -179,8 +179,8 @@
     },
     {
       "file": "ArcadiumFeatures-26.2.jar",
-      "sha1": "29073703841a6cf89dbd360baf5e29ec3be25ab5",
-      "sha256": "49b82b37a005ff7ba127a22637b15ebcd75274060d683862af0af85edc34f8dd",
+      "sha1": "1e1cd2542b7d3adbdc69687b7feeed2623d4de41",
+      "sha256": "e6188d5f5d341c992f25c537ab804602477b4119f6d50198e2348ddfb797abab",
       "bytes": 26032212,
       "modId": "arcadium_runtime",
       "license": "GPL-3.0-only",

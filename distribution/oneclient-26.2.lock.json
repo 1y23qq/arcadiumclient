@@ -2441,8 +2441,8 @@
     },
     {
       "file": "ArcadiumFeatures-26.2.jar",
-      "sha1": "29073703841a6cf89dbd360baf5e29ec3be25ab5",
-      "sha256": "49b82b37a005ff7ba127a22637b15ebcd75274060d683862af0af85edc34f8dd",
+      "sha1": "1e1cd2542b7d3adbdc69687b7feeed2623d4de41",
+      "sha256": "e6188d5f5d341c992f25c537ab804602477b4119f6d50198e2348ddfb797abab",
       "bytes": 26032212,
       "modId": "arcadium_runtime",
       "license": "GPL-3.0-only",

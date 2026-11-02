@@ -54,10 +54,10 @@ object BetaOptimizationsConfig : Config("arcadium-optimizations-beta.json", "Opt
     var retainedHudBatches = false
 
     @JvmStatic @Slider(title = "Minimum Visible Labels", description = "Use the GPU path only for crowded views. All labels keep updating every frame.", min = 1f, max = 128f, step = 1f, category = "Hypixel")
-    var minimumGpuLabels = 16
+    var minimumGpuLabels = 1
 
     @JvmStatic @Slider(title = "Minimum Visible Particles", description = "Keep small particle scenes on the original renderer.", min = 1f, max = 512f, step = 1f, category = "Hypixel")
-    var minimumGpuParticles = 64
+    var minimumGpuParticles = 1
 
     @JvmStatic @Switch(title = "GPU Model Transforms", description = "Build and sort standard player part matrices on the GPU while keeping Argentum batching. Requires OpenGL 4.3. Custom parts use the original renderer.", category = "Players")
     var gpuModelTransforms = false
@@ -69,7 +69,7 @@ object BetaOptimizationsConfig : Config("arcadium-optimizations-beta.json", "Opt
     var gpuEquipmentPipeline = false
 
     @JvmStatic @Slider(title = "Minimum Visible Players", description = "Use GPU transforms only when at least this many players were rendered in the last batch, to avoid dispatch overhead in small scenes.", min = 1f, max = 128f, step = 1f, category = "Players")
-    var minimumPlayers = 24
+    var minimumPlayers = 1
 
     @JvmStatic @Switch(title = "Fast Frame Presentation", description = "Cache the final full-screen frame quad while keeping native colors, resolution and frame timing. Unsupported render states use the original path.", category = "Display")
     var directFramebufferPresentation = false

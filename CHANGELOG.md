@@ -1,3 +1,7 @@
+## 0.6.7
+
+- Set the default minimum player, name tag and particle counts for beta GPU optimizations to 1.
+
 ## 0.6.6
 
 - Simplified Optimizations (Beta) into Hypixel, Players and Display, with diagnostics on a separate page.
