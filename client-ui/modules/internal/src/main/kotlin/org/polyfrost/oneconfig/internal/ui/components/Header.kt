@@ -39,6 +39,10 @@ import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -50,9 +54,13 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.NavDestination.Companion.hasRoute
 import org.polyfrost.oneconfig.api.ui.v1.keybind.trackTextInputFocus
 import org.polyfrost.oneconfig.internal.ui.LocalCloseRequest
 import org.polyfrost.oneconfig.internal.ui.api.Tooltip
+import org.polyfrost.oneconfig.internal.ui.api.BetaOptimizationPage
+import org.polyfrost.oneconfig.internal.ui.navigation.graph.OptimizationDiagnosticsRoute
+import org.polyfrost.oneconfig.internal.ui.navigation.graph.OptimizationsRoute
 import org.polyfrost.oneconfig.internal.ui.components.dropdown.DropdownPositionProvider
 import org.polyfrost.oneconfig.internal.ui.navigation.searchPlaceholder
 import org.polyfrost.oneconfig.internal.ui.shell.LocalNavController
@@ -66,6 +74,8 @@ import org.polyfrost.oneconfig.internal.ui.themes.LocalTheme
 fun Header() {
     val controller = LocalNavController.wrapper
     val closeRequest = LocalCloseRequest.current
+    val entry by LocalNavController.current.currentBackStackEntryAsState()
+    val showDiagnostics = entry?.destination?.hasRoute<OptimizationsRoute>() == true && BetaOptimizationPage.available
 
     Row(
         modifier = Modifier.fillMaxWidth().height(36.dp),
@@ -80,8 +90,8 @@ fun Header() {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                IconButton("left-arrow") { controller.back() }
-                IconButton("right-arrow") { controller.forward() }
+                IconButton("left-arrow", Modifier.semantics { contentDescription = "Go back" }) { controller.back() }
+                IconButton("right-arrow", Modifier.semantics { contentDescription = "Go forward" }) { controller.forward() }
             }
             AnimatedContent(
                 ShellState.title,
@@ -97,6 +107,18 @@ fun Header() {
                         Text(it, color = LocalTheme.current.textColor, fontSize = 24.sp, fontWeight = FontWeight.Medium)
                         TitleAuthorByline(it)
                         TitleInfoTooltip(it)
+                        if (showDiagnostics && it == "Optimizations (Beta)") {
+                            Tooltip(
+                                text = { Text("Diagnostics", color = LocalTheme.current.textColor, fontSize = 13.sp) },
+                                modifier = Modifier.widthIn(max = 240.dp),
+                                anchor = Alignment.BottomCenter,
+                            ) {
+                                IconButton("info", Modifier.size(28.dp).padding(5.dp).semantics {
+                                    contentDescription = "Open optimization diagnostics"
+                                    role = Role.Button
+                                }) { controller.navigate(OptimizationDiagnosticsRoute) }
+                            }
+                        }
                     }
                 }
             }
@@ -108,7 +130,7 @@ fun Header() {
         ) {
             ShellState.openOriginalScreen?.let { OpenOriginalScreenButton(it) }
             GlobalSearchBar()
-            IconButton("close") { closeRequest() }
+            IconButton("close", Modifier.semantics { contentDescription = "Close options" }) { closeRequest() }
         }
     }
 }
@@ -222,7 +244,8 @@ private fun searchFieldValue(text: String) = TextFieldValue(text, TextRange(text
 fun GlobalSearchBar() {
     val navController = LocalNavController.current
     val backStackEntry by navController.currentBackStackEntryAsState()
-    val placeholder = searchPlaceholder(backStackEntry?.destination)
+    val placeholder = if (backStackEntry?.destination?.hasRoute<OptimizationDiagnosticsRoute>() == true) "Search diagnostics..."
+        else searchPlaceholder(backStackEntry?.destination)
 
     var searchText by remember { mutableStateOf(searchFieldValue(ShellState.searchQuery)) }
     val interactionSource = rememberInteractionSource()

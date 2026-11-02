@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "io.github.arcadiumclient"
-version = "0.6.5"
+version = "0.6.6"
 base.archivesName = "ArcadiumRuntime"
 val minecraftVersion = providers.gradleProperty("minecraftVersion").getOrElse("1.8.9")
 require(minecraftVersion in setOf("1.7.10", "1.8.9")) { "Unsupported Minecraft version: $minecraftVersion" }
@@ -132,6 +132,10 @@ if (minecraftVersion == "1.7.10") {
             }
             exclude("**/features/NoHitDelayConfig.kt", "**/client/MixinNoHitDelay.java",
                 "**/optimizations/**", "**/features/BetaOptimizationsConfig.kt",
+                "**/RenderHookConstraintsPlugin.java", "**/ReducedRenderHookMarker.java",
+                "**/compat/argentum/TypedLayerOperationsMarker.java",
+                "**/compat/cera/TrustedCosmeticUsernameMarker.java",
+                "**/compat/polyblur/**", "**/compat/overflowparticles/TypedParticleOperationsMarker.java",
                 "**/compat/argentum/MixinGpuModel*.java", "**/client/WorldRenderScaleMixin.java",
                 "**/compat/argentum/MixinGpuPlayerFrame.java",
                 "**/compat/argentum/MixinGpuNameTags.java",

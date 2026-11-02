@@ -12,6 +12,8 @@ import io.github.arcadiumclient.runtime.client.optimizations.GpuParticles
 import io.github.arcadiumclient.runtime.client.optimizations.FastInvisibleHolograms
 import io.github.arcadiumclient.runtime.client.optimizations.ScoreboardPreparation
 import io.github.arcadiumclient.runtime.client.optimizations.FastFramePresentation
+import io.github.arcadiumclient.runtime.client.optimizations.RenderHookAllocationControl
+import io.github.arcadiumclient.runtime.client.optimizations.EfficientMotionBlur
 import org.polyfrost.oneconfig.api.config.v1.Config
 import org.polyfrost.oneconfig.api.config.v1.annotations.Slider
 import org.polyfrost.oneconfig.api.config.v1.annotations.Switch
@@ -21,65 +23,79 @@ import org.polyfrost.oneconfig.api.event.v1.events.TickEvent
 import io.github.arcadiumclient.runtime.client.branding.NametagLayout
 
 object BetaOptimizationsConfig : Config("arcadium-optimizations-beta.json", "Optimizations (Beta)", Category.OTHER) {
+    @JvmStatic @Switch(title = "GPU Name Tags", description = "Keep name tag shapes on the GPU and draw their text and backgrounds with compact per-label commands. Requires OpenGL 4.3.", category = "Hypixel")
+    var gpuNameTags = false
+
+    @JvmStatic @Switch(title = "Retained Name Tag Scenes", description = "Keep unchanged name tag draw plans and update their position and camera facing every frame. Requires GPU Name Tags. Unsupported labels keep their original preparation.", category = "Hypixel")
+    var retainedNameTagScenes = false
+
+    @JvmStatic @Switch(title = "Compact Name Tag Preparation", description = "Reuse unchanged name tag material bindings, billboard orientation and draw commands. Every label position, light value and visible glyph still updates normally.", category = "Hypixel")
+    var compactNameTagPreparation = false
+
+    @JvmStatic @Switch(title = "Invisible Hologram Fast Path", description = "Skip unused model preparation for invisible, unequipped vanilla armor stands. Their name tags keep the original renderer; visible stands, equipment and custom renderers use the original path.", category = "Hypixel")
+    var fastInvisibleHolograms = false
+
+    @JvmStatic @Switch(title = "Reduced Render Hook Allocations", description = "Reduce temporary allocations in supported model, particle and cosmetic render hooks. Custom hooks keep their original behavior.", category = "Hypixel")
+    var reduceRenderHookAllocations = false
+
+    @JvmStatic @Switch(title = "Optimized Motion Blur", description = "Reuse private hybrid motion blur history buffers instead of copying unchanged pixels. Motion blur strength and appearance stay the same. Modified or unsupported shaders keep their original path.", category = "Hypixel")
+    var efficientMotionBlur = false
+
+    @JvmStatic @Switch(title = "Retained Scoreboard Preparation", description = "Share the current score ordering and point-visibility decision across sidebar rows. Score changes, live settings and every native draw still update immediately.", category = "Hypixel")
+    var retainedScoreboardPreparation = false
+
+    @JvmStatic @Switch(title = "GPU Particle Batches", description = "Expand standard particle billboards on the GPU. Keeps particle counts, animation, custom size, fading and static colors. Mixed or unsupported batches use the original path. Requires OpenGL 3.3.", category = "Hypixel")
+    var gpuParticles = false
+
+    @JvmStatic @Switch(title = "Retained Particle Recipes", description = "Reuse stable vanilla spell-particle appearance between game ticks. Positions and camera-facing geometry still update every frame; animated colors and custom particles use the original preparation.", category = "Hypixel")
+    var retainedParticleRecipes = false
+
+    @JvmStatic @Switch(title = "Retained HUD Batches", description = "Keep unchanged Argentum HUD text batches in GPU memory instead of uploading them every frame. Animated text, chat fading and changed settings still update immediately.", category = "Hypixel")
+    var retainedHudBatches = false
+
+    @JvmStatic @Slider(title = "Minimum Visible Labels", description = "Use the GPU path only for crowded views. All labels keep updating every frame.", min = 1f, max = 128f, step = 1f, category = "Hypixel")
+    var minimumGpuLabels = 16
+
+    @JvmStatic @Slider(title = "Minimum Visible Particles", description = "Keep small particle scenes on the original renderer.", min = 1f, max = 512f, step = 1f, category = "Hypixel")
+    var minimumGpuParticles = 64
+
     @JvmStatic @Switch(title = "GPU Model Transforms", description = "Build and sort standard player part matrices on the GPU while keeping Argentum batching. Requires OpenGL 4.3. Custom parts use the original renderer.", category = "Players")
     var gpuModelTransforms = false
 
     @JvmStatic @Switch(title = "GPU Player Pipeline", description = "Build standard player poses from compact snapshots and submit their parts in bulk. Unsupported models and layers use the original renderer. Requires OpenGL 4.3.", category = "Players")
     var gpuPlayerPipeline = false
 
-    @JvmStatic @Switch(title = "GPU Equipment Pipeline", description = "Build standard player armor poses and submit armor parts in bulk on the GPU. Native texture selection, leather colors and enchantment effects are preserved. Requires OpenGL 4.3.", category = "Equipment")
+    @JvmStatic @Switch(title = "GPU Equipment Pipeline", description = "Build standard player armor poses and submit armor parts in bulk on the GPU. Native texture selection, leather colors and enchantment effects are preserved. Requires OpenGL 4.3.", category = "Players")
     var gpuEquipmentPipeline = false
 
     @JvmStatic @Slider(title = "Minimum Visible Players", description = "Use GPU transforms only when at least this many players were rendered in the last batch, to avoid dispatch overhead in small scenes.", min = 1f, max = 128f, step = 1f, category = "Players")
     var minimumPlayers = 24
 
-    @JvmStatic @Switch(title = "GPU Name Tags", description = "Keep name tag shapes on the GPU and draw their text and backgrounds with compact per-label commands. Requires OpenGL 4.3.", category = "Name Tags")
-    var gpuNameTags = false
-
-    @JvmStatic @Switch(title = "Retained Name Tag Scenes", description = "Keep unchanged name tag draw plans and update their position and camera facing every frame. Requires GPU Name Tags. Unsupported labels keep their original preparation.", category = "Name Tags")
-    var retainedNameTagScenes = false
-
-    @JvmStatic @Switch(title = "Invisible Hologram Fast Path", description = "Skip unused model preparation for invisible, unequipped vanilla armor stands. Their name tags keep the original renderer; visible stands, equipment and custom renderers use the original path.", category = "Name Tags")
-    var fastInvisibleHolograms = false
-
-    @JvmStatic @Switch(title = "GPU Particle Batches", description = "Expand standard particle billboards on the GPU. Keeps particle counts, animation, custom size, fading and static colors. Mixed or unsupported batches use the original path. Requires OpenGL 3.3.", category = "Particles")
-    var gpuParticles = false
-
-    @JvmStatic @Switch(title = "Retained Particle Recipes", description = "Reuse stable vanilla spell-particle appearance between game ticks. Positions and camera-facing geometry still update every frame; animated colors and custom particles use the original preparation.", category = "Particles")
-    var retainedParticleRecipes = false
-
-    @JvmStatic @Slider(title = "Minimum Visible Particles", description = "Keep small particle scenes on the original renderer.", min = 1f, max = 512f, step = 1f, category = "Particles")
-    var minimumGpuParticles = 64
-
-    @JvmStatic @Slider(title = "Minimum Visible Labels", description = "Use the GPU path only for crowded views. All labels keep updating every frame.", min = 1f, max = 128f, step = 1f, category = "Name Tags")
-    var minimumGpuLabels = 16
-
-    @JvmStatic @Switch(title = "Retained HUD Batches", description = "Keep unchanged Argentum HUD text batches in GPU memory instead of uploading them every frame. Animated text, chat fading and changed settings still update immediately.", category = "HUD")
-    var retainedHudBatches = false
-
-    @JvmStatic @Switch(title = "Retained Scoreboard Preparation", description = "Share the current score ordering and point-visibility decision across sidebar rows. Score changes, live settings and every native draw still update immediately.", category = "HUD")
-    var retainedScoreboardPreparation = false
-
     @JvmStatic @Switch(title = "Fast Frame Presentation", description = "Cache the final full-screen frame quad while keeping native colors, resolution and frame timing. Unsupported render states use the original path.", category = "Display")
     var directFramebufferPresentation = false
 
-    @JvmStatic @Switch(title = "World Render Scale", description = "Render the world and held items at a lower resolution. HUD and menus stay at full resolution. This reduces image detail and helps GPU-limited scenes.", category = "World")
+    @JvmStatic @Switch(title = "World Render Scale", description = "Render the world and held items at a lower resolution. HUD and menus stay at full resolution. This reduces image detail and helps GPU-limited scenes.", category = "Display")
     var worldRenderScale = false
 
-    @JvmStatic @Slider(title = "World Resolution", description = "Percentage of the window resolution used for the world. 100% keeps the original resolution.", min = 50f, max = 100f, step = 5f, category = "World")
+    @JvmStatic @Slider(title = "World Resolution", description = "Percentage of the window resolution used for the world. 100% keeps the original resolution.", min = 50f, max = 100f, step = 5f, category = "Display")
     var worldResolution = 75
 
     init {
         addDependency("retainedNameTagScenes", "gpuNameTags")
+        addDependency("compactNameTagPreparation", "retainedNameTagScenes")
         addDependency("retainedParticleRecipes", "gpuParticles")
         addDependency("minimumGpuParticles", "gpuParticles")
     }
 
     fun initialize() {
         preload()
-        eventHandler { _: TickEvent.End -> NametagLayout.optimized = gpuNameTags || gpuPlayerPipeline }
+        RenderHookAllocationControl.enabled = reduceRenderHookAllocations
+        eventHandler { _: TickEvent.End ->
+            NametagLayout.optimized = gpuNameTags || gpuPlayerPipeline
+            RenderHookAllocationControl.enabled = reduceRenderHookAllocations
+        }
         BetaOptimizationPage.register(id) {
-            listOf(GpuModelTransforms.status(), GpuPlayerPipeline.status(), GpuEquipmentPipeline.status(), GpuNameTags.status(), RetainedNameTags.status(), FastInvisibleHolograms.status(), GpuParticles.status(), ScoreboardPreparation.status(), FastFramePresentation.status(), RetainedHudBuffers.status(), WorldRenderScale.status())
+            listOf(GpuModelTransforms.status(), GpuPlayerPipeline.status(), GpuEquipmentPipeline.status(), GpuNameTags.status(), RetainedNameTags.status(), FastInvisibleHolograms.status(), RenderHookAllocationControl.status(), EfficientMotionBlur.status(), GpuParticles.status(), ScoreboardPreparation.status(), FastFramePresentation.status(), RetainedHudBuffers.status(), WorldRenderScale.status())
         }
     }
 }

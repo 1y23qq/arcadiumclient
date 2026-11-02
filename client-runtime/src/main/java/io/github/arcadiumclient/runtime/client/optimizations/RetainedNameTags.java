@@ -14,7 +14,14 @@ import org.joml.Matrix4f;
 import org.joml.Matrix4fc;
 
 public final class RetainedNameTags {
-    private record Packet(TagGeometryCache.Mesh mesh,NameTagPasses.State pass,Matrix4f local,int alpha) { }
+    private static final class PreparedPass {
+        final NameTagPasses.State state;
+        GpuNameTags manager;
+        GpuNameTags.PassBinding binding;
+        long epoch,generation;
+        PreparedPass(NameTagPasses.State state){this.state=state;}
+    }
+    private record Packet(TagGeometryCache.Mesh mesh,PreparedPass pass,Matrix4f local,RetainedTagTransforms.Local transform,int alpha) { }
     private static final class Plan {
         final String name;final float height;final boolean sneaking;final int epoch;final long generation;final GpuNameTags manager;
         final ArrayList<Packet> packets=new ArrayList<>();
@@ -27,12 +34,17 @@ public final class RetainedNameTags {
     }
     private static final Map<Entity,Map<String,Plan>> plans=new WeakHashMap<>();
     private static final IdentityHashMap<NameTagPasses.State,BufferBuilder> framePasses=new IdentityHashMap<>();
+    private static final Map<NameTagPasses.State,PreparedPass> preparedPasses=new HashMap<>();
     private static Object passBatch;
+    private static long passEpoch=1;
     private static final Matrix4f anchor=new Matrix4f(),matrix=new Matrix4f();
+    private static final RetainedTagTransforms transforms=new RetainedTagTransforms();
     private static final ArrayList<Field> optionFields=new ArrayList<>();
+    private static RetainedTagOptions compactOptions;
     private static MethodHandle active;
     private static NameTagPasses passes;
     private static boolean initialized,failed,customBackground,customFont;
+    public static boolean compact;
     private static int optionsEpoch;
     private static Object[] optionValues;
     private static Plan recording;
@@ -45,7 +57,9 @@ public final class RetainedNameTags {
 
     public static void frame(){
         recording=null;recordingBatch=null;owner=null;
-        framePasses.clear();passBatch=null;
+        clearBindings();
+        boolean nextCompact=BetaOptimizationsConfig.getCompactNameTagPreparation();
+        if(compact!=nextCompact){compact=nextCompact;invalidate();}
         if(!BetaOptimizationsConfig.getRetainedNameTagScenes()||!BetaOptimizationsConfig.getGpuNameTags()||failed)return;
         try{
             if(!initialized){
@@ -57,14 +71,20 @@ public final class RetainedNameTags {
                 }
                 optionValues=new Object[optionFields.size()];
             }
-            boolean changed=false;int index=0;customBackground=false;customFont=false;
-            for(Field field:optionFields){
-                Object value=field.get(null);
-                if(value!=null&&field.getType().getSimpleName().equals("PolyColor"))value=value.getClass().getMethod("getArgb").invoke(value);
-                if(!Objects.equals(optionValues[index],value)){changed=true;optionValues[index]=value;}index++;
-                if(field.getName().equals("rounded")&&Boolean.TRUE.equals(value))customBackground=true;
-                if((field.getName().equals("paddingX")||field.getName().equals("paddingY"))&&((Number)value).floatValue()>0)customBackground=true;
-                if((field.getName().equals("useInterInGame")||field.getName().equals("useInterForModText"))&&Boolean.TRUE.equals(value))customFont=true;
+            boolean changed=false;
+            if(compact){
+                if(compactOptions==null)compactOptions=new RetainedTagOptions(Class.forName("org.polyfrost.polynametag.client.PolyNametagConfig"),Class.forName("org.polyfrost.oneconfig.internal.OneConfigConfig"));
+                changed=compactOptions.poll();customBackground=compactOptions.customBackground();customFont=compactOptions.customFont();
+            }else{
+                int index=0;customBackground=false;customFont=false;
+                for(Field field:optionFields){
+                    Object value=field.get(null);
+                    if(value!=null&&field.getType().getSimpleName().equals("PolyColor"))value=value.getClass().getMethod("getArgb").invoke(value);
+                    if(!Objects.equals(optionValues[index],value)){changed=true;optionValues[index]=value;}index++;
+                    if(field.getName().equals("rounded")&&Boolean.TRUE.equals(value))customBackground=true;
+                    if((field.getName().equals("paddingX")||field.getName().equals("paddingY"))&&((Number)value).floatValue()>0)customBackground=true;
+                    if((field.getName().equals("useInterInGame")||field.getName().equals("useInterForModText"))&&Boolean.TRUE.equals(value))customFont=true;
+                }
             }
             if(changed)invalidate();passes.begin();
         }catch(Throwable error){disable(error);}
@@ -78,14 +98,20 @@ public final class RetainedNameTags {
             GpuNameTags gpu=scene.arcadium$packets();Map<String,Plan> labels=plans.get(entity);Plan plan=labels==null?null:labels.get(name);
             if(plan!=null&&plan.matches(entity,name,gpu)&&plan.valid&&!plan.packets.isEmpty()){
                 var camera=Minecraft.getInstance().getEntityRenderDispatcher();
-                anchor.set(scene.arcadium$camera()).translate((float)x+plan.offsetX,(float)y+plan.offsetY,(float)z+plan.offsetZ)
-                        .rotateY((float)Math.toRadians(-camera.cameraYaw)).rotateX((float)Math.toRadians(camera.cameraPitch));
+                if(compact)transforms.anchor(scene.arcadium$camera(),(float)x+plan.offsetX,(float)y+plan.offsetY,(float)z+plan.offsetZ,camera.cameraYaw,camera.cameraPitch);
+                else anchor.set(scene.arcadium$camera()).translate((float)x+plan.offsetX,(float)y+plan.offsetY,(float)z+plan.offsetZ)
+                            .rotateY((float)Math.toRadians(-camera.cameraYaw)).rotateX((float)Math.toRadians(camera.cameraPitch));
                 gpu.checkpointRetained();pending=gpu;
                 for(Packet packet:plan.packets){
-                    matrix.set(anchor).mul(packet.local);
-                    gpu.queueRetained(restorePass(batch,packet.pass),packet.mesh,packet.alpha,matrix,scene.arcadium$lightU(),scene.arcadium$lightV());
+                    if(compact){
+                        transforms.combine(packet.transform,matrix);
+                        gpu.queueBoundRetained(restorePreparedPass(batch,gpu,packet.pass),packet.mesh,packet.alpha,matrix,scene.arcadium$lightU(),scene.arcadium$lightV());
+                    }else{
+                        matrix.set(anchor).mul(packet.local);
+                        gpu.queueRetained(restorePass(batch,packet.pass.state),packet.mesh,packet.alpha,matrix,scene.arcadium$lightU(),scene.arcadium$lightV());
+                    }
                 }
-                gpu.noteLabel();reused++;return true;
+                gpu.commitRetained();gpu.noteLabel();reused++;return true;
             }
             RetainedTagText.Eligibility text=RetainedTagText.classify(name);
             if(text!=RetainedTagText.Eligibility.NATIVE){
@@ -118,7 +144,10 @@ public final class RetainedNameTags {
         if(recording==null||!recording.valid)return;
         if(recording.transforms!=3){recording.valid=false;return;}
         Matrix4f local=new Matrix4f(recording.inverse).mul(source).translate(x,y,0);
-        recording.packets.add(new Packet(mesh,passes.snapshot(pass),local,alpha));
+        NameTagPasses.State state=passes.snapshot(pass);
+        PreparedPass prepared=preparedPasses.get(state);
+        if(prepared==null){if(preparedPasses.size()>=4096)preparedPasses.clear();prepared=new PreparedPass(state);preparedPasses.put(state,prepared);}
+        recording.packets.add(new Packet(mesh,prepared,local,new RetainedTagTransforms.Local(local),alpha));
     }
     public static void end(){
         if(recording==null)return;
@@ -128,13 +157,21 @@ public final class RetainedNameTags {
         recording=null;recordingBatch=null;owner=null;
     }
     private static BufferBuilder restorePass(Object batch,NameTagPasses.State state)throws Throwable{
-        if(passBatch!=batch){framePasses.clear();passBatch=batch;}
+        if(passBatch!=batch){clearBindings();passBatch=batch;}
         BufferBuilder buffer=framePasses.get(state);
         if(buffer!=null){passBindingHits++;return buffer;}
         buffer=passes.restore(batch,state);framePasses.put(state,buffer);passBindingsResolved++;return buffer;
     }
-    public static void invalidate(){plans.clear();framePasses.clear();passBatch=null;optionsEpoch++;}
-    public static void flushed(){framePasses.clear();passBatch=null;if(passes!=null)passes.begin();if(recording!=null)recording.valid=false;}
-    private static void disable(Throwable error){failed=true;recording=null;recordingBatch=null;owner=null;plans.clear();framePasses.clear();passBatch=null;LogManager.getLogger("Arcadium/Retained Name Tags").warn("Retained name tag scenes disabled; using original preparation",error);}
+    private static GpuNameTags.PassBinding restorePreparedPass(Object batch,GpuNameTags gpu,PreparedPass pass)throws Throwable{
+        if(passBatch!=batch){clearBindings();passBatch=batch;}
+        if(pass.epoch==passEpoch&&pass.manager==gpu&&pass.generation==gpu.generation()){passBindingHits++;return pass.binding;}
+        BufferBuilder buffer=passes.restore(batch,pass.state);
+        pass.binding=gpu.bindRetained(buffer);pass.manager=gpu;pass.epoch=passEpoch;pass.generation=gpu.generation();
+        framePasses.put(pass.state,buffer);passBindingsResolved++;return pass.binding;
+    }
+    private static void clearBindings(){framePasses.clear();passBatch=null;passEpoch++;}
+    public static void invalidate(){plans.clear();preparedPasses.clear();clearBindings();transforms.invalidate();optionsEpoch++;}
+    public static void flushed(){clearBindings();if(passes!=null)passes.begin();if(recording!=null)recording.valid=false;}
+    private static void disable(Throwable error){failed=true;recording=null;recordingBatch=null;owner=null;plans.clear();preparedPasses.clear();clearBindings();LogManager.getLogger("Arcadium/Retained Name Tags").warn("Retained name tag scenes disabled; using original preparation",error);}
     public static String status(){return !BetaOptimizationsConfig.getRetainedNameTagScenes()?"Retained name tag scenes: Off":failed?"Retained name tag scenes: Using original preparation":"Retained name tag scenes: "+reused+" reused | "+built+" rebuilt | Emoji/animated fallback: "+(emojiRejected+animatedRejected);}
 }

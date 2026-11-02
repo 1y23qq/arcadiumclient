@@ -10,6 +10,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.options.KeyBinding;
 import net.minecraft.client.options.ServerListEntry;
 import net.minecraft.text.Formatting;
+import org.polyfrost.oneconfig.api.config.v1.Property;
 import org.lwjgl.opengl.*;
 
 public final class HypixelLabQa {
@@ -33,14 +34,16 @@ public final class HypixelLabQa {
     public static void tick(){
         if(!enabled())return;Minecraft mc=Minecraft.getInstance();
         inBedwars=sidebar().replace(" ","").toUpperCase(Locale.ROOT).contains("BEDWARS");
+        LivePaired066Qa.sceneTick(inBedwars);
         if(held!=null&&(System.nanoTime()>=releaseAt||mc.screen!=null||mc.world==null)){KeyBinding.set(held.getKeyCode(),false);held=null;}
         if(++ticks%20!=0)return;
         try{
             if(mc.world!=null&&mc.getCurrentServerEntry()==null&&"mc.hypixel.net".equals(System.getProperty("arcadium.hypixelLab.server")))mc.setCurrentServerEntry(new ServerListEntry("Hypixel","mc.hypixel.net",false));
-            Display.setTitle("Arcadium 0.6.5 Hypixel Lab");
+            if(!LivePaired066Qa.running())Display.setTitle("Arcadium Hypixel Lab");
             Path control=output().resolveSibling("control.json");
             if(Files.exists(control)&&Files.getLastModifiedTime(control).toMillis()!=stamp){
                 stamp=Files.getLastModifiedTime(control).toMillis();JsonObject value=JsonParser.parseString(Files.readString(control)).getAsJsonObject();
+                if(LivePaired066Qa.running())LivePaired066Qa.cancel("Controller changed during the paired run");
                 if(value.has("quit")&&value.get("quit").getAsBoolean()){mc.stop();return;}
                 boolean all=value.has("beta")&&value.get("beta").getAsBoolean();
                 BetaOptimizationsConfig.setGpuModelTransforms(all);BetaOptimizationsConfig.setGpuPlayerPipeline(all);
@@ -52,21 +55,35 @@ public final class HypixelLabQa {
                 org.polyfrost.oneconfig.internal.OneConfigConfig.limitUnfocusedFps=false;
                 if(value.has("settings"))for(var e:value.getAsJsonObject("settings").entrySet()){var property=BetaOptimizationsConfig.INSTANCE.getTree().getProp(e.getKey());if(property!=null){if(e.getValue().getAsJsonPrimitive().isBoolean())property.setAs(e.getValue().getAsBoolean());else property.setAs(e.getValue().getAsInt());}}
                 stage=value.get("stage").getAsString();frames.clear();submit.clear();gpu.clear();start=System.nanoTime();last=0;
+                if(value.has("command")&&mc.player!=null&&mc.screen==null&&mc.getCurrentServerEntry()!=null&&mc.getCurrentServerEntry().ip.equals("mc.hypixel.net")){
+                    String command=value.get("command").getAsString();
+                    if(command.equals("/lobby bedwars")||command.equals("/swaplobby 1"))mc.player.sendChat(command);
+                }
                 if(value.has("move")&&held==null&&mc.screen==null&&mc.world!=null&&mc.getCurrentServerEntry()!=null&&mc.getCurrentServerEntry().ip.equals("mc.hypixel.net")){
                     KeyBinding key=switch(value.get("move").getAsString()){case "forward"->mc.options.forwardKey;case "back"->mc.options.backKey;case "left"->mc.options.leftKey;case "right"->mc.options.rightKey;default->null;};
                     if(key!=null&&!key.isPressed()){held=key;releaseAt=System.nanoTime()+Math.clamp(value.has("moveMs")?value.get("moveMs").getAsInt():300,50,600)*1_000_000L;KeyBinding.set(key.getKeyCode(),true);}
                 }
+                if(LivePaired066Qa.handles(stage))LivePaired066Qa.arm(output(),inBedwars,held!=null,value);
             }
+            if(LivePaired066Qa.handles(stage))return;
             Map<String,Object> status=new LinkedHashMap<>();status.put("stage",stage);status.put("seconds",(System.nanoTime()-start)/1e9);
             status.put("screen",mc.screen==null?"none":mc.screen.getClass().getSimpleName());status.put("connected",mc.world!=null);
             status.put("resolution",mc.width+"x"+mc.height);status.put("server",mc.getCurrentServerEntry()==null?"":mc.getCurrentServerEntry().ip);
             status.put("players",mc.world==null?0:mc.world.players.size());status.put("renderDistance",mc.options.viewDistance);
+            Map<String,Object> settingsSnapshot=new LinkedHashMap<>();
+            for(var entry:BetaOptimizationsConfig.INSTANCE.getTree().map.entrySet())if(entry.getValue() instanceof Property<?> property){
+                Map<String,Object> detail=new LinkedHashMap<>();detail.put("value",property.get());detail.put("title",Objects.toString(property.getTitle(),entry.getKey()));
+                detail.put("category",Objects.toString(property.getMetadata("category"),""));settingsSnapshot.put(entry.getKey(),detail);
+            }
+            status.put("betaSettings",settingsSnapshot);
+            status.put("gameSettings",Map.of("vsync",mc.options.vsync,"maxFps",mc.options.fpsLimit,"guiScale",mc.options.guiScale,"fancyGraphics",mc.options.fancyGraphics,"unfocusedFpsEnabled",org.polyfrost.oneconfig.internal.OneConfigConfig.limitUnfocusedFps));
+            status.put("renderer",Map.of("gpu",GL11.glGetString(GL11.GL_RENDERER),"vendor",GL11.glGetString(GL11.GL_VENDOR),"openGl",GL11.glGetString(GL11.GL_VERSION),"java",System.getProperty("java.version")));
             status.put("sidebar",sidebar());status.put("isBedwarsScene",bedwarsScene());
             if(mc.player!=null)status.put("view",List.of(mc.player.x,mc.player.y,mc.player.z,mc.player.yaw,mc.player.pitch));
             status.put("diagnostics",List.of(GpuModelTransforms.status(),GpuPlayerPipeline.status(),GpuEquipmentPipeline.status(),GpuNameTags.status(),RetainedNameTags.status(),RetainedHudBuffers.status()));
             try{status.put("particleDiagnostics",Class.forName("io.github.arcadiumclient.runtime.client.optimizations.GpuParticles").getMethod("status").invoke(null));}catch(ReflectiveOperationException ignored){}
             try{status.put("hologramDiagnostics",Class.forName("io.github.arcadiumclient.runtime.client.optimizations.FastInvisibleHolograms").getMethod("status").invoke(null));}catch(ReflectiveOperationException ignored){}
-            for(String[] metric:new String[][]{{"ScoreboardPreparation","scoreboardDiagnostics"},{"FastFramePresentation","presentationDiagnostics"}}){
+            for(String[] metric:new String[][]{{"ScoreboardPreparation","scoreboardDiagnostics"},{"FastFramePresentation","presentationDiagnostics"},{"RenderHookAllocationControl","renderHooksDiagnostics"},{"EfficientMotionBlur","motionBlurDiagnostics"}}){
                 try{Class<?> type=Class.forName("io.github.arcadiumclient.runtime.client.optimizations."+metric[0]);
                     if(metric[0].equals("ScoreboardPreparation")){Map<String,Object> counters=new LinkedHashMap<>();for(String key:List.of("snapshots","snapshotHits","visibilityComputations","visibilityHits"))counters.put(key,type.getField(key).get(null));status.put(metric[1],counters);}
                     else status.put(metric[1],type.getMethod("status").invoke(null));
@@ -84,8 +101,9 @@ public final class HypixelLabQa {
     }
     private static String sidebar(){var world=Minecraft.getInstance().world;if(world==null)return "";var score=world.getScoreboard().getDisplayObjective(1);return score==null?"":Formatting.strip(score.getDisplayName());}
     private static boolean bedwarsScene(){return inBedwars;}
-    private static boolean sampling(){return !stage.equals("idle")&&System.nanoTime()-start>3_000_000_000L&&System.nanoTime()-start<32_000_000_000L&&Minecraft.getInstance().world!=null&&Minecraft.getInstance().screen==null&&bedwarsScene();}
-    public static void frame(){if(!enabled())return;long now=System.nanoTime();if(sampling()&&last!=0&&frames.size()<300000)frames.add((now-last)/1e6);last=now;}
+    private static boolean sampling(){return !LivePaired066Qa.handles(stage)&&!stage.equals("idle")&&System.nanoTime()-start>3_000_000_000L&&System.nanoTime()-start<32_000_000_000L&&Minecraft.getInstance().world!=null&&Minecraft.getInstance().screen==null&&bedwarsScene();}
+    public static void frameHead(){if(enabled()&&LivePaired066Qa.handles(stage))LivePaired066Qa.head(inBedwars);}
+    public static void frame(){if(!enabled())return;if(LivePaired066Qa.handles(stage)){LivePaired066Qa.tail(inBedwars);return;}long now=System.nanoTime();if(sampling()&&last!=0&&frames.size()<300000)frames.add((now-last)/1e6);last=now;}
     public static int beginGpu(){
         if(!sampling())return 0;int slot=cursor++%queries.length;
         if(queries[slot]==0)queries[slot]=GL15.glGenQueries();

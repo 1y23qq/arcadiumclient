@@ -16,34 +16,35 @@ public final class NametagLayout {
         @Override protected boolean removeEldestEntry(Map.Entry<String,Prepared> entry){return size()>2048;}
     };
     public static boolean optimized;
-    private static final ThreadLocal<Scope> CURRENT = new ThreadLocal<>();
+    private static final class Holder { Scope current; }
+    private static final ThreadLocal<Holder> CURRENT = ThreadLocal.withInitial(Holder::new);
     private NametagLayout() { }
 
     public static Scope begin(Entity entity, String label) {
-        Scope previous = CURRENT.get();
+        Holder holder=CURRENT.get();
+        Scope previous = holder.current;
         if(optimized){
             if(previous!=null&&previous.owner==entity&&(label.equals(previous.label)||label.equals(previous.displayLabel)))return previous;
             String masked=NickHider.display(label);Prepared prepared=PREPARED.get(masked);
             if(prepared==null){String display=NametagText.withoutTrailingPadding(masked);prepared=new Prepared(display,NametagText.stripFormatting(display));PREPARED.put(masked,prepared);}
-            CURRENT.set(new Scope(label,prepared.display,prepared.visible,PlayerBadgeRenderer.onNametag(entity,label),entity));return previous;
+            holder.current=new Scope(label,prepared.display,prepared.visible,PlayerBadgeRenderer.onNametag(entity,label),entity);return previous;
         }
         String display = NametagText.withoutTrailingPadding(NickHider.display(label));
-        CURRENT.set(new Scope(label, display, Formatting.strip(display), PlayerBadgeRenderer.onNametag(entity, label),entity));
+        holder.current=new Scope(label, display, Formatting.strip(display), PlayerBadgeRenderer.onNametag(entity, label),entity);
         return previous;
     }
 
     public static void end(Scope previous) {
-        if (previous == null) CURRENT.remove();
-        else CURRENT.set(previous);
+        CURRENT.get().current=previous;
     }
 
     public static boolean badge(String text) {
-        Scope scope = CURRENT.get();
+        Scope scope = CURRENT.get().current;
         return scope != null && scope.badge && matches(scope, text);
     }
 
     public static String display(String text) {
-        Scope scope = CURRENT.get();
+        Scope scope = CURRENT.get().current;
         return scope != null && matches(scope, text) ? scope.displayLabel : text;
     }
 

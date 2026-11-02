@@ -1,3 +1,9 @@
+## 0.6.6
+
+- Simplified Optimizations (Beta) into Hypixel, Players and Display, with diagnostics on a separate page.
+- Added compact name tag preparation and optimized hybrid motion blur history.
+- Reduced temporary allocations in model, particle and cosmetic rendering.
+
 ## 0.6.5
 
 - Fixed Session login for Microsoft refresh tokens.

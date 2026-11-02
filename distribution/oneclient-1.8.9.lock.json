@@ -9,7 +9,7 @@
     {
       "file": "hud-1.8.9-ornithe.mrpack",
       "upstreamSha1": "15c3e1778ebd72d80bdd3477d3788df12d336e6b",
-      "arcadiumSha1": "43ef7e3f9e4b03ba8ed50023cefd355b93ce38c8",
+      "arcadiumSha1": "442dbdac57afe0fd41dc16a31f6016c1ac3490ba",
       "mods": [
         {
           "path": "mods/evergreenhud-3.9.7+1.8.9.jar",
@@ -48,7 +48,7 @@
     {
       "file": "performance-1.8.9-ornithe.mrpack",
       "upstreamSha1": "cb1c9798cb22ce425c1078a7aff78f0226683154",
-      "arcadiumSha1": "22149b092cdfe2f7b90f721b85605c3228ab2b18",
+      "arcadiumSha1": "0dd8faabfedc0b46d9283744b1e97d66c2dff3f9",
       "mods": [
         {
           "path": "mods/Sarcio-1.1.0.jar",
@@ -135,7 +135,7 @@
     {
       "file": "qol-1.8.9-ornithe.mrpack",
       "upstreamSha1": "31e4b7a5c60b0cb89337f1014acb4858eb916c3a",
-      "arcadiumSha1": "ea4b2a8ce0a49ac12132c3f56517b8b6e5ee1f81",
+      "arcadiumSha1": "ab63dbcb595ee325a92a40b0b3e77e361cec76fc",
       "mods": [
         {
           "path": "mods/BetterHurtCam-1.15.1+mc1.8.9-ornithe.jar",
@@ -486,7 +486,7 @@
     {
       "file": "utility-1.8.9-ornithe.mrpack",
       "upstreamSha1": "22c505fec9c2bc91d18ade846e60ee202ca438da",
-      "arcadiumSha1": "c86d23f530731a4f6ec86cbac2dff56d92d87ed5",
+      "arcadiumSha1": "8de97eeac1483920fae14355cc6acb17f0edf6d8",
       "mods": [
         {
           "path": "mods/behindyouv3-3.5.0+1.8.9.jar",
@@ -573,9 +573,9 @@
   ],
   "arcadiumBranding": {
     "file": "ArcadiumBrand-1.8.9.jar",
-    "sha1": "d117cd6d2303ac09e574a403004febf8599bd00e",
-    "sha256": "75f408a469b8d148b68e1b30e2ca652cf4aca2c8d8246f978fa184c30631a609",
-    "bytes": 35991,
+    "sha1": "ca8a15a7b60f6e105f2df265d1c338346d5040b6",
+    "sha256": "cde706fda4dcde016e08c0f0480afb05eb38b5ddc8614dd9bbccb00b6becd504",
+    "bytes": 35992,
     "modId": "arcadiumclient",
     "license": "GPL-3.0-only",
     "authors": [
@@ -591,9 +591,9 @@
   "arcadiumComponents": [
     {
       "file": "ArcadiumCore-1.8.9.jar",
-      "sha1": "53d23c2e220f0071a3b1688f682674393fe5e1ef",
-      "sha256": "d9e1758b32905110a342582b2f32ac19b4e61aae3254c5e2020ce27f3afe83c8",
-      "bytes": 10977860,
+      "sha1": "85971c7d189d23756a661ba749b36733d3611945",
+      "sha256": "bcf8506c1aea8cd6feaa5df96a45de22e66439a96f7ef6dc190dc62218e8c109",
+      "bytes": 10988199,
       "modId": "oneconfig",
       "license": "GPL-3.0-only",
       "authors": [
@@ -608,9 +608,9 @@
     },
     {
       "file": "ArcadiumFeatures-1.8.9.jar",
-      "sha1": "a2f630bd30482c1ec19daaae9608ddcea6042517",
-      "sha256": "e72aecfc96114aa6d7e5014319f8d5d19581fd1eddecef88f00cd7fba8a26b71",
-      "bytes": 26879876,
+      "sha1": "da866a9be239eb15a5faca05703e974b5ebeef84",
+      "sha256": "3a93865871ff4a4a24b0cb60f8375f651476bc48e3f2cfda87525f4ff7be732d",
+      "bytes": 26980533,
       "modId": "arcadium_runtime",
       "license": "GPL-3.0-only",
       "authors": [
@@ -639,8 +639,8 @@
     },
     {
       "file": "ArcadiumForgeCompat-1.8.9.jar",
-      "sha1": "e198b031757ecbb0f3910b65209fcf92b07a8ff5",
-      "sha256": "3cba5e544706919f33473b0103d23b4d1d254955d9e7614ac4ec240a1b387e11",
+      "sha1": "05af5aa4f7186c8de5d091e51450c4b21e0efe23",
+      "sha256": "63cf67f8d11102f4d7b69a4d2341820fcbae2dd22d9c1895ba9c696519943c66",
       "bytes": 3289960,
       "modId": "arcadium_forge_compat",
       "license": "GPL-3.0-only",

@@ -16,4 +16,8 @@ public abstract class RetainedPacketProbe {
     private void qa$capture(BufferBuilder pass,TagGeometryCache.Mesh mesh,int alpha,Matrix4fc matrix,float u,float v,CallbackInfo callback){
         if(RetainedSceneQa.enabled()){RetainedSceneQa.queued(pass,mesh,alpha,matrix,u,v);callback.cancel();}
     }
+    @Inject(method="queueBoundRetained",at=@At("HEAD"),cancellable=true)
+    private void qa$captureBound(GpuNameTags.PassBinding pass,TagGeometryCache.Mesh mesh,int alpha,Matrix4fc matrix,float u,float v,CallbackInfo callback){
+        if(RetainedSceneQa.enabled()){RetainedSceneQa.queued(pass.buffer(),mesh,alpha,matrix,u,v);callback.cancel();}
+    }
 }

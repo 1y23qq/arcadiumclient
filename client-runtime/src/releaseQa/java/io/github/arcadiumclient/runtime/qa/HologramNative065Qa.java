@@ -48,6 +48,7 @@ import org.polyfrost.oneconfig.internal.emoji.EmojiText;
 public final class HologramNative065Qa {
     private static final int WIDTH = 960, HEIGHT = 540, COUNT = 16;
     private static final boolean RETAINED_TEXT = Boolean.getBoolean("arcadium.holograms065.retainedText");
+    private static final boolean COMPACT_PREPARATION = Boolean.getBoolean("arcadium.compactNames066");
     private static final Map<String, Object> report = new LinkedHashMap<>();
     private static int ticks, phase, wait, bodies, names;
     private static boolean done, verifying;
@@ -87,6 +88,7 @@ public final class HologramNative065Qa {
         Minecraft mc = Minecraft.getInstance(); dispatcher = mc.getEntityRenderDispatcher();
         boolean oldFast = BetaOptimizationsConfig.getFastInvisibleHolograms(), oldGpu = BetaOptimizationsConfig.getGpuNameTags();
         boolean oldRetained = BetaOptimizationsConfig.getRetainedNameTagScenes(); int oldMinimum = BetaOptimizationsConfig.getMinimumGpuLabels();
+        boolean oldCompact=BetaOptimizationsConfig.getCompactNameTagPreparation();
         int previousFramebuffer = GL11.glGetInteger(GL30.GL_FRAMEBUFFER_BINDING), previousProgram = GL11.glGetInteger(GL20.GL_CURRENT_PROGRAM);
         IntBuffer viewport = BufferUtils.createIntBuffer(4); GL11.glGetIntegerv(GL11.GL_VIEWPORT, viewport);
         float yaw = dispatcher.cameraYaw, pitch = dispatcher.cameraPitch;
@@ -147,6 +149,7 @@ public final class HologramNative065Qa {
             if (batch != null && end != null && batch.getClass().getMethod("active").invoke(null) == batch) end.invoke(batch);
             BetaOptimizationsConfig.setFastInvisibleHolograms(oldFast); BetaOptimizationsConfig.setGpuNameTags(oldGpu);
             BetaOptimizationsConfig.setRetainedNameTagScenes(oldRetained); BetaOptimizationsConfig.setMinimumGpuLabels(oldMinimum);
+            BetaOptimizationsConfig.setCompactNameTagPreparation(oldCompact);
             dispatcher.setSolidRender(false); dispatcher.cameraYaw = yaw; dispatcher.cameraPitch = pitch;
             GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, previousFramebuffer);
             if (depth != 0) GL30.glDeleteRenderbuffers(depth); if (framebuffer != 0) GL30.glDeleteFramebuffers(framebuffer);
@@ -230,10 +233,12 @@ public final class HologramNative065Qa {
         String oldNickname = NickHiderConfig.getNickname();
         try {
             EmojiText.setEnabled(true); NickHiderConfig.setEnabled(false);
+            if(COMPACT_PREPARATION)BetaOptimizationsConfig.setCompactNameTagPreparation(false);
             BetaOptimizationsConfig.setRetainedNameTagScenes(false);
             image(stands, true, true, true, 0);
             Image reference = image(stands, true, true, true, 0);
             require(visiblePixels(reference) > 200, "Native Unicode reference did not draw labels");
+            if(COMPACT_PREPARATION)BetaOptimizationsConfig.setCompactNameTagPreparation(true);
             RetainedNameTags.invalidate(); BetaOptimizationsConfig.setRetainedNameTagScenes(true);
             long built = RetainedNameTags.built;
             image(stands, true, true, true, 0);
@@ -245,6 +250,13 @@ public final class HologramNative065Qa {
             require(RetainedNameTags.reused > reused && RetainedNameTags.built == builtAfter, "Stable Unicode labels rebuilt instead of reusing plans");
             report.put("nativeUnicodeAndColonRetained", true);
             report.put("stableFrameReuses", RetainedNameTags.reused - reused);
+            if(COMPACT_PREPARATION){
+                long cached=GpuNameTags.commandsReused;
+                sameScene(replayed,image(stands,true,true,true,0),"compact MDI command replay");
+                require(GpuNameTags.commandsReused>cached,"Unchanged native MDI commands were uploaded again");
+                report.put("compactPreparationPixelsAndOrder",true);
+                report.put("cachedNativeMdiPasses",GpuNameTags.commandsReused-cached);
+            }
 
             BetaOptimizationsConfig.setRetainedNameTagScenes(false);
             Image moved = image(stands, true, true, true, 1);

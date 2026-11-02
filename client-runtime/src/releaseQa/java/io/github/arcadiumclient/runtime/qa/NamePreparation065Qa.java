@@ -25,6 +25,7 @@ import org.joml.Matrix4fc;
 import org.lwjgl.opengl.GL11;
 
 public final class NamePreparation065Qa {
+    private static final boolean COMPACT=Boolean.getBoolean("arcadium.compactNames066");
     private record Packet(int[] source, int[] layout, Object[] pass, float[] matrix) { }
     private static final Set<Entity> actors = Collections.newSetFromMap(new IdentityHashMap<>());
     private static final List<Frozen> players = new ArrayList<>();
@@ -112,12 +113,14 @@ public final class NamePreparation065Qa {
                 BetaOptimizationsConfig.setGpuPlayerPipeline(false); BetaOptimizationsConfig.setGpuModelTransforms(false);
                 BetaOptimizationsConfig.setGpuParticles(false); BetaOptimizationsConfig.setGpuNameTags(true);
                 BetaOptimizationsConfig.setMinimumGpuLabels(1); BetaOptimizationsConfig.setRetainedNameTagScenes(false);
+                BetaOptimizationsConfig.setCompactNameTagPreparation(COMPACT);
                 NametagLayout.optimized = true;
                 mc.options.pauseOnUnfocus = false; mc.options.vsync = false; mc.options.fpsLimit = 180; mc.options.viewDistance = 3;
                 mc.startGame("arcadium-name-preparation065", "Name Preparation QA", new WorldSettings(65065, WorldSettings.GameMode.CREATIVE, false, false, WorldGeneratorType.FLAT).enableCommands());
                 phase = 1; wait = 0;
             } else if (phase == 1 && mc.world != null && mc.player != null && wait > 60) {
                 mc.openScreen(null); mc.player.abilities.flying = true;
+                verifyScopeHolder();
                 mc.player.updatePositionAndAngles(0, 5, -10, 0, 4);
                 team = mc.world.getScoreboard().addTeam("prep065");
                 for (int i = 0; i < 13; i++) {
@@ -158,6 +161,14 @@ public final class NamePreparation065Qa {
                     report.put("retainedMatrixError", RetainedSceneQa.error);
                     report.put("passBindingHits", RetainedNameTags.passBindingHits);
                     report.put("passBindingsResolved", RetainedNameTags.passBindingsResolved);
+                    report.put("compactPreparation",COMPACT);
+                    if(COMPACT){
+                        Object transformCache=field(RetainedNameTags.class,"transforms");
+                        long linearReuses=transformCache.getClass().getField("linearReuses").getLong(transformCache);
+                        long basisUpdates=transformCache.getClass().getField("basisUpdates").getLong(transformCache);
+                        require(linearReuses>1000,"Exact input transforms were not reused");
+                        report.put("exactLinearReuses",linearReuses);report.put("billboardBasisUpdates",basisUpdates);
+                    }
                     report.put("retainedOptions", RetainedSceneQa.testedOptions());
                     RetainedSceneQa.verifyRendererReplacement();
                     Field cache = RetainedNameTags.class.getDeclaredField("framePasses"); cache.setAccessible(true);
@@ -172,6 +183,23 @@ public final class NamePreparation065Qa {
                 if (mc.player != null) { mc.player.yaw = (float) Math.sin(ticks * .011) * 7; mc.player.lastYaw = mc.player.yaw; mc.player.pitch = 4; mc.player.lastPitch = 4; }
             }
         } catch (Throwable error) { finish(error); }
+    }
+
+    private static void verifyScopeHolder()throws Exception {
+        Field context=NametagLayout.class.getDeclaredField("CURRENT");context.setAccessible(true);
+        ThreadLocal<?> local=(ThreadLocal<?>)context.get(null);Object holder=local.get();
+        NametagLayout.Scope outer=NametagLayout.begin(null,"§aOuter label");
+        NametagLayout.Scope nested=NametagLayout.begin(null,"§bNested label");
+        try{
+            require(NametagLayout.display("§bNested label").equals("§bNested label"),"Nested name scope lost its label");
+            require(nested!=null&&nested.label().equals("§aOuter label"),"Outer immutable name scope changed");
+            NametagLayout.end(nested);
+            require(NametagLayout.display("§aOuter label").equals("§aOuter label"),"Outer name scope was not restored");
+        }finally{NametagLayout.end(outer);}
+        for(int i=0;i<256;i++){NametagLayout.Scope previous=NametagLayout.begin(null,"§fEntry reuse "+i);NametagLayout.end(previous);require(local.get()==holder,"Name preparation replaced its ThreadLocal holder");}
+        Field current=holder.getClass().getDeclaredField("current");current.setAccessible(true);
+        require(current.get(holder)==null,"Completed name scope retained its entity or label");
+        report.put("immutableNestedScopesAndStableThreadLocalHolder",true);
     }
 
     private static void mutate(int step) throws Exception {

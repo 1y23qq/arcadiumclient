@@ -16,26 +16,33 @@ public final class GpuNameTags {
     private static final Set<GpuNameTags> LIVE=Collections.newSetFromMap(new IdentityHashMap<>());
     private static final int INSTANCE_FLOATS=16;
     private final TagGeometryCache geometry=new TagGeometryCache();
-    private final IdentityHashMap<BufferBuilder,Group> groups=new IdentityHashMap<>();
+    private final IdentityHashMap<BufferBuilder,PassBinding> groups=new IdentityHashMap<>();
     private IntBuffer upload=BufferUtils.createIntBuffer(65536);
     private int observed,previousVisible,program,vao,vertexBuffer,instanceBuffer,commandsBuffer,uploadedWords,gpuCapacity;
     private int texturedUniform,lightmapUniform,fogUniform,radialUniform;
     private boolean checked,failed,invalidate;
-    private long generation;
+    private long generation,retainedEpoch;
+    private boolean retainedTransaction;
     private static volatile String capability="Not tested yet";
-    public static long packetsDrawn,verticesReused,geometryUploads,multiDraws,cpuRecoveries,visibleLabels;
+    public static long packetsDrawn,verticesReused,geometryUploads,multiDraws,cpuRecoveries,visibleLabels,commandUploads,commandsReused;
 
-    private static final class Group {
+    public static final class PassBinding {
+        private final BufferBuilder buffer;
         TagGeometryCache.Mesh[] meshes=new TagGeometryCache.Mesh[128];
         FloatBuffer instances=BufferUtils.createFloatBuffer(128*INSTANCE_FLOATS);
         IntBuffer commands=BufferUtils.createIntBuffer(128*4);
-        int count,saved;
+        int count,saved,commandBuffer,uploadedCommands;
+        long savedEpoch;
+        boolean commandsDirty=true;
+        PassBinding(BufferBuilder buffer){this.buffer=buffer;}
+        public BufferBuilder buffer(){return buffer;}
         void ensure(){
             if(count<meshes.length)return;
             meshes=Arrays.copyOf(meshes,meshes.length*2);
             FloatBuffer next=BufferUtils.createFloatBuffer(meshes.length*INSTANCE_FLOATS);
             next.put(instances.duplicate().position(0).limit(count*INSTANCE_FLOATS));instances=next;
-            commands=BufferUtils.createIntBuffer(meshes.length*4);
+            IntBuffer nextCommands=BufferUtils.createIntBuffer(meshes.length*4);
+            nextCommands.put(commands.duplicate().clear());commands=nextCommands;commandsDirty=true;
         }
         void clear(){Arrays.fill(meshes,0,count,null);count=0;}
     }
@@ -64,14 +71,31 @@ public final class GpuNameTags {
         }
     }
     public long generation(){return generation;}
-    public void checkpointRetained(){for(Group group:groups.values())group.saved=group.count;}
-    public void rollbackRetained(){for(Group group:groups.values()){Arrays.fill(group.meshes,group.saved,group.count,null);group.count=group.saved;}}
+    public void checkpointRetained(){
+        if(RetainedNameTags.compact){retainedEpoch++;retainedTransaction=true;}
+        else for(PassBinding group:groups.values())group.saved=group.count;
+    }
+    public void commitRetained(){retainedTransaction=false;}
+    public void rollbackRetained(){
+        for(PassBinding group:groups.values())if(!RetainedNameTags.compact||group.savedEpoch==retainedEpoch){Arrays.fill(group.meshes,group.saved,group.count,null);group.count=group.saved;}
+        retainedTransaction=false;
+    }
     public void queueRetained(BufferBuilder pass,TagGeometryCache.Mesh mesh,int alpha,Matrix4fc matrix,float lightU,float lightV){
         append(pass,mesh,alpha,matrix,0,0,lightU,lightV);
     }
+    public PassBinding bindRetained(BufferBuilder pass){
+        PassBinding group=groups.get(pass);
+        if(group==null){group=new PassBinding(pass);groups.put(pass,group);}
+        return group;
+    }
+    public void queueBoundRetained(PassBinding pass,TagGeometryCache.Mesh mesh,int alpha,Matrix4fc matrix,float lightU,float lightV){
+        append(pass,mesh,alpha,matrix,0,0,lightU,lightV);
+    }
     private void append(BufferBuilder pass,TagGeometryCache.Mesh mesh,int alpha,Matrix4fc matrix,float x,float y,float lightU,float lightV){
-            Group group=groups.get(pass);
-            if(group==null){group=new Group();groups.put(pass,group);}
+            append(bindRetained(pass),mesh,alpha,matrix,x,y,lightU,lightV);
+    }
+    private void append(PassBinding group,TagGeometryCache.Mesh mesh,int alpha,Matrix4fc matrix,float x,float y,float lightU,float lightV){
+            if(retainedTransaction&&group.savedEpoch!=retainedEpoch){group.savedEpoch=retainedEpoch;group.saved=group.count;}
             group.ensure();int i=group.count++*INSTANCE_FLOATS;group.meshes[group.count-1]=mesh;
             FloatBuffer out=group.instances;
             out.put(i,matrix.m00()).put(i+1,matrix.m01()).put(i+2,matrix.m02());
@@ -84,7 +108,7 @@ public final class GpuNameTags {
     }
 
     public boolean draw(BufferBuilder builder){
-        Group group=groups.get(builder);
+        PassBinding group=groups.get(builder);
         if(group==null||group.count==0)return false;
         if(failed){replayEnded(builder,group);return false;}
         if(builder.getVertexCount()!=0){
@@ -102,10 +126,27 @@ public final class GpuNameTags {
             uploadGeometry();
             GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER,instanceBuffer);
             GL15.glBufferData(GL15.GL_ARRAY_BUFFER,group.instances.duplicate().position(0).limit(group.count*INSTANCE_FLOATS),GL15.GL_STREAM_DRAW);
-            group.commands.clear();
-            for(int i=0;i<group.count;i++)group.commands.put(group.meshes[i].vertexCount()).put(1).put(group.meshes[i].firstVertex()).put(i);
-            group.commands.flip();GL15.glBindBuffer(GL40.GL_DRAW_INDIRECT_BUFFER,commandsBuffer);
-            GL15.glBufferData(GL40.GL_DRAW_INDIRECT_BUFFER,group.commands,GL15.GL_STREAM_DRAW);
+            if(RetainedNameTags.compact){
+                group.commands.clear();
+                if(group.commandBuffer==0){group.commandBuffer=GL15.glGenBuffers();group.commandsDirty=true;}
+                for(int i=0;i<group.count;i++){
+                    int offset=i*4;TagGeometryCache.Mesh mesh=group.meshes[i];
+                    if(group.commands.get(offset)!=mesh.vertexCount()||group.commands.get(offset+2)!=mesh.firstVertex()){
+                        group.commands.put(offset,mesh.vertexCount()).put(offset+1,1).put(offset+2,mesh.firstVertex()).put(offset+3,i);group.commandsDirty=true;
+                    }
+                }
+                GL15.glBindBuffer(GL40.GL_DRAW_INDIRECT_BUFFER,group.commandBuffer);
+                if(group.commandsDirty||group.uploadedCommands!=group.count){
+                    GL15.glBufferData(GL40.GL_DRAW_INDIRECT_BUFFER,group.commands.duplicate().position(0).limit(group.count*4),GL15.GL_STATIC_DRAW);
+                    group.commandsDirty=false;group.uploadedCommands=group.count;commandUploads++;
+                }else commandsReused++;
+            }else{
+                group.commands.clear();
+                for(int i=0;i<group.count;i++)group.commands.put(group.meshes[i].vertexCount()).put(1).put(group.meshes[i].firstVertex()).put(i);
+                group.commands.flip();GL15.glBindBuffer(GL40.GL_DRAW_INDIRECT_BUFFER,commandsBuffer);
+                GL15.glBufferData(GL40.GL_DRAW_INDIRECT_BUFFER,group.commands,GL15.GL_STREAM_DRAW);
+                group.commandsDirty=true;
+            }
             GL13.glActiveTexture(GL13.GL_TEXTURE0);boolean textured=GL11.glIsEnabled(GL11.GL_TEXTURE_2D);
             GL13.glActiveTexture(GL13.GL_TEXTURE1);boolean lightmap=GL11.glIsEnabled(GL11.GL_TEXTURE_2D);
             GL13.glActiveTexture(textureUnit);
@@ -175,12 +216,12 @@ public final class GpuNameTags {
     }
 
     private void replayPending(){for(var entry:groups.entrySet())if(entry.getValue().count>0)replay(entry.getKey(),entry.getValue());}
-    private void replayEnded(BufferBuilder builder,Group group){
+    private void replayEnded(BufferBuilder builder,PassBinding group){
         int[] old=null;
         if(builder.getVertexCount()>0){var source=builder.getBuffer().duplicate().order(ByteOrder.nativeOrder()).asIntBuffer();old=new int[source.remaining()];source.get(old);}
         builder.begin(GL11.GL_QUADS,DefaultVertexFormat.PARTICLE);replay(builder,group);if(old!=null)builder.vertices(old);builder.end();
     }
-    private void replay(BufferBuilder builder,Group group){
+    private void replay(BufferBuilder builder,PassBinding group){
         for(int i=0;i<group.count;i++){
             int[] source=group.meshes[i].quads(),out=new int[source.length/6*7];int instance=i*INSTANCE_FLOATS;
             FloatBuffer matrix=group.instances;int alpha=(int)matrix.get(instance+12);
@@ -195,11 +236,12 @@ public final class GpuNameTags {
         group.clear();
     }
     private void fail(Throwable error){failed=true;capability="Disabled after error; using Argentum";LogManager.getLogger("Arcadium/GPU Name Tags").warn("GPU name tags disabled",error);}
-    public void discard(){for(var group:groups.values())group.clear();}
+    public void discard(){retainedTransaction=false;for(var group:groups.values())group.clear();}
     public void invalidate(){invalidate=true;}
     public void close(){
         discard();if(program!=0)GL20.glDeleteProgram(program);if(vao!=0)GL30.glDeleteVertexArrays(vao);
         if(vertexBuffer!=0)GL15.glDeleteBuffers(vertexBuffer);if(instanceBuffer!=0)GL15.glDeleteBuffers(instanceBuffer);if(commandsBuffer!=0)GL15.glDeleteBuffers(commandsBuffer);
+        for(PassBinding group:groups.values())if(group.commandBuffer!=0)GL15.glDeleteBuffers(group.commandBuffer);
         program=vao=vertexBuffer=instanceBuffer=commandsBuffer=uploadedWords=gpuCapacity=0;geometry.clear();generation++;groups.clear();checked=failed=false;LIVE.remove(this);
     }
     public static void invalidateAll(){for(var value:LIVE)value.invalidate();RetainedNameTags.invalidate();}
