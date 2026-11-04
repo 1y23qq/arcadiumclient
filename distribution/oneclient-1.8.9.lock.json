@@ -48,7 +48,7 @@
     {
       "file": "performance-1.8.9-ornithe.mrpack",
       "upstreamSha1": "cb1c9798cb22ce425c1078a7aff78f0226683154",
-      "arcadiumSha1": "55261d7d6130916c14e3019a40f1715bb4850679",
+      "arcadiumSha1": "16e981c8e0c8892355c96b1740924dacb259a5af",
       "mods": [
         {
           "path": "mods/Sarcio-1.1.0.jar",
@@ -62,7 +62,7 @@
           "path": "mods/argentum-1.0.1.jar",
           "sha1": "6324b84ba636bb3dee2cc6898fbae40051ea9dc6",
           "downloads": [
-            "https://github.com/QuicksilverMC/Argentum/releases/download/v1.0.1/argentum-1.0.1.jar"
+            "https://cdn.modrinth.com/data/QRMV06RW/versions/X6fQxSsK/argentum-1.0.1.jar"
           ],
           "enabled": true
         },
@@ -70,7 +70,7 @@
           "path": "mods/argentum-extras-1.0.1.jar",
           "sha1": "b4d397612db05f78c9625a05f5876b6ff29c5dcb",
           "downloads": [
-            "https://github.com/QuicksilverMC/Argentum/releases/download/v1.0.1/argentum-extras-1.0.1.jar"
+            "https://cdn.modrinth.com/data/Tc8Lbsu7/versions/6wzTdaZh/argentum-extras-1.0.1.jar"
           ],
           "enabled": true
         },
@@ -86,7 +86,7 @@
           "path": "mods/cera-1.0.1.jar",
           "sha1": "b304a781dbdfa1e9f60aeb2128fd22130169bdfc",
           "downloads": [
-            "https://github.com/QuicksilverMC/Argentum/releases/download/v1.0.1/cera-1.0.1.jar"
+            "https://cdn.modrinth.com/data/z4ctq7MO/versions/yAj5VKe1/cera-1.0.1.jar"
           ],
           "enabled": true
         },
