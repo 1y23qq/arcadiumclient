@@ -17,7 +17,7 @@
   <link rel="icon" href="/assets/arcadium.svg" type="image/svg+xml">
   <link rel="preload" href="/assets/Manrope-Latin-Variable.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/assets/Sora-Latin-Variable.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/styles.css?v=20261104-fps">
   <script src="/app.js" defer></script>
   <title>Arcadium Client | Minecraft 1.7.10, 1.8.9, 1.21.11 &amp; 26.2</title>
 </head>
@@ -52,9 +52,8 @@
       <div class="container">
         <div class="benchmark-layout">
           <div class="benchmark-copy">
-            <p class="eyebrow">In-game performance</p>
-            <h2 id="performance-title">FPS in a busy lobby.</h2>
-            <p class="benchmark-intro">Three clients, captured in a Hypixel Bedwars lobby. Here is what the FPS counters showed.</p>
+            <h2 id="performance-title">FPS comparison</h2>
+            <p class="benchmark-scene">Hypixel · Bedwars Lobby 1</p>
             <details class="benchmark-config">
               <summary>View our testing configuration <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 8l5 5 5-5"/></svg></summary>
               <dl class="benchmark-setup">
@@ -62,31 +61,37 @@
               <div><dt>GPU</dt><dd>RTX 4060 Laptop</dd></div>
               <div><dt>Resolution</dt><dd>1920 × 1080</dd></div>
               <div><dt>Render distance</dt><dd>8 chunks</dd></div>
+              <div><dt>Lobby</dt><dd>Bedwars Lobby 1</dd></div>
+              <div><dt>Readout</dt><dd>Screenshot FPS</dd></div>
               </dl>
             </details>
           </div>
           <figure class="benchmark-chart" aria-labelledby="benchmark-chart-title">
-            <figcaption id="benchmark-chart-title"><span>Captured FPS</span><span>Higher is better</span></figcaption>
+            <figcaption id="benchmark-chart-title" class="sr-only">FPS shown in screenshots from Hypixel Bedwars Lobby 1.</figcaption>
             <ol class="benchmark-bars">
-              <li class="benchmark-row benchmark-lunar" data-captured-fps="241">
-                <div class="benchmark-row-heading"><span class="benchmark-client">Lunar Client</span><strong>241 <span>FPS</span></strong></div>
+              <li class="benchmark-row benchmark-lunar" data-captured-fps="337">
+                <div class="benchmark-row-heading"><span class="benchmark-client"><img src="/assets/lunar-client-8420e1fd402f.webp" width="28" height="28" alt="">Lunar Client</span><strong>337 <span>FPS</span></strong></div>
                 <div class="benchmark-track" aria-hidden="true"><span class="benchmark-bar"></span></div>
               </li>
-              <li class="benchmark-row benchmark-badlion" data-captured-fps="269">
-                <div class="benchmark-row-heading"><span class="benchmark-client">Badlion Client</span><strong>269 <span>FPS</span></strong></div>
+              <li class="benchmark-row benchmark-badlion" data-captured-fps="401">
+                <div class="benchmark-row-heading"><span class="benchmark-client"><img src="/assets/badlion-client-e1bcecebbb5b.png" width="28" height="28" alt="">Badlion Client</span><strong>401 <span>FPS</span></strong></div>
                 <div class="benchmark-track" aria-hidden="true"><span class="benchmark-bar"></span></div>
               </li>
-              <li class="benchmark-row benchmark-arcadium" data-captured-fps="421">
-                <div class="benchmark-row-heading"><span class="benchmark-client"><img src="/assets/arcadium.svg" width="28" height="28" alt="">Arcadium Client</span><strong>421 <span>FPS</span></strong></div>
+              <li class="benchmark-row benchmark-arcadium" data-captured-fps="821">
+                <div class="benchmark-row-heading"><span class="benchmark-client"><img src="/assets/arcadium.svg" width="28" height="28" alt="">Arcadium Client</span><strong>821 <span>FPS</span></strong></div>
                 <div class="benchmark-track" aria-hidden="true"><span class="benchmark-bar"></span></div>
               </li>
             </ol>
-            <div class="benchmark-axis" aria-hidden="true"><span>0</span><span>100</span><span>200</span><span>300</span><span>400</span><span>500</span></div>
+            <div class="benchmark-axis" aria-hidden="true"><span>0</span><span>250</span><span>500</span><span>750</span><span>1000</span></div>
           </figure>
         </div>
-        <div class="benchmark-result"><p>In these captures, Arcadium recorded <strong>75% higher FPS</strong> than Lunar Client and <strong>57% higher FPS</strong> than Badlion Client.</p></div>
         <figure class="benchmark-capture">
-          <a class="benchmark-image-link" href="/assets/fps-comparison.svg" target="_blank" rel="noopener" aria-label="Open the full FPS comparison image"><img src="/assets/fps-comparison.svg" width="1920" height="1208" alt="Three Minecraft captures with client labels: Lunar Client at 241 FPS, Badlion Client at 269 FPS, and Arcadium Client at 421 FPS." loading="lazy" decoding="async"></a>
+          <a class="benchmark-image-link" href="/assets/fps-comparison-bef007b09c6c.webp" target="_blank" rel="noopener" aria-label="Open the full FPS comparison image">
+            <picture>
+              <source media="(max-width: 680px)" srcset="/assets/fps-comparison-mobile-b1130e99659c.webp" width="800" height="1728">
+              <img src="/assets/fps-comparison-bef007b09c6c.webp" width="2400" height="576" alt="Lunar Client: 337 FPS. Badlion Client: 401 FPS. Arcadium Client: 821 FPS. All three full screenshots show Hypixel Bedwars Lobby 1, with client logos and enlarged FPS counters." loading="lazy" decoding="async">
+            </picture>
+          </a>
         </figure>
       </div>
     </section>

@@ -1,0 +1,16 @@
+[
+  {
+    "file": "fps-comparison-bef007b09c6c.webp",
+    "width": 2400,
+    "height": 576,
+    "sha256": "bef007b09c6cd2b5990cd27c7ece3a5b69ae60daef6b0aaecd39d7f58f0bf796",
+    "bytes": 454594
+  },
+  {
+    "file": "fps-comparison-mobile-b1130e99659c.webp",
+    "width": 800,
+    "height": 1728,
+    "sha256": "b1130e99659c2e07c17768389d4678ca7d04cbe5c47015b1ad628058c12285eb",
+    "bytes": 454034
+  }
+]

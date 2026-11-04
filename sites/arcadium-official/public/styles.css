@@ -100,9 +100,9 @@ figcaption { display: flex; align-items: center; justify-content: space-between;
 h2 { font-size: clamp(30px, 3.4vw, 43px); font-weight: 600; line-height: 1.22; letter-spacing: -.04em; margin: 0; }
 h3 { font-size: 16px; line-height: 1.45; font-weight: 600; letter-spacing: -.35px; margin: 0; }
 .benchmark-section { border-top: 1px solid #242733; }
-.benchmark-layout { display: grid; grid-template-columns: .9fr 1.1fr; gap: 90px; align-items: start; }
+.benchmark-layout { display: grid; grid-template-columns: .85fr 1.15fr; gap: 64px; align-items: start; }
 .benchmark-copy { min-width: 0; }
-.benchmark-intro { max-width: 360px; margin: 22px 0 0; color: var(--muted); font-size: 14px; line-height: 1.85; }
+.benchmark-scene { margin: 14px 0 0; color: var(--muted); font-size: 13px; }
 .benchmark-config { margin-top: 21px; }
 .benchmark-config summary { display: inline-flex; align-items: center; gap: 7px; list-style: none; cursor: pointer; color: #b5bfd8; font-size: 11px; }
 .benchmark-config summary::-webkit-details-marker { display: none; }
@@ -114,44 +114,40 @@ h3 { font-size: 16px; line-height: 1.45; font-weight: 600; letter-spacing: -.35p
 .benchmark-setup dt { font-size: 10px; color: #8e96ab; margin-bottom: 3px; }
 .benchmark-setup dd { margin: 0; color: #d3d9e7; font-size: 12px; font-weight: 500; }
 .benchmark-chart { min-width: 0; margin: 0; }
-.benchmark-chart figcaption { margin: 0 0 23px; color: #abb3c5; font-size: 11px; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
 .benchmark-bars { display: grid; gap: 25px; margin: 0; padding: 0; list-style: none; }
 .benchmark-row-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 10px; }
 .benchmark-client { display: inline-flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 550; }
 .benchmark-client img { width: 26px; height: 26px; object-fit: contain; flex-shrink: 0; }
-.benchmark-row-heading strong { font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: -.5px; white-space: nowrap; }
+.benchmark-row-heading strong { font-size: 27px; font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: -.5px; white-space: nowrap; }
 .benchmark-row-heading strong span { color: #9aa4b9; font-size: 10px; font-weight: 500; letter-spacing: 0; margin-left: 2px; }
-.benchmark-track { overflow: hidden; height: 17px; background: #1c202c; border-radius: 3px; }
+.benchmark-track { overflow: hidden; height: 13px; background: #1c202c; border-radius: 3px; }
 .benchmark-bar { position: relative; display: block; height: 100%; overflow: hidden; border-radius: inherit; }
-.benchmark-lunar .benchmark-bar { width: 48.2%; background: #626c85; }
-.benchmark-badlion .benchmark-bar { width: 53.8%; background: #8290a9; }
-.benchmark-arcadium .benchmark-bar { width: 84.2%; background: #7185f4; }
+.benchmark-lunar .benchmark-bar { width: 33.7%; background: #626c85; }
+.benchmark-badlion .benchmark-bar { width: 40.1%; background: #8290a9; }
+.benchmark-arcadium .benchmark-bar { width: 82.1%; background: #7185f4; }
 .benchmark-arcadium .benchmark-bar::before { content: ''; position: absolute; inset: 0 auto 0 0; width: 200%; background: linear-gradient(100deg, #6378ee 0%, #67dfd1 25%, #6378ee 50%, #67dfd1 75%, #6378ee 100%); animation: benchmark-flow 8s linear infinite; animation-play-state: paused; }
 .benchmark-chart.is-visible .benchmark-arcadium .benchmark-bar::before { animation-play-state: running; }
 .benchmark-axis { display: flex; justify-content: space-between; border-top: 1px solid #303749; color: #788399; font-size: 10px; font-variant-numeric: tabular-nums; padding-top: 7px; margin-top: 16px; }
-.benchmark-result { display: flex; align-items: baseline; justify-content: space-between; gap: 28px; margin-top: 44px; padding-block: 21px; border-top: 1px solid var(--line); }
-.benchmark-result p { margin: 0; color: #b3bcce; font-size: 13px; line-height: 1.8; }
-.benchmark-result strong { color: #d8e3ff; font-weight: 600; }
-.benchmark-capture { margin: 0; }
-.benchmark-image-link { display: block; border: 1px solid #303646; border-radius: 10px; overflow: hidden; background: #0c0d12; }
+.benchmark-capture { margin: 34px 0 0; }
+.benchmark-image-link { display: block; border: 1px solid #303646; border-radius: 6px; overflow: hidden; background: #12151c; }
+.benchmark-image-link picture { display: block; }
 .benchmark-image-link img { display: block; width: 100%; height: auto; object-fit: contain; }
 @keyframes benchmark-flow { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 @media (max-width: 900px) {
   .benchmark-layout { grid-template-columns: 1fr 1.2fr; gap: 40px; }
   .benchmark-setup { grid-template-columns: 1fr; gap: 12px; }
   .benchmark-setup div { display: flex; justify-content: space-between; gap: 14px; }
-  .benchmark-result { flex-direction: column; gap: 5px; margin-top: 32px; }
 }
 @media (max-width: 680px) {
   .benchmark-layout { grid-template-columns: 1fr; gap: 32px; }
-  .benchmark-intro { max-width: none; margin-top: 18px; font-size: 13px; }
+  .benchmark-scene { margin-top: 12px; }
   .benchmark-setup { grid-template-columns: 1fr 1fr; gap: 14px 20px; margin-top: 22px; }
   .benchmark-setup div { display: block; }
   .benchmark-setup dd { font-size: 11px; }
   .benchmark-client { font-size: 12px; }
-  .benchmark-chart figcaption { margin-bottom: 18px; }
   .benchmark-bars { gap: 19px; }
-  .benchmark-result p { font-size: 12px; }
+  .benchmark-image-link img { aspect-ratio: 800 / 1728; }
 }
 .section-description { color: var(--muted); font-size: 14px; line-height: 1.9; margin-top: 22px; }
 .client-section { border-block: 1px solid #242733; background: #101218; }

@@ -1,0 +1,56 @@
+{
+  "date": "2026-11-04",
+  "captures": [
+    {
+      "client": "lunar",
+      "file": "lunar.png",
+      "sourceFile": "lunar.png",
+      "sha256": "93fd58d4a204e080f6f5d0820472e564bbd9e778e1f746407865326d6e2618fa",
+      "width": 1920,
+      "height": 1080,
+      "fps": 337
+    },
+    {
+      "client": "badlion",
+      "file": "badlion.png",
+      "sourceFile": "Badlion.png",
+      "sha256": "5470554e02a887e918ced4c2837869b6cca55630bc5f9512bb08f115f0f419bf",
+      "width": 1920,
+      "height": 1080,
+      "fps": 401
+    },
+    {
+      "client": "arcadium",
+      "file": "arcadium.png",
+      "sourceFile": "arcadium.png",
+      "sha256": "826af45553f8a8f5c3e0df47353a5c19de96b5d1b7c34d3786b4a5101cfa8be6",
+      "width": 1920,
+      "height": 1080,
+      "fps": 821
+    }
+  ],
+  "conditions": {
+    "cpu": "Intel Core i7-13620H",
+    "gpu": "NVIDIA GeForce RTX 4060 Laptop",
+    "resolution": "1920 × 1080",
+    "renderDistanceChunks": 8,
+    "scene": "Hypixel Bedwars Lobby 1",
+    "sameConditionsReportedByOwner": true
+  },
+  "measurement": "Visible FPS readouts in owner-supplied screenshots; not timed averages.",
+  "logos": {
+    "lunar-logo.webp": {
+      "source": "https://www.lunarclient.com/assets/img/logo.webp",
+      "sha256": "8420e1fd402fbc4b5539ea2f0619de0c864f661b35c541e1ce5ae77786b9ee68",
+      "bytes": 1214,
+      "file": "lunar-client-8420e1fd402f.webp"
+    },
+    "badlion-logo.png": {
+      "source": "https://assets.badlion.net/site/assets/badlion-logo.png",
+      "sha256": "e1bcecebbb5b3cfb70b7050d6a3eaf92e77cfb1a11da371ba8d88f4de2a8bd49",
+      "bytes": 206427,
+      "file": "badlion-client-e1bcecebbb5b.png"
+    }
+  },
+  "composition": "Full frames with an enlarged copy of the same top-left FPS region. Client logos identify the compared products and imply no endorsement."
+}
