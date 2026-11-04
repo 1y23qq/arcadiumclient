@@ -7,6 +7,7 @@ public final class FontPreferences {
     public enum Source { RESOURCE_PACK, VANILLA, INTER }
     private static final ThreadLocal<Boolean> MOD_TEXT = ThreadLocal.withInitial(() -> false);
     private static Runnable nativeRefresh;
+    private static volatile int revision;
 
     private FontPreferences() {}
 
@@ -51,9 +52,12 @@ public final class FontPreferences {
     }
 
     public static void refresh() {
+        revision++;
         McFontQueue.INSTANCE.setRevision(McFontQueue.INSTANCE.getRevision() + 1);
         if (nativeRefresh != null) nativeRefresh.run();
     }
+
+    public static int revision() { return revision; }
 
     public static void setNativeRefresh(Runnable action) { nativeRefresh = action; }
 }

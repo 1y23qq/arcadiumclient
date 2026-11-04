@@ -17,6 +17,7 @@ import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.Map;
 import javax.imageio.ImageIO;
 import net.minecraft.client.Minecraft;
@@ -34,6 +35,7 @@ public final class LegacyGameFont {
     private static final Map<Character, InterGlyph> INTER = new HashMap<>();
     private static final Map<Integer, DynamicTexture> VANILLA_PAGES = new HashMap<>();
     private static final ArrayList<DynamicTexture> INTER_PAGES = new ArrayList<>();
+    private static final Map<DynamicTexture, Identifier> BATCH_TEXTURES = new IdentityHashMap<>();
     private static final int[] ASCII_INDEX = new int[65536];
     private static final int[] ASCII_WIDTHS = new int[256];
     private static Font inter;
@@ -47,6 +49,8 @@ public final class LegacyGameFont {
     private static int atlasRowHeight;
     private static int rasterizations;
     private static FontPreferences.Source lastGameSource;
+    public static long batchedGlyphs;
+    public static long immediateGlyphs;
 
     private LegacyGameFont() {}
 
@@ -87,6 +91,10 @@ public final class LegacyGameFont {
     }
 
     public static float draw(char character, boolean italic, boolean unicode, float x, float y) {
+        return draw(character, italic, unicode, x, y, null);
+    }
+
+    public static float draw(char character, boolean italic, boolean unicode, float x, float y, VanillaGlyphSink sink) {
         int advance = width(character, unicode);
         if (Character.isWhitespace(character)) return advance;
         if (FontPreferences.nativeSource() == FontPreferences.Source.INTER && interFont() != null && inter.canDisplay(character)) {
@@ -97,7 +105,7 @@ public final class LegacyGameFont {
                 GlStateManager.blendFuncSeparate(770, 771, 1, 0);
                 quad(glyph.texture, x + glyph.offsetX, y + glyph.offsetY, glyph.width / OVERSAMPLE,
                     glyph.height / OVERSAMPLE, glyph.u, glyph.v, glyph.u + glyph.width / (float) ATLAS_SIZE,
-                    glyph.v + glyph.height / (float) ATLAS_SIZE, italic);
+                    glyph.v + glyph.height / (float) ATLAS_SIZE, italic, sink);
             }
             return advance;
         }
@@ -107,7 +115,7 @@ public final class LegacyGameFont {
             float u = (index % 16) / 16f;
             float v = (index / 16) / 16f;
             float glyphWidth = Math.max(0, advance - 1);
-            quad(texture, x, y, glyphWidth, 7.99f, u, v, u + glyphWidth / 128f, v + 7.99f / 128f, italic);
+            quad(texture, x, y, glyphWidth, 7.99f, u, v, u + glyphWidth / 128f, v + 7.99f / 128f, italic, sink);
         } else if (vanillaSizes != null && (vanillaSizes[character] & 255) != 0) {
             int page = character >>> 8;
             DynamicTexture texture = VANILLA_PAGES.computeIfAbsent(page, LegacyGameFont::loadVanillaPage);
@@ -118,13 +126,32 @@ public final class LegacyGameFont {
                 float u = ((character % 16) * 16 + left) / 256f;
                 float v = ((character & 255) / 16) / 16f;
                 quad(texture, x, y, (right - left - 0.02f) / 2f, 7.99f,
-                    u, v, u + (right - left - 0.02f) / 256f, v + 15.98f / 256f, italic);
+                    u, v, u + (right - left - 0.02f) / 256f, v + 15.98f / 256f, italic, sink);
             }
         }
         return advance;
     }
 
     public static int rasterizationCount() { return rasterizations; }
+
+    public static boolean cacheableMetrics(String text) {
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            if (c == '§' && i + 1 < text.length()) { i++; continue; }
+            if (c == '\u2063' || c == '\u2064' || (c >= '\ue000' && c <= '\uf8ff') || Character.isSurrogate(c)) return false;
+        }
+        return true;
+    }
+
+    public static Identifier batchTexture(DynamicTexture texture) {
+        Identifier location = BATCH_TEXTURES.get(texture);
+        if (location == null) {
+            location = new Identifier("arcadiumfonts", "bundled/" + BATCH_TEXTURES.size());
+            Minecraft.getInstance().getTextureManager().register(location, texture);
+            BATCH_TEXTURES.put(texture, location);
+        }
+        return location;
+    }
 
     public static float shadowCorrection(char character, boolean unicode) {
         if (FontPreferences.nativeSource() != FontPreferences.Source.INTER || interFont() == null || !inter.canDisplay(character)) return 0f;
@@ -238,7 +265,11 @@ public final class LegacyGameFont {
     }
 
     private static void quad(DynamicTexture texture, float x, float y, float width, float height,
-            float u0, float v0, float u1, float v1, boolean italic) {
+            float u0, float v0, float u1, float v1, boolean italic, VanillaGlyphSink sink) {
+        if (sink != null && sink.arcadium$vanillaQuad(texture, x, y, width, height, u0, v0, u1, v1, italic)) {
+            batchedGlyphs++; return;
+        }
+        immediateGlyphs++;
         GlStateManager.bindTexture(texture.getGlId());
         float skew = italic ? 1f : 0f;
         GL11.glBegin(GL11.GL_TRIANGLE_STRIP);

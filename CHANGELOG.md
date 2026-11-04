@@ -1,3 +1,9 @@
+## 0.7.0
+
+- Improved name tag and HUD text rendering performance.
+- Added batching for forced vanilla fonts and cached name masking/text measurements.
+- Added performance reports with optimization usage and fallback state.
+
 ## 0.6.7
 
 - Set the default minimum player, name tag and particle counts for beta GPU optimizations to 1.

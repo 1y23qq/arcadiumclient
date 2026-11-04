@@ -10,6 +10,7 @@ import io.github.arcadiumclient.runtime.client.emoji.EmojiLayout;
 import java.util.List;
 import net.minecraft.client.render.TextRenderer;
 import org.polyfrost.oneconfig.internal.emoji.EmojiText;
+import org.polyfrost.oneconfig.internal.TextOptimizationOptions;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
@@ -21,29 +22,34 @@ public abstract class EmojiFontMixin {
     private int arcadium$emojiRuns(String text, float x, float y, int color, boolean shadow, Operation<Integer> original) {
         String display = EmojiText.display(text);
         if (display == null || !EmojiText.enabled()) return original.call(display, x, y, color, shadow);
-        float cursor = x;
-        int start = 0;
-        for (int index = 0; index < display.length(); index++) {
-            char glyph = display.charAt(index);
-            if (!EmojiText.isGlyph(glyph)) continue;
-            String inherited = TextRenderer.isolateFormatting(display.substring(0, start));
-            String run = inherited + display.substring(start, index);
-            if (!run.isEmpty()) {
-                original.call(run, cursor, y, color, shadow);
-                cursor = this.x;
+        boolean contains = false;
+        for (int i = 0; i < display.length(); i++) if (EmojiText.isGlyph(display.charAt(i))) { contains = true; break; }
+        if (!contains) return original.call(display, x, y, color, shadow);
+        boolean previous = TextOptimizationOptions.beginImmediateText(this);
+        try {
+            float cursor = x;
+            int start = 0;
+            for (int index = 0; index < display.length(); index++) {
+                char glyph = display.charAt(index);
+                if (!EmojiText.isGlyph(glyph)) continue;
+                String inherited = TextRenderer.isolateFormatting(display.substring(0, start));
+                String run = inherited + display.substring(start, index);
+                if (!run.isEmpty()) {
+                    original.call(run, cursor, y, color, shadow);
+                    cursor = this.x;
+                }
+                EmojiPainter.draw(glyph, cursor, y, 8f, color, shadow);
+                String style = TextRenderer.isolateFormatting(display.substring(0, index));
+                cursor += EmojiLayout.advance(style);
+                this.x = cursor;
+                start = index + 1;
             }
-            EmojiPainter.draw(glyph, cursor, y, 8f, color, shadow);
-            String style = TextRenderer.isolateFormatting(display.substring(0, index));
-            cursor += EmojiLayout.advance(style);
-            this.x = cursor;
-            start = index + 1;
-        }
-        if (start == 0) return original.call(display, x, y, color, shadow);
-        if (start < display.length()) {
-            String rest = TextRenderer.isolateFormatting(display.substring(0, start)) + display.substring(start);
-            return original.call(rest, cursor, y, color, shadow);
-        }
-        return (int) cursor + (shadow ? 1 : 0);
+            if (start < display.length()) {
+                String rest = TextRenderer.isolateFormatting(display.substring(0, start)) + display.substring(start);
+                return original.call(rest, cursor, y, color, shadow);
+            }
+            return (int) cursor + (shadow ? 1 : 0);
+        } finally { TextOptimizationOptions.endImmediateText(previous); }
     }
 
     @WrapMethod(method = "getWidth(Ljava/lang/String;)I")

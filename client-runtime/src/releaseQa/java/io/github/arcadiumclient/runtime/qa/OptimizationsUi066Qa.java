@@ -34,7 +34,7 @@ import org.polyfrost.oneconfig.internal.ui.shell.ShellState;
 public final class OptimizationsUi066Qa {
     private static final String ID = "arcadium-optimizations-beta.json";
     private static final List<String> CATEGORIES = List.of("Hypixel", "Players", "Display");
-    private static final List<String> OLD_IDS = List.of("gpuNameTags", "retainedNameTagScenes", "fastInvisibleHolograms",
+    private static final List<String> OLD_IDS = List.of("cachedNameMasking", "cachedFontMetrics", "batchedVanillaFont", "gpuNameTags", "retainedNameTagScenes", "fastInvisibleHolograms",
         "retainedScoreboardPreparation", "gpuParticles", "retainedParticleRecipes", "retainedHudBatches", "minimumGpuLabels",
         "minimumGpuParticles", "gpuModelTransforms", "gpuPlayerPipeline", "gpuEquipmentPipeline", "minimumPlayers",
         "directFramebufferPresentation", "worldRenderScale", "worldResolution");

@@ -74,6 +74,7 @@ public class OneConfigMixinInit implements IMixinConfigPlugin {
         mixins.add("render.Mixin_GameFont");
         if (net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("argentum")) {
             mixins.add("render.Mixin_ArgentumFontSource");
+            mixins.add("render.Mixin_ArgentumFontGeometrySource");
         }
         mixins.add("skia.Mixin_OptionsChat");
         if (net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("chatting")) {

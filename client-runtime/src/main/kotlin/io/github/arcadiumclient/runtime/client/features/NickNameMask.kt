@@ -13,20 +13,37 @@ internal object NickNameMask {
     }
 
     fun replace(text: String, username: String, nickname: String): String {
-        val matches = replacements(text, username, nickname)
-        if (matches.isEmpty()) return text
-        return buildString(text.length) {
-            var position = 0
-            for (match in matches) {
-                append(text, position, match.start)
-                append(match.value)
-                position = match.end
+        val first = find(text, username, 0)
+        if (first < 0) return text
+        return replaceMatched(text, username, alias(nickname, username), first)
+    }
+
+    fun replaceAliased(text: String, username: String, alias: String): String {
+        val first = find(text, username, 0)
+        return if (first < 0) text else replaceMatched(text, username, alias, first)
+    }
+
+    private fun replaceMatched(text: String, username: String, alias: String, first: Long): String = buildString(text.length) {
+        var position = 0
+        var match = first
+        while (match >= 0) {
+            val start = (match ushr 32).toInt()
+            val end = match.toInt()
+            append(text, position, start)
+            append(alias)
+            var cursor = start
+            while (cursor + 1 < end) {
+                if (text[cursor] == '\u00a7') { append(text[cursor++]); append(text[cursor++]) }
+                else cursor++
             }
-            append(text, position, text.length)
+            position = end
+            match = find(text, username, end)
         }
+        append(text, position, text.length)
     }
 
     fun replaceRuns(runs: List<String>, username: String, nickname: String): List<String> {
+        if (username.isEmpty() || runs.none { run -> run.any { same(it, username[0]) } }) return runs
         val text = runs.joinToString("")
         val matches = replacements(text, username, nickname)
         if (matches.isEmpty()) return runs
@@ -56,43 +73,54 @@ internal object NickNameMask {
     }
 
     private fun replacements(text: String, username: String, nickname: String): List<Replacement> {
-        if (username.isEmpty() || text.isEmpty()) return emptyList()
-        val first = username[0]
-        if (text.none { it.equals(first, ignoreCase = true) }) return emptyList()
-        val formatted = '\u00a7' in text
-        if (!formatted && !text.contains(username, ignoreCase = true)) return emptyList()
-        val visible = if (formatted) StringBuilder(text.length) else null
-        val positions = if (formatted) IntArray(text.length) else null
-        if (formatted) {
-            var index = 0
-            while (index < text.length) {
-                if (text[index] == '\u00a7' && index + 1 < text.length) {
-                    index += 2
-                } else {
-                    positions!![visible!!.length] = index
-                    visible.append(text[index++])
-                }
-            }
-        }
-        val plain = visible?.toString() ?: text
+        var match = find(text, username, 0)
+        if (match < 0) return emptyList()
         val alias = alias(nickname, username)
         val out = ArrayList<Replacement>()
-        var index = plain.indexOf(username, ignoreCase = true)
-        while (index >= 0) {
-            val rawStart = positions?.get(index) ?: index
-            val rawEnd = (positions?.get(index + username.length - 1) ?: (index + username.length - 1)) + 1
-            val restore = if (formatted) buildString {
+        while (match >= 0) {
+            val rawStart = (match ushr 32).toInt()
+            val rawEnd = match.toInt()
+            val restore = buildString {
                 var cursor = rawStart
-                while (cursor < rawEnd) {
-                    if (text[cursor] == '\u00a7' && cursor + 1 < rawEnd) {
+                while (cursor + 1 < rawEnd) {
+                    if (text[cursor] == '\u00a7') {
                         append(text[cursor++])
                         append(text[cursor++])
                     } else cursor++
                 }
-            } else ""
+            }
             out += Replacement(rawStart, rawEnd, alias + restore)
-            index = plain.indexOf(username, index + username.length, ignoreCase = true)
+            match = find(text, username, rawEnd)
         }
         return out
+    }
+
+    private fun find(text: String, username: String, from: Int): Long {
+        if (username.isEmpty()) return -1
+        var start = from
+        while (start < text.length) {
+            if (text[start] == '\u00a7' && start + 1 < text.length) { start += 2; continue }
+            if (same(text[start], username[0])) {
+                var raw = start
+                var matched = 0
+                while (raw < text.length && matched < username.length) {
+                    if (text[raw] == '\u00a7' && raw + 1 < text.length) { raw += 2; continue }
+                    if (!same(text[raw], username[matched])) break
+                    raw++; matched++
+                }
+                if (matched == username.length) return (start.toLong() shl 32) or (raw.toLong() and 0xffffffffL)
+            }
+            start++
+        }
+        return -1
+    }
+
+    private fun same(first: Char, second: Char): Boolean {
+        if (first == second) return true
+        if (first.code < 128 && second.code < 128) {
+            val lower = first.code or 32
+            return lower in 97..122 && lower == (second.code or 32)
+        }
+        return first.equals(second, ignoreCase = true)
     }
 }

@@ -6,7 +6,11 @@ import net.minecraft.resource.Identifier;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import org.polyfrost.oneconfig.internal.ui.compose.LegacyGameFont;
+import org.polyfrost.oneconfig.internal.ui.compose.VanillaGlyphSink;
 import org.polyfrost.oneconfig.internal.FontPreferences;
+import org.polyfrost.oneconfig.internal.TextOptimizationOptions;
+import org.polyfrost.oneconfig.internal.TextWidthCache;
+import org.polyfrost.oneconfig.internal.GameFontMetricCounters;
 import org.polyfrost.compose.mc.MinecraftTextStyle;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Final;
@@ -17,13 +21,16 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(value = TextRenderer.class, priority = 900)
-public abstract class Mixin_GameFont {
+public abstract class Mixin_GameFont implements GameFontMetricCounters {
     @Shadow private float x;
     @Shadow private float y;
     @Shadow private boolean unicode;
     @Shadow @Final private Identifier fontLocation;
     @Shadow public abstract int getWidth(char character);
     @Unique private boolean arcadium$shadow;
+    @Unique private boolean arcadium$batcherChecked;
+    @Unique private VanillaGlyphSink arcadium$batcher;
+    @Unique private final ThreadLocal<TextWidthCache> arcadium$metrics = ThreadLocal.withInitial(TextWidthCache::new);
 
     @Unique private boolean arcadium$defaultFont() {
         return fontLocation.getNamespace().equals("minecraft") && fontLocation.getPath().equals("textures/font/ascii.png");
@@ -33,6 +40,8 @@ public abstract class Mixin_GameFont {
     private void arcadium$shadowLayer(String text, boolean shadow, Operation<Void> original) {
         boolean previous = arcadium$shadow;
         arcadium$shadow = shadow;
+        VanillaGlyphSink batcher = arcadium$fontBatcher();
+        if (batcher != null) batcher.arcadium$unicode(unicode);
         try { original.call(text, shadow); }
         finally { arcadium$shadow = previous; }
     }
@@ -42,7 +51,11 @@ public abstract class Mixin_GameFont {
     private void arcadium$drawFont(char character, boolean italic, CallbackInfoReturnable<Float> callback) {
         if (arcadium$defaultFont() && LegacyGameFont.handles(character)) {
             float correction = arcadium$shadow ? LegacyGameFont.shadowCorrection(character, unicode) : 0f;
-            callback.setReturnValue(LegacyGameFont.draw(character, italic, unicode, x + correction, y + correction));
+            VanillaGlyphSink sink = null;
+            if (TextOptimizationOptions.vanillaFontBatching && FontPreferences.nativeSource() == FontPreferences.Source.VANILLA) {
+                sink = arcadium$fontBatcher();
+            }
+            callback.setReturnValue(LegacyGameFont.draw(character, italic, unicode, x + correction, y + correction, sink));
         }
     }
 
@@ -54,6 +67,14 @@ public abstract class Mixin_GameFont {
     @Inject(method = "width(Ljava/lang/String;)I", at = @At("HEAD"), cancellable = true)
     private void arcadium$formattedWidth(String text, CallbackInfoReturnable<Integer> callback) {
         if (!arcadium$defaultFont() || FontPreferences.nativeSource() == FontPreferences.Source.RESOURCE_PACK || text == null) return;
+        FontPreferences.Source source = FontPreferences.nativeSource();
+        int revision = FontPreferences.revision();
+        boolean cache = TextOptimizationOptions.fontMetricCache && LegacyGameFont.cacheableMetrics(text);
+        TextWidthCache metrics = cache ? arcadium$metrics.get() : null;
+        if (cache) {
+            int cached = metrics.get(text, source, unicode, revision);
+            if (cached != TextWidthCache.MISSING) { callback.setReturnValue(cached); return; }
+        }
         MinecraftTextStyle style = new MinecraftTextStyle(-1);
         int width = 0;
         for (int index = 0; index < text.length(); index++) {
@@ -65,7 +86,23 @@ public abstract class Mixin_GameFont {
             int advance = getWidth(character);
             width += Math.max(0, advance) + (style.getBold() && advance > 0 ? 1 : 0);
         }
+        if (cache) metrics.put(text, width, source, unicode, revision);
         callback.setReturnValue(width);
+    }
+
+    @Override public long arcadium$metricHits() { return arcadium$metrics.get().hits(); }
+    @Override public long arcadium$metricMisses() { return arcadium$metrics.get().misses(); }
+    @Override public void arcadium$flushTextBatches() {
+        VanillaGlyphSink batcher = arcadium$fontBatcher();
+        if (batcher != null) batcher.arcadium$flushBeforeImmediate();
+    }
+    @Unique private VanillaGlyphSink arcadium$fontBatcher() {
+        if (!arcadium$batcherChecked) {
+            arcadium$batcherChecked = true;
+            try { Object batcher = ((Object) this).getClass().getMethod("argentum$getBatcher").invoke(this); if (batcher instanceof VanillaGlyphSink nativeSink) arcadium$batcher = nativeSink; }
+            catch (ReflectiveOperationException ignored) { }
+        }
+        return arcadium$batcher;
     }
 }
 *///?}

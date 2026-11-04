@@ -5,6 +5,11 @@
   "plugin": "io.github.arcadiumclient.runtime.mixin.RenderHookConstraintsPlugin",
   "mixins": [],
   "client": [
+    "client.diagnostics.CaptureMinecraftMixin",
+    "client.diagnostics.CaptureRendererMixin",
+    "client.diagnostics.CaptureWorldMixin",
+    "client.diagnostics.CaptureParticlesMixin",
+    "client.diagnostics.CaptureHudMixin",
     "compat.argentum.ReducedRenderHookMarker",
     "compat.argentum.TypedLayerOperationsMarker",
     "compat.cera.TrustedCosmeticUsernameMarker",

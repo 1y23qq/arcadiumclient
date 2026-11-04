@@ -23,6 +23,15 @@ import org.polyfrost.oneconfig.api.event.v1.events.TickEvent
 import io.github.arcadiumclient.runtime.client.branding.NametagLayout
 
 object BetaOptimizationsConfig : Config("arcadium-optimizations-beta.json", "Optimizations (Beta)", Category.OTHER) {
+    @JvmStatic @Switch(title = "Cached Name Masking", description = "Reuse unchanged Nick Hider results. Name and nickname changes invalidate the cache immediately.", category = "Hypixel")
+    var cachedNameMasking = true
+
+    @JvmStatic @Switch(title = "Cached Font Metrics", description = "Reuse exact text widths for the built-in fonts. Font, Unicode and resource changes invalidate the cache; custom glyphs keep their original measurement.", category = "Hypixel")
+    var cachedFontMetrics = true
+
+    @JvmStatic @Switch(title = "Batched Vanilla Font", description = "Batch built-in vanilla font glyphs without using the resource pack's font. Formatting, shadows and native name tag/HUD batching are preserved.", category = "Hypixel")
+    var batchedVanillaFont = true
+
     @JvmStatic @Switch(title = "GPU Name Tags", description = "Keep name tag shapes on the GPU and draw their text and backgrounds with compact per-label commands. Requires OpenGL 4.3.", category = "Hypixel")
     var gpuNameTags = false
 
@@ -89,13 +98,23 @@ object BetaOptimizationsConfig : Config("arcadium-optimizations-beta.json", "Opt
 
     fun initialize() {
         preload()
+        syncTextOptions()
         RenderHookAllocationControl.enabled = reduceRenderHookAllocations
         eventHandler { _: TickEvent.End ->
             NametagLayout.optimized = gpuNameTags || gpuPlayerPipeline
             RenderHookAllocationControl.enabled = reduceRenderHookAllocations
+            syncTextOptions()
         }
         BetaOptimizationPage.register(id) {
             listOf(GpuModelTransforms.status(), GpuPlayerPipeline.status(), GpuEquipmentPipeline.status(), GpuNameTags.status(), RetainedNameTags.status(), FastInvisibleHolograms.status(), RenderHookAllocationControl.status(), EfficientMotionBlur.status(), GpuParticles.status(), ScoreboardPreparation.status(), FastFramePresentation.status(), RetainedHudBuffers.status(), WorldRenderScale.status())
         }
+        io.github.arcadiumclient.runtime.client.diagnostics.PerformanceCapture.initialize()
+    }
+
+    private fun syncTextOptions() {
+        if (org.polyfrost.oneconfig.internal.TextOptimizationOptions.vanillaFontBatching != batchedVanillaFont) GpuNameTags.invalidateAll()
+        org.polyfrost.oneconfig.internal.TextOptimizationOptions.nameMaskCache = cachedNameMasking
+        org.polyfrost.oneconfig.internal.TextOptimizationOptions.fontMetricCache = cachedFontMetrics
+        org.polyfrost.oneconfig.internal.TextOptimizationOptions.vanillaFontBatching = batchedVanillaFont
     }
 }

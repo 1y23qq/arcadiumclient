@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "io.github.arcadiumclient"
-version = "0.6.7"
+version = "0.7.0"
 base.archivesName = "ArcadiumRuntime"
 val minecraftVersion = providers.gradleProperty("minecraftVersion").getOrElse("1.8.9")
 require(minecraftVersion in setOf("1.7.10", "1.8.9")) { "Unsupported Minecraft version: $minecraftVersion" }
@@ -131,7 +131,7 @@ if (minecraftVersion == "1.7.10") {
                 it.path.contains("/client/bedwars/") && it.file.name !in setOf("BedwarsData.java", "BedwarsStats.java", "OverlayHttp.java", "PlayerNameUtil.java", "HypixelDataService.java")
             }
             exclude("**/features/NoHitDelayConfig.kt", "**/client/MixinNoHitDelay.java",
-                "**/optimizations/**", "**/features/BetaOptimizationsConfig.kt",
+                "**/optimizations/**", "**/diagnostics/**", "**/features/BetaOptimizationsConfig.kt",
                 "**/RenderHookConstraintsPlugin.java", "**/ReducedRenderHookMarker.java",
                 "**/compat/argentum/TypedLayerOperationsMarker.java",
                 "**/compat/cera/TrustedCosmeticUsernameMarker.java",
@@ -190,7 +190,7 @@ if (minecraftVersion == "1.7.10") {
         val patchFile = layout.projectDirectory.file("legacy-source-patches.json")
         inputs.file(patchFile)
         from("src/test") {
-            exclude("**/client/bedwars/**", "**/optimizations/**", "**/CeraLightmapColorProbe.java", "**/BundledSkinMeshProbe.java", "**/SkinInstancingTest.java", "**/SkinDetailBudgetTest.java")
+            exclude("**/client/bedwars/**", "**/optimizations/**", "**/diagnostics/**", "**/CeraLightmapColorProbe.java", "**/BundledSkinMeshProbe.java", "**/SkinInstancingTest.java", "**/SkinDetailBudgetTest.java")
         }
         into(layout.buildDirectory.dir("generated/test"))
         doLast {

@@ -6,9 +6,9 @@ package io.github.arcadiumclient.runtime.client.features
 import net.minecraft.client.Minecraft
 import org.polyfrost.oneconfig.api.event.v1.eventHandler
 import org.polyfrost.oneconfig.api.event.v1.events.TickEvent
-import io.github.arcadiumclient.runtime.client.utils.GameThread
 
 object NickHider {
+    private val cache = ThreadLocal.withInitial { NickMaskCache() }
     private var lastUsername = ""
     private var lastNickname = ""
     private var lastEnabled = false
@@ -39,8 +39,12 @@ object NickHider {
     @JvmStatic
     fun display(text: String): String {
         if (!NickHiderConfig.enabled) return text
-        return NickNameMask.replace(text, sourceName(), NickHiderConfig.nickname)
+        if (!org.polyfrost.oneconfig.internal.TextOptimizationOptions.nameMaskCache) return NickNameMask.replace(text, sourceName(), NickHiderConfig.nickname)
+        return cache.get().replace(text, sourceName(), NickHiderConfig.nickname)
     }
+
+    @JvmStatic fun cacheHits(): Long = cache.get().hits
+    @JvmStatic fun cacheMisses(): Long = cache.get().misses
 
     @JvmStatic
     fun displayRuns(runs: List<String>): List<String> {
