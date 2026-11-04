@@ -96,7 +96,8 @@ void arc_scene_destroy(void *pointer) {
     @autoreleasepool {
         if (!pointer) return;
         ArcResidentScene *scene = (__bridge_transfer ArcResidentScene *) pointer;
-        dispatch_semaphore_wait(scene.permit, dispatch_time(DISPATCH_TIME_NOW, INT64_C(5000000000)));
+        if (dispatch_semaphore_wait(scene.permit, dispatch_time(DISPATCH_TIME_NOW, INT64_C(5000000000))) == 0)
+            dispatch_semaphore_signal(scene.permit);
     }
 }
 
