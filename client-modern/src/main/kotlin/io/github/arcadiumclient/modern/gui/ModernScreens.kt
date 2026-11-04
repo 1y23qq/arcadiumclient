@@ -27,6 +27,7 @@ object ModernScreens {
     }
 
     @JvmStatic fun replace(screen: Screen?): Screen? {
+        if (screen is TitleScreen || screen is ArcadiumMainMenu) ReconnectTargets.clear()
         if (!initialized || screen == null || screen is ArcadiumScreen || screen is ArcadiumPauseScreen) return screen
         return when (screen) {
             is TitleScreen -> ArcadiumMainMenu()

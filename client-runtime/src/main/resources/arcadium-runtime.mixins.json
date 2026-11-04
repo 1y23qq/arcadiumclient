@@ -5,6 +5,8 @@
   "plugin": "io.github.arcadiumclient.runtime.mixin.RenderHookConstraintsPlugin",
   "mixins": [],
   "client": [
+    "client.ReconnectConnectMixin",
+    "client.ReconnectDisconnectedMixin",
     "client.diagnostics.CaptureMinecraftMixin",
     "client.diagnostics.CaptureRendererMixin",
     "client.diagnostics.CaptureWorldMixin",

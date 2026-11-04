@@ -5,6 +5,8 @@
   "plugin": "com.moulberry.mixinconstraints.ConstraintsMixinPlugin",
   "mixins": [],
   "client": [
+    "client.ReconnectConnectMixin",
+    "client.ReconnectDisconnectedMixin",
     "client.EmojiSendMixin",
     "client.EmojiFontMixin",
     "client.EmojiFineWidthMixin",

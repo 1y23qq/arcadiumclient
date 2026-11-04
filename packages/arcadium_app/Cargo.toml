@@ -12,6 +12,7 @@ authors = { workspace = true }
 
 [features]
 default = []
+release-qa = []
 
 [dependencies]
 arcadium_auth.workspace = true
@@ -183,3 +184,7 @@ assets = [
 [[bin]]
 name = "Arcadium"
 path = "src/main.rs"
+
+[[example]]
+name = "update_window071"
+required-features = ["release-qa"]

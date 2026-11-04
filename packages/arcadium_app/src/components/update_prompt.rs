@@ -41,7 +41,11 @@ impl Component for UpdatePromptOverlay {
                     .width(Size::window_percent(100.))
                     .height(Size::window_percent(100.))
                     .center()
-                    .child(update_card(&state)),
+                    .child(update_card(&state))
+                    .child(UpdateDragRegion {
+                        header: false,
+                        children: Vec::new(),
+                    }),
             )
             .into_element()
     }
@@ -77,28 +81,25 @@ fn update_card(state: &UpdateStatus) -> Element {
             24, 29, 39,
         )))
         .themed_border(border_all_color(1., colors::component_border()))
-        .child(
-            rect()
-                .horizontal()
-                .cross_align(Alignment::Center)
-                .spacing(12.)
-                .child(
-                    Icon::new(IconType::DownloadCloud02)
-                        .size(24.)
-                        .color(colors::brand()),
-                )
-                .child(
-                    label()
-                        .text(if confirmation {
-                            "Update available"
-                        } else {
-                            "Updating Arcadium Client"
-                        })
-                        .font_size(17.)
-                        .font_weight(FontWeight::SEMI_BOLD)
-                        .color(colors::fg_primary()),
-                ),
-        )
+        .child(UpdateDragRegion {
+            header: true,
+            children: vec![
+                Icon::new(IconType::DownloadCloud02)
+                    .size(24.)
+                    .color(colors::brand())
+                    .into_element(),
+                label()
+                    .text(if confirmation {
+                        "Update available"
+                    } else {
+                        "Updating Arcadium Client"
+                    })
+                    .font_size(17.)
+                    .font_weight(FontWeight::SEMI_BOLD)
+                    .color(colors::fg_primary())
+                    .into_element(),
+            ],
+        })
         .child(
             label()
                 .text(label_text)
@@ -203,6 +204,112 @@ fn update_card(state: &UpdateStatus) -> Element {
         }
     }
     card.into_element()
+}
+
+#[derive(Clone, Copy, PartialEq)]
+struct UpdateWindowDrag;
+
+#[derive(Clone, Copy, PartialEq)]
+struct UpdateDragStart {
+    window: (i32, i32),
+    cursor: (f64, f64),
+}
+
+#[derive(PartialEq)]
+struct UpdateDragSession {
+    press: (f64, f64),
+    anchor: Option<UpdateDragStart>,
+    native: bool,
+}
+
+#[derive(PartialEq)]
+struct UpdateDragRegion {
+    header: bool,
+    children: Vec<Element>,
+}
+
+impl Component for UpdateDragRegion {
+    fn render(&self) -> impl IntoElement {
+        let mut drag = use_state(|| None::<std::rc::Rc<std::cell::RefCell<UpdateDragSession>>>);
+        let area = if self.header {
+            rect()
+                .horizontal()
+                .cross_align(Alignment::Center)
+                .spacing(12.)
+                .a11y_role(AccessibilityRole::TitleBar)
+        } else {
+            rect()
+                .position(Position::new_global().top(0.).left(0.))
+                .width(Size::window_percent(100.))
+                .height(Size::px(crate::theme::NAVBAR_HEIGHT_PX))
+        };
+        area.children(self.children.clone())
+            .on_all_press(|event: Event<PressEventData>| event.stop_propagation())
+            .on_pointer_down(move |event: Event<PointerEventData>| {
+                if event.button() != Some(MouseButton::Left) {
+                    return;
+                }
+                let point = event.global_location();
+                let maximize = EventsCombos::<UpdateWindowDrag>::pressed(point).is_double();
+                if maximize {
+                    drag.set(None);
+                    Platform::get().with_window(Platform::window_id(), move |window| {
+                        window.set_maximized(!window.is_maximized());
+                    });
+                } else {
+                    drag.set(Some(std::rc::Rc::new(std::cell::RefCell::new(
+                        UpdateDragSession {
+                            press: (point.x, point.y),
+                            anchor: None,
+                            native: false,
+                        },
+                    ))));
+                }
+            })
+            .on_global_pointer_move(move |event: Event<PointerEventData>| {
+                let session = drag.peek().clone();
+                let Some(session) = session else {
+                    return;
+                };
+                let point = event.global_location();
+                EventsCombos::<UpdateWindowDrag>::moved(point);
+                Platform::get().with_window(Platform::window_id(), move |window| {
+                    let mut session = session.borrow_mut();
+                    if session.native {
+                        return;
+                    }
+                    if window.is_maximized() {
+                        session.native = true;
+                        let _ = window.drag_window();
+                        return;
+                    }
+                    if let (Ok(inner), Ok(outer)) =
+                        (window.inner_position(), window.outer_position())
+                    {
+                        let scale = window.scale_factor();
+                        let press = session.press;
+                        let start = *session.anchor.get_or_insert(UpdateDragStart {
+                            window: (outer.x, outer.y),
+                            cursor: (
+                                inner.x as f64 + press.0 * scale,
+                                inner.y as f64 + press.1 * scale,
+                            ),
+                        });
+                        let x = start.window.0
+                            + (inner.x as f64 + point.x * scale - start.cursor.0).round() as i32;
+                        let y = start.window.1
+                            + (inner.y as f64 + point.y * scale - start.cursor.1).round() as i32;
+                        if outer.x != x || outer.y != y {
+                            window.set_outer_position(winit::dpi::PhysicalPosition::new(x, y));
+                        }
+                    }
+                });
+            })
+            .on_global_pointer_up(move |_: Event<PointerEventData>| {
+                drag.set(None);
+                EventsCombos::<UpdateWindowDrag>::released();
+            })
+    }
 }
 
 #[cfg(test)]

@@ -5,6 +5,8 @@ package io.github.arcadiumclient.runtime.mixin.client;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.screen.menu.TitleScreen;
+import io.github.arcadiumclient.runtime.client.gui.ReconnectTargets;
 import net.minecraft.client.gui.screen.menu.world.SelectWorldScreen;
 import net.minecraft.client.gui.screen.menu.world.CreateWorldScreen;
 import net.minecraft.client.gui.screen.menu.multiplayer.MultiplayerScreen;
@@ -22,6 +24,7 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 public abstract class MixinArcadiumPlayScreens {
     @ModifyVariable(method = "openScreen", at = @At("HEAD"), argsOnly = true)
     private Screen arcadium$playScreen(Screen screen) {
+        if (screen instanceof TitleScreen) ReconnectTargets.clear();
         Screen video = ArcadiumVideoSettingsScreen.replace(screen);
         if (video != screen) return video;
         if (screen instanceof CreateWorldScreen create) {

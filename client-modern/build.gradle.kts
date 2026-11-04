@@ -138,6 +138,7 @@ tasks.withType<AbstractArchiveTask>().configureEach {
 }
 
 val guiQaSource = sourceSets.create("guiQa") {
+    java.srcDir("../client-shared/src/qa/java")
     compileClasspath += sourceSets.main.get().output + sourceSets.main.get().compileClasspath
     runtimeClasspath += output + compileClasspath + sourceSets.main.get().runtimeClasspath
 }

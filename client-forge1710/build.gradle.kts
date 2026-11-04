@@ -1,7 +1,7 @@
 plugins { java }
 
 group = "io.github.arcadiumclient"
-version = "0.7.0"
+version = "0.7.1"
 
 repositories {
     mavenCentral()
@@ -44,6 +44,7 @@ val forgeMixins by sourceSets.creating {
         sourceSets.main.get().compileClasspath + sourceSets.main.get().output
 }
 val qa by sourceSets.creating {
+    java.srcDir("../client-shared/src/qa/java")
     compileClasspath = forgeMixins.compileClasspath + fileTree("../build/forge1710/cache/libraries/com/mojang/authlib") { include("**/*.jar") }
 }
 tasks.register<Jar>("qaJar") {

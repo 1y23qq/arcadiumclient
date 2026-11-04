@@ -45,6 +45,11 @@ fn sender() -> &'static watch::Sender<UpdateStatus> {
 pub fn subscribe() -> watch::Receiver<UpdateStatus> {
     sender().subscribe()
 }
+
+#[cfg(feature = "release-qa")]
+pub fn preview_status(status: UpdateStatus) {
+    sender().send_replace(status);
+}
 pub fn continue_without_update() {
     sender().send_replace(UpdateStatus::default());
 }
@@ -475,9 +480,17 @@ mod tests {
                 labels.iter().any(|label| label == "Update available"),
                 "{labels:?}"
             );
+            if action == "Cancel" {
+                test.click_cursor((120., 24.));
+                test.poll_n(Duration::from_millis(5), 4);
+                assert!(
+                    !request.is_finished(),
+                    "The update title bar dismissed the confirmation"
+                );
+            }
             match action {
                 "Escape" => test.press_key(Key::Named(NamedKey::Escape)),
-                "Backdrop" => test.click_cursor((10., 10.)),
+                "Backdrop" => test.click_cursor((10., 410.)),
                 button => {
                     let point = {
                         let node = test

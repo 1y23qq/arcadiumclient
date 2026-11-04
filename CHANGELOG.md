@@ -1,3 +1,8 @@
+## 0.7.1
+
+- Added automatic server reconnection with a 3-second countdown on all game versions. Back stops retrying.
+- The launcher window can now be dragged during updates.
+
 ## 0.7.0
 
 - Improved name tag and HUD text rendering performance.

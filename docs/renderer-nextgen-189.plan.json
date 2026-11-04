@@ -1,0 +1,145 @@
+{
+  "schema": "arcadium.renderer-plan.v1",
+  "date": "2026-11-05",
+  "minecraft": "1.8.9",
+  "status": "planning-only",
+  "releaseContext": "0.7.1 ships reconnect and launcher fixes. This renderer is not implemented or enabled by this release.",
+  "decision": "Build a persistent GPU scene with compact actor state, GPU visibility and indirect submission. Separate scene preparation from its OpenGL/Metal backend.",
+  "reason": "Existing beta code already computes player poses and model transforms on the GPU. The larger opportunity is removing repeated Java traversal, instance preparation and driver submission around that computation, while increasing supported-model coverage.",
+  "existingWork": [
+    "Argentum/Celeritas terrain meshing and instancing remain the current foundation.",
+    "GpuPlayerPipeline and GpuModelTransforms already contain compact pose jobs, compute transforms and sorting.",
+    "Current fast player paths reject active Forge hooks, custom animation poses, detailed 3D skins, hurt/death states and several extra layers.",
+    "0.7.0 already batches forced vanilla font glyphs and caches text metrics/name masking. Retained name tags, HUD and particle paths already exist."
+  ],
+  "codeEvidence": [
+    "client-runtime/src/main/java/io/github/arcadiumclient/runtime/client/optimizations/GpuPlayerPipeline.java",
+    "client-runtime/src/main/java/io/github/arcadiumclient/runtime/client/optimizations/GpuModelTransforms.java",
+    "client-runtime/src/main/java/io/github/arcadiumclient/runtime/client/optimizations/GpuPlayerPackets.java",
+    "client-runtime/src/main/resources/assets/arcadium/shaders/player_pose.glsl",
+    "client-runtime/src/main/java/io/github/arcadiumclient/runtime/client/diagnostics/CaptureContext.java"
+  ],
+  "dataFlow": [
+    "Game thread extracts immutable previous/current actor states and world changes.",
+    "Stable geometry, skins, materials and actor records remain GPU-resident; uploads describe changes.",
+    "Each frame supplies current camera, partial tick, animation time and changed frame-dependent state.",
+    "GPU computes supported poses and conservative visibility, then produces indirect commands.",
+    "Actors, terrain and HUD draw through explicit passes with bounded submission and state changes.",
+    "Unsupported models and hooks keep the existing renderer, independently for each actor or pass."
+  ],
+  "phases": [
+    {
+      "id": "P0",
+      "name": "Measure the new baseline",
+      "work": "Capture 0.7.1 CPU/GPU phase times, allocations, submission counts and fast-path coverage on multiple PCs. Separate crowded lobby, active match, small scene and terrain-heavy scenes.",
+      "gate": "Identify the current critical path after the 0.7.0 text fixes. Distinguish driver waits from GPU work and use the same foreground, uncapped conditions for A/B tests."
+    },
+    {
+      "id": "P1",
+      "name": "Persistent actor state",
+      "work": "Create dense immutable actor snapshots, persistent mesh/material IDs and generation-based world/resource invalidation. Retain the existing backend first, so scene extraction can be verified independently.",
+      "gate": "No worker reads mutable Minecraft objects or calls GL. Frame interpolation and camera state remain current; entity-ID reuse, resource reload, world change and server switch cannot reuse stale state."
+    },
+    {
+      "id": "P2",
+      "name": "Resident actor rendering",
+      "work": "Use compact previous/current state plus per-frame parameters to generate bone/instance data and grouped indirect commands. Reuse geometry, texture tables and command storage across frames.",
+      "gate": "Show actual submitted actor count, rejected actors and reasons. No per-frame GPU-to-CPU visibility readback or full vanilla model traversal on the supported path."
+    },
+    {
+      "id": "P3",
+      "name": "Real client feature coverage",
+      "work": "Add explicit adapters for Arcadium animations, hurt/death, armor, held items, capes, 3D skin layers, glint, cosmetics and color-saturation passes. Preserve Forge rendering callbacks instead of globally bypassing them.",
+      "gate": "Known supported effects render identically and callbacks run once with the expected state. Unknown hooks fall back per actor. A fast path that rejects most real players is not accepted as a completed optimization."
+    },
+    {
+      "id": "P4",
+      "name": "GPU terrain command preparation",
+      "work": "Audit pinned Argentum/Celeritas coverage, then move remaining section traversal and command preparation into GPU-visible scene buffers. Reuse existing meshing and full-detail geometry.",
+      "gate": "Newly exposed terrain appears in the same frame after camera motion or block changes. Start with conservative frustum tests; occlusion cannot hide players, bridge edges or newly revealed blocks."
+    },
+    {
+      "id": "P5",
+      "name": "Metal backend prototype",
+      "work": "Reuse the same scene/pass description on Metal. Keep Pylon/SDL window ownership and implement the Skiko/Compose, Cera, text, blur, framebuffer and input connections before calling it an Arcadium renderer.",
+      "gate": "Compare native Metal against current Argentum on Apple Silicon and Intel macOS 12.7.6 hardware. Preserve the supported OpenGL path when device features or integration are insufficient."
+    },
+    {
+      "id": "P6",
+      "name": "Cross-device adoption",
+      "work": "Measure paired runs on the tester laptop, development PC, weaker Windows GPU, Apple Silicon and supported Intel Mac. Add one selectable backend and focused controls within the existing three Beta categories.",
+      "gate": "Publish complete option values and actual fast-path use, together with visual, frame-time, memory and latency evidence. Keep detailed status on the diagnostics page."
+    }
+  ],
+  "platforms": [
+    {
+      "platform": "Windows NVIDIA / AMD / Intel",
+      "primary": "OpenGL compute plus indirect submission, chosen by actual capabilities.",
+      "fallback": "Existing Argentum path or CPU preparation with batching.",
+      "constraint": "Do not assume indirect-count or bindless support from a vendor name. An optional NVIDIA mesh path is a later optimization, not the portable foundation."
+    },
+    {
+      "platform": "Apple Silicon",
+      "primary": "Prototype Metal against the same scene description.",
+      "fallback": "Current supported OpenGL renderer.",
+      "constraint": "Legacy GL calls and Skiko/UI surfaces need a real backend connection. Changing the API name alone is not sufficient."
+    },
+    {
+      "platform": "Intel Mac / macOS 12.7.6",
+      "primary": "Probe Metal device limits and compare on the actual supported hardware.",
+      "fallback": "OpenGL 4.1-compatible batching and CPU preparation.",
+      "constraint": "Keep existing OS support. Do not require modern Metal features or Windows OpenGL compute support on this path."
+    }
+  ],
+  "adoptionGoals": {
+    "performanceGoal": "Aim for at least 2x average FPS in a demonstrably CPU-bound crowded scene; this is a development target, not a measured result or a forecast.",
+    "frameTimeGoal": "Aim for at least 30% higher 1% low in the target scene. Reject repeatable regressions above 3% in ordinary scenes or low-end fallback paths.",
+    "latency": "Use current camera/input and do not grow the render-ahead queue to inflate FPS. Compare input-to-present behavior with the existing renderer.",
+    "visuals": "No reduced resolution, lower render distance, removed effects or frame generation in the default comparison. Check text, HUD, name tags, F5 held items, transparency and animation poses against the reference.",
+    "resources": "Bound resident memory, upload queues and caches. Test long sessions, resource reload, resizing, world/server changes and device/backend failure.",
+    "evidence": "Actual gains remain unmeasured. Use repeatable local fixtures plus live Hypixel validation; never transfer another project's reported multiplier to Arcadium."
+  },
+  "invariants": [
+    "No changes to game tick frequency, packets, movement, combat logic or server-visible position.",
+    "No forced opt-in or invisible disabling of Forge callbacks or existing client modules.",
+    "Keep OpenGL fallback available before expanding to Vulkan/Metal. Backend switching can require a restart.",
+    "Do not add more than two or three Beta categories; put verified Hypixel benefits first."
+  ],
+  "references": [
+    {
+      "project": "Stein Bridge",
+      "url": "https://github.com/stein-project/bridge/blob/71de285de5375d1986b523b3ac3dd762e0d23b3f/docs/PIPELINES.md",
+      "use": "Separate command/pass/backend ownership, compact GPU poses and fallback design.",
+      "condition": "MPL-2.0. Reference at the design stage; any future incorporation must keep the applicable notices and source conditions."
+    },
+    {
+      "project": "Graft",
+      "url": "https://github.com/korendotcs/Graft/blob/4386b98945178da071ba0ffe0b7a1e7e57eddb97/README.md",
+      "use": "Legacy 1.8.9 Metal hooks and full-pipeline integration boundaries.",
+      "condition": "LGPL-3.0. Its Forge/LWJGL2 window and input replacement is not a drop-in match for Arcadium Ornithe/Pylon/Skiko. No code is included by this release."
+    },
+    {
+      "project": "Voxy",
+      "url": "https://github.com/MCRcortex/voxy/blob/5bf33350a1cc7bb7e2b5d947b236c56d878b8a7d/LICENSE.md",
+      "use": "Study the GPU command-generation architecture as a reference only.",
+      "condition": "The inspected license says All rights reserved and Do not redistribute. Do not copy or redistribute its implementation in Arcadium."
+    },
+    {
+      "project": "Nvidium",
+      "url": "https://github.com/MCRcortex/nvidium/blob/f2028b2ba9a5dc95d69e73a9eaeadcb447367d7d/README.md",
+      "use": "Optional vendor-specific mesh/submission approach after a portable path exists.",
+      "condition": "The upstream README requires Turing or newer NVIDIA hardware. It cannot be the only Windows or Mac path."
+    },
+    {
+      "project": "Pinned Argentum 1.0.1",
+      "url": "https://github.com/QuicksilverMC/Argentum/blob/ca19bb8cea29814942d8b590527ae3b35b3af7d2/README.md",
+      "use": "Preserve existing instancing, meshing, text and occlusion work and avoid rebuilding equivalent optimizations.",
+      "condition": "Keep the user's existing Argentum arrangement. Audit exact Celeritas/backend interfaces before changing integration."
+    },
+    {
+      "project": "SDL3 Metal view API",
+      "url": "https://wiki.libsdl.org/SDL3/SDL_Metal_CreateView",
+      "use": "A possible window integration point for a Metal backend; it still needs engineering and native validation."
+    }
+  ]
+}
