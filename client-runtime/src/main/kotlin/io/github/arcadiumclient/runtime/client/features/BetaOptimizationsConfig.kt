@@ -7,6 +7,10 @@ import io.github.arcadiumclient.runtime.client.optimizations.RetainedHudBuffers
 import io.github.arcadiumclient.runtime.client.optimizations.GpuNameTags
 import io.github.arcadiumclient.runtime.client.optimizations.GpuPlayerPipeline
 import io.github.arcadiumclient.runtime.client.optimizations.GpuEquipmentPipeline
+import io.github.arcadiumclient.runtime.client.optimizations.GpuTerrainCommands
+import io.github.arcadiumclient.runtime.client.optimizations.GpuSkinLayers
+import io.github.arcadiumclient.runtime.client.optimizations.NativePlayerPosePipeline
+import io.github.arcadiumclient.runtime.client.optimizations.GpuResidentPlayerState
 import io.github.arcadiumclient.runtime.client.optimizations.RetainedNameTags
 import io.github.arcadiumclient.runtime.client.optimizations.GpuParticles
 import io.github.arcadiumclient.runtime.client.optimizations.FastInvisibleHolograms
@@ -74,14 +78,20 @@ object BetaOptimizationsConfig : Config("arcadium-optimizations-beta.json", "Opt
     @JvmStatic @Switch(title = "GPU Player Pipeline", description = "Build standard player poses from compact snapshots and submit their parts in bulk. Unsupported models and layers use the original renderer. Requires OpenGL 4.3.", category = "Players")
     var gpuPlayerPipeline = false
 
+    @JvmStatic @Switch(title = "Resident Player State", description = "Keep compact player data in persistent GPU buffers and update changed words. Busy or unsupported buffers use the normal streaming path without waiting. Requires persistent buffer storage.", category = "Players")
+    var residentPlayerState = false
+
     @JvmStatic @Switch(title = "GPU Equipment Pipeline", description = "Build standard player armor poses and submit armor parts in bulk on the GPU. Native texture selection, leather colors and enchantment effects are preserved. Requires OpenGL 4.3.", category = "Players")
     var gpuEquipmentPipeline = false
 
-    @JvmStatic @Slider(title = "Minimum Visible Players", description = "Use GPU transforms only when at least this many players were rendered in the last batch, to avoid dispatch overhead in small scenes.", min = 1f, max = 128f, step = 1f, category = "Players")
+    @JvmStatic @Slider(title = "Minimum Visible Players", description = "Use GPU transforms only when at least this many different players were rendered in the previous frame, to avoid dispatch overhead in small scenes.", min = 1f, max = 128f, step = 1f, category = "Players")
     var minimumPlayers = 1
 
     @JvmStatic @Switch(title = "Fast Frame Presentation", description = "Cache the final full-screen frame quad while keeping native colors, resolution and frame timing. Unsupported render states use the original path.", category = "Display")
     var directFramebufferPresentation = false
+
+    @JvmStatic @Switch(title = "GPU Terrain Commands", description = "Keep opaque terrain command data on the GPU while preserving native section visibility and full terrain detail. Requires OpenGL 4.3 and indirect-count support. Unsupported passes keep the original renderer.", category = "Display")
+    var gpuTerrainCommands = false
 
     @JvmStatic @Switch(title = "World Render Scale", description = "Render the world and held items at a lower resolution. HUD and menus stay at full resolution. This reduces image detail and helps GPU-limited scenes.", category = "Display")
     var worldRenderScale = false
@@ -100,13 +110,17 @@ object BetaOptimizationsConfig : Config("arcadium-optimizations-beta.json", "Opt
         preload()
         syncTextOptions()
         RenderHookAllocationControl.enabled = reduceRenderHookAllocations
+        GpuTerrainCommands.enabled = gpuTerrainCommands
+        GpuResidentPlayerState.enabled = residentPlayerState
         eventHandler { _: TickEvent.End ->
             NametagLayout.optimized = gpuNameTags || gpuPlayerPipeline
             RenderHookAllocationControl.enabled = reduceRenderHookAllocations
+            GpuTerrainCommands.enabled = gpuTerrainCommands
+            GpuResidentPlayerState.enabled = residentPlayerState
             syncTextOptions()
         }
         BetaOptimizationPage.register(id) {
-            listOf(GpuModelTransforms.status(), GpuPlayerPipeline.status(), GpuEquipmentPipeline.status(), GpuNameTags.status(), RetainedNameTags.status(), FastInvisibleHolograms.status(), RenderHookAllocationControl.status(), EfficientMotionBlur.status(), GpuParticles.status(), ScoreboardPreparation.status(), FastFramePresentation.status(), RetainedHudBuffers.status(), WorldRenderScale.status())
+            listOf(GpuModelTransforms.status(), GpuPlayerPipeline.status(), GpuEquipmentPipeline.status(), NativePlayerPosePipeline.status(), GpuResidentPlayerState.status(), GpuSkinLayers.status(), GpuTerrainCommands.status(), GpuNameTags.status(), RetainedNameTags.status(), FastInvisibleHolograms.status(), RenderHookAllocationControl.status(), EfficientMotionBlur.status(), GpuParticles.status(), ScoreboardPreparation.status(), FastFramePresentation.status(), RetainedHudBuffers.status(), WorldRenderScale.status())
         }
         io.github.arcadiumclient.runtime.client.diagnostics.PerformanceCapture.initialize()
     }

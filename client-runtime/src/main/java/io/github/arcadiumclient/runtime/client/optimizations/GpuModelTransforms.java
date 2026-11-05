@@ -18,7 +18,8 @@ public final class GpuModelTransforms {
     private static FloatBuffer jobs = BufferUtils.createFloatBuffer(1024 * JOB_FLOATS);
     private static final Matrix4f marker = new Matrix4f();
     private static final Matrix4f root = new Matrix4f(), box = new Matrix4f(), resolved = new Matrix4f();
-    private static int count, uploaded, program, input, countUniform, players, observedPlayers, sortProgram, sortCountUniform, scratch;
+    private static int count, uploaded, program, input, countUniform, players, sortProgram, sortCountUniform, scratch;
+    private static final VisiblePlayerBudget visibility = new VisiblePlayerBudget();
     private static boolean checked, supported, failed;
     public static long offloadedParts, fallbackParts, dispatches, cpuRecoveries, sortedBatches;
     private static volatile String capability = "Not tested yet";
@@ -28,15 +29,18 @@ public final class GpuModelTransforms {
     public static void beginBatch() {
         count = uploaded = 0;
         GpuPlayerPackets.beginBatch();
+        NativePlayerPosePipeline.beginBatch();
     }
 
     public static void beginFrame() {
         if(BetaOptimizationsConfig.getGpuPlayerPipeline()||BetaOptimizationsConfig.getGpuEquipmentPipeline())PlayerPoseOptions.refresh();
-        players = (BetaOptimizationsConfig.getGpuModelTransforms() || BetaOptimizationsConfig.getGpuPlayerPipeline()||BetaOptimizationsConfig.getGpuEquipmentPipeline()) ? observedPlayers : 0;
-        observedPlayers = 0;
+        if(BetaOptimizationsConfig.getGpuModelTransforms() || BetaOptimizationsConfig.getGpuPlayerPipeline()||BetaOptimizationsConfig.getGpuEquipmentPipeline())visibility.beginFrame();
+        else visibility.clear();
+        players=visibility.previousFrame();
     }
 
-    public static void notePlayer() { if(BetaOptimizationsConfig.getGpuModelTransforms()||BetaOptimizationsConfig.getGpuPlayerPipeline()||BetaOptimizationsConfig.getGpuEquipmentPipeline())observedPlayers++; }
+    public static void notePlayer(Object player) { if(BetaOptimizationsConfig.getGpuModelTransforms()||BetaOptimizationsConfig.getGpuPlayerPipeline()||BetaOptimizationsConfig.getGpuEquipmentPipeline())visibility.observe(player); }
+    public static void clearFrameBudget(){visibility.clear();players=0;}
 
     public static boolean ready() {
         int minimum=BetaOptimizationsConfig.getMinimumPlayers();
@@ -119,10 +123,17 @@ public final class GpuModelTransforms {
                 var shape=new Matrix4f().translation(-.25f,-.125f,-.125f).scale(i%2==0?.5f:-.5f,.75f,.25f);
                 Matrix4f encoded;
                 if(i<32){encoded=enqueue(base,.1f,.5f,0,i*.11f,i*.07f,i*.03f,shape);expected[i]=resolve(i,new Matrix4f());}
-                else{
+                else if(i<48){
                     int player=GpuPlayerPackets.add(base,i*.51f,.6f,i*.78f,45,30,(i%7)/7f,0,i%3==0?3:1,i%5==0,i%3==0,i%11==0,compactTemplate),part=i%12;
                     encoded=new Matrix4f().m00(-(player*16+part+1)).m01(Float.intBitsToFloat(MAGIC_1)).m02(Float.intBitsToFloat(MAGIC_2));
                     expected[i]=GpuPlayerPackets.resolve(player*16+part,new Matrix4f());
+                }else{
+                    int player=GpuPlayerPackets.addPose(base,compactTemplate),part=i%12;
+                    float tx=i*.01f,ty=-i*.02f,tz=.25f,rx=i*.13f,ry=i*-.17f,rz=i*.05f;
+                    GpuPlayerPackets.writePose(player,part,tx,ty,tz,rx,ry,rz);
+                    encoded=new Matrix4f().m00(-(player*16+part+1)).m01(Float.intBitsToFloat(MAGIC_1)).m02(Float.intBitsToFloat(MAGIC_2));
+                    expected[i]=new Matrix4f(base).translate(tx,ty,tz).rotateZ(rz).rotateY(ry).rotateX(rx)
+                            .translate(-.25f,0,-.125f).scale(.5f,.75f,.25f);
                 }
                 int p=i*STRIDE;
                 for(int c=0;c<4;c++)for(int r=0;r<3;r++)payload[p+c*3+r]=Float.floatToRawIntBits(encoded.get(c,r));
@@ -173,9 +184,11 @@ public final class GpuModelTransforms {
         long start1=range(previous1,GL43.GL_SHADER_STORAGE_BUFFER_START,1), size1=range(previous1,GL43.GL_SHADER_STORAGE_BUFFER_SIZE,1);
         long start2=range(previous2,GL43.GL_SHADER_STORAGE_BUFFER_START,2), size2=range(previous2,GL43.GL_SHADER_STORAGE_BUFFER_SIZE,2);
         int previous3=GL30.glGetIntegeri(GL43.GL_SHADER_STORAGE_BUFFER_BINDING,3),previous4=GL30.glGetIntegeri(GL43.GL_SHADER_STORAGE_BUFFER_BINDING,4),previous5=GL30.glGetIntegeri(GL43.GL_SHADER_STORAGE_BUFFER_BINDING,5);
+        int previous6=GL30.glGetIntegeri(GL43.GL_SHADER_STORAGE_BUFFER_BINDING,6);
         long start3=range(previous3,GL43.GL_SHADER_STORAGE_BUFFER_START,3),size3=range(previous3,GL43.GL_SHADER_STORAGE_BUFFER_SIZE,3);
         long start4=range(previous4,GL43.GL_SHADER_STORAGE_BUFFER_START,4),size4=range(previous4,GL43.GL_SHADER_STORAGE_BUFFER_SIZE,4);
         long start5=range(previous5,GL43.GL_SHADER_STORAGE_BUFFER_START,5),size5=range(previous5,GL43.GL_SHADER_STORAGE_BUFFER_SIZE,5);
+        long start6=range(previous6,GL43.GL_SHADER_STORAGE_BUFFER_START,6),size6=range(previous6,GL43.GL_SHADER_STORAGE_BUFFER_SIZE,6);
         try {
             if (!supported || failed) throw new IllegalStateException("GPU transforms unavailable");
             if (uploaded != count) {
@@ -189,6 +202,7 @@ public final class GpuModelTransforms {
             GL20.glUseProgram(program); GL20.glUniform1i(countUniform, instances);
             GL43.glDispatchCompute((instances + 63) / 64, 1, 1);
             GL42.glMemoryBarrier(GL43.GL_SHADER_STORAGE_BARRIER_BIT | GL42.GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT);
+            if(GpuResidentPlayerState.enabled)GpuResidentPlayerState.submitted();
             dispatches++;
             if (sort) sortGpu(instanceBuffer, instances);
             offloadedParts += gpuParts;
@@ -198,6 +212,7 @@ public final class GpuModelTransforms {
             restoreBinding(1,previous1,start1,size1);
             restoreBinding(2,previous2,start2,size2);
             restoreBinding(3,previous3,start3,size3);restoreBinding(4,previous4,start4,size4);restoreBinding(5,previous5,start5,size5);
+            restoreBinding(6,previous6,start6,size6);
             GL15.glBindBuffer(GL43.GL_SHADER_STORAGE_BUFFER, previousGeneric);
         }
     }
@@ -285,6 +300,7 @@ public final class GpuModelTransforms {
         if (scratch != 0) GL15.glDeleteBuffers(scratch);
         if (sortProgram != 0) GL20.glDeleteProgram(sortProgram);
         GpuPlayerPackets.close();
+        visibility.clear();players=0;
         input = program = scratch = sortProgram = count = uploaded = 0; checked = supported = failed = false;
     }
 }

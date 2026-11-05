@@ -5,6 +5,7 @@ import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.moulberry.mixinconstraints.annotations.IfModLoaded;
 import io.github.arcadiumclient.runtime.client.optimizations.GpuModelTransforms;
+import io.github.arcadiumclient.runtime.client.optimizations.NativePlayerPosePipeline;
 import io.github.arcadiumclient.runtime.client.features.BetaOptimizationsConfig;
 import java.lang.invoke.*;
 import io.github.arcadiumclient.runtime.mixin.client.access.BetaModelPartAccess;
@@ -30,15 +31,17 @@ public abstract class MixinGpuModelCapture {
     @Unique private float arcadium$scale;
     @Unique private static MethodHandle arcadium$submitBoxes;
     @Unique private static MethodHandle arcadium$pass;
+    @Unique private final NativePlayerPosePipeline.CaptureState arcadium$nativePose = new NativePlayerPosePipeline.CaptureState();
 
     @Inject(method = "beginEntity", at = @At("HEAD"), remap = false)
     private void arcadium$countPlayer(@Coerce Object model, @Coerce Object texture, boolean isPlayer, boolean preserveFixedFunction,
             int light, float time, float red, float green, float blue, float alpha, CallbackInfo callback) {
-        if (isPlayer) GpuModelTransforms.notePlayer();
+        arcadium$nativePose.begin();
     }
 
     @WrapMethod(method = "recordPart")
     private void arcadium$compactPart(ModelPart part, float scale, Operation<Void> original) {
+        if (player && !item && NativePlayerPosePipeline.capture(arcadium$nativePose, (Object)this, part, scale)) return;
         if (!BetaOptimizationsConfig.getGpuModelTransforms()||!GpuModelTransforms.ready()) { original.call(part, scale); return; }
         if (!player || item || armorLayer || ((BetaModelPartAccess)part).arcadium$baseModel().getClass() != PlayerModel.class
                 || part.getClass() != ModelPart.class || part.invisible || !part.visible

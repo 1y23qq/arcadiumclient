@@ -2,17 +2,32 @@
 layout(std430,binding=3) readonly buffer Players {float pd[];};
 layout(std430,binding=4) readonly buffer Templates {float td[];};
 layout(std430,binding=5) readonly buffer Sines {float sineTable[];};
+layout(std430,binding=6) readonly buffer NativePoses {float np[];};
 float mcSin(float a){precise float index=a*10430.378;return sineTable[int(index)&65535];}
 float mcCos(float a){precise float product=a*10430.378;precise float index=product+16384.0;return sineTable[int(index)&65535];}
 mat4 playerRoot(uint p){return mat4(vec4(pd[p],pd[p+1],pd[p+2],pd[p+3]),vec4(pd[p+4],pd[p+5],pd[p+6],pd[p+7]),vec4(pd[p+8],pd[p+9],pd[p+10],pd[p+11]),vec4(pd[p+12],pd[p+13],pd[p+14],pd[p+15]));}
 mat4 playerPart(uint encoded){
     uint p=(encoded/16u)*32u,part=encoded%16u,t=uint(pd[p+27u])+part*16u;
+    if(pd[p+29u]>=0.0){
+        uint n=uint(pd[p+29u])*96u+part*8u;
+        vec3 a=vec3(np[n+3u],np[n+4u],np[n+5u]),s=sin(a),c=cos(a);
+        mat4 x=mat4(1.0);x[1].yz=vec2(c.x,s.x);x[2].yz=vec2(-s.x,c.x);
+        mat4 y=mat4(1.0);y[0].xz=vec2(c.y,-s.y);y[2].xz=vec2(s.y,c.y);
+        mat4 z=mat4(1.0);z[0].xy=vec2(c.z,s.z);z[1].xy=vec2(-s.z,c.z);
+        mat4 translation=mat4(1.0);translation[3].xyz=vec3(np[n],np[n+1u],np[n+2u]);
+        mat4 box=mat4(1.0);box[0].x=td[t+12u];box[1].y=td[t+13u];box[2].z=td[t+14u];box[3].xyz=vec3(td[t+8u],td[t+9u],td[t+10u]);
+        return playerRoot(p)*translation*z*y*x*box;
+    }
     uint bones[12]=uint[](0u,1u,2u,3u,4u,5u,0u,5u,4u,3u,2u,1u);uint bone=bones[part];
     float walk=pd[p+16u],speed=pd[p+17u],age=pd[p+18u],yaw=pd[p+19u],pitch=pd[p+20u],swing=pd[p+21u];
     bool sneak=pd[p+22u]!=0.0,bow=pd[p+23u]!=0.0,riding=pd[p+26u]!=0.0;int left=int(pd[p+24u]),right=int(pd[p+25u]),options=int(pd[p+28u]);
     precise float hx=pitch/57.295776,hy=yaw/57.295776;
     precise float rx=mcCos(walk*.6662+3.1415927)*2.0*speed*.5,lx=mcCos(walk*.6662)*2.0*speed*.5;
     float ry=0.0,ly=0.0,rz=0.0,lz=0.0;
+    if((options&4)!=0){
+        rx=mcCos(walk*.6662+3.1415927)*2.0*speed;lx=mcCos(walk*.6662)*2.0*speed;
+        rz=(mcCos(walk*.2312)+1.0)*speed;lz=(mcCos(walk*.2812)-1.0)*speed;
+    }
     precise float rleg=mcCos(walk*.6662)*1.4*speed,lleg=mcCos(walk*.6662+3.1415927)*1.4*speed;
     float rlegy=0.0,llegy=0.0,bodyy=0.0,armx=5.0,armz=0.0;
     if(riding){rx+=-.62831855;lx+=-.62831855;rleg=-1.2566371;lleg=-1.2566371;rlegy=.31415927;llegy=-.31415927;}

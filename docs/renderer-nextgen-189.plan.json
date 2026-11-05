@@ -2,8 +2,8 @@
   "schema": "arcadium.renderer-plan.v1",
   "date": "2026-11-05",
   "minecraft": "1.8.9",
-  "status": "planning-only",
-  "releaseContext": "0.7.1 ships reconnect and launcher fixes. This renderer is not implemented or enabled by this release.",
+  "status": "implementation-in-progress",
+  "releaseContext": "0.7.1 shipped reconnect and launcher fixes. The 0.7.2 renderer prototypes are in development and verification; they have not been published or accepted as a completed backend.",
   "decision": "Build a persistent GPU scene with compact actor state, GPU visibility and indirect submission. Separate scene preparation from its OpenGL/Metal backend.",
   "reason": "Existing beta code already computes player poses and model transforms on the GPU. The larger opportunity is removing repeated Java traversal, instance preparation and driver submission around that computation, while increasing supported-model coverage.",
   "existingWork": [

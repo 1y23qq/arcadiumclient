@@ -1,0 +1,68 @@
+#version 430
+layout(local_size_x = 256) in;
+struct Mesh {
+    ivec4 origin;
+    uvec4 starts0;
+    uvec4 starts1;
+    uvec4 counts0;
+    uvec4 counts1;
+};
+layout(std430, binding = 0) readonly buffer Meshes { Mesh meshes[]; };
+layout(std430, binding = 1) readonly buffer SectionOrder { uint sections[]; };
+layout(std430, binding = 2) writeonly buffer Commands { uint outputWords[]; };
+layout(std430, binding = 3) writeonly buffer Count { uint drawCount; };
+uniform ivec3 uCamera;
+uniform uint uSections;
+uniform uint uCullFaces;
+uniform uint uVerticesPerPrimitive;
+uniform uint uElementsPerPrimitive;
+shared uint prefix[256];
+
+uint visibleFaces(ivec3 origin) {
+    bvec3 positive = greaterThan(uCamera, origin - ivec3(3));
+    bvec3 negative = lessThan(uCamera, origin + ivec3(19));
+    return 64u | uint(positive.x) | uint(positive.y) << 1u | uint(positive.z) << 2u
+        | uint(negative.x) << 3u | uint(negative.y) << 4u | uint(negative.z) << 5u;
+}
+
+void main() {
+    uint lane = gl_LocalInvocationID.x;
+    uint bases[7];
+    uint counts[7];
+    uint commands = 0u;
+    if (lane < uSections) {
+        Mesh mesh = meshes[sections[lane]];
+        uint mask = uCullFaces == 0u ? 127u : visibleFaces(mesh.origin.xyz);
+        uint previousEnd = 0xffffffffu;
+        for (uint face = 0u; face < 7u; face++) {
+            uint count = face < 4u ? mesh.counts0[face] : mesh.counts1[face - 4u];
+            if (count == 0u || (mask & (1u << face)) == 0u) continue;
+            uint base = face < 4u ? mesh.starts0[face] : mesh.starts1[face - 4u];
+            if (commands > 0u && previousEnd == base) counts[commands - 1u] += count;
+            else {
+                bases[commands] = base;
+                counts[commands] = count;
+                commands++;
+            }
+            previousEnd = base + count / uElementsPerPrimitive * uVerticesPerPrimitive;
+        }
+    }
+    prefix[lane] = commands;
+    barrier();
+    for (uint distance = 1u; distance < 256u; distance <<= 1u) {
+        uint previous = lane >= distance ? prefix[lane - distance] : 0u;
+        barrier();
+        prefix[lane] += previous;
+        barrier();
+    }
+    uint first = prefix[lane] - commands;
+    for (uint index = 0u; index < commands; index++) {
+        uint word = (first + index) * 5u;
+        outputWords[word] = counts[index];
+        outputWords[word + 1u] = 1u;
+        outputWords[word + 2u] = 0u;
+        outputWords[word + 3u] = bases[index];
+        outputWords[word + 4u] = 0u;
+    }
+    if (lane == 255u) drawCount = prefix[255];
+}

@@ -20,12 +20,16 @@ public final class PlayerPoseMath {
         float headX=pitch/57.295776f,headY=yaw/57.295776f;
         float rightX=cos(walk*.6662f+PI)*2*speed*.5f,leftX=cos(walk*.6662f)*2*speed*.5f;
         float rightY=0,leftY=0,rightZ=0,leftZ=0;
+        if((options&PlayerPoseOptions.WAVY_ARMS)!=0){
+            rightX=cos(walk*.6662f+PI)*2*speed;leftX=cos(walk*.6662f)*2*speed;
+            rightZ=(cos(walk*.2312f)+1)*speed;leftZ=(cos(walk*.2812f)-1)*speed;
+        }
         float rightLegX=cos(walk*.6662f)*1.4f*speed,leftLegX=cos(walk*.6662f+PI)*1.4f*speed;
         float rightLegY=0,leftLegY=0,bodyY=0;
         if(riding){rightX+=-.62831855f;leftX+=-.62831855f;rightLegX=leftLegX=-1.2566371f;rightLegY=.31415927f;leftLegY=-.31415927f;}
         if(heldLeft!=0)leftX=leftX*.5f-.31415927f*heldLeft;
         if(heldRight==1||heldRight==3)rightX=rightX*.5f-.31415927f*heldRight;
-        if(heldRight==3&&(options&1)==0)rightY=-.5235988f;
+        if(heldRight==3&&(options&PlayerPoseOptions.OLD_BLOCKING)==0)rightY=-.5235988f;
         float armX=5,armZ=0;
         if(swing>-9990){
             bodyY=sin((float)Math.sqrt(swing)*PI*2)*.2f;armX=cos(bodyY)*5;armZ=sin(bodyY)*5;

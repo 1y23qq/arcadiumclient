@@ -17,7 +17,7 @@ public final class GpuEquipmentPipeline {
     private static PlayerBatchAccess api;
     private static Object backend;
     private static final IdentityHashMap<HumanoidModel,Profile> profiles=new IdentityHashMap<>();
-    private static final Set<HumanoidModel> unsupported=Collections.newSetFromMap(new IdentityHashMap<>());
+    private static final Set<HumanoidModel> unsupported=Collections.newSetFromMap(new WeakHashMap<>());
     private static boolean failed;
     private static volatile String state="Waiting for standard armor";
     public static long statesQueued,partsQueued,glintStates,leatherStates,fallbacks;
@@ -65,7 +65,7 @@ public final class GpuEquipmentPipeline {
             Object device=api.backend.get(actor);if(backend!=device){profiles.clear();unsupported.clear();backend=device;}
             if(unsupported.contains(model)){fallbacks++;return false;}
             profile=profiles.get(model);
-            if(profile==null){try{profile=new Profile(model,device);profiles.put(model,profile);}catch(IllegalArgumentException rejected){unsupported.add(model);fallbacks++;return false;}}
+            if(profile==null){if(profiles.size()>=128){state="Armor profile budget; using native capture";fallbacks++;return false;}try{profile=new Profile(model,device);profiles.put(model,profile);}catch(IllegalArgumentException rejected){unsupported.add(model);fallbacks++;return false;}}
             Object pass=api.capturePass.get(capture);String kind=((Enum<?>)pass).name();
             if(!kind.equals("NORMAL")&&!kind.equals("GLINT")){fallbacks++;return false;}
             boolean isGlint=kind.equals("GLINT");if(isGlint)glint=(Set<ModelPart>)api.captureGlint.get(capture);

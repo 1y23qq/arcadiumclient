@@ -23,6 +23,7 @@
     "compat.polyblur.HybridBlurUniformAccess",
     "client.MixinConvertedResourcePack",
     "compat.argentum.MixinSkinLayersInstancing",
+    "compat.argentum.MixinGpuTerrainCommands",
     "client.EmojiSendMixin",
     "client.EmojiFontMixin",
     "client.EmojiChatPickerMixin",

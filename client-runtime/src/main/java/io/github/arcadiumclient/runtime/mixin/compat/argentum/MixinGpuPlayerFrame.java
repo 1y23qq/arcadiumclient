@@ -3,14 +3,18 @@ package io.github.arcadiumclient.runtime.mixin.compat.argentum;
 
 import com.moulberry.mixinconstraints.annotations.IfModLoaded;
 import io.github.arcadiumclient.runtime.client.optimizations.GpuModelTransforms;
+import net.minecraft.client.render.GameRenderer;
+import net.minecraft.client.Minecraft;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.*;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Pseudo
 @IfModLoaded("argentum")
-@Mixin(targets="dev.rdh.argentum.impl.render.entity.instancing.EntityInstancing",remap=false)
+@Mixin(GameRenderer.class)
 public abstract class MixinGpuPlayerFrame {
-    @Inject(method="beginBatch",at=@At("HEAD"),remap=false)
-    private void arcadium$visiblePlayers(CallbackInfoReturnable<Boolean> callback){GpuModelTransforms.beginFrame();}
+    @Inject(method="render(FJ)V",at=@At("HEAD"))
+    private void arcadium$visiblePlayers(float delta,long nanoTime,CallbackInfo callback){
+        if(Minecraft.getInstance().world==null)GpuModelTransforms.clearFrameBudget();
+        else GpuModelTransforms.beginFrame();
+    }
 }

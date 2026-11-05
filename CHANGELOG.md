@@ -1,3 +1,7 @@
+## 0.7.2
+
+- Switched Argentum, Argentum Extras and Cera downloads to Modrinth.
+
 ## 0.7.1
 
 - Added automatic server reconnection with a 3-second countdown on all game versions. Back stops retrying.
