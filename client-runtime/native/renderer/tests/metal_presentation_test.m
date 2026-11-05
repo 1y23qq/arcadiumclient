@@ -4,7 +4,21 @@
 #include <stdlib.h>
 
 #define CHECK(x) do { if (!(x)) { fprintf(stderr, "CHECK failed at %d: %s\n", __LINE__, #x); return 1; } } while (0)
-static void pump(void) { [NSRunLoop.currentRunLoop runUntilDate:[NSDate dateWithTimeIntervalSinceNow:.01]]; }
+static void pump(void) {
+    NSDate *limit=[NSDate dateWithTimeIntervalSinceNow:.01];NSEvent *event;
+    while((event=[NSApp nextEventMatchingMask:NSEventMaskAny untilDate:limit inMode:NSDefaultRunLoopMode dequeue:YES]))[NSApp sendEvent:event];
+    [NSApp updateWindows];[CATransaction flush];
+}
+static void presentationState(ArcPresentation *p, uint64_t frame, const char *stage) {
+    NSWindow *window=p.window;CAMetalLayer *layer=(CAMetalLayer *)p.view.layer;
+    fprintf(stderr,"presentation stage=%s frame=%llu prepared=%llu submitted=%llu completed=%llu displayed=%llu inFlight=%d failed=%d visible=%d occlusionVisible=%d appActive=%d appHidden=%d key=%d hidden=%d ancestorHidden=%d attached=%d layerHidden=%d drawable=%.0fx%.0f scale=%.3f bytes=%llu\n",
+        stage,(unsigned long long)frame,(unsigned long long)p.prepared,(unsigned long long)p.submitted,
+        (unsigned long long)atomic_load(&p.state->completed),(unsigned long long)atomic_load(&p.state->displayed),
+        atomic_load(&p.state->inFlight),atomic_load(&p.state->failed),window.isVisible,
+        (window.occlusionState&NSWindowOcclusionStateVisible)!=0,NSApp.isActive,NSApp.isHidden,window.isKeyWindow,
+        p.hidden,p.view.isHiddenOrHasHiddenAncestor,p.attached,layer.hidden,
+        layer.drawableSize.width,layer.drawableSize.height,layer.contentsScale,(unsigned long long)atomic_load(&p.state->liveBytes));
+}
 static void pattern(int width, int height, int frame) {
     const float colors[4][3] = {{1,0,0},{0,1,0},{0,0,1},{1,1,0}};
     glViewport(0,0,width,height); glDisable(GL_BLEND); glDisable(GL_DEPTH_TEST); glDisable(GL_DITHER); glEnable(GL_SCISSOR_TEST);
@@ -27,7 +41,7 @@ static int checkImage(ArcPresentation *p, const uint8_t *source, int width, int 
 
 int main(void) {
     @autoreleasepool {
-        [NSApplication sharedApplication]; [NSApp setActivationPolicy:NSApplicationActivationPolicyAccessory];
+        [NSApplication sharedApplication];CHECK([NSApp setActivationPolicy:NSApplicationActivationPolicyRegular]);[NSApp finishLaunching];
         void *scene=arc_scene_create(2,80,20,64);
         if(!scene){fprintf(stderr,"SKIP: %s\n",arc_scene_error(NULL));return 77;}
         NSOpenGLPixelFormatAttribute attributes[]={NSOpenGLPFADoubleBuffer,NSOpenGLPFAColorSize,24,
@@ -37,7 +51,8 @@ int main(void) {
         NSWindow *window=[[NSWindow alloc]initWithContentRect:NSMakeRect(40,40,64,64)
             styleMask:NSWindowStyleMaskTitled|NSWindowStyleMaskResizable backing:NSBackingStoreBuffered defer:NO];
         NSOpenGLView *gl=[[NSOpenGLView alloc]initWithFrame:NSMakeRect(0,0,64,64) pixelFormat:format];
-        window.contentView=gl;window.opaque=YES;[window orderFrontRegardless];pump();
+        window.releasedWhenClosed=NO;window.contentView=gl;window.opaque=YES;
+        [window makeKeyAndOrderFront:nil];[NSApp activateIgnoringOtherApps:YES];pump();
         [gl.openGLContext makeCurrentContext];[gl.openGLContext update];
         NSSize pixels=[gl convertSizeToBacking:gl.bounds.size];int width=(int)pixels.width,height=(int)pixels.height;
         CHECK(width>0&&height>0&&(width&1)==0&&(height&1)==0);
@@ -82,9 +97,11 @@ int main(void) {
             CHECK(draw0==GL_COLOR_ATTACHMENT0_EXT&&draw1==GL_COLOR_ATTACHMENT1_EXT);
             glBindFramebufferEXT(GL_FRAMEBUFFER_EXT,0);glGetIntegerv(GL_READ_BUFFER,&readTarget);CHECK(readTarget==GL_FRONT);
             CHECK(arc_present_publish(out,frame)==ARC_PRESENT_OK);
+            presentationState(p,frame,"submitted");
             CHECK(((CAMetalLayer *)p.view.layer).displaySyncEnabled==(interval!=0));
             NSDate *limit=[NSDate dateWithTimeIntervalSinceNow:5];
             while((arc_present_query(out,ARC_PRESENT_LAST_COMPLETED)!=frame||arc_present_query(out,ARC_PRESENT_LAST_DISPLAYED)!=frame)&&limit.timeIntervalSinceNow>0)pump();
+            presentationState(p,frame,"wait-ended");
             CHECK(arc_present_query(out,ARC_PRESENT_LAST_PREPARED)==frame&&arc_present_query(out,ARC_PRESENT_LAST_SUBMITTED)==frame);
             CHECK(arc_present_query(out,ARC_PRESENT_LAST_COMPLETED)==frame&&arc_present_query(out,ARC_PRESENT_LAST_DISPLAYED)==frame);
             CHECK(checkImage(p,source,width,height)==0);
