@@ -129,8 +129,9 @@ public final class GpuPlayerPipeline {
             if(job<0)return false;
             if(batch==null)batch=api.select.invoke(backend,skin,api.translucent);
             int light=player.getLightLevel(delta),layer=(int)api.selectedLayer.get(backend),lightWord=(light&255)|((light>>>16&255)<<8)|(layer&255)<<16;
-            int added=0;
-            for(int mirror=0;mirror<2;mirror++){
+            boolean residentBody=GpuResidentBodies.queue(backend,profile,job,mask,batch,skin,light,age,root);
+            int added=residentBody?Integer.bitCount(mask):0;
+            if(!residentBody)for(int mirror=0;mirror<2;mirror++){
                 int n=0;for(int i=0;i<12;i++)if((mask&(1<<i))!=0&&profile.mirrored[i]==(mirror==1))n++;
                 if(n==0)continue;
                 Object instances=api.instances.invoke(profile.geometry[mirror],batch);int[] data=(int[])api.data.get(instances);int size=(int)api.size.get(instances),count=(int)api.count.get(instances);
@@ -142,7 +143,7 @@ public final class GpuPlayerPipeline {
                 }
                 api.size.set(instances,size);api.count.set(instances,count+n);added+=n;
             }
-            api.batchCount.set(batch,(int)api.batchCount.get(batch)+added);api.backendCount.set(backend,(int)api.backendCount.get(backend)+added);
+            if(!residentBody){api.batchCount.set(batch,(int)api.batchCount.get(batch)+added);api.backendCount.set(backend,(int)api.backendCount.get(backend)+added);}
             committed=true;
             boolean counted=extraLayers&&renderLayers(renderAccess,model,profile.parts,skinMask,nativeLayers,job,profile.template,player,actor,skin,light,walk,speed,delta,age,head,pitch);
             if(!counted){api.entityCount.set(actor,(int)api.entityCount.get(actor)+1);api.playerCount.set(actor,(int)api.playerCount.get(actor)+1);}
@@ -235,6 +236,6 @@ public final class GpuPlayerPipeline {
         }finally{invalidatingBackend=false;}
     }
     private static float angle(float old,float current,float delta){float difference=current-old;while(difference< -180)difference+=360;while(difference>=180)difference-=360;return old+delta*difference;}
-    public static void reset(){profiles.clear();unsupported.clear();lastBackend=null;GpuEquipmentPipeline.reset();NativePlayerPosePipeline.reset();GpuResidentPlayerState.reset();GpuPlayerPackets.resetTemplates();CeraEmissiveAdmission.reset();}
+    public static void reset(){GpuResidentBodies.reset();profiles.clear();unsupported.clear();lastBackend=null;GpuEquipmentPipeline.reset();NativePlayerPosePipeline.reset();GpuResidentPlayerState.reset();GpuPlayerPackets.resetTemplates();CeraEmissiveAdmission.reset();}
     public static String status(){return BetaOptimizationsConfig.getGpuPlayerPipeline()?"GPU player pipeline: "+state+" | Players: "+playersDrawn+" | Layer/model fallback: "+(rejectedLayers+rejectedModel):"GPU player pipeline: Off";}
 }

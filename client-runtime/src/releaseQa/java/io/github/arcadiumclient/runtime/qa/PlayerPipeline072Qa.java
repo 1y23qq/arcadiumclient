@@ -40,6 +40,7 @@ public final class PlayerPipeline072Qa {
     private static final boolean VISUAL = System.getProperty("arcadium.playerPipeline072.mode", "visual").equals("visual");
     private static final boolean BASELINE = Boolean.getBoolean("arcadium.playerPipeline072.baseline");
     private static final boolean PROFILING = Boolean.getBoolean("arcadium.playerPipeline072.profiling");
+    private static final String RESIDENT_BODY_MODE=System.getProperty("arcadium.residentBodies072.mode","off");
     private static final boolean NATIVE_BODY_CONTROL = Boolean.getBoolean("arcadium.playerPipeline072.nativeBodyControl");
     private static final boolean NATIVE_VOXEL_ROOT_CONTROL=Boolean.getBoolean("arcadium.playerPipeline072.nativeVoxelRootControl");
     private static final int PLAYERS = Integer.getInteger("arcadium.playerPipeline072.players", 20);
@@ -58,7 +59,7 @@ public final class PlayerPipeline072Qa {
     private static int ticks, phase, phaseTicks, sampleCount, visualStage;
     private static long settled, started, last;
     private static long phaseHybridStart;
-    private static long phaseCompactStart, phaseNativeStart, phaseNativeSkinStart;
+    private static long phaseCompactStart, phaseNativeStart, phaseNativeSkinStart,phaseResidentActors,phaseResidentDraws,phaseResidentDummy;
     private static int phaseVoxelStart;
     private static long phaseAnalyticVoxelStart, phaseNativeVoxelStart, phaseVoxelDrawStart, phaseVoxelVerticesStart;
     private static long phaseAdmissionStart;
@@ -91,6 +92,7 @@ public final class PlayerPipeline072Qa {
         Minecraft mc = Minecraft.getInstance();
         try {
             ActorPacket072Qa.check();
+            require(Set.of("off","control","active").contains(RESIDENT_BODY_MODE)&&(RESIDENT_BODY_MODE.equals("off")||VISUAL&&!BASELINE),"Private resident bodies require an explicit optimized visual fixture");
             require("ArcadiumTest".equals(mc.getSession().getUsername()) && "0".equals(mc.getSession().getAccessToken()), "Use only the owned offline fixture");
             require(List.of("default", "3d-skin", "wavy", "skin+wavy").contains(SCENE), "Unknown scene");
             require(Set.of(3, 20, 50).contains(PLAYERS), "Use 3, 20 or 50 players");
@@ -322,8 +324,9 @@ public final class PlayerPipeline072Qa {
         result.put("unfocusedFpsEnabled", OneConfigConfig.limitUnfocusedFps);
         result.put("camera", Map.of("x", mc.player.x, "y", mc.player.y, "z", mc.player.z, "yaw", mc.player.yaw, "pitch", mc.player.pitch));
         result.put("gpuTimers", false); result.put("gpuReadbacksDuringTiming", false); result.put("fixedDeltaDuringTiming", false);
-        result.put("profiling", PROFILING); result.put("notFinalPerformance", PROFILING||NATIVE_VOXEL_ROOT_CONTROL);
+        result.put("profiling", PROFILING); result.put("notFinalPerformance", PROFILING||NATIVE_VOXEL_ROOT_CONTROL||!RESIDENT_BODY_MODE.equals("off"));
         result.put("nativeBodyControl", NATIVE_BODY_CONTROL);
+        result.put("residentBodyMode",RESIDENT_BODY_MODE);
         result.put("nativeVoxelRootControl",NATIVE_VOXEL_ROOT_CONTROL);
         return result;
     }
@@ -366,7 +369,7 @@ public final class PlayerPipeline072Qa {
     }
     private static Map<String, Object> counters() {
         Map<String, Object> values = new TreeMap<>();
-        for (String name : List.of("GpuPlayerPipeline", "GpuSkinLayers", "GpuVoxelSkinPipeline", "NativePlayerPosePipeline", "GpuModelTransforms", "GpuPlayerPackets", "GpuResidentPlayerState", "GpuResolvedInstanceCache", "EntityNameFormatting", "RenderHookAllocationControl")) {
+        for (String name : List.of("GpuPlayerPipeline", "GpuSkinLayers", "GpuVoxelSkinPipeline", "NativePlayerPosePipeline", "GpuModelTransforms", "GpuPlayerPackets", "GpuResidentPlayerState", "GpuResolvedInstanceCache", "EntityNameFormatting", "RenderHookAllocationControl","GpuResidentBodies","GpuResidentBodyShaderState")) {
             Map<String, Object> data = new TreeMap<>();
             try {
                 Class<?> type = Class.forName("io.github.arcadiumclient.runtime.client.optimizations." + name); data.put("present", true);
@@ -387,6 +390,7 @@ public final class PlayerPipeline072Qa {
         phaseCompactStart = counter("GpuPlayerPipeline", "playersDrawn");
         phaseNativeStart = counter("NativePlayerPosePipeline", "bodyPartsQueued");
         phaseNativeSkinStart = counter("GpuPlayerPipeline", "nativeSkinCallbacks");
+        phaseResidentActors=counter("GpuResidentBodies","actorsQueued");phaseResidentDraws=counter("GpuResidentBodies","actorsDrawn");phaseResidentDummy=counter("GpuResidentBodyShaderState","dummyBinds");
         phaseVoxelStart = Features062Qa.voxelDraws;
         phaseAnalyticVoxelStart = counter("GpuVoxelSkinPipeline", "analyticParts"); phaseNativeVoxelStart = counter("GpuVoxelSkinPipeline", "nativeParts");
         phaseVoxelDrawStart = counter("GpuVoxelSkinPipeline", "drawCalls"); phaseVoxelVerticesStart = counter("GpuVoxelSkinPipeline", "verticesDrawn");
@@ -394,6 +398,15 @@ public final class PlayerPipeline072Qa {
         stageStarted = System.nanoTime(); stablePixelHash = -1; stablePixelSamples = 0; stablePixelsSince = 0; lastPixelSample = 0;
     }
     private static void requireBodyPath() {
+        if(!RESIDENT_BODY_MODE.equals("off")) {
+            require(counter("GpuResidentBodyShaderState","dummyBinds")>phaseResidentDummy,"Native resident shader control did not bind valid ordinary-mode storage");
+            require(counter("GpuResidentBodies","errors")==0,"Resident body rendering reported an error");
+            if(RESIDENT_BODY_MODE.equals("control"))require(counter("GpuResidentBodies","actorsQueued")==phaseResidentActors,"Shader control unexpectedly replaced native body records");
+            else if(!effectiveSkin||gpuVoxels()) {
+                require(counter("GpuResidentBodies","actorsQueued")>phaseResidentActors&&counter("GpuResidentBodies","actorsDrawn")>phaseResidentDraws,"Whole-body records did not reach actual GPU drawing");
+                for(Actor actor:actors){RenderTrace trace=renderTraces.get(actor);require(trace!=null&&trace.resident==1,"An expected actor did not queue exactly one whole-body record: "+actor.getName());}
+            }
+        }
         if(NATIVE_VOXEL_ROOT_CONTROL){
             require(BetaOptimizationsConfig.getGpuPlayerPipeline()&&gpuVoxels(),"Native voxel root research requires GPU bodies and GPU outer layers");
             require(counter("GpuPlayerPipeline","playersDrawn")==phaseCompactStart&&counter("NativePlayerPosePipeline","bodyPartsQueued")>phaseNativeStart,
@@ -758,12 +771,12 @@ public final class PlayerPipeline072Qa {
         ActorPacket072Qa.beforeWorld();
         if (enabled() && VISUAL && !done) renderTraces.clear();
     }
-    public record RenderCheckpoint(long compact, long nativeParts, int voxels, long analyticVoxels, long nativeGpuVoxels) {}
-    private static final class RenderTrace { int calls; long compact, nativeParts, voxels, analyticVoxels, nativeGpuVoxels; }
+    public record RenderCheckpoint(long compact, long nativeParts, int voxels, long analyticVoxels, long nativeGpuVoxels,long resident) {}
+    private static final class RenderTrace { int calls; long compact, nativeParts, voxels, analyticVoxels, nativeGpuVoxels,resident; }
     public static RenderCheckpoint beginPlayer(net.minecraft.client.entity.living.player.ClientPlayerEntity player) {
         if (!enabled() || !VISUAL || done || !(player instanceof Actor)) return null;
         RenderCheckpoint checkpoint=new RenderCheckpoint(counter("GpuPlayerPipeline", "playersDrawn"), counter("NativePlayerPosePipeline", "bodyPartsQueued"), Features062Qa.voxelDraws,
-                counter("GpuVoxelSkinPipeline", "analyticParts"), counter("GpuVoxelSkinPipeline", "nativeParts"));
+                counter("GpuVoxelSkinPipeline", "analyticParts"), counter("GpuVoxelSkinPipeline", "nativeParts"),counter("GpuResidentBodies","actorsQueued"));
         GpuVoxelSkin072QualityControls.nativeRootActor(true);return checkpoint;
     }
     public static void endPlayer(net.minecraft.client.entity.living.player.ClientPlayerEntity player, RenderCheckpoint before) {
@@ -775,6 +788,7 @@ public final class PlayerPipeline072Qa {
             trace.voxels += Features062Qa.voxelDraws - before.voxels();
             trace.analyticVoxels += counter("GpuVoxelSkinPipeline", "analyticParts") - before.analyticVoxels();
             trace.nativeGpuVoxels += counter("GpuVoxelSkinPipeline", "nativeParts") - before.nativeGpuVoxels();
+            trace.resident+=counter("GpuResidentBodies","actorsQueued")-before.resident();
             ActorPacket072Qa.afterPlayer(actor,counter("GpuPlayerPipeline", "playersDrawn")-before.compact());
         }finally{GpuVoxelSkin072QualityControls.nativeRootActor(false);}
     }
@@ -784,7 +798,7 @@ public final class PlayerPipeline072Qa {
             RenderTrace trace = renderTraces.get(actor);
             result.add(Map.of("name", actor.getName(), "rendererCalls", trace == null ? 0 : trace.calls,
                     "compactBodies", trace == null ? 0 : trace.compact, "nativeGpuBodyParts", trace == null ? 0 : trace.nativeParts, "nativeVoxelCalls", trace == null ? 0 : trace.voxels,
-                    "analyticGpuVoxelParts", trace == null ? 0 : trace.analyticVoxels, "nativeGpuVoxelParts", trace == null ? 0 : trace.nativeGpuVoxels));
+                    "analyticGpuVoxelParts", trace == null ? 0 : trace.analyticVoxels, "nativeGpuVoxelParts", trace == null ? 0 : trace.nativeGpuVoxels,"residentActorRecords",trace==null?0:trace.resident));
         }
         return result;
     }
