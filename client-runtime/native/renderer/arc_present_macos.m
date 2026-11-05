@@ -7,6 +7,7 @@
 #import <IOSurface/IOSurface.h>
 #import <Metal/Metal.h>
 #import <QuartzCore/CAMetalLayer.h>
+#import <QuartzCore/CATransaction.h>
 #include <OpenGL/OpenGL.h>
 #include <OpenGL/CGLIOSurface.h>
 #include <OpenGL/gl.h>
@@ -16,6 +17,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 
 static const uint64_t image_limit = UINT64_C(128) * 1024 * 1024;
 
@@ -263,12 +265,27 @@ int arc_present_publish(void *value, uint64_t frame) {
     }
     BOOL submitted = NO;
     @try {
+        NSView *parent = p.window.contentView;
+        if (!parent || p.view.superview != parent || ![p.view.layer isKindOfClass:CAMetalLayer.class]) {
+            hideView(p); return failure(p, @"The owned Metal view is detached from its original window", ARC_PRESENT_UNAVAILABLE);
+        }
         CAMetalLayer *layer = (CAMetalLayer *)p.view.layer;
-        layer.displaySyncEnabled = p.preparedSwapInterval != 0;
-        layer.drawableSize = CGSizeMake(p.image.width, p.image.height);
-        CGFloat logicalHeight = p.view.bounds.size.height;
-        layer.contentsScale = logicalHeight > 0 ? p.image.height / logicalHeight : 1;
-        p.view.hidden = NO; p.hidden = NO;
+        [CATransaction begin]; [CATransaction setDisableActions:YES];
+        @try {
+            [parent layoutSubtreeIfNeeded];
+            NSRect bounds = parent.bounds;
+            double sx = p.image.width / bounds.size.width, sy = p.image.height / bounds.size.height;
+            if (!isfinite(bounds.size.width) || !isfinite(bounds.size.height) || bounds.size.width <= 0 || bounds.size.height <= 0
+                    || !isfinite(sx) || !isfinite(sy) || sx <= 0 || sy <= 0
+                    || fabs(sx - sy) > 1.0 / fmax(bounds.size.width, bounds.size.height)) {
+                hideView(p); return failure(p, @"The current window and framebuffer sizes are inconsistent", ARC_PRESENT_UNAVAILABLE);
+            }
+            p.view.frame = bounds; [p.view layoutSubtreeIfNeeded];
+            layer.displaySyncEnabled = p.preparedSwapInterval != 0;
+            layer.contentsScale = sy; layer.drawableSize = CGSizeMake(p.image.width, p.image.height);
+            p.view.hidden = NO; p.hidden = NO;
+        } @finally { [CATransaction commit]; }
+        [CATransaction flush];
         id<CAMetalDrawable> drawable = [layer nextDrawable];
         if (!drawable || drawable.texture.width != p.image.width || drawable.texture.height != p.image.height) {
             hideView(p); return failure(p, @"No correctly sized current Metal drawable", ARC_PRESENT_UNAVAILABLE);
@@ -310,7 +327,7 @@ int arc_present_publish(void *value, uint64_t frame) {
 int arc_present_hide(void *value) {
     if (!value) return ARC_PRESENT_OK;
     if (!mainThread()) return ARC_PRESENT_INVALID;
-    hideView(bridge(value)); return ARC_PRESENT_OK;
+    hideView(bridge(value)); [CATransaction flush]; return ARC_PRESENT_OK;
 }
 int arc_present_release_gl(void *value) {
     if (!value) return ARC_PRESENT_OK;
@@ -326,12 +343,35 @@ int arc_present_destroy(void *value) {
     ArcPresentation *p = bridge(value);
     if (!mainThread() || !p.glReleased) return ARC_PRESENT_INVALID;
     hideView(p); [p.view removeFromSuperview]; p.attached = NO; p.view = nil; p.window = nil;
+    [CATransaction flush];
     (void)CFBridgingRelease(value);
     return ARC_PRESENT_OK;
 }
 uint64_t arc_present_query(void *value, int key) {
     ArcPresentation *p = bridge(value);
     if (!p) return 0;
+    if (key >= ARC_PRESENT_PARENT_WIDTH_FP64) {
+        if (!mainThread()) return 0;
+        NSView *parent = p.window.contentView; CAMetalLayer *layer = (CAMetalLayer *)p.view.layer;
+        double number = 0; uint64_t bits;
+        switch (key) {
+            case ARC_PRESENT_PARENT_WIDTH_FP64: number = parent.bounds.size.width; break;
+            case ARC_PRESENT_PARENT_HEIGHT_FP64: number = parent.bounds.size.height; break;
+            case ARC_PRESENT_VIEW_WIDTH_FP64: number = p.view.bounds.size.width; break;
+            case ARC_PRESENT_VIEW_HEIGHT_FP64: number = p.view.bounds.size.height; break;
+            case ARC_PRESENT_VIEW_FRAME_WIDTH_FP64: number = p.view.frame.size.width; break;
+            case ARC_PRESENT_VIEW_FRAME_HEIGHT_FP64: number = p.view.frame.size.height; break;
+            case ARC_PRESENT_DRAWABLE_WIDTH: return (uint64_t)layer.drawableSize.width;
+            case ARC_PRESENT_DRAWABLE_HEIGHT: return (uint64_t)layer.drawableSize.height;
+            case ARC_PRESENT_SCALE_FP64: number = layer.contentsScale; break;
+            case ARC_PRESENT_WINDOW_SCALE_FP64: number = p.window.backingScaleFactor; break;
+            case ARC_PRESENT_PARENT_ATTACHED: return parent && p.view.superview == parent;
+            case ARC_PRESENT_WINDOW_VISIBLE: return p.window.isVisible;
+            case ARC_PRESENT_WINDOW_OCCLUSION_VISIBLE: return (p.window.occlusionState & NSWindowOcclusionStateVisible) != 0;
+            default: return 0;
+        }
+        memcpy(&bits, &number, sizeof(bits)); return bits;
+    }
     switch (key) {
         case ARC_PRESENT_LAST_PREPARED: return p.prepared;
         case ARC_PRESENT_LAST_SUBMITTED: return p.submitted;

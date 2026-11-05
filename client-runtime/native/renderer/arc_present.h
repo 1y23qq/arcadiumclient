@@ -14,7 +14,14 @@ enum { ARC_PRESENT_LAST_PREPARED = 1, ARC_PRESENT_LAST_SUBMITTED = 2,
        ARC_PRESENT_LAST_COMPLETED = 3, ARC_PRESENT_LAST_DISPLAYED = 4,
        ARC_PRESENT_LIVE_BYTES = 5, ARC_PRESENT_ATTACHED = 6,
        ARC_PRESENT_HIDDEN = 7, ARC_PRESENT_GL_RELEASED = 8,
-       ARC_PRESENT_IN_FLIGHT = 9, ARC_PRESENT_FALLBACKS = 10 };
+       ARC_PRESENT_IN_FLIGHT = 9, ARC_PRESENT_FALLBACKS = 10,
+       ARC_PRESENT_PARENT_WIDTH_FP64 = 11, ARC_PRESENT_PARENT_HEIGHT_FP64 = 12,
+       ARC_PRESENT_VIEW_WIDTH_FP64 = 13, ARC_PRESENT_VIEW_HEIGHT_FP64 = 14,
+       ARC_PRESENT_VIEW_FRAME_WIDTH_FP64 = 15, ARC_PRESENT_VIEW_FRAME_HEIGHT_FP64 = 16,
+       ARC_PRESENT_DRAWABLE_WIDTH = 17, ARC_PRESENT_DRAWABLE_HEIGHT = 18,
+       ARC_PRESENT_SCALE_FP64 = 19, ARC_PRESENT_WINDOW_SCALE_FP64 = 20,
+       ARC_PRESENT_PARENT_ATTACHED = 21, ARC_PRESENT_WINDOW_VISIBLE = 22,
+       ARC_PRESENT_WINDOW_OCCLUSION_VISIBLE = 23 };
 
 typedef struct {
     uint64_t frame_id;
@@ -38,6 +45,7 @@ ARC_API int arc_present_hide(void *bridge);
 ARC_API int arc_present_release_gl(void *bridge);
 // Main thread, after successful release_gl, before parent SDL destruction/backend close.
 ARC_API int arc_present_destroy(void *bridge);
+// Geometry queries11..23 require the Cocoa main thread; FP64 values are IEEE754 bits.
 ARC_API uint64_t arc_present_query(void *bridge, int key);
 
 int arc_present_valid_frame(const arc_present_frame *frame, uint64_t *rgba_bytes);

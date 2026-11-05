@@ -109,6 +109,7 @@ public final class MetalPylonPresentationProbe {
                     require(display.getWindowWidth()==96&&display.getWindowHeight()==80,"SDL resize events did not settle");
                     original.owner.makeCurrent();
                 }
+                Map<String,Object> before=geometry(original);before.put("frame",frame);before.put("stage","before-publish");frames.add(before);
                 display.setVSyncEnabled(frame==2);draw(frame);original.owner.swapBuffers();
                 awaitDisplayed(original,frame);original.sameWindow();
                 require(original.swaps==0&&original.owner.submittedFrames()==frame&&original.owner.fallbackFrames()==0,
@@ -160,8 +161,19 @@ public final class MetalPylonPresentationProbe {
         state.put("submitted",original.owner.nativeCounter(SUBMITTED));state.put("completed",original.owner.nativeCounter(COMPLETED));
         state.put("displayed",original.owner.nativeCounter(DISPLAYED));state.put("status",original.owner.status());
         state.put("sdlVisible",display.isVisible());state.put("sdlFlags",SDL_GetWindowFlags(original.window));frames.add(state);
+        state.put("geometry",geometry(original));
         require(original.owner.nativeCounter(COMPLETED)==frame&&original.owner.nativeCounter(DISPLAYED)==frame,
                 "Actual SDL Metal presentation did not report its current displayed frame");
+    }
+    private static Map<String,Object> geometry(OriginalSurface original) {
+        Map<String,Object> value=new LinkedHashMap<>();
+        String[] realNames={"parentWidth","parentHeight","viewBoundsWidth","viewBoundsHeight","viewFrameWidth","viewFrameHeight"};
+        for(int i=0;i<realNames.length;i++)value.put(realNames[i],Double.longBitsToDouble(original.owner.nativeCounter(11+i)));
+        value.put("drawableWidth",original.owner.nativeCounter(17));value.put("drawableHeight",original.owner.nativeCounter(18));
+        value.put("contentsScale",Double.longBitsToDouble(original.owner.nativeCounter(19)));
+        value.put("windowBackingScale",Double.longBitsToDouble(original.owner.nativeCounter(20)));
+        value.put("parentAttached",original.owner.nativeCounter(21)==1);value.put("windowVisible",original.owner.nativeCounter(22)==1);
+        value.put("windowOcclusionVisible",original.owner.nativeCounter(23)==1);return value;
     }
     private static void pump() throws Exception { display.processMessages();Thread.sleep(2); }
     private static void draw(int frame) {
