@@ -2,7 +2,6 @@
 package io.github.arcadiumclient.runtime.client.optimizations;
 
 import java.nio.IntBuffer;
-import org.embeddedt.embeddium.impl.gl.buffer.GlBufferUsage;
 import org.embeddedt.embeddium.impl.gl.buffer.GlMutableBuffer;
 import org.embeddedt.embeddium.impl.gl.device.CommandList;
 import org.lwjgl.opengl.GL15;
@@ -16,7 +15,7 @@ public final class GpuResolvedInstanceCache {
     private static final Upload[] uploads = new Upload[16];
     private static long epoch = Long.MIN_VALUE;
     private static Object backend;
-    private static int depth, driver, blocked;
+    private static int depth, blocked;
     private static boolean wasEnabled;
     private static String state = "Waiting for a repeated native payload";
 
@@ -28,8 +27,7 @@ public final class GpuResolvedInstanceCache {
         GlMutableBuffer buffer;
         ResolvedInstanceRecords.Entry entry;
         long serial, address, bytes;
-        int previousDriver;
-        boolean skipped, confirmed, driverSeen, sorted;
+        boolean skipped, confirmed, driverSeen;
         void clear() { owner = null; commands = null; payload = null; buffer = null; entry = null; stamp.backend = check.backend = null; }
     }
     static { for (int index = 0; index < uploads.length; index++) uploads[index] = new Upload(); }
@@ -40,7 +38,7 @@ public final class GpuResolvedInstanceCache {
                 GpuPlayerPackets.playerRevision(), GpuPlayerPackets.poseRevision(), GpuPlayerPackets.templateRevision());
     }
 
-    public static int beginUpload(Object owner, CommandList commands, IntBuffer payload) {
+    public static int beginUpload(Object owner, CommandList commands, IntBuffer payload, GlMutableBuffer expectedBuffer) {
         boolean active = enabled && GpuResidentPlayerState.enabled;
         if (!active) {
             if (wasEnabled) reset();
@@ -49,12 +47,13 @@ public final class GpuResolvedInstanceCache {
         wasEnabled = true;
         Object current = GpuModelTransforms.batchOwner(); long currentEpoch = GpuModelTransforms.batchEpoch();
         if (backend != current || epoch != currentEpoch) { records.clear(); backend = current; epoch = currentEpoch; }
-        if (current == null || !GpuModelTransforms.batchThread() || !GpuModelTransforms.outputsReusable() || payload.remaining() % STRIDE != 0 ||
+        if (expectedBuffer == null || current == null || !GpuModelTransforms.batchThread() || !GpuModelTransforms.outputsReusable() || payload.remaining() % STRIDE != 0 ||
                 !GpuModelTransforms.hasJobs(payload) || !deferredSort(payload)) { records.invalidate(owner); return blockNested(); }
         if (!ResolvedUploadPolicy.trusted(commands)) { records.invalidate(owner); unknownFallbacks++; state = ResolvedUploadPolicy.reason(); return blockNested(); }
         if (depth == uploads.length) { records.invalidate(owner); capacityFallbacks++; blocked++; return -1; }
         Upload upload = uploads[depth++]; upload.clear(); upload.owner = owner; upload.commands = commands; upload.payload = payload;
-        upload.skipped = upload.confirmed = upload.driverSeen = upload.sorted = false;
+        upload.buffer = expectedBuffer; upload.address = MemoryUtil.memAddress(payload); upload.bytes = (long)payload.remaining() * Integer.BYTES;
+        upload.skipped = upload.confirmed = upload.driverSeen = false;
         return depth;
     }
 
@@ -65,31 +64,15 @@ public final class GpuResolvedInstanceCache {
         return false;
     }
 
-    public static int beginDriver(Object owner, CommandList commands, GlMutableBuffer buffer, long address, long bytes, GlBufferUsage usage) {
-        if (depth == 0 || blocked != 0) return 0;
-        Upload upload = uploads[depth - 1];
-        if (upload.owner != owner || upload.commands != commands || buffer == null || usage != GlBufferUsage.STREAM_DRAW ||
-                bytes != (long)upload.payload.remaining() * Integer.BYTES || address != MemoryUtil.memAddress(upload.payload)) { records.invalidate(owner); return 0; }
-        if (upload.driverSeen) { records.invalidate(owner); return 0; }
-        upload.driverSeen = true; upload.buffer = buffer; upload.address = address; upload.bytes = bytes;
-        upload.previousDriver = driver; driver = depth; return depth;
-    }
-
-    public static void endDriver(int token) {
-        if (token > 0 && token <= depth && driver == token) driver = uploads[token - 1].previousDriver;
-    }
-    public static void endDriver(Object owner) {
-        if (driver > 0 && driver <= depth && uploads[driver - 1].owner == owner) endDriver(driver);
-    }
-    public static boolean activeUpload(Object owner) { return depth > 0 && blocked == 0 && uploads[depth - 1].owner == owner; }
-
     public static boolean skipDriver(Object commands, GlMutableBuffer buffer, Object service, int target, long size, long address, int usage) {
-        if (driver == 0 || driver > depth) return false;
-        Upload upload = uploads[driver - 1];
-        if (blocked != 0 || !enabled || !GpuResidentPlayerState.enabled || upload.commands != commands || upload.buffer != buffer || upload.bytes != size || upload.address != address ||
+        if (depth == 0 || blocked != 0) return false;
+        Upload upload = uploads[depth - 1];
+        if (upload.commands != commands || upload.buffer != buffer) return false;
+        if (!enabled || !GpuResidentPlayerState.enabled || upload.driverSeen || upload.bytes != size || upload.address != address ||
                 target != GL15.GL_ARRAY_BUFFER || usage != GL15.GL_STREAM_DRAW || !ResolvedUploadPolicy.service(service)) {
             records.invalidate(upload.owner); unknownFallbacks++; state = "Unrecognized driver upload; using streaming"; return false;
         }
+        upload.driverSeen = true;
         stamp(upload.stamp);
         var cached = records.find(upload.owner, buffer, buffer.handle(), upload.stamp, upload.payload);
         if (cached != null) {
@@ -99,7 +82,6 @@ public final class GpuResolvedInstanceCache {
         misses++;
         upload.entry = records.stage(upload.owner, buffer, buffer.handle(), upload.stamp, upload.payload);
         if (upload.entry == null) capacityFallbacks++; else upload.serial = upload.entry.serial;
-        for (int at = upload.payload.position(); at < upload.payload.limit(); at += STRIDE) upload.sorted |= upload.payload.get(at + 2) == SORT_MAGIC;
         return false;
     }
 
@@ -135,13 +117,12 @@ public final class GpuResolvedInstanceCache {
         if (token < 0) { if (blocked > 0) blocked--; return; }
         if (token == 0) return;
         if (token != depth) { reset(); state = "Nested upload mismatch; using normal streaming"; return; }
-        if (driver == token) endDriver(token);
         uploads[--depth].clear();
     }
 
     public static void invalidate(Object owner) { records.invalidate(owner); invalidations++; }
     public static void reset() {
-        records.clear(); backend = null; epoch = Long.MIN_VALUE; driver = blocked = 0;
+        records.clear(); backend = null; epoch = Long.MIN_VALUE; blocked = 0;
         for (int index = 0; index < depth; index++) uploads[index].clear();
         depth = 0; invalidations++;
     }

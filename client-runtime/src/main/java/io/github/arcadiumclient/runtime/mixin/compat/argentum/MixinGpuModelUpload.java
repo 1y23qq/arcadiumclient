@@ -24,7 +24,7 @@ public abstract class MixinGpuModelUpload {
 
     @WrapMethod(method = "upload")
     private void arcadium$expandTransforms(CommandList commands, IntBuffer instances, Operation<Void> original) throws Throwable {
-        int token = GpuResolvedInstanceCache.beginUpload(this, commands, instances);
+        int token = GpuResolvedInstanceCache.beginUpload(this, commands, instances, instanceBuffer);
         try {
             original.call(commands, instances);
             if (GpuResolvedInstanceCache.reused(token, instanceBuffer)) return;
@@ -43,15 +43,6 @@ public abstract class MixinGpuModelUpload {
             GpuResolvedInstanceCache.abort(token); throw error;
         } finally { GpuResolvedInstanceCache.endUpload(token); }
     }
-
-    @Inject(method = "upload", at = @At(value = "INVOKE", target = "Lorg/embeddedt/embeddium/impl/gl/device/CommandList;uploadData(Lorg/embeddedt/embeddium/impl/gl/buffer/GlMutableBuffer;JJLorg/embeddedt/embeddium/impl/gl/buffer/GlBufferUsage;)V", shift = At.Shift.BEFORE), remap = false)
-    private void arcadium$beginDriver(CommandList commands, IntBuffer instances, CallbackInfo callback) {
-        if (GpuResolvedInstanceCache.activeUpload(this)) GpuResolvedInstanceCache.beginDriver(this, commands, instanceBuffer,
-                MemoryUtil.memAddress(instances), (long)instances.remaining() * Integer.BYTES, GlBufferUsage.STREAM_DRAW);
-    }
-
-    @Inject(method = "upload", at = @At(value = "INVOKE", target = "Lorg/embeddedt/embeddium/impl/gl/device/CommandList;uploadData(Lorg/embeddedt/embeddium/impl/gl/buffer/GlMutableBuffer;JJLorg/embeddedt/embeddium/impl/gl/buffer/GlBufferUsage;)V", shift = At.Shift.AFTER), remap = false)
-    private void arcadium$endDriver(CommandList commands, IntBuffer instances, CallbackInfo callback) { GpuResolvedInstanceCache.endDriver(this); }
 
     @Inject(method = "delete", at = @At("HEAD"), remap = false)
     private void arcadium$forgetBuffer(CommandList commands, CallbackInfo callback) {

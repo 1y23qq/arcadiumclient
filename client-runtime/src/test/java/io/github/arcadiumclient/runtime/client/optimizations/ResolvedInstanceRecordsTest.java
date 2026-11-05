@@ -90,4 +90,11 @@ final class ResolvedInstanceRecordsTest {
         for (int index = 0; index < 3; index++) commit(records, new Object(), buffer, 1, stamp, input);
         assertEquals(retained, records.residentBytes());
     }
+
+    @Test void coldOrDeletedBufferIdentityCannotBePrepared() {
+        var records = new ResolvedInstanceRecords(); Object owner = new Object(); var stamp = stamp(new Object(), 1, 2, 3, 4, 5);
+        assertNull(records.stage(owner, null, 0, stamp, payload(1)));
+        assertNull(records.stage(owner, new Object(), 0, stamp, payload(1)));
+        assertEquals(0, records.ownerCount());
+    }
 }
