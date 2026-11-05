@@ -199,6 +199,8 @@ jobs:
 
   resident-renderer:
     if: inputs.mode == 'renderer-qa'
+    permissions:
+      contents: write
     strategy:
       fail-fast: false
       matrix:
