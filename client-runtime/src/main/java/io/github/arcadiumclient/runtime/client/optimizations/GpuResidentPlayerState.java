@@ -115,6 +115,7 @@ public final class GpuResidentPlayerState {
     }
 
     public static void reset() {
+        GpuResolvedInstanceCache.reset();
         Throwable failure = null;
         for (int index = 0; index < SLOTS; index++) {
             Slot slot = slots[index];

@@ -9,7 +9,7 @@ import net.minecraft.entity.living.LivingEntity;
 import net.minecraft.resource.Identifier;
 
 final class PlayerBatchAccess {
-    final MethodHandle current,active,select,boxGeometry,boxTemplates,instances,nameAdd,beginCapture,firstPass,recorded;
+    final MethodHandle current,active,select,boxGeometry,boxTemplates,modelGeometry,partGeometry,instances,nameAdd,beginCapture,firstPass,recorded,beginModel,endModel;
     final VarHandle backend,nameTags,selectedLayer,backendCount,batchCount,data,size,count,entityCount,playerCount,captureMatrices,activeCapture;
     final VarHandle capturePlayer,captureArmor,captureActive,captureFinished,captureMode,capturePass,captureTexture,captureLight,captureColor,captureOverlay,captureTime,captureRecorded,captureGlint;
     private final MethodHandle[] templateFields;
@@ -19,12 +19,13 @@ final class PlayerBatchAccess {
                 instance=Class.forName("dev.rdh.argentum.api.render.instancing.InstanceDataBuffer"),names=Class.forName(ROOT+"DeferredNameTags"),box=Class.forName("dev.rdh.argentum.api.render.instancing.BoxTemplate");
         current=method(actor,"current");active=method(actor,"isBatchActive");backend=field(actor,"backend");nameTags=field(actor,"nameTags");
         select=method(model,"selectTexture",Identifier.class,Class.forName(ROOT+"InstanceRenderPass"));boxGeometry=method(model,"boxGeometry",boolean.class);boxTemplates=method(model,"boxTemplates",ModelPart.class);
+        modelGeometry=method(model,"model",Model.class);partGeometry=method(Class.forName(ROOT+"ModelGeometry"),"getGeometry",ModelPart.class,float.class);
         instances=method(geometry,"instances",batch);selectedLayer=field(model,"selectedTextureLayer");backendCount=field(model,"instanceCount");batchCount=field(batch,"count");
         data=field(instance,"data");size=field(instance,"size");count=field(instance,"count");entityCount=field(actor,"entityCount");playerCount=field(actor,"playerCount");
         nameAdd=method(names,"add",LivingEntityRenderer.class,LivingEntity.class,double.class,double.class,double.class,int.class);
         Class<?> capture=Class.forName(ROOT+"EntityCapture");
         beginCapture=method(actor,"beginEntity",Model.class,Identifier.class,boolean.class,boolean.class,int.class,float.class,float.class,float.class,float.class,float.class);
-        firstPass=method(capture,"firstModelPass");recorded=method(capture,"recorded");captureMatrices=field(capture,"matrices");
+        firstPass=method(capture,"firstModelPass");recorded=method(capture,"recorded");beginModel=method(capture,"beginModel");endModel=method(capture,"endModel");captureMatrices=field(capture,"matrices");
         activeCapture=field(actor,"activeCapture");capturePlayer=field(capture,"player");captureArmor=field(capture,"armorLayer");captureActive=field(capture,"modelActive");captureFinished=field(capture,"finished");captureMode=field(capture,"matrixMode");
         capturePass=field(capture,"pass");captureTexture=field(capture,"boundTexture");captureLight=field(capture,"packedLight");captureColor=field(capture,"color");captureOverlay=field(capture,"currentOverlayColor");captureTime=field(capture,"effectTime");captureRecorded=field(capture,"recorded");captureGlint=field(capture,"glintParts");
         String[] fields={"originX","minY","minZ","spanX","spanY","spanZ","flipped","textureU","textureV","textureWidth","textureHeight","sizeX","sizeY","sizeZ"};

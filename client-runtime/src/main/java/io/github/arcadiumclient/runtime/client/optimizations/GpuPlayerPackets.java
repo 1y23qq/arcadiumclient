@@ -17,7 +17,7 @@ public final class GpuPlayerPackets {
     private static float[] templates=new float[PARTS*PART_WORDS*4];
     private static final HashMap<TemplateKey,Integer> templateIds=new HashMap<>();
     private static int playerCount,poseCount,templateWords,uploadedPlayers,uploadedTemplates,playerBuffer,templateBuffer,sineBuffer,poseBuffer;
-    private static long poseRevision,uploadedPoseRevision=-1,stateRevision,playerRevision,uploadedPlayerRevision=-1;
+    private static long poseRevision,uploadedPoseRevision=-1,stateRevision,playerRevision,uploadedPlayerRevision=-1,templateRevision;
     private static final Matrix4f root=new Matrix4f();
     private static final float[] scratch=new float[6];
     private GpuPlayerPackets(){}
@@ -28,14 +28,17 @@ public final class GpuPlayerPackets {
         @Override public boolean equals(Object other){return other instanceof TemplateKey key&&Arrays.equals(values,key.values);}
     }
     public static int count(){return playerCount;}
-    public static void beginBatch(){playerCount=poseCount=uploadedPlayers=0;uploadedPoseRevision=uploadedPlayerRevision=-1;GpuResidentPlayerState.beginBatch();}
+    public static long playerRevision(){return playerRevision;}
+    public static long poseRevision(){return poseRevision;}
+    public static long templateRevision(){return templateRevision;}
+    public static void beginBatch(){playerCount=poseCount=uploadedPlayers=0;uploadedPoseRevision=uploadedPlayerRevision=-1;playerRevision++;poseRevision++;GpuResidentPlayerState.beginBatch();}
     public static int registerTemplate(float[] parts){
         if(parts.length!=PARTS*PART_WORDS)
             throw new IllegalArgumentException("Player template budget exceeded or invalid template");
         TemplateKey key=new TemplateKey(parts);Integer existing=templateIds.get(key);if(existing!=null)return existing;
         if(templateWords+parts.length>256*PARTS*PART_WORDS)throw new IllegalArgumentException("Player template budget exceeded");
         int offset=templateWords;if(templateWords+parts.length>templates.length)templates=Arrays.copyOf(templates,Math.max(templateWords+parts.length,templates.length*2));
-        System.arraycopy(parts,0,templates,offset,parts.length);templateWords+=parts.length;templateIds.put(key,offset);return offset;
+        System.arraycopy(parts,0,templates,offset,parts.length);templateWords+=parts.length;templateRevision++;templateIds.put(key,offset);return offset;
     }
     public static int add(Matrix4fc base,float walk,float speed,float age,float yaw,float pitch,float swing,int left,int right,
                           boolean sneak,boolean riding,boolean bow,int template){
@@ -89,7 +92,7 @@ public final class GpuPlayerPackets {
         poseRevision++;stateRevision++;
     }
     public static void rollback(int index){if(index==playerCount-1){playerCount--;if(poseCount>playerCount)poseCount=playerCount;poseRevision++;stateRevision++;playerRevision++;}}
-    public static void resetTemplates(){templateIds.clear();templateWords=0;uploadedTemplates=-1;beginBatch();}
+    public static void resetTemplates(){templateIds.clear();templateWords=0;templateRevision++;uploadedTemplates=-1;beginBatch();}
     public static Matrix4f resolve(int encoded,Matrix4f destination){
         int player=encoded/16,part=encoded%16,base=player*PLAYER_WORDS;
         if(player<0||player>=playerCount||part>=PARTS)throw new IllegalArgumentException("Invalid compact player instance");
@@ -136,5 +139,6 @@ public final class GpuPlayerPackets {
         if(playerBuffer!=0)GL15.glDeleteBuffers(playerBuffer);if(templateBuffer!=0)GL15.glDeleteBuffers(templateBuffer);if(sineBuffer!=0)GL15.glDeleteBuffers(sineBuffer);if(poseBuffer!=0)GL15.glDeleteBuffers(poseBuffer);
         playerBuffer=templateBuffer=sineBuffer=poseBuffer=uploadedPlayers=uploadedTemplates=playerCount=poseCount=templateWords=0;uploadedPoseRevision=uploadedPlayerRevision=-1;
         templateIds.clear();
+        playerRevision++;poseRevision++;templateRevision++;
     }
 }

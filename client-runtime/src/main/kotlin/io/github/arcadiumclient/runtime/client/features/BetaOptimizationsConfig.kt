@@ -11,6 +11,9 @@ import io.github.arcadiumclient.runtime.client.optimizations.GpuTerrainCommands
 import io.github.arcadiumclient.runtime.client.optimizations.GpuSkinLayers
 import io.github.arcadiumclient.runtime.client.optimizations.NativePlayerPosePipeline
 import io.github.arcadiumclient.runtime.client.optimizations.GpuResidentPlayerState
+import io.github.arcadiumclient.runtime.client.optimizations.ModernArmorGlintPipeline
+import io.github.arcadiumclient.runtime.client.optimizations.GpuVoxelSkinPipeline
+import io.github.arcadiumclient.runtime.client.optimizations.GpuResolvedInstanceCache
 import io.github.arcadiumclient.runtime.client.optimizations.RetainedNameTags
 import io.github.arcadiumclient.runtime.client.optimizations.GpuParticles
 import io.github.arcadiumclient.runtime.client.optimizations.FastInvisibleHolograms
@@ -27,7 +30,7 @@ import org.polyfrost.oneconfig.api.event.v1.events.TickEvent
 import io.github.arcadiumclient.runtime.client.branding.NametagLayout
 
 object BetaOptimizationsConfig : Config("arcadium-optimizations-beta.json", "Optimizations (Beta)", Category.OTHER) {
-    @JvmStatic @Switch(title = "Cached Name Masking", description = "Reuse unchanged Nick Hider results. Name and nickname changes invalidate the cache immediately.", category = "Hypixel")
+    @JvmStatic @Switch(title = "Cached Name Masking", description = "Reuse unchanged Nick Hider results and avoid regular expressions when checking entity names. Name and nickname changes take effect immediately.", category = "Hypixel")
     var cachedNameMasking = true
 
     @JvmStatic @Switch(title = "Cached Font Metrics", description = "Reuse exact text widths for the built-in fonts. Font, Unicode and resource changes invalidate the cache; custom glyphs keep their original measurement.", category = "Hypixel")
@@ -75,11 +78,14 @@ object BetaOptimizationsConfig : Config("arcadium-optimizations-beta.json", "Opt
     @JvmStatic @Switch(title = "GPU Model Transforms", description = "Build and sort standard player part matrices on the GPU while keeping Argentum batching. Requires OpenGL 4.3. Custom parts use the original renderer.", category = "Players")
     var gpuModelTransforms = false
 
-    @JvmStatic @Switch(title = "GPU Player Pipeline", description = "Build standard player poses from compact snapshots and submit their parts in bulk. Unsupported models and layers use the original renderer. Requires OpenGL 4.3.", category = "Players")
+    @JvmStatic @Switch(title = "GPU Player Pipeline", description = "Build supported player poses on the GPU while preserving skin layers and animations. Mod callbacks can use evaluated-part GPU capture. Unsupported geometry keeps its original renderer. Requires OpenGL 4.3.", category = "Players")
     var gpuPlayerPipeline = false
 
-    @JvmStatic @Switch(title = "Resident Player State", description = "Keep compact player data in persistent GPU buffers and update changed words. Busy or unsupported buffers use the normal streaming path without waiting. Requires persistent buffer storage.", category = "Players")
+    @JvmStatic @Switch(title = "Resident Player State", description = "Reuse compact player data and repeated instance uploads within a render batch. Enable GPU Player Pipeline or GPU Equipment Pipeline first. Busy or unsupported buffers use normal streaming without waiting.", category = "Players")
     var residentPlayerState = false
+
+    @JvmStatic @Switch(title = "GPU Voxel Skin Layers", description = "Batch supported 3D skin meshes without reducing their detail. Enable 3D Skin and GPU Player Pipeline first. Custom shapes or render states keep the original skin renderer. Requires OpenGL 4.3.", category = "Players")
+    var gpuVoxelSkinLayers = false
 
     @JvmStatic @Switch(title = "GPU Equipment Pipeline", description = "Build standard player armor poses and submit armor parts in bulk on the GPU. Native texture selection, leather colors and enchantment effects are preserved. Requires OpenGL 4.3.", category = "Players")
     var gpuEquipmentPipeline = false
@@ -112,15 +118,19 @@ object BetaOptimizationsConfig : Config("arcadium-optimizations-beta.json", "Opt
         RenderHookAllocationControl.enabled = reduceRenderHookAllocations
         GpuTerrainCommands.enabled = gpuTerrainCommands
         GpuResidentPlayerState.enabled = residentPlayerState
+        GpuResolvedInstanceCache.enabled = residentPlayerState
+        GpuVoxelSkinPipeline.enabled = gpuVoxelSkinLayers
         eventHandler { _: TickEvent.End ->
             NametagLayout.optimized = gpuNameTags || gpuPlayerPipeline
             RenderHookAllocationControl.enabled = reduceRenderHookAllocations
             GpuTerrainCommands.enabled = gpuTerrainCommands
             GpuResidentPlayerState.enabled = residentPlayerState
+            GpuResolvedInstanceCache.enabled = residentPlayerState
+            GpuVoxelSkinPipeline.enabled = gpuVoxelSkinLayers
             syncTextOptions()
         }
         BetaOptimizationPage.register(id) {
-            listOf(GpuModelTransforms.status(), GpuPlayerPipeline.status(), GpuEquipmentPipeline.status(), NativePlayerPosePipeline.status(), GpuResidentPlayerState.status(), GpuSkinLayers.status(), GpuTerrainCommands.status(), GpuNameTags.status(), RetainedNameTags.status(), FastInvisibleHolograms.status(), RenderHookAllocationControl.status(), EfficientMotionBlur.status(), GpuParticles.status(), ScoreboardPreparation.status(), FastFramePresentation.status(), RetainedHudBuffers.status(), WorldRenderScale.status())
+            listOf(GpuModelTransforms.status(), GpuPlayerPipeline.status(), GpuEquipmentPipeline.status(), NativePlayerPosePipeline.status(), ModernArmorGlintPipeline.status(), GpuResidentPlayerState.status(), GpuResolvedInstanceCache.status(), GpuVoxelSkinPipeline.status(), GpuSkinLayers.status(), GpuTerrainCommands.status(), GpuNameTags.status(), RetainedNameTags.status(), FastInvisibleHolograms.status(), RenderHookAllocationControl.status(), EfficientMotionBlur.status(), GpuParticles.status(), ScoreboardPreparation.status(), FastFramePresentation.status(), RetainedHudBuffers.status(), WorldRenderScale.status())
         }
         io.github.arcadiumclient.runtime.client.diagnostics.PerformanceCapture.initialize()
     }

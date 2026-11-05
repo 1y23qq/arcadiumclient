@@ -48,6 +48,7 @@ public final class GpuEquipmentPipeline {
     @SuppressWarnings("unchecked")
     public static boolean capture(Model input,Entity entity,float walk,float speed,float age,float yaw,float pitch,float scale){
         if(!BetaOptimizationsConfig.getGpuEquipmentPipeline()||failed)return false;
+        if(ModernArmorGlintPipeline.active()||ModernArmorGlintPipeline.nativeModelLayer(input,entity))return false;
         if(input.getClass()!=HumanoidModel.class){state="Custom armor model; using original";fallbacks++;return false;}
         if(!(entity instanceof ClientPlayerEntity)||scale!=.0625f||input.isBaby){state="Nonstandard armor state; using original";fallbacks++;return false;}
         if(GpuPlayerPipeline.hasForgeHooks()){state="Forge hooks active; using original";fallbacks++;return false;}
@@ -79,7 +80,7 @@ public final class GpuEquipmentPipeline {
             if(job<0){if(glint!=null)for(int i=0;i<7;i++)if((addedGlint&(1<<i))!=0)glint.remove(profile.parts[i]);fallbacks++;return false;}
             Identifier texture=(Identifier)api.captureTexture.get(capture);Object batch=api.select.invoke(device,texture,pass);
             int light=(int)api.captureLight.get(capture),layer=(int)api.selectedLayer.get(device),color=pack((Vector4fc)api.captureColor.get(capture)),overlay=pack((Vector4fc)api.captureOverlay.get(capture));
-            int lightWord=(light&255)|(((light>>>16)&255)<<8)|((layer&255)<<16),time=Float.floatToRawIntBits((float)api.captureTime.get(capture));int added=0;
+            int lightWord=(light&255)|(((light>>>16)&255)<<8)|((layer&255)<<16),time=Float.floatToRawIntBits(ModernArmorGlintPipeline.effectTime(capture,(float)api.captureTime.get(capture)));int added=0;
             for(int mirror=0;mirror<2;mirror++){
                 int n=0;for(int i=0;i<7;i++)if((mask&(1<<i))!=0&&profile.mirrored[i]==(mirror==1))n++;
                 if(n==0)continue;Object instances=api.instances.invoke(profile.geometry[mirror],batch);int[] data=(int[])api.data.get(instances);int size=(int)api.size.get(instances),count=(int)api.count.get(instances);
@@ -103,5 +104,6 @@ public final class GpuEquipmentPipeline {
     private static int pack(Vector4fc color){return channel(color.x())|channel(color.y())<<8|channel(color.z())<<16|channel(color.w())<<24;}
     private static int channel(float color){return Math.clamp((int)(color*255+.5f),0,255);}
     public static void reset(){profiles.clear();unsupported.clear();backend=null;}
+    static boolean usesBackend(Object value){return backend==value;}
     public static String status(){return BetaOptimizationsConfig.getGpuEquipmentPipeline()?"GPU equipment: "+state+" | Parts: "+partsQueued+" | Fallback: "+fallbacks:"GPU equipment: Off";}
 }

@@ -29,6 +29,7 @@ public final class GpuPlayerPipeline {
     private static final Matrix4f root=new Matrix4f();
     private static final java.nio.FloatBuffer glRoot=BufferUtils.createFloatBuffer(16);
     private static boolean failed,forgeChecked,forgeActive;
+    private static boolean invalidatingBackend;
     private static java.lang.reflect.Field forgeConfiguration;
     private static MethodHandle cosmeticModels;
     private static Object cosmetics;
@@ -36,6 +37,9 @@ public final class GpuPlayerPipeline {
     private static String waitingState=state;
     private static int waitingPlayers=-1,waitingMinimum=-1;
     public static long playersDrawn,partsQueued,rejectedState,rejectedLayers,rejectedModel,nativeCallbackRoutes;
+    public static long customRenderers,outlinePlayers,invisiblePlayers,burningPlayers,babyPlayers,ridingPlayers,sleepingPlayers,spectatorPlayers,hurtPlayers,deadPlayers;
+    public static long inactiveBatches,waitingForPlayers,unavailableCompute,customAnimations;
+    public static long backendInvalidations,worldInvalidations;
     private static final int MAGIC_1=Float.floatToRawIntBits(-9876543f),MAGIC_2=Float.floatToRawIntBits(-8765432f);
 
     private static final class Profile {
@@ -69,10 +73,20 @@ public final class GpuPlayerPipeline {
         if(!GpuModelTransforms.ready()){
             int visible=GpuModelTransforms.visiblePlayers(),minimum=BetaOptimizationsConfig.getMinimumPlayers();
             if(visible!=waitingPlayers||minimum!=waitingMinimum){waitingPlayers=visible;waitingMinimum=minimum;waitingState="Waiting for player budget ("+visible+"/"+minimum+")";}
-            state=waitingState;rejectedState++;return false;
+            if(visible<minimum){waitingForPlayers++;state=waitingState;}else{unavailableCompute++;state="Compute unavailable; using original";}
+            rejectedState++;return false;
         }
-        if(!PlayerPoseOptions.compatible()){state="Custom animation pose; using original";rejectedState++;return false;}
-        if(renderer.getClass()!=PlayerRenderer.class||((LivingPipelineAccess)renderer).arcadium$outline()||player.isInvisible()||player.shouldRenderOnFire()||player.isBaby()||player.isRiding()||player.isSleeping()||player.isSpectator()||player.damagedTimer>0||player.deathTicks>0){rejectedState++;return false;}
+        if(!PlayerPoseOptions.compatible()){customAnimations++;return rejectState("Custom animation pose; using original");}
+        if(renderer.getClass()!=PlayerRenderer.class){customRenderers++;return rejectState("Custom player renderer");}
+        if(((LivingPipelineAccess)renderer).arcadium$outline()){outlinePlayers++;return rejectState("Outline player pass");}
+        if(player.isInvisible()){invisiblePlayers++;return rejectState("Invisible player");}
+        if(player.shouldRenderOnFire()){burningPlayers++;return rejectState("Burning player");}
+        if(player.isBaby()){babyPlayers++;return rejectState("Baby player");}
+        if(player.isRiding()){ridingPlayers++;return rejectState("Riding player");}
+        if(player.isSleeping()){sleepingPlayers++;return rejectState("Sleeping player");}
+        if(player.isSpectator()){spectatorPlayers++;return rejectState("Spectator player");}
+        if(player.damagedTimer>0){hurtPlayers++;return rejectState("Hurt player");}
+        if(player.deathTicks>0){deadPlayers++;return rejectState("Dead player");}
         LivingPipelineAccess renderAccess=(LivingPipelineAccess)renderer;
         if(!supportedLayers(renderAccess.arcadium$layers())){rejectedLayers++;return false;}
         boolean extraLayers=hasLayers(player);
@@ -82,13 +96,14 @@ public final class GpuPlayerPipeline {
         try{
             if(api==null)api=new PlayerBatchAccess();
             extraLayers|=hasCosmetics(player,renderAccess.arcadium$layers());
-            Object actor=api.current.invoke();if(actor==null||!(boolean)api.active.invoke(actor))return false;
+            Object actor=api.current.invoke();if(actor==null||!(boolean)api.active.invoke(actor)){inactiveBatches++;state="Native batch inactive; using original renderer";return false;}
             if(forge()){state="Native Forge callbacks with compact part capture";nativeCallbackRoutes++;return false;}
             Object backend=api.backend.get(actor);if(lastBackend!=backend){profiles.clear();unsupported.clear();lastBackend=backend;}
             if(unsupported.contains(model)){rejectedModel++;return false;}
             Profile profile=profiles.get(model);
             if(profile==null){if(profiles.size()>=128){state="Model profile budget; using native capture";rejectedModel++;return false;}try{profile=new Profile(model,backend);profiles.put(model,profile);}catch(IllegalArgumentException rejected){unsupported.add(model);rejectedModel++;return false;}}
             int skinMask=GpuSkinLayers.mask(profile.parts);
+            boolean nativeLayers=extraLayers;
             extraLayers|=skinMask!=0;
             int mask=0;for(int i=0;i<12;i++)if(profile.parts[i].visible&&!profile.parts[i].invisible&&(skinMask&(1<<i))==0)mask|=1<<i;
             if(mask==0)return false;
@@ -117,7 +132,7 @@ public final class GpuPlayerPipeline {
             }
             api.batchCount.set(batch,(int)api.batchCount.get(batch)+added);api.backendCount.set(backend,(int)api.backendCount.get(backend)+added);
             committed=true;
-            boolean counted=extraLayers&&renderLayers(renderAccess,model,profile.parts,skinMask,player,actor,skin,light,walk,speed,delta,age,head,pitch);
+            boolean counted=extraLayers&&renderLayers(renderAccess,model,profile.parts,skinMask,nativeLayers,job,profile.template,player,actor,skin,light,walk,speed,delta,age,head,pitch);
             if(!counted){api.entityCount.set(actor,(int)api.entityCount.get(actor)+1);api.playerCount.set(actor,(int)api.playerCount.get(actor)+1);}
             api.nameAdd.invoke(api.nameTags.get(actor),renderer,player,x,y,z,light);
             playersDrawn++;partsQueued+=added;state="Compact poses active";return true;
@@ -130,23 +145,38 @@ public final class GpuPlayerPipeline {
             failed=true;state="Disabled after error; using Argentum";LogManager.getLogger("Arcadium/GPU Players").warn("Compact player pipeline disabled",error);return committed;
         }
     }
-    private static boolean renderLayers(LivingPipelineAccess renderer,PlayerModel model,ModelPart[] parts,int skinMask,ClientPlayerEntity player,Object actor,Identifier skin,int light,
+    private static boolean rejectState(String reason){state=reason;rejectedState++;return false;}
+    private static boolean renderLayers(LivingPipelineAccess renderer,PlayerModel model,ModelPart[] parts,int skinMask,boolean nativeLayers,int job,int template,ClientPlayerEntity player,Object actor,Identifier skin,int light,
                                         float walk,float speed,float delta,float age,float yaw,float pitch)throws Throwable{
         Object capture=api.beginCapture.invoke(actor,model,skin,true,true,light,age,0f,0f,0f,0f);
         if(capture==null)throw new IllegalStateException("Player layer capture was unavailable");
-        boolean counted=false;GL11.glPushMatrix();
+        boolean counted=false;int nativeSkinMask=skinMask;GL11.glPushMatrix();
         try{
             ((Matrix4fStack)api.captureMatrices.get(capture)).set(root);api.firstPass.invoke(capture);
             glRoot.clear();root.get(glRoot);GL11.glMultMatrixf(glRoot);
             GlStateManager.disableCull();GlStateManager.enableRescaleNormal();GlStateManager.enableAlphaTest();
-            model.attackAnimationProgress=player.getAttackAnimationProgress(delta);model.riding=false;model.isBaby=false;
-            model.prepare(player,walk,speed,delta);model.setupAnimation(walk,speed,age,yaw,pitch,.0625f,player);
-            renderer.arcadium$renderLayers(player,walk,speed,delta,age,yaw,pitch,.0625f);
+            nativeSkinMask&=~GpuVoxelSkinPipeline.queueAnalytic(parts,skinMask,skin,job,template,light,age);
+            if(nativeLayers||nativeSkinMask!=0){
+                model.attackAnimationProgress=player.getAttackAnimationProgress(delta);model.riding=false;model.isBaby=false;
+                model.prepare(player,walk,speed,delta);model.setupAnimation(walk,speed,age,yaw,pitch,.0625f,player);
+                if(nativeLayers)renderer.arcadium$renderLayers(player,walk,speed,delta,age,yaw,pitch,.0625f);
+                if(GpuVoxelSkinPipeline.enabled&&nativeSkinMask!=0){
+                    Object previousPass=api.capturePass.get(capture);
+                    api.capturePass.set(capture,api.translucent);
+                    try{
+                        ((Matrix4fStack)api.captureMatrices.get(capture)).set(root);api.beginModel.invoke(capture);
+                        try{
+                            int liveMask=nativeSkinMask;nativeSkinMask=0;
+                            GpuSkinLayers.render(parts,liveMask,skin,model.sneaking);
+                        }finally{api.endModel.invoke(capture);}
+                    }finally{api.capturePass.set(capture,previousPass);}
+                }
+            }
             counted=(boolean)api.recorded.invoke(capture);
         }finally{
             try {
                 ((AutoCloseable)capture).close();
-                GpuSkinLayers.render(parts,skinMask,skin,model.sneaking);
+                GpuSkinLayers.render(parts,nativeSkinMask,skin,model.sneaking);
             } finally {
                 GlStateManager.disableRescaleNormal();GL11.glPopMatrix();
                 GlStateManager.activeTexture(GLX.GL_TEXTURE1);GlStateManager.enableTexture();GlStateManager.activeTexture(GLX.GL_TEXTURE0);GlStateManager.enableCull();
@@ -180,6 +210,17 @@ public final class GpuPlayerPipeline {
         catch(IllegalAccessException error){return true;}
     }
     static boolean hasForgeHooks(){return forge();}
+    public static void invalidateBackend(Object value){
+        if(value==null||invalidatingBackend||GpuVoxelSkinPipeline.isAuxiliaryBackend(value))return;
+        if(value!=lastBackend&&!GpuEquipmentPipeline.usesBackend(value)&&!NativePlayerPosePipeline.usesBackend(value)&&!GpuVoxelSkinPipeline.usesMainBackend(value))return;
+        invalidatingBackend=true;
+        try{
+            backendInvalidations++;
+            GpuVoxelSkinPipeline.reset();
+            ModernArmorGlintPipeline.close();
+            reset();
+        }finally{invalidatingBackend=false;}
+    }
     private static float angle(float old,float current,float delta){float difference=current-old;while(difference< -180)difference+=360;while(difference>=180)difference-=360;return old+delta*difference;}
     public static void reset(){profiles.clear();unsupported.clear();lastBackend=null;GpuEquipmentPipeline.reset();NativePlayerPosePipeline.reset();GpuResidentPlayerState.reset();GpuPlayerPackets.resetTemplates();}
     public static String status(){return BetaOptimizationsConfig.getGpuPlayerPipeline()?"GPU player pipeline: "+state+" | Players: "+playersDrawn+" | Layer/model fallback: "+(rejectedLayers+rejectedModel):"GPU player pipeline: Off";}

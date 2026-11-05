@@ -21,16 +21,30 @@ public final class GpuModelTransforms {
     private static int count, uploaded, program, input, countUniform, players, sortProgram, sortCountUniform, scratch;
     private static final VisiblePlayerBudget visibility = new VisiblePlayerBudget();
     private static boolean checked, supported, failed;
+    private static Object batchOwner;
+    private static Thread batchThread;
+    private static long batchEpoch, modelRevision;
     public static long offloadedParts, fallbackParts, dispatches, cpuRecoveries, sortedBatches;
     private static volatile String capability = "Not tested yet";
 
     private GpuModelTransforms() { }
 
     public static void beginBatch() {
+        beginBatch(null);
+    }
+
+    public static void beginBatch(Object owner) {
+        batchOwner = owner; batchThread = Thread.currentThread(); batchEpoch++; modelRevision++;
         count = uploaded = 0;
         GpuPlayerPackets.beginBatch();
         NativePlayerPosePipeline.beginBatch();
+        GpuVoxelSkinPipeline.beginBatch();
     }
+    public static Object batchOwner() { return batchOwner; }
+    public static boolean batchThread() { return batchThread == Thread.currentThread(); }
+    public static long batchEpoch() { return batchEpoch; }
+    public static long modelRevision() { return modelRevision; }
+    public static boolean outputsReusable() { return supported && !failed && program != 0; }
 
     public static void beginFrame() {
         if(BetaOptimizationsConfig.getGpuPlayerPipeline()||BetaOptimizationsConfig.getGpuEquipmentPipeline())PlayerPoseOptions.refresh();
@@ -100,7 +114,7 @@ public final class GpuModelTransforms {
         jobs.put(offset + 16, tx).put(offset + 17, ty).put(offset + 18, tz).put(offset + 19, 0);
         jobs.put(offset + 20, rx).put(offset + 21, ry).put(offset + 22, rz).put(offset + 23, 0);
         localBox.get(offset + 24, jobs);
-        marker.identity().m00(count++).m01(Float.intBitsToFloat(MAGIC_1)).m02(Float.intBitsToFloat(MAGIC_2));
+        marker.identity().m00(count++).m01(Float.intBitsToFloat(MAGIC_1)).m02(Float.intBitsToFloat(MAGIC_2)); modelRevision++;
         return marker;
     }
 
@@ -157,6 +171,7 @@ public final class GpuModelTransforms {
         } finally {
             GL15.glBindBuffer(GL31.GL_COPY_READ_BUFFER,oldCopy);GL15.glBindBuffer(GL43.GL_SHADER_STORAGE_BUFFER,oldStorage);GL15.glDeleteBuffers(testBuffer);
             count=uploaded=0;offloadedParts=oldParts;dispatches=oldDispatches;sortedBatches=oldSorted;
+            modelRevision++;
             GpuPlayerPackets.beginBatch();
         }
     }
@@ -295,6 +310,7 @@ public final class GpuModelTransforms {
     }
 
     public static void close() {
+        batchOwner = null; batchThread = null; batchEpoch++; modelRevision++;
         if (input != 0) GL15.glDeleteBuffers(input);
         if (program != 0) GL20.glDeleteProgram(program);
         if (scratch != 0) GL15.glDeleteBuffers(scratch);

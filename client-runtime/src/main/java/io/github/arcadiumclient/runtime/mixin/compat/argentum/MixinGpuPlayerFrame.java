@@ -3,6 +3,7 @@ package io.github.arcadiumclient.runtime.mixin.compat.argentum;
 
 import com.moulberry.mixinconstraints.annotations.IfModLoaded;
 import io.github.arcadiumclient.runtime.client.optimizations.GpuModelTransforms;
+import io.github.arcadiumclient.runtime.client.optimizations.ModernArmorGlintPipeline;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.Minecraft;
 import org.spongepowered.asm.mixin.*;
@@ -14,6 +15,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class MixinGpuPlayerFrame {
     @Inject(method="render(FJ)V",at=@At("HEAD"))
     private void arcadium$visiblePlayers(float delta,long nanoTime,CallbackInfo callback){
+        ModernArmorGlintPipeline.beginFrame();
         if(Minecraft.getInstance().world==null)GpuModelTransforms.clearFrameBudget();
         else GpuModelTransforms.beginFrame();
     }

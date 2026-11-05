@@ -12,17 +12,25 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class BetaRenderCleanupMixin {
     @Inject(method = "reloadResources()V", at = @At("HEAD"))
     private void arcadium$invalidateParticleResources(CallbackInfo callback) {
+        RetainedHudBuffers.closeAll();
         GpuParticles.tick();
+        ModernArmorGlintPipeline.close();
         GpuTerrainCommands.reset();
+        GpuVoxelSkinPipeline.reset();
         GpuPlayerPipeline.reset();
     }
     @Inject(method = "setWorld(Lnet/minecraft/client/world/ClientWorld;Ljava/lang/String;)V", at = @At("HEAD"))
     private void arcadium$releaseWorldBuffers(ClientWorld world, String reason, CallbackInfo callback) {
-        if (world == null) { RetainedHudBuffers.closeAll(); WorldRenderScale.release(); GpuNameTags.closeAll(); GpuParticles.close(); GpuTerrainCommands.reset(); GpuModelTransforms.clearFrameBudget(); GpuPlayerPipeline.reset(); }
+        if (world == null || world != ((Minecraft)(Object)this).world) {
+            GpuPlayerPipeline.worldInvalidations++;
+            RetainedHudBuffers.closeAll(); WorldRenderScale.release(); GpuNameTags.closeAll(); GpuParticles.close(); GpuTerrainCommands.reset(); GpuVoxelSkinPipeline.reset(); ModernArmorGlintPipeline.close(); GpuModelTransforms.clearFrameBudget(); GpuPlayerPipeline.reset();
+        }
     }
     @Inject(method = "shutdown", at = @At("HEAD"))
     private void arcadium$releaseGpuBuffers(CallbackInfo callback) {
         RetainedHudBuffers.closeAll(); WorldRenderScale.release(); GpuModelTransforms.close(); GpuNameTags.closeAll(); GpuParticles.close();
         GpuTerrainCommands.reset();
+        GpuVoxelSkinPipeline.reset();
+        ModernArmorGlintPipeline.close();
     }
 }
