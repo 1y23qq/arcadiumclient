@@ -15,7 +15,7 @@ public abstract class ModernGlint072NativePartProbe {
     private void modern$nativeMatrix(int list, Operation<Void> original) {
         ModelPart part = (ModelPart)(Object)this;
         ModernGlint072Qa.nativeModelView(part);
-        int token = ModernGlintPixelTrace072Qa.beforeNative(part);
+        int token = ModernGlintPixelTrace072Qa.beforeNative(part, list);
         try { original.call(list); } finally { ModernGlintPixelTrace072Qa.after(token); }
     }
 }

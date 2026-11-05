@@ -232,8 +232,11 @@ public final class ModernGlint072Qa {
     public static boolean omitGlint() { return enabled() && baseOnly; }
     public static void beginGlint() { if (enabled()) glintDepth++; }
     public static void endGlint() { if (enabled()) glintDepth--; }
-    public static boolean tracingNative() { return enabled() && !done && phase == 2 && style < 2 && !baseOnly && comparisonMode == 1 && glintDepth > 0; }
-    public static boolean tracingGpu() { return enabled() && !done && phase == 2 && style < 2 && !baseOnly && comparisonMode == 2; }
+    public static boolean tracingNative() { return enabled() && !done && phase == 2 && style < 2 && comparisonMode == 1; }
+    public static boolean tracingGpu() { return enabled() && !done && phase == 2 && style < 2 && comparisonMode == 2; }
+    public static boolean tracingGlint() { return glintDepth > 0; }
+    public static String traceCase() { return CASES[style] + (baseOnly ? "-base-only" : "-full"); }
+    public static boolean ownsActor(Object entity) { return actor != null && entity == actor; }
     public static String currentCase() { return CASES[style]; }
     public static boolean needsModelViewReference() { return enabled() && !done && phase == 2 && comparisonMode == 2; }
     public static void referenceFailure(Throwable error) { failure = error.toString(); }

@@ -17,6 +17,8 @@ public final class GpuVoxelSkin072QualityControls {
     private static final long TIME_OF_DAY = TIME == null ? 6000 : Long.parseLong(TIME);
     private static boolean hooked;
     private static long actorTicks, worldTicks, captureBypasses,nativeVoxelRootBypasses,phaseNativeVoxelRootStart;
+    private static long nativeRootListCalls,phaseNativeRootListStart;
+    private static int nativeRootActorDepth,nativeRootMeshDepth;
     private static List<Float> observedAngles = List.of();
     private static final Map<String,Float> observedScales = new TreeMap<>();
     private static final List<Map<String,Object>> captureProofs = new ArrayList<>();
@@ -39,7 +41,19 @@ public final class GpuVoxelSkin072QualityControls {
                 && System.getProperty("arcadium.playerPipeline072.mode", "visual").equals("visual");
     }
     public static void nativeVoxelRootBypass(){nativeVoxelRootBypasses++;hook();}
-    public static void armCapture() { if (captureRequested()) { Arrays.fill(phaseCapturedParts, 0);phaseNativeVoxelRootStart=nativeVoxelRootBypasses; } }
+    public static void nativeRootActor(boolean enter){
+        if(!Boolean.getBoolean("arcadium.playerPipeline072.nativeVoxelRootControl"))return;
+        nativeRootActorDepth+=enter?1:-1;
+        if(nativeRootActorDepth<0||nativeRootActorDepth>4)throw new IllegalStateException("Unbalanced native-root actor scope");
+    }
+    public static boolean beginNativeRootMesh(){
+        if(!Boolean.getBoolean("arcadium.playerPipeline072.nativeVoxelRootControl")||nativeRootActorDepth==0)return false;
+        if(++nativeRootMeshDepth>8)throw new IllegalStateException("Unbalanced native-root mesh scope");
+        return true;
+    }
+    public static void endNativeRootMesh(){if(--nativeRootMeshDepth<0)throw new IllegalStateException("Unbalanced native-root mesh scope");}
+    public static void actualNativeRootList(){if(nativeRootActorDepth>0&&nativeRootMeshDepth>0)nativeRootListCalls++;}
+    public static void armCapture() { if (captureRequested()) { Arrays.fill(phaseCapturedParts, 0);phaseNativeVoxelRootStart=nativeVoxelRootBypasses;phaseNativeRootListStart=nativeRootListCalls; } }
     public static void nativeCapture(Object mesh) {
         if (!captureRequested()) return;
         try {
@@ -56,9 +70,12 @@ public final class GpuVoxelSkin072QualityControls {
         if (nativeParts <= 0 || analyticParts != 0 || (partMask & 0xFC0) != 0xFC0 || (observedMask & 0xFC0) != 0xFC0
                 || observedParts != nativeParts || (Boolean.getBoolean("arcadium.playerPipeline072.nativeVoxelRootControl")?nativeVoxelRootBypasses<=phaseNativeVoxelRootStart:captureBypasses<=0))
             throw new IllegalStateException("The capture-only voxel fixture did not use all six actual native GPU skin parts");
+        if(Boolean.getBoolean("arcadium.playerPipeline072.nativeVoxelRootControl")&&nativeRootListCalls!=phaseNativeRootListStart)
+            throw new IllegalStateException("Native GPU outer parts also executed an original voxel display list");
         if (captureProofs.size() < 16) captureProofs.add(Map.of("nativeParts", nativeParts, "analyticParts", analyticParts,
                 "nativePartMask", Long.toHexString(partMask), "phaseObservedPartMask", Integer.toHexString(observedMask),
-                "phaseObservedPartCounts", phaseCapturedParts.clone(), "analyticCallsBypassed", captureBypasses,"nativeVoxelRootBypasses",nativeVoxelRootBypasses-phaseNativeVoxelRootStart));
+                "phaseObservedPartCounts", phaseCapturedParts.clone(), "analyticCallsBypassed", captureBypasses,"nativeVoxelRootBypasses",nativeVoxelRootBypasses-phaseNativeVoxelRootStart,
+                "actualOriginalVoxelDisplayLists",nativeRootListCalls-phaseNativeRootListStart));
         hook();
     }
     public static void skinOffsets() throws ReflectiveOperationException {
@@ -114,6 +131,7 @@ public final class GpuVoxelSkin072QualityControls {
                 result.put("observedFirstActorAngles", observedAngles); result.put("observedWorldTime", observedTime);
                 result.put("captureOnly", Boolean.getBoolean("arcadium.voxelQuality072.captureOnly")); result.put("analyticCallsBypassed", captureBypasses);
                 result.put("nativeVoxelRootControl",Boolean.getBoolean("arcadium.playerPipeline072.nativeVoxelRootControl"));result.put("nativeVoxelRootBypasses",nativeVoxelRootBypasses);
+                result.put("actualOriginalVoxelDisplayLists",nativeRootListCalls);result.put("nativeRootActorScopeDepth",nativeRootActorDepth);result.put("nativeRootMeshScopeDepth",nativeRootMeshDepth);
                 result.put("observedVoxelScales", observedScales);
                 result.put("requestedEntityShadows", SHADOWS); result.put("observedEntityShadows", observedEntityShadows);
                 result.put("captureProofs", captureProofs);

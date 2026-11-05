@@ -400,7 +400,7 @@ public final class PlayerPipeline072Qa {
                     "Native voxel root research lost original callbacks or native GPU body capture");
             for(Actor actor:actors){RenderTrace trace=renderTraces.get(actor);
                 require(trace!=null&&trace.compact==0&&trace.nativeParts>0,"An actor lost original root/native GPU body capture: "+actor.getName());
-                if(effectiveSkin)require(trace.nativeGpuVoxels==6&&trace.analyticVoxels==0&&trace.voxels==0,"An actor lost one of six native GPU outer parts or drew duplicate original layers: "+actor.getName());
+                if(effectiveSkin)require(trace.nativeGpuVoxels==6&&trace.analyticVoxels==0&&trace.voxels==6,"An actor lost one of six native mesh callbacks or GPU outer parts: "+actor.getName());
             }return;
         }
         if (NATIVE_BODY_CONTROL) {
@@ -762,18 +762,21 @@ public final class PlayerPipeline072Qa {
     private static final class RenderTrace { int calls; long compact, nativeParts, voxels, analyticVoxels, nativeGpuVoxels; }
     public static RenderCheckpoint beginPlayer(net.minecraft.client.entity.living.player.ClientPlayerEntity player) {
         if (!enabled() || !VISUAL || done || !(player instanceof Actor)) return null;
-        return new RenderCheckpoint(counter("GpuPlayerPipeline", "playersDrawn"), counter("NativePlayerPosePipeline", "bodyPartsQueued"), Features062Qa.voxelDraws,
+        RenderCheckpoint checkpoint=new RenderCheckpoint(counter("GpuPlayerPipeline", "playersDrawn"), counter("NativePlayerPosePipeline", "bodyPartsQueued"), Features062Qa.voxelDraws,
                 counter("GpuVoxelSkinPipeline", "analyticParts"), counter("GpuVoxelSkinPipeline", "nativeParts"));
+        GpuVoxelSkin072QualityControls.nativeRootActor(true);return checkpoint;
     }
     public static void endPlayer(net.minecraft.client.entity.living.player.ClientPlayerEntity player, RenderCheckpoint before) {
         if (before == null || !(player instanceof Actor actor)) return;
-        RenderTrace trace = renderTraces.computeIfAbsent(actor, ignored -> new RenderTrace()); trace.calls++;
-        trace.compact += counter("GpuPlayerPipeline", "playersDrawn") - before.compact();
-        trace.nativeParts += counter("NativePlayerPosePipeline", "bodyPartsQueued") - before.nativeParts();
-        trace.voxels += Features062Qa.voxelDraws - before.voxels();
-        trace.analyticVoxels += counter("GpuVoxelSkinPipeline", "analyticParts") - before.analyticVoxels();
-        trace.nativeGpuVoxels += counter("GpuVoxelSkinPipeline", "nativeParts") - before.nativeGpuVoxels();
-        ActorPacket072Qa.afterPlayer(actor,counter("GpuPlayerPipeline", "playersDrawn")-before.compact());
+        try{
+            RenderTrace trace = renderTraces.computeIfAbsent(actor, ignored -> new RenderTrace()); trace.calls++;
+            trace.compact += counter("GpuPlayerPipeline", "playersDrawn") - before.compact();
+            trace.nativeParts += counter("NativePlayerPosePipeline", "bodyPartsQueued") - before.nativeParts();
+            trace.voxels += Features062Qa.voxelDraws - before.voxels();
+            trace.analyticVoxels += counter("GpuVoxelSkinPipeline", "analyticParts") - before.analyticVoxels();
+            trace.nativeGpuVoxels += counter("GpuVoxelSkinPipeline", "nativeParts") - before.nativeGpuVoxels();
+            ActorPacket072Qa.afterPlayer(actor,counter("GpuPlayerPipeline", "playersDrawn")-before.compact());
+        }finally{GpuVoxelSkin072QualityControls.nativeRootActor(false);}
     }
     private static List<Map<String, Object>> actorRenderState() {
         List<Map<String, Object>> result = new ArrayList<>();

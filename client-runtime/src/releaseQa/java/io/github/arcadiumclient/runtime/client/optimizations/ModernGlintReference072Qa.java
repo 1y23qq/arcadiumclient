@@ -2,6 +2,7 @@
 package io.github.arcadiumclient.runtime.client.optimizations;
 
 import io.github.arcadiumclient.runtime.qa.ModernGlint072Qa;
+import io.github.arcadiumclient.runtime.qa.ModernGlintPixelTrace072Qa;
 import net.minecraft.client.render.model.ModelPart;
 import org.joml.Matrix4f;
 import org.joml.Matrix4fc;
@@ -20,6 +21,8 @@ public final class ModernGlintReference072Qa {
             matrix.translate(part.translateX, part.translateY, part.translateZ).translate(part.x * scale, part.y * scale, part.z * scale)
                     .rotateZ(part.rotationZ).rotateY(part.rotationY).rotateX(part.rotationX);
             ModernGlint072Qa.optimizedModelView(part, matrix);
+            ModernGlintPixelTrace072Qa.captured(part, (Matrix4fc)api.captureMatrices.get(capture), matrix,
+                    String.valueOf(api.capturePass.get(capture)), (int)api.captureLight.get(capture));
         } catch (Throwable error) { ModernGlint072Qa.referenceFailure(error); }
     }
 }

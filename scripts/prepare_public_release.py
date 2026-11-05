@@ -71,7 +71,8 @@ def verify_windows(version, installers):
     with installer.open("rb") as stream:
         if stream.read(2) != b"MZ":
             raise RuntimeError("Windows installer is not an executable.")
-    stages=[ROOT / "build/package/windows-x64"]+sorted((ROOT / "build/package").glob("windows-x64-*"),key=lambda path:path.stat().st_mtime,reverse=True)
+    candidates=(path for path in (ROOT / "build/package").glob("windows-x64-*") if path.is_dir())
+    stages=[ROOT / "build/package/windows-x64"]+sorted(candidates,key=lambda path:path.stat().st_mtime,reverse=True)
     staged=next((stage.resolve() for stage in stages if (stage / "Arcadium.exe").is_file() and sha256(stage / "Arcadium.exe")==files.get("Arcadium.exe")),None)
     if staged is None:
         raise RuntimeError("The verified Windows staging directory is missing.")

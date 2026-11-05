@@ -1,9 +1,11 @@
 import hashlib
 import io
 import json
+import os
 from pathlib import Path
 import plistlib
 import struct
+import subprocess
 import tarfile
 import tempfile
 import unittest
@@ -13,6 +15,48 @@ import prepare_public_release as release
 
 
 class PublicReleaseTests(unittest.TestCase):
+    def windows_fixture(self, root):
+        stage = root / "build/package/windows-x64-current"
+        stage.mkdir(parents=True)
+        (stage / "Arcadium.exe").write_bytes(b"MZlauncher fixture")
+        (stage / "LICENSE").write_bytes(b"license fixture")
+        installers = root / "installers"
+        installers.mkdir()
+        installer = installers / "ArcadiumClientSetup-0.2.8-x64.exe"
+        installer.write_bytes(b"MZinstaller fixture")
+        manifest = {"product": "Arcadium Client", "launcherVersion": "0.2.8", "platform": "windows-x64",
+                    "installerSha256": release.sha256(installer), "files": [
+                        {"path": p.name, "sha256": release.sha256(p)} for p in stage.iterdir()]}
+        (installers / "package-manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
+        return stage, installers
+
+    def test_windows_verification_ignores_dangling_old_stage(self):
+        with tempfile.TemporaryDirectory(prefix="arcadium-release-") as temporary:
+            root = Path(temporary)
+            stage, installers = self.windows_fixture(root)
+            target = root / "removed-old-stage"
+            target.mkdir()
+            link = stage.parent / "windows-x64-dangling"
+            if os.name == "nt":
+                quote = lambda value: "'" + str(value).replace("'", "''") + "'"
+                subprocess.run(["pwsh", "-NoProfile", "-Command",
+                                f"New-Item -ItemType Junction -Path {quote(link)} -Target {quote(target)} | Out-Null"], check=True)
+            else:
+                link.symlink_to(target, target_is_directory=True)
+            target.rmdir()
+            self.assertFalse(link.is_dir())
+            with patch.object(release, "ROOT", root):
+                result = release.verify_windows("0.2.8", installers)
+            self.assertEqual(result["verified_payload_files"], 2)
+
+    def test_windows_stage_discovery_keeps_payload_hash_validation(self):
+        with tempfile.TemporaryDirectory(prefix="arcadium-release-") as temporary:
+            root = Path(temporary)
+            stage, installers = self.windows_fixture(root)
+            (stage / "LICENSE").write_bytes(b"changed license")
+            with patch.object(release, "ROOT", root), self.assertRaisesRegex(RuntimeError, "Invalid staged Windows payload"):
+                release.verify_windows("0.2.8", installers)
+
     def test_windows_only_site_update_preserves_mac_versions_and_links(self):
         with tempfile.TemporaryDirectory(prefix="arcadium-release-") as temporary:
             root = Path(temporary)

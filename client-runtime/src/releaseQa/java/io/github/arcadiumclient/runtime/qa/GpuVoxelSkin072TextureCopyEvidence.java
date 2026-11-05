@@ -48,6 +48,7 @@ public final class GpuVoxelSkin072TextureCopyEvidence {
             record.put("nanoTime",System.nanoTime());record.put("visualPhase",value(null,PlayerPipeline072Qa.class,"phase"));
             record.put("physicalModelView",matrix(GL11.GL_MODELVIEW_MATRIX));record.put("physicalProjection",matrix(GL11.GL_PROJECTION_MATRIX));
             record.put("physicalModelViewDouble",matrixDouble(GL11.GL_MODELVIEW_MATRIX));record.put("physicalProjectionDouble",matrixDouble(GL11.GL_PROJECTION_MATRIX));
+            record.put("physicalTextureMatrices",textureMatrices());
             float[] quads=(float[])value(mesh,"quads");record.put("firstRawQuad",Arrays.copyOf(quads,Math.min(23,quads.length)));
             if(quads.length>=23){float[] vertices=new float[12];for(int vertex=0;vertex<4;vertex++)for(int axis=0;axis<3;axis++)vertices[vertex*3+axis]=quads[3+vertex*5+axis]*scale;record.put("firstQuadVertices",vertices);record.put("vertexUnits","model units after the actual render(scale), before ModelView");}
             Class<?> instancing=Class.forName("dev.rdh.argentum.impl.render.entity.instancing.EntityInstancing");var currentMethod=instancing.getDeclaredMethod("current");currentMethod.setAccessible(true);Object current=currentMethod.invoke(null);
@@ -111,6 +112,7 @@ public final class GpuVoxelSkin072TextureCopyEvidence {
             record.put("actualGpuInstanceBuffer",buffer);record.put("actualGpuInstances",instances);record.put("count",count);record.put("referencedLayers",layers);
             record.put("physicalModelView",matrix(GL11.GL_MODELVIEW_MATRIX));record.put("physicalProjection",matrix(GL11.GL_PROJECTION_MATRIX));
             record.put("physicalModelViewDouble",matrixDouble(GL11.GL_MODELVIEW_MATRIX));record.put("physicalProjectionDouble",matrixDouble(GL11.GL_PROJECTION_MATRIX));
+            record.put("physicalTextureMatrices",textureMatrices());
             int mvp=GL20.glGetUniformLocation(oldProgram,"uModelViewProjection");record.put("nativeMvpLocation",mvp);
             if(mvp>=0){FloatBuffer actual=BufferUtils.createFloatBuffer(16);GL20.glGetUniformfv(oldProgram,mvp,actual);float[] values=new float[16];actual.get(values);record.put("nativeMvp",values);}
             else{List<String> names=new ArrayList<>();int uniforms=GL20.glGetProgrami(oldProgram,GL20.GL_ACTIVE_UNIFORMS);IntBuffer size=BufferUtils.createIntBuffer(1),type=BufferUtils.createIntBuffer(1);for(int index=0;index<Math.min(uniforms,128);index++)names.add(GL20.glGetActiveUniform(oldProgram,index,256,size,type));record.put("activeUniformNames",names);}
@@ -209,6 +211,20 @@ public final class GpuVoxelSkin072TextureCopyEvidence {
     private static void save(byte[] bytes,Path file)throws Exception{BufferedImage image=new BufferedImage(64,64,BufferedImage.TYPE_INT_ARGB);for(int y=0;y<64;y++)for(int x=0;x<64;x++){int i=(y*64+x)*4;image.setRGB(x,y,(bytes[i+3]&255)<<24|(bytes[i]&255)<<16|(bytes[i+1]&255)<<8|(bytes[i+2]&255));}ImageIO.write(image,"png",file.toFile());}
     private static float[] matrix(int name){FloatBuffer buffer=BufferUtils.createFloatBuffer(16);GL11.glGetFloatv(name,buffer);float[] values=new float[16];buffer.get(values);return values;}
     private static double[] matrixDouble(int name){DoubleBuffer buffer=BufferUtils.createDoubleBuffer(16);GL11.glGetDoublev(name,buffer);double[] values=new double[16];buffer.get(values);return values;}
+    private static Map<String,Object> textureMatrices(){
+        int active=GL11.glGetInteger(GL13.GL_ACTIVE_TEXTURE),mode=GL11.glGetInteger(GL11.GL_MATRIX_MODE);
+        Map<String,Object> result=new LinkedHashMap<>();result.put("activeTextureBefore",active);result.put("matrixModeBefore",mode);
+        try{
+            if(GL11.glGetInteger(GL13.GL_MAX_TEXTURE_UNITS)<2)throw new IllegalStateException("The native texture-matrix probe requires two fixed-function units");
+            for(int unit=0;unit<2;unit++){
+                GL13.glActiveTexture(GL13.GL_TEXTURE0+unit);result.put("unit"+unit,matrix(GL11.GL_TEXTURE_MATRIX));
+                result.put("unit"+unit+"Double",matrixDouble(GL11.GL_TEXTURE_MATRIX));
+            }
+        }finally{GL13.glActiveTexture(active);}
+        boolean restored=active==GL11.glGetInteger(GL13.GL_ACTIVE_TEXTURE)&&mode==GL11.glGetInteger(GL11.GL_MATRIX_MODE);
+        result.put("stateRestored",restored);if(!restored)throw new IllegalStateException("Native texture-matrix observation leaked active texture or matrix mode");
+        return result;
+    }
     private static Object value(Object target,String name)throws Exception{return value(target,target.getClass(),name);}
     private static Object value(Object target,Class<?> type,String name)throws Exception{for(Class<?> owner=type;owner!=null;owner=owner.getSuperclass())try{Field field=owner.getDeclaredField(name);field.setAccessible(true);return field.get(target);}catch(NoSuchFieldException ignored){}throw new NoSuchFieldException(name);}
     private static Path output(){return Path.of(System.getProperty("arcadium.playerPipeline072.output")).toAbsolutePath().resolveSibling("voxel-texture-copy.json");}
