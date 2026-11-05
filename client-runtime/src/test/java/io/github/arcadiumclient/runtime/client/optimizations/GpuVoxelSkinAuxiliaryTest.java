@@ -34,5 +34,17 @@ class GpuVoxelSkinAuxiliaryTest {
             hook.invoke(main,new CallbackInfoReturnable<Boolean>("beginBatch",false));assertEquals(0,GpuPlayerPackets.count());
         }finally{GpuVoxelSkinPipeline.unregisterAuxiliary(auxiliary);GpuVoxelSkinPipeline.enabled=enabled;GpuPlayerPackets.resetTemplates();}
     }
+    @Test void otherOwnedRenderPassesCannotResetTheParentsPlayerPackets() throws Exception {
+        boolean enabled=GpuVoxelSkinPipeline.enabled;GpuVoxelSkinPipeline.enabled=false;
+        Hooks auxiliary=new Hooks(),main=new Hooks();
+        var hook=MixinGpuModelBatch.class.getDeclaredMethod("arcadium$beginJobs",CallbackInfoReturnable.class);hook.setAccessible(true);
+        try {
+            GpuPlayerPackets.beginBatch();float[] template=new float[192];for(int part=0;part<12;part++)template[part*16+12]=template[part*16+13]=template[part*16+14]=1;
+            int id=GpuPlayerPackets.registerTemplate(template);GpuPlayerPackets.add(new Matrix4f(),0,0,0,0,0,0,0,0,false,false,false,id);
+            assertTrue(GpuModelAuxiliaries.register(main,auxiliary));assertFalse(GpuVoxelSkinPipeline.isAuxiliaryBackend(auxiliary));
+            hook.invoke(auxiliary,new CallbackInfoReturnable<Boolean>("beginBatch",false));assertEquals(1,GpuPlayerPackets.count());
+            hook.invoke(main,new CallbackInfoReturnable<Boolean>("beginBatch",false));assertEquals(0,GpuPlayerPackets.count());
+        } finally {GpuModelAuxiliaries.unregister(auxiliary);GpuVoxelSkinPipeline.enabled=enabled;GpuPlayerPackets.resetTemplates();}
+    }
     private static final class Hooks extends MixinGpuModelBatch {}
 }

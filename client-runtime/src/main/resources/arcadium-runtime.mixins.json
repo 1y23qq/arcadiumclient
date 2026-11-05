@@ -40,6 +40,8 @@
     "compat.argentum.MixinModernArmorInstances",
     "compat.argentum.MixinModernArmorDraw",
     "compat.argentum.MixinModernArmorGate",
+    "compat.argentum.MixinModernArmorAuxiliaryShadows",
+    "compat.argentum.MixinModernArmorAuxiliaryLifecycle",
     "client.ModernArmorGlintMixin",
     "client.EmojiSendMixin",
     "client.EmojiFontMixin",

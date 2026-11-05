@@ -112,7 +112,7 @@ def prepare(args):
                 if args.modern_quality:
                     meta["client"] = ["ModernGlint072GameProbe", "ModernGlint072WorldProbe", "ModernGlint072ClockProbe", "ModernGlint072DrawProbe",
                                       "ModernGlint072NativePartProbe", "ModernGlint072CaptureProbe", "ModernGlint072NativePoseProbe", "ModernGlint072GlintProbe", "ModernGlint072PlayerProbe",
-                                      "ModernGlint072ShadowProbe", "ModernGlint072ShadowBatchProbe",
+                                      "ModernGlint072ShadowProbe", "ModernGlint072ShadowBatchProbe", "ModernGlint072ColdCopyProbe",
                                       "PlayerPipeline072ChunksAccess", "PlayerPipeline072ChunkStateAccess", "PlayerPipeline072ChunkMapAccess"]
                 if args.resolved_quality:
                     meta["client"] = ["ResolvedInstance072GameProbe", "ResolvedInstance072WorldProbe", "ResolvedInstance072BufferProbe", "ResolvedInstance072DriverProbe",

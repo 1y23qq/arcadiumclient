@@ -20,6 +20,9 @@ public abstract class ModernGlint072DrawProbe {
     @WrapOperation(method = "draw(Lorg/embeddedt/embeddium/impl/gl/device/CommandList;II)V", at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/ARBDrawInstanced;glDrawArraysInstancedARB(IIII)V", remap = false), remap = false)
     private void modern$pixels(int mode, int first, int vertices, int instances, Operation<Void> original) {
         int token = ModernGlintPixelTrace072Qa.beforeGpu(this, mode, first, vertices, instances);
-        try { original.call(mode, first, vertices, instances); } finally { ModernGlintPixelTrace072Qa.after(token); }
+        try {
+            original.call(mode, first, vertices, instances);
+            io.github.arcadiumclient.runtime.client.optimizations.ModernArmorAuxiliary072Qa.drawCompleted();
+        } finally { ModernGlintPixelTrace072Qa.after(token); }
     }
 }

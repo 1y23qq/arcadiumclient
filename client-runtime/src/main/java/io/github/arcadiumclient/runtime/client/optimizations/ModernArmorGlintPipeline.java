@@ -15,6 +15,8 @@ import net.minecraft.client.render.model.Model;
 import net.minecraft.client.render.model.ModelPart;
 import net.minecraft.client.render.model.entity.HumanoidModel;
 import net.minecraft.entity.living.LivingEntity;
+import net.minecraft.item.ArmorItem;
+import net.minecraft.item.ItemStack;
 import net.minecraft.resource.Identifier;
 import org.apache.logging.log4j.LogManager;
 import org.embeddedt.embeddium.impl.gl.shader.GlProgram;
@@ -34,7 +36,7 @@ public final class ModernArmorGlintPipeline {
     private static final Identifier ITEM = new Identifier("overflowanimations", "textures/misc/enchanted_glint_item.png");
     private static final Identifier ARMOR = new Identifier("overflowanimations", "textures/misc/enchanted_glint_armor.png");
     private static PlayerBatchAccess api;
-    private static MethodHandle getProgram, animationInstance, customEffects, ceraGetter;
+    private static MethodHandle getProgram, animationInstance, customEffects, customArmor, ceraGetter;
     private static VarHandle textureMatrices;
     private static Object animationItems, ceraItems;
     private static java.lang.reflect.Field armorGlint, animationItemsField;
@@ -104,8 +106,12 @@ public final class ModernArmorGlintPipeline {
             Object device = api.backend.get(actor);
             GlProgram<?> program = (GlProgram<?>)getProgram.invoke(device);
             if (verifiedProgramLocation(program.handle()) < 0) return nativeLayer("Linked modern shader block was not verified");
-            if (!NativePlayerPosePipeline.prepareOriginalArmor((HumanoidModel)armor.getModel(1), (HumanoidModel)armor.getModel(2), device))
-                return nativeLayer("Original armor mesh unavailable; retaining the original modern layer");
+            if (!NativePlayerPosePipeline.preflightModernLayer(capture)) return nativeLayer("Modern armor pose budget reached");
+            List<Identifier> textures = armorTextures(entity, style);
+            if (textures == null) return nativeLayer("Custom or emissive armor material retains the original modern layer");
+            boolean geometryReady = NativePlayerPosePipeline.prepareOriginalArmor((HumanoidModel)armor.getModel(1), (HumanoidModel)armor.getModel(2), device);
+            boolean texturesReady = ModernArmorAuxiliary.prepareTextures(device, textures);
+            if (!geometryReady || !texturesReady) return nativeLayer("Preparing owned modern armor stores; retaining the original layer");
             selection.select(capture, layer, candidate, armor.getModel(1), armor.getModel(2), matrices.generation());
             layersSupported++; state = "Captured modern texture matrices with native GLINT ordering"; return true;
         } catch (Throwable error) { disable(error); return false; }
@@ -116,6 +122,27 @@ public final class ModernArmorGlintPipeline {
         HumanoidModel model = (HumanoidModel)input;
         return standardPart(model.head) && standardPart(model.hat) && standardPart(model.body) && standardPart(model.rightArm) &&
                 standardPart(model.leftArm) && standardPart(model.rightLeg) && standardPart(model.leftLeg);
+    }
+
+    private static List<Identifier> armorTextures(LivingEntity entity, String style) throws Throwable {
+        java.util.ArrayList<Identifier> textures = new java.util.ArrayList<>();
+        for (int slot = 0; slot < 4; slot++) {
+            ItemStack stack = entity.getArmor(slot); if (stack == null) continue;
+            if (stack.getItem().getClass() != ArmorItem.class) return null;
+            ArmorItem armor = (ArmorItem)stack.getItem(); String material = armor.getTier().getKey();
+            if (!Set.of("leather", "chainmail", "iron", "gold", "diamond").contains(material)) return null;
+            int layer = armor.slot == 2 ? 2 : 1;
+            for (boolean overlay : armor.getTier() == ArmorItem.Tier.CLOTH ? new boolean[]{false, true} : new boolean[]{false}) {
+                Identifier identifier = new Identifier("textures/models/armor/" + material + "_layer_" + layer + (overlay ? "_overlay" : "") + ".png");
+                if (!ceraAbsent) {
+                    if (customArmor == null) customArmor = MethodHandles.publicLookup().unreflect(ceraItems.getClass().getMethod("resolveArmor", ItemStack.class, String.class, int.class, boolean.class, Identifier.class));
+                    if (!identifier.equals(customArmor.invoke(ceraItems, stack, material, layer, overlay, identifier))) return null;
+                }
+                if (CeraEmissiveAdmission.nativeSubmitRequired(identifier)) return null;
+                textures.add(identifier);
+            }
+        }
+        textures.add(style.equals("V1_19_4") ? ARMOR : ITEM); return textures;
     }
     private static boolean standardPart(ModelPart part) { return part.getClass() == ModelPart.class && part.boxes.size() == 1 && (part.children == null || part.children.isEmpty()); }
 
@@ -232,6 +259,7 @@ public final class ModernArmorGlintPipeline {
     private static int verifiedProgramLocation(int program) {
         int record = programIndex(program); return record >= 0 && verifiedPrograms[record] ? countLocations[record] : -1;
     }
+    static boolean verifiedProgram(int program) { return verifiedProgramLocation(program) >= 0; }
     public static void programDeleted(int program) {
         for (int i = 0; i < programCount; i++) if (programHandles[i] == program) {
             programCount--; programHandles[i] = programHandles[programCount]; countLocations[i] = countLocations[programCount]; verifiedPrograms[i] = verifiedPrograms[programCount]; return;
@@ -295,6 +323,7 @@ public final class ModernArmorGlintPipeline {
         LogManager.getLogger("Arcadium/Modern Armor Glint").warn("Modern armor glint adapter disabled", error);
     }
     public static void close() {
+        ModernArmorAuxiliary.close();
         matrices.beginFrame(); selection.clear();
         if (storage != 0) GL15.glDeleteBuffers(storage); storage = storageCapacity = uploadedMatrices = 0; uploadedFrame = -1;
         if (dummyStorage != 0) GL15.glDeleteBuffers(dummyStorage); dummyStorage = 0;

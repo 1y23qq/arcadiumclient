@@ -57,7 +57,7 @@ public final class ModernGlintPixelTrace072Qa {
         try {
             int program=GL11.glGetInteger(GL20.GL_CURRENT_PROGRAM);
             if(program==0)return 0;
-            boolean shadow=deferredShadowOwner!=null;
+            boolean shadow=deferredShadowOwner!=null&&GL20.glGetUniformLocation(program,"uGlintPass")<0&&GL20.glGetAttribLocation(program,"aCorner")>=0;
             if(!shadow&&GL20.glGetUniformLocation(program,"uGlintPass")<0)return 0;
             require(vertices>=0&&vertices<=MAX_VERTICES&&instances>=0&&instances<=MAX_VERTICES,"Instanced diagnostic geometry exceeds its bounded fixture");
             Map<String,Object> detail=new LinkedHashMap<>();

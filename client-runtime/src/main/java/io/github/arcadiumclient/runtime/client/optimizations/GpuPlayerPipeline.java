@@ -224,7 +224,7 @@ public final class GpuPlayerPipeline {
     }
     public static boolean hasForgeHooks(){return forge();}
     public static void invalidateBackend(Object value){
-        if(value==null||invalidatingBackend||GpuVoxelSkinPipeline.isAuxiliaryBackend(value))return;
+        if(value==null||invalidatingBackend||GpuModelAuxiliaries.isAuxiliaryBackend(value))return;
         if(value!=lastBackend&&!GpuEquipmentPipeline.usesBackend(value)&&!NativePlayerPosePipeline.usesBackend(value)&&!GpuVoxelSkinPipeline.usesMainBackend(value))return;
         invalidatingBackend=true;
         try{

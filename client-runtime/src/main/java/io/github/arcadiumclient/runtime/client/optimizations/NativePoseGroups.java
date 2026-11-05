@@ -26,6 +26,7 @@ final class NativePoseGroups {
     }
 
     boolean full() { return count == LIMIT; }
+    int remaining() { return LIMIT - count; }
 
     Entry add(Object profile, Object pass, Matrix4fc root, int job) {
         if (full()) return null;

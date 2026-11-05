@@ -57,11 +57,16 @@ public final class GpuVoxelSkinPipeline {
     public static void beginBatch() { if (ready()) backend.beginBatch(); }
     public static boolean isAuxiliaryBackend(Object value){return auxiliaries.contains(value);}
     public static boolean usesMainBackend(Object value){return backend!=null&&backend.usesMain(value);}
-    static boolean registerAuxiliary(Object main,Object auxiliary){boolean result=auxiliaries.register(main,auxiliary);auxiliaryBackends=auxiliaries.size();return result;}
-    static void unregisterAuxiliary(Object auxiliary){auxiliaries.unregister(auxiliary);auxiliaryBackends=auxiliaries.size();}
-    public static void prepareMainBatch(Object main,boolean active){if(active&&!isAuxiliaryBackend(main)&&ready())backend.prepare(main);}
+    static boolean registerAuxiliary(Object main,Object auxiliary){
+        if(!GpuModelAuxiliaries.register(main,auxiliary))return false;
+        boolean result=auxiliaries.register(main,auxiliary);
+        if(!result)GpuModelAuxiliaries.unregister(auxiliary);
+        auxiliaryBackends=auxiliaries.size();return result;
+    }
+    static void unregisterAuxiliary(Object auxiliary){auxiliaries.unregister(auxiliary);GpuModelAuxiliaries.unregister(auxiliary);auxiliaryBackends=auxiliaries.size();}
+    public static void prepareMainBatch(Object main,boolean active){if(active&&!GpuModelAuxiliaries.isAuxiliaryBackend(main)&&ready())backend.prepare(main);}
     public static void beforeShadows(Object commands){if(backend!=null)backend.flush(null,commands,true);}
-    public static void beforeMainFlush(Object main,Object commands){if(backend!=null&&!isAuxiliaryBackend(main))backend.flush(main,commands,false);}
+    public static void beforeMainFlush(Object main,Object commands){if(backend!=null&&!GpuModelAuxiliaries.isAuxiliaryBackend(main))backend.flush(main,commands,false);}
     public static void observeModel(Object model) { if (ready()) backend.observe(model); }
     public static boolean captureMesh(Object mesh, float scale) { return ready() && backend.capture(mesh, scale); }
     public static boolean canUseAnalytic(Object main,ModelPart[] parts,int mask,Identifier texture,int sourceTemplate){

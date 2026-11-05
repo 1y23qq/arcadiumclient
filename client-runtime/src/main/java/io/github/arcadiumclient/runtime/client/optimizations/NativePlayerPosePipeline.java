@@ -37,6 +37,14 @@ public final class NativePlayerPosePipeline {
         public void begin() { beginEpoch(); ModernArmorGlintPipeline.beginCapture(); }
         private void beginEpoch() { groups.clear(); counted = false; epoch = batchEpoch; }
     }
+    public interface CaptureAccess { CaptureState arcadium$nativePoseState(); }
+
+    public static boolean preflightModernLayer(Object capture) {
+        if (!(capture instanceof CaptureAccess access)) return false;
+        CaptureState state = access.arcadium$nativePoseState();
+        if (state.epoch != batchEpoch) state.beginEpoch();
+        return state.groups.remaining() >= 42 && GpuPlayerPackets.MAX_PLAYERS - GpuPlayerPackets.count() >= 42;
+    }
 
     private static final class TemplateBudgetException extends Exception {
         TemplateBudgetException(IllegalArgumentException cause) { super(cause); }
@@ -61,6 +69,7 @@ public final class NativePlayerPosePipeline {
         final Object[] geometry = new Object[2];
         final int template;
         final boolean originalVertices;
+        final Object[] originalSources;
         Profile(HumanoidModel model, Object device, boolean originalVertices) throws Throwable {
             this.originalVertices = originalVertices;
             ModelPart[] source = model instanceof PlayerModel player ? new ModelPart[]{player.head, player.body, player.rightArm, player.leftArm,
@@ -83,6 +92,7 @@ public final class NativePlayerPosePipeline {
                 parts.put(part, new Part(i, part, box, original));
             }
             if (originalVertices && parts.size() != source.length) throw new IllegalArgumentException("Original armor geometry is incomplete");
+            originalSources = originalVertices ? parts.values().stream().map(part -> part.originalGeometry).toArray() : null;
             if (!originalVertices) { geometry[0] = api.boxGeometry.invoke(device, false); geometry[1] = api.boxGeometry.invoke(device, true); }
             if (parts.isEmpty()) template = -1;
             else {
@@ -106,7 +116,10 @@ public final class NativePlayerPosePipeline {
         try {
             if (api == null) api = new PlayerBatchAccess();
             backend(device);
-            return prepareOriginalArmorModel(first, device) && prepareOriginalArmorModel(second, device);
+            if (!prepareOriginalArmorModel(first, device) || !prepareOriginalArmorModel(second, device)) return false;
+            boolean a = ModernArmorAuxiliary.prepareModel(device, first, originalVertexProfiles.get(first).originalSources);
+            boolean b = ModernArmorAuxiliary.prepareModel(device, second, originalVertexProfiles.get(second).originalSources);
+            return a && b && ModernArmorAuxiliary.layer(device, first, second);
         } catch (TemplateBudgetException exhausted) {
             templateBudgetExhausted = true; budgetFallbacks++; return false;
         } catch (Throwable unsupported) {
@@ -177,6 +190,17 @@ public final class NativePlayerPosePipeline {
             if (shape == null || part.boxes.get(0) != shape.originalBox) {
                 geometryFallbacks++; return fallback("Changed native geometry");
             }
+            Object selectedGeometry = profile.originalVertices ? ModernArmorAuxiliary.geometry(device, shape.originalGeometry) : profile.geometry[shape.mirrored ? 1 : 0];
+            if (profile.originalVertices) {
+                Object target = ModernArmorAuxiliary.destination(device);
+                if (target == null || selectedGeometry == null) { stateFallbacks++; return fallback("Original armor auxiliary was not preflighted"); }
+                device = target;
+                batch = api.select.invoke(device, texture, pass);
+                instances = ModernArmorAuxiliary.instances(selectedGeometry, batch);
+                if (instances == null || !ModernArmorAuxiliary.reserve(selectedGeometry, instances, (int)api.size.get(instances) + 19)) {
+                    budgetFallbacks++; return fallback("Owned modern armor retained-capacity budget reached");
+                }
+            }
             if (kind.equals("GLINT")) {
                 glint = (Set<ModelPart>)api.captureGlint.get(capture);
                 if (!glint.add(part)) { glintDuplicates++; return true; }
@@ -196,10 +220,10 @@ public final class NativePlayerPosePipeline {
                 }
                 group = context.groups.add(profile, pass, matrix, job); created = true;
             } else job = group.job;
-            batch = api.select.invoke(device, texture, pass);
+            if (!profile.originalVertices) batch = api.select.invoke(device, texture, pass);
             int layer = (int)api.selectedLayer.get(device), light = (int)api.captureLight.get(capture);
             int lightWord = (light & 255) | (((light >>> 16) & 255) << 8) | ((layer & 255) << 16);
-            instances = api.instances.invoke(profile.originalVertices ? shape.originalGeometry : profile.geometry[shape.mirrored ? 1 : 0], batch);
+            if (!profile.originalVertices) instances = api.instances.invoke(selectedGeometry, batch);
             oldSize = (int)api.size.get(instances); oldCount = (int)api.count.get(instances);
             oldBatchCount = (int)api.batchCount.get(batch); oldDeviceCount = (int)api.backendCount.get(device);
             oldRecorded = (boolean)api.captureRecorded.get(capture);
@@ -217,6 +241,7 @@ public final class NativePlayerPosePipeline {
             data[oldSize + 16] = shape.uv; data[oldSize + 17] = shape.dimensions; data[oldSize + 18] = shape.size;
             api.size.set(instances, oldSize + 19); api.count.set(instances, oldCount + 1);
             api.batchCount.set(batch, oldBatchCount + 1); api.backendCount.set(device, oldDeviceCount + 1); api.captureRecorded.set(capture, true);
+            if (profile.originalVertices) ModernArmorAuxiliary.queued(selectedGeometry, instances, oldCount + 1);
             group.mark(shape.index);
             if (created) poseGroups++;
             if (armor) { armorPartsQueued++; if (profile.originalVertices) originalArmorPartsQueued++; } else {

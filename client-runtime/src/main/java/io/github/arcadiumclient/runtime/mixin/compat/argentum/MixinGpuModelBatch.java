@@ -4,6 +4,7 @@ package io.github.arcadiumclient.runtime.mixin.compat.argentum;
 import com.moulberry.mixinconstraints.annotations.IfModLoaded;
 import io.github.arcadiumclient.runtime.client.optimizations.GpuModelTransforms;
 import io.github.arcadiumclient.runtime.client.optimizations.GpuVoxelSkinPipeline;
+import io.github.arcadiumclient.runtime.client.optimizations.GpuModelAuxiliaries;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
@@ -15,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.Coerce;
 public abstract class MixinGpuModelBatch {
     @Inject(method = "beginBatch", at = @At("HEAD"), remap = false)
     private void arcadium$beginJobs(CallbackInfoReturnable<Boolean> callback) {
-        if(!GpuVoxelSkinPipeline.isAuxiliaryBackend(this))GpuModelTransforms.beginBatch(this);
+        if(!GpuModelAuxiliaries.isAuxiliaryBackend(this))GpuModelTransforms.beginBatch(this);
     }
     @Inject(method = "beginBatch", at = @At("RETURN"), remap = false)
     private void arcadium$prepareVoxels(CallbackInfoReturnable<Boolean> callback) {

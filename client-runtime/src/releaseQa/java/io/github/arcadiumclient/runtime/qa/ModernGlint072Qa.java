@@ -67,6 +67,7 @@ public final class ModernGlint072Qa {
     private static int matrixBufferChecks;
     private static long minimumNoMaterialStore=Long.MAX_VALUE;
     private static int wholeStoreChecks;
+    private static boolean auxiliaryLifecycleDone;
 
     private ModernGlint072Qa() {}
     public static boolean enabled() { return System.getProperty("arcadium.modernGlint072.output") != null; }
@@ -149,6 +150,30 @@ public final class ModernGlint072Qa {
     }
 
     public static void world(float delta, long deadline, Operation<Void> original) {
+        if (!done && phase == 3 && !auxiliaryLifecycleDone) {
+            try {
+                Minecraft mc = Minecraft.getInstance(); freeze(mc); BetaOptimizationsConfig.setGpuEquipmentPipeline(false);
+                GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT); original.call(.5f, deadline);
+                BufferedImage before = capture(mc);
+                io.github.arcadiumclient.runtime.client.optimizations.ModernArmorAuxiliary072Qa.closeAndValidate();
+                GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT); original.call(.5f, deadline);
+                BufferedImage after = capture(mc); int changed = 0;
+                for (int y = 0; y < before.getHeight(); y++) for (int x = 0; x < before.getWidth(); x++) if (before.getRGB(x,y) != after.getRGB(x,y)) changed++;
+                report.put("auxiliaryLifecycle", io.github.arcadiumclient.runtime.client.optimizations.ModernArmorAuxiliary072Qa.finish());
+                report.put("mainNativePixelsChangedAfterAuxiliaryClose", changed);
+                require(changed == 0, "Closing auxiliary resources changed surviving Main native rendering");
+                io.github.arcadiumclient.runtime.client.optimizations.ModernArmorAuxiliary072Qa.armColdFailure();
+                BetaOptimizationsConfig.setGpuEquipmentPipeline(true);
+                GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT); original.call(.5f, deadline);
+                BufferedImage failureImage = capture(mc); int failureChanged = 0;
+                for (int y = 0; y < after.getHeight(); y++) for (int x = 0; x < after.getWidth(); x++) if (after.getRGB(x,y) != failureImage.getRGB(x,y)) failureChanged++;
+                report.put("auxiliaryColdFailure", io.github.arcadiumclient.runtime.client.optimizations.ModernArmorAuxiliary072Qa.finishColdFailure());
+                report.put("mainNativePixelsChangedByColdFailure", failureChanged);
+                require(failureChanged == 0, "Failed cold preparation changed surviving Main native rendering");
+                auxiliaryLifecycleDone = true;
+            } catch (Throwable error) { failure = error.toString(); }
+            return;
+        }
         if (done || phase != 2) { original.call(delta, deadline); return; }
         try {
             Minecraft mc = Minecraft.getInstance(); freeze(mc); normalSeen = false;
@@ -405,6 +430,7 @@ public final class ModernGlint072Qa {
         if (done) return;
         if (failure != null) finish(new IllegalStateException(failure));
         else if (phase == 3) {
+            if (!auxiliaryLifecycleDone) return;
             try {
                 require(translationChecks>0&&nativePlayerEntries>0&&matrixBufferChecks==translationChecks*16,"Missing actual native height-shift matrix equivalence");
                 require(pixelFailures.isEmpty(), "Modern glint full RGBA quality failed: " + pixelFailures);

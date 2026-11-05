@@ -24,7 +24,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Pseudo
 @IfModLoaded("argentum")
 @Mixin(targets = "dev.rdh.argentum.impl.render.entity.instancing.EntityCapture", remap = false)
-public abstract class MixinGpuModelCapture implements CeraEmissiveAdmission.Capture {
+public abstract class MixinGpuModelCapture implements CeraEmissiveAdmission.Capture, NativePlayerPosePipeline.CaptureAccess {
     @Shadow private Matrix4fStack matrices;
     @Shadow private boolean player;
     @Shadow private boolean item;
@@ -38,6 +38,8 @@ public abstract class MixinGpuModelCapture implements CeraEmissiveAdmission.Capt
     @Unique private static MethodHandle arcadium$pass;
     @Unique private final NativePlayerPosePipeline.CaptureState arcadium$nativePose = new NativePlayerPosePipeline.CaptureState();
     @Unique private final NativeMaterialState arcadium$material = new NativeMaterialState();
+
+    @Override public NativePlayerPosePipeline.CaptureState arcadium$nativePoseState() { return arcadium$nativePose; }
 
     @Inject(method = "beginEntity", at = @At("HEAD"), remap = false)
     private void arcadium$countPlayer(@Coerce Object model, @Coerce Object texture, boolean isPlayer, boolean preserveFixedFunction,
