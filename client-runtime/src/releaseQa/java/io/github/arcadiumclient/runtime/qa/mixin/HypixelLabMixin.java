@@ -2,7 +2,9 @@
 package io.github.arcadiumclient.runtime.qa.mixin;
 
 import io.github.arcadiumclient.runtime.qa.HypixelLabQa;
+import io.github.arcadiumclient.runtime.qa.LiveRenderer072Qa;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.world.ClientWorld;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -18,4 +20,9 @@ public abstract class HypixelLabMixin {
 
     @Inject(method = "runGame", at = @At("TAIL"))
     private void hypixel$labFrame(CallbackInfo callback) { HypixelLabQa.frame(); }
+
+    @Inject(method = "setWorld(Lnet/minecraft/client/world/ClientWorld;Ljava/lang/String;)V", at = @At("HEAD"))
+    private void hypixel$worldIdentity(ClientWorld incoming, String reason, CallbackInfo callback) {
+        LiveRenderer072Qa.worldChange(((Minecraft)(Object)this).world, incoming);
+    }
 }

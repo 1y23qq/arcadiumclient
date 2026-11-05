@@ -20,8 +20,8 @@ final class GpuVoxelSkinNativeAccess {
     final PlayerBatchAccess capture = new PlayerBatchAccess();
     final MethodHandle geometry, submit, instanceUpload, buffers, initialize, upload, delete, moveFirst;
     final VarHandle vertexBuffer, instanceBuffer, tessellation, batchParts, managedActive;
-    final MethodHandle modelConstructor,modelBegin,modelActive,modelFlush,modelDiscard,modelClose,poolWidth,poolHeight,capturedPlayer;
-    final VarHandle modelPrograms,modelFrame,modelTextures,textureCache,cachedPool,poolKey,poolCapacity,poolLayers,layerSource,layerSourceId,layerGeneration,layerFrame;
+    final MethodHandle modelConstructor,modelBegin,modelActive,modelFlush,modelDiscard,modelClose,poolWidth,poolHeight,poolMin,poolMag,poolWrapS,poolWrapT,capturedPlayer;
+    final VarHandle modelPrograms,modelFrame,modelTextures,textureCache,cachedPool,poolKey,poolCapacity,poolLayers,layerSource,layerSourceId,layerGeneration,layerFrame,layerIndex;
     final GlVertexFormat instanceFormat;
     final Object normalPass;
 
@@ -43,7 +43,9 @@ final class GpuVoxelSkinNativeAccess {
         Class<?> pool=Class.forName(textureManager.getName()+"$Pool"),key=Class.forName(textureManager.getName()+"$PoolKey"),layer=Class.forName(textureManager.getName()+"$Layer");
         poolKey=field(pool,"key");poolCapacity=field(pool,"capacity");poolLayers=field(pool,"layers");
         poolWidth=method(key,"width");poolHeight=method(key,"height");
+        poolMin=method(key,"minFilter");poolMag=method(key,"magFilter");poolWrapS=method(key,"wrapS");poolWrapT=method(key,"wrapT");
         layerSource=field(layer,"source");layerSourceId=field(layer,"sourceId");layerGeneration=field(layer,"generation");layerFrame=field(layer,"frame");
+        layerIndex=field(layer,"index");
         capturedPlayer=method(Class.forName(ROOT+"EntityCapture"),"isPlayer");
         submit = method(model, "submit", geometryType, Identifier.class, pass, Matrix4f.class, int.class, Vector4fc.class, float.class, Vector4fc.class,
                 Class.forName("dev.rdh.argentum.api.render.instancing.BoxTemplate"));
@@ -67,18 +69,30 @@ final class GpuVoxelSkinNativeAccess {
                 var getter=type.getMethod("argentum$getGeneration");
                 if(getter.getReturnType()!=int.class)throw new IllegalStateException("Unknown native texture generation");
                 return MethodHandles.privateLookupIn(type,MethodHandles.lookup()).unreflect(getter).asType(MethodType.methodType(int.class,Object.class));
-            }catch(NoSuchMethodException absent){return MethodHandles.dropArguments(MethodHandles.constant(int.class,0),0,Object.class);}
+            }catch(NoSuchMethodException absent){return MethodHandles.dropArguments(MethodHandles.constant(int.class,Integer.MIN_VALUE),0,Object.class);}
             catch(IllegalAccessException failure){throw new IllegalStateException(failure);}
         }
     };
-    GpuVoxelSkinTextureBudget.Descriptor sourceDescriptor(Object main,Identifier texture,Object source,int sourceId)throws Throwable{
+    int sourceGeneration(Object source)throws Throwable{return (int)textureGenerations.get(source.getClass()).invokeExact(source);}
+    Object sourcePoolKey(Object main,Identifier texture,Object source,int sourceId,int generation)throws Throwable{
+        if(generation==Integer.MIN_VALUE)return null;
         Object cached=((Map<?,?>)textureCache.get(modelTextures.get(main))).get(source);
         if(cached==null)return null;
         Object pool=cachedPool.get(cached),layer=((Map<?,?>)poolLayers.get(pool)).get(texture);
         if(layer==null||layerSource.get(layer)!=source||(int)layerSourceId.get(layer)!=sourceId
-                ||(int)layerFrame.get(layer)!=(int)modelFrame.get(main)
-                ||(int)layerGeneration.get(layer)!=(int)textureGenerations.get(source.getClass()).invoke(source))return null;
-        Object key=poolKey.get(pool);
+                ||(int)layerFrame.get(layer)!=(int)modelFrame.get(main)||(int)layerGeneration.get(layer)!=generation)return null;
+        return poolKey.get(pool);
+    }
+    boolean sourceCopyMatches(Object main,Identifier texture,Object source,int sourceId,int generation,Object fact)throws Throwable{
+        if(sourcePoolKey(main,texture,source,sourceId,generation)==null)return false;
+        Object cached=((Map<?,?>)textureCache.get(modelTextures.get(main))).get(source),pool=cachedPool.get(cached);
+        Object layer=((Map<?,?>)poolLayers.get(pool)).get(texture);
+        return GpuVoxelSkinUploadFacts.matches(pool,(int)layerIndex.get(layer),fact);
+    }
+    GpuVoxelSkinTextureBudget.Descriptor sourceDescriptor(Object main,Identifier texture,Object source,int sourceId)throws Throwable{
+        Object key=sourcePoolKey(main,texture,source,sourceId,sourceGeneration(source));
+        if(key==null)return null;
+        Object cached=((Map<?,?>)textureCache.get(modelTextures.get(main))).get(source),pool=cachedPool.get(cached);
         return new GpuVoxelSkinTextureBudget.Descriptor(key,(int)poolWidth.invoke(key),(int)poolHeight.invoke(key),(int)poolCapacity.get(pool));
     }
 

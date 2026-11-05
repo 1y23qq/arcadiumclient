@@ -90,7 +90,7 @@ public final class GpuResolvedInstanceCache {
         Upload upload = uploads[token - 1];
         if (!upload.skipped) return false;
         stamp(upload.check);
-        if (enabled && GpuResidentPlayerState.enabled && buffer == upload.buffer && upload.entry.serial == upload.serial &&
+        if (enabled && GpuResidentPlayerState.enabled && buffer == upload.buffer && upload.entry != null && upload.entry.serial == upload.serial &&
                 records.find(upload.owner, buffer, buffer.handle(), upload.check, upload.payload) == upload.entry) {
             upload.confirmed = true; hits++; bytesAvoided += upload.bytes; expansionsAvoided++;
             for (int at = upload.payload.position(); at < upload.payload.limit(); at += STRIDE) if (upload.payload.get(at + 2) == SORT_MAGIC) { sortsAvoided++; break; }

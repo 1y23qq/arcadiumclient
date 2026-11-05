@@ -49,9 +49,21 @@ final class GpuVoxelSkinBridge {
             } catch (ReflectiveOperationException failure) { throw new IllegalStateException("Unknown voxel configuration layout", failure); }
         }
     };
+    private static final ClassValue<MethodHandle[]> ENABLED = new ClassValue<>() {
+        @Override protected MethodHandle[] computeValue(Class<?> type) {
+            String[] names={"Hat","LeftPants","RightPants","LeftSleeve","RightSleeve","Jacket"};
+            MethodHandle[] getters=new MethodHandle[names.length];
+            try{for(int index=0;index<names.length;index++){
+                var getter=type.getMethod("getEnable"+names[index]);
+                if(getter.getReturnType()!=boolean.class)throw new NoSuchMethodException("Unknown voxel part toggle: "+getter);
+                getters[index]=MethodHandles.publicLookup().unreflect(getter);
+            }return getters;}catch(ReflectiveOperationException failure){throw new IllegalStateException("Unknown voxel part configuration",failure);}
+        }
+    };
     private static MethodHandle configuration;
     private static GpuVoxelSkinMath.Options current;
     private static long revision;
+    private static int enabledMask;
     private GpuVoxelSkinBridge() {}
 
     static GpuVoxelSkinMath.Options refreshOptions() throws Throwable {
@@ -60,7 +72,8 @@ final class GpuVoxelSkinBridge {
             Object instance = mod.getField("INSTANCE").get(null);
             configuration = MethodHandles.publicLookup().unreflect(mod.getMethod("getConfig")).bindTo(instance);
         }
-        GpuVoxelSkinMath.Options value = readOptions(configuration.invoke());
+        Object config=configuration.invoke();
+        GpuVoxelSkinMath.Options value = readOptions(config);enabledMask=readEnabledMask(config);
         if (!value.equals(current)) { current = value; revision++; }
         return current;
     }
@@ -72,6 +85,12 @@ final class GpuVoxelSkinBridge {
     }
 
     static GpuVoxelSkinMath.Options options() throws Throwable { return current == null ? refreshOptions() : current; }
+    static int enabledMask() throws Throwable { if(current==null)refreshOptions();return enabledMask; }
+    static int readEnabledMask(Object config)throws Throwable{
+        int mask=0;MethodHandle[] getters=ENABLED.get(config.getClass());
+        for(int index=0;index<getters.length;index++)if((boolean)getters[index].invoke(config))mask|=1<<(6+index);
+        return mask;
+    }
 
     static long revision() { return revision; }
     static Object mesh(ModelPart part) {
@@ -136,7 +155,7 @@ final class GpuVoxelSkinBridge {
     }
     static int part(Object mesh) { return meshParts.getOrDefault(mesh, -1); }
     static void dispose(Object mesh) { meshOffsets.remove(mesh); meshParts.remove(mesh); }
-    static void reset() { meshOffsets.clear(); meshParts.clear(); offsets.clear(); current = null; revision++; }
+    static void reset() { meshOffsets.clear(); meshParts.clear(); offsets.clear(); current = null; enabledMask=0;revision++; }
 
     private static VarHandle field(Class<?> type, String name) throws ReflectiveOperationException {
         for (Class<?> owner = type; owner != null; owner = owner.getSuperclass()) {

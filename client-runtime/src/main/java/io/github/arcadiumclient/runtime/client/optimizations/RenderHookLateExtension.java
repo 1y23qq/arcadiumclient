@@ -45,7 +45,9 @@ public final class RenderHookLateExtension implements IExtension {
         ClassNode target=context.getClassNode();Task task=pending.remove(target);if(task==null)return;
         ClassNode original=new ClassNode(Opcodes.ASM9);target.accept(original);
         try{
-            int sites=task.processor.applyAsInt(target);task.counter.accept(sites);
+            int sites=task.processor.applyAsInt(target);
+            if(task.kind.equals("layer"))RenderHookAllocationControl.nameSites+=SarcioNameResetFusion.apply(target);
+            task.counter.accept(sites);
             LogManager.getLogger("Arcadium/Render Hooks").info("Prepared {} typed {} gates after MixinExtras",sites,task.kind);
         }catch(RuntimeException unsupported){target.methods=original.methods;LogManager.getLogger("Arcadium/Render Hooks").warn("Keeping original {} operations",task.kind,unsupported);}
     }

@@ -13,6 +13,10 @@ public final class GpuVoxelSkinPipeline {
     public static long meshesBuilt, queuedVertices, submittedInstances, cpuRecoveries;
     public static long auxiliaryBatches,preShadowFlushes,fallbackFlushes,auxiliaryPreparations;
     public static long auxiliaryTextureBytes;
+    public static long admissionFallbacks,binaryAlphaFallbacks,fractionalAlphaFallbacks,unknownImageFallbacks,
+            dimensionFallbacks,samplerFallbacks,emissiveFallbacks,admissionSnapshots,admissionInvalidations,admissionHits,admissionAlphaBytes;
+    public static int admissionSources,admissionMeshes,admissionClassifications;
+    public static volatile String admissionFailure="";
     public static int auxiliaryBackends;
     public static int analyticPartMask, nativePartMask;
     private static volatile Backend backend;

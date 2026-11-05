@@ -98,6 +98,8 @@ public final class GpuPlayerPipeline {
             extraLayers|=hasCosmetics(player,renderAccess.arcadium$layers());
             Object actor=api.current.invoke();if(actor==null||!(boolean)api.active.invoke(actor)){inactiveBatches++;state="Native batch inactive; using original renderer";return false;}
             if(forge()){state="Native Forge callbacks with compact part capture";nativeCallbackRoutes++;return false;}
+            Identifier skin=player.getSkinTextureLocation();
+            if(CeraEmissiveAdmission.nativeSubmitRequired(skin)){rejectedLayers++;state="Skin material retains native submission callbacks";return false;}
             Object backend=api.backend.get(actor);if(lastBackend!=backend){profiles.clear();unsupported.clear();lastBackend=backend;}
             if(unsupported.contains(model)){rejectedModel++;return false;}
             Profile profile=profiles.get(model);
@@ -115,7 +117,7 @@ public final class GpuPlayerPipeline {
             root.scale(-1,-1,1).scale(.9375f).translate(0,-1.5078125f,0);
             job=GpuPlayerPackets.add(root,walk,speed,age,head,pitch,player.getAttackAnimationProgress(delta),model.itemInLeftHand,model.itemInRightHand,model.sneaking,false,model.aimingBow,profile.template);
             if(job<0)return false;
-            Identifier skin=player.getSkinTextureLocation();Object batch=api.select.invoke(backend,skin,api.translucent);
+            Object batch=api.select.invoke(backend,skin,api.translucent);
             int light=player.getLightLevel(delta),layer=(int)api.selectedLayer.get(backend),lightWord=(light&255)|((light>>>16&255)<<8)|(layer&255)<<16;
             int added=0;
             for(int mirror=0;mirror<2;mirror++){
@@ -155,6 +157,7 @@ public final class GpuPlayerPipeline {
             ((Matrix4fStack)api.captureMatrices.get(capture)).set(root);api.firstPass.invoke(capture);
             glRoot.clear();root.get(glRoot);GL11.glMultMatrixf(glRoot);
             GlStateManager.disableCull();GlStateManager.enableRescaleNormal();GlStateManager.enableAlphaTest();
+            if(GpuVoxelSkinPipeline.enabled&&skinMask!=0)Minecraft.getInstance().getTextureManager().bind(skin);
             nativeSkinMask&=~GpuVoxelSkinPipeline.queueAnalytic(parts,skinMask,skin,job,template,light,age);
             if(nativeLayers||nativeSkinMask!=0){
                 model.attackAnimationProgress=player.getAttackAnimationProgress(delta);model.riding=false;model.isBaby=false;
@@ -222,6 +225,6 @@ public final class GpuPlayerPipeline {
         }finally{invalidatingBackend=false;}
     }
     private static float angle(float old,float current,float delta){float difference=current-old;while(difference< -180)difference+=360;while(difference>=180)difference-=360;return old+delta*difference;}
-    public static void reset(){profiles.clear();unsupported.clear();lastBackend=null;GpuEquipmentPipeline.reset();NativePlayerPosePipeline.reset();GpuResidentPlayerState.reset();GpuPlayerPackets.resetTemplates();}
+    public static void reset(){profiles.clear();unsupported.clear();lastBackend=null;GpuEquipmentPipeline.reset();NativePlayerPosePipeline.reset();GpuResidentPlayerState.reset();GpuPlayerPackets.resetTemplates();CeraEmissiveAdmission.reset();}
     public static String status(){return BetaOptimizationsConfig.getGpuPlayerPipeline()?"GPU player pipeline: "+state+" | Players: "+playersDrawn+" | Layer/model fallback: "+(rejectedLayers+rejectedModel):"GPU player pipeline: Off";}
 }

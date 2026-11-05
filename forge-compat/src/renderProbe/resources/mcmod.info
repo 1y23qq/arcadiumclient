@@ -1,0 +1,10 @@
+[
+  {
+    "modid": "arcadiumrenderprobe",
+    "name": "Arcadium Render Callback QA",
+    "description": "Offline render-event verification fixture.",
+    "version": "1.0",
+    "mcversion": "1.8.9",
+    "authorList": ["Arcadium contributors"]
+  }
+]

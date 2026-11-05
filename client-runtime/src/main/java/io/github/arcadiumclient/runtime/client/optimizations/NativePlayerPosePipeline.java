@@ -151,6 +151,11 @@ public final class NativePlayerPosePipeline {
             if (!kind.equals("NORMAL") && !kind.equals("TRANSLUCENT") && !kind.equals("GLINT")) {
                 stateFallbacks++; return fallback("Unsupported native render pass");
             }
+            Identifier texture = (Identifier)api.captureTexture.get(capture);
+            if (texture == null) { stateFallbacks++; return fallback("Native texture not bound"); }
+            if (CeraEmissiveAdmission.nativeSubmitRequired(capture, model, texture, kind)) {
+                stateFallbacks++; return fallback("Material retains native submission callbacks");
+            }
             Matrix4fc matrix = (Matrix4fc)api.captureMatrices.get(capture);
             if (!finiteAffine(matrix) || !finitePose(part)) { stateFallbacks++; return fallback("Unsupported native transform"); }
             Object actor = api.current.invoke();
@@ -172,8 +177,6 @@ public final class NativePlayerPosePipeline {
             if (shape == null || part.boxes.get(0) != shape.originalBox) {
                 geometryFallbacks++; return fallback("Changed native geometry");
             }
-            Identifier texture = (Identifier)api.captureTexture.get(capture);
-            if (texture == null) { stateFallbacks++; return fallback("Native texture not bound"); }
             if (kind.equals("GLINT")) {
                 glint = (Set<ModelPart>)api.captureGlint.get(capture);
                 if (!glint.add(part)) { glintDuplicates++; return true; }

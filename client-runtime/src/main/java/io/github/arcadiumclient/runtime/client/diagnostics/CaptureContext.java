@@ -19,7 +19,7 @@ final class CaptureContext {
     private static final Pattern SETTING_KEY = Pattern.compile("[A-Za-z_][A-Za-z0-9_:-]*");
     private static final Pattern PRIVATE_KEY = Pattern.compile(".*(token|password|secret|apikey|account|username|uuid|serveraddress).*", Pattern.CASE_INSENSITIVE);
     private static final String[] COUNTER_CLASSES = {"GpuModelTransforms", "GpuPlayerPipeline", "GpuEquipmentPipeline", "ModernArmorGlintPipeline", "GpuVoxelSkinPipeline", "GpuSkinLayers", "NativePlayerPosePipeline", "GpuResidentPlayerState", "GpuTerrainCommands", "GpuNameTags",
-        "GpuResolvedInstanceCache", "RetainedNameTags", "FastInvisibleHolograms", "RenderHookAllocationControl", "EfficientMotionBlur", "GpuParticles",
+        "GpuResolvedInstanceCache", "GpuVoxelSkinUploadFacts", "CeraEmissiveAdmission", "RetainedNameTags", "FastInvisibleHolograms", "RenderHookAllocationControl", "EfficientMotionBlur", "GpuParticles",
         "ScoreboardPreparation", "FastFramePresentation", "RetainedHudBuffers", "EntityNameFormatting", "WorldRenderScale"};
     private CaptureContext() { }
 

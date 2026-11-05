@@ -14,6 +14,7 @@ import io.github.arcadiumclient.runtime.client.optimizations.GpuResidentPlayerSt
 import io.github.arcadiumclient.runtime.client.optimizations.ModernArmorGlintPipeline
 import io.github.arcadiumclient.runtime.client.optimizations.GpuVoxelSkinPipeline
 import io.github.arcadiumclient.runtime.client.optimizations.GpuResolvedInstanceCache
+import io.github.arcadiumclient.runtime.client.optimizations.CeraEmissiveAdmission
 import io.github.arcadiumclient.runtime.client.optimizations.RetainedNameTags
 import io.github.arcadiumclient.runtime.client.optimizations.GpuParticles
 import io.github.arcadiumclient.runtime.client.optimizations.FastInvisibleHolograms
@@ -84,7 +85,7 @@ object BetaOptimizationsConfig : Config("arcadium-optimizations-beta.json", "Opt
     @JvmStatic @Switch(title = "Resident Player State", description = "Reuse compact player data and repeated instance uploads within a render batch. Enable GPU Player Pipeline or GPU Equipment Pipeline first. Busy or unsupported buffers use normal streaming without waiting.", category = "Players")
     var residentPlayerState = false
 
-    @JvmStatic @Switch(title = "GPU Voxel Skin Layers", description = "Batch supported 3D skin meshes without reducing their detail. Enable 3D Skin and GPU Player Pipeline first. Custom shapes or render states keep the original skin renderer. Requires OpenGL 4.3.", category = "Players")
+    @JvmStatic @Switch(title = "GPU Voxel Skin Layers", description = "Batch opaque 64x64 3D skin layers with default dimensions. Transparent, custom-sized or emissive skins keep their original layers. Enable 3D Skin and GPU Player Pipeline first. Requires OpenGL 4.3.", category = "Players")
     var gpuVoxelSkinLayers = false
 
     @JvmStatic @Switch(title = "GPU Equipment Pipeline", description = "Build standard player armor poses and submit armor parts in bulk on the GPU. Native texture selection, leather colors and enchantment effects are preserved. Requires OpenGL 4.3.", category = "Players")
@@ -130,12 +131,13 @@ object BetaOptimizationsConfig : Config("arcadium-optimizations-beta.json", "Opt
             syncTextOptions()
         }
         BetaOptimizationPage.register(id) {
-            listOf(GpuModelTransforms.status(), GpuPlayerPipeline.status(), GpuEquipmentPipeline.status(), NativePlayerPosePipeline.status(), ModernArmorGlintPipeline.status(), GpuResidentPlayerState.status(), GpuResolvedInstanceCache.status(), GpuVoxelSkinPipeline.status(), GpuSkinLayers.status(), GpuTerrainCommands.status(), GpuNameTags.status(), RetainedNameTags.status(), FastInvisibleHolograms.status(), RenderHookAllocationControl.status(), EfficientMotionBlur.status(), GpuParticles.status(), ScoreboardPreparation.status(), FastFramePresentation.status(), RetainedHudBuffers.status(), WorldRenderScale.status())
+            listOf(GpuModelTransforms.status(), GpuPlayerPipeline.status(), GpuEquipmentPipeline.status(), NativePlayerPosePipeline.status(), ModernArmorGlintPipeline.status(), GpuResidentPlayerState.status(), GpuResolvedInstanceCache.status(), GpuVoxelSkinPipeline.status(), GpuSkinLayers.status(), CeraEmissiveAdmission.status(), GpuTerrainCommands.status(), GpuNameTags.status(), RetainedNameTags.status(), FastInvisibleHolograms.status(), RenderHookAllocationControl.status(), EfficientMotionBlur.status(), GpuParticles.status(), ScoreboardPreparation.status(), FastFramePresentation.status(), RetainedHudBuffers.status(), WorldRenderScale.status())
         }
         io.github.arcadiumclient.runtime.client.diagnostics.PerformanceCapture.initialize()
     }
 
     private fun syncTextOptions() {
+        io.github.arcadiumclient.runtime.client.optimizations.EntityNameFormatting.resetNameCacheEnabled = cachedNameMasking
         if (org.polyfrost.oneconfig.internal.TextOptimizationOptions.vanillaFontBatching != batchedVanillaFont) GpuNameTags.invalidateAll()
         org.polyfrost.oneconfig.internal.TextOptimizationOptions.nameMaskCache = cachedNameMasking
         org.polyfrost.oneconfig.internal.TextOptimizationOptions.fontMetricCache = cachedFontMetrics

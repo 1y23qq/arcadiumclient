@@ -7,11 +7,15 @@ import java.security.MessageDigest;
 import java.util.HexFormat;
 import java.util.Map;
 import java.util.Set;
+import java.nio.file.Files;
 import net.fabricmc.loader.api.FabricLoader;
 
 final class ResolvedUploadPolicy {
     static final String DRIVER = "org.embeddedt.embeddium.impl.gl.device.GLRenderDevice$ImmediateCommandList";
     static final String SERVICE = "org.taumc.celeritas.lwjgl.lwjgl3.LWJGL3Service";
+    private static final String CERA_MIXIN = "dev.rdh.cera.mixin.ModelInstancerMixin";
+    private static final String CERA_CLASS = "207834988fa6f39e5de5e2f2768f98938525604f4cd69055565a241b810b888a";
+    private static final String CERA_JAR = "b2dc1edd4232dbe60aac1644b0dd94be12860ab5a4a4cdc0545181309b74806f";
     private static final Set<String> TOP_LEVEL = Set.of(("argentum,argentum-extras,asynclogger,behindyouv3,betterhurtcam,betternightvision,betterscreens,blur,cera,chatting,colorsaturation," +
             "compose-multiplatform,confirmdisconnect,confirmresetkeys,countdown,crosshairtweaks,custom-block-highlight,damagetint,droppeditemtweaks,evergreenhud,exploint," +
             "fabric-language-kotlin,fabricloader,fovchanger,freelook,fullbright,glintcolorizer,hybedwars,hybridge,hychatter,hylobby,itemphysiclite,java,keyyyyyyyy,legacy-skin-layers," +
@@ -37,8 +41,12 @@ final class ResolvedUploadPolicy {
     private static volatile String reason = "Not checked";
     private ResolvedUploadPolicy() {}
 
-    static boolean knownMod(String id) { return id.startsWith("arcadium_") || TOP_LEVEL.contains(id); }
+    static boolean knownMod(String id) { return id.equals("arcadiumclient") || id.startsWith("arcadium_") || TOP_LEVEL.contains(id); }
     static boolean knownMixin(String name) { return name.startsWith("io.github.arcadiumclient.runtime.") || name.startsWith("dev.rdh.argentum.mixin."); }
+    static boolean auditedCera(String name, String classHash, String version, String jarHash) {
+        return CERA_MIXIN.equals(name) && CERA_CLASS.equals(classHash) && "1.0.1".equals(version) && CERA_JAR.equals(jarHash);
+    }
+    static boolean pinnedSource(String name, String hash) { return hash != null && hash.equals(PINS.get(name)); }
 
     static boolean trusted(Object commands) {
         if (commands == null || !commands.getClass().getName().equals(DRIVER)) { reason = "Custom command list"; return false; }
@@ -46,6 +54,17 @@ final class ResolvedUploadPolicy {
         if (!checked) {
             checked = true;
             try {
+                String ceraVersion = "", ceraJar = "";
+                var cera = FabricLoader.getInstance().getModContainer("cera");
+                if (cera.isPresent()) {
+                    ceraVersion = cera.get().getMetadata().getVersion().getFriendlyString();
+                    var paths = cera.get().getOrigin().getPaths();
+                    if (!"1.0.1".equals(ceraVersion) || paths.size() != 1 || !Files.isRegularFile(paths.getFirst()) || Files.size(paths.getFirst()) > (64L << 20)) {
+                        reason = "Unrecognized Cera build"; return false;
+                    }
+                    try (var input = Files.newInputStream(paths.getFirst())) { ceraJar = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(input.readAllBytes())); }
+                    if (!CERA_JAR.equals(ceraJar)) { reason = "Changed Cera integration archive"; return false; }
+                }
                 for (var mod : FabricLoader.getInstance().getAllMods()) {
                     var top = mod;
                     while (top.getContainingMod().isPresent()) top = top.getContainingMod().get();
@@ -64,7 +83,13 @@ final class ResolvedUploadPolicy {
                     for (Method method : type.getDeclaredMethods()) for (Annotation annotation : method.getDeclaredAnnotations()) {
                         if (!annotation.annotationType().getName().equals("org.spongepowered.asm.mixin.transformer.meta.MixinMerged")) continue;
                         String mixin = (String)annotation.annotationType().getMethod("mixin").invoke(annotation);
-                        if (!knownMixin(mixin)) { reason = "Custom upload hook: " + mixin; return false; }
+                        if (!knownMixin(mixin)) {
+                            String fingerprint = "";
+                            if (CERA_MIXIN.equals(mixin)) try (var input = loader.getResourceAsStream(mixin.replace('.', '/') + ".class")) {
+                                if (input != null) { byte[] bytes = input.readNBytes((512 << 10) + 1); if (bytes.length <= (512 << 10)) fingerprint = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(bytes)); }
+                            }
+                            if (!auditedCera(mixin, fingerprint, ceraVersion, ceraJar)) { reason = "Custom upload hook: " + mixin; return false; }
+                        }
                     }
                 }
                 trusted = true; reason = "Pinned native upload path";

@@ -89,7 +89,7 @@ public final class Features062Qa {
     }
     private static Object summary() {var sorted=samples.stream().sorted().toList();return Map.of("frames",samples.size(),"meanMillis",samples.stream().mapToDouble(v->v).average().orElse(0),"p95Millis",sorted.isEmpty()?0:sorted.get(Math.min(sorted.size()-1,(int)(sorted.size()*.95))));}
     public static void frame() {long now=System.nanoTime();if(phase>=5 && phase<=7 && wait>15 && frameTime!=0)samples.add((now-frameTime)/1_000_000d);frameTime=now;}
-    private static void seedSkin(Minecraft mc) throws Exception {
+    static void seedSkin(Minecraft mc) throws Exception {
         BufferedImage image=new BufferedImage(64,64,BufferedImage.TYPE_INT_ARGB);int[] pixels=new int[4096];
         for(int y=0;y<64;y++)for(int x=0;x<64;x++){int color=((x+y)%3==0)?0xFF2255CC:0xFFDD8844;image.setRGB(x,y,color);pixels[y*64+x]=color;}
         skin=new Identifier("arcadium","qa-skin-062");mc.getTextureManager().register(skin,new UploadedSkinTexture(image));

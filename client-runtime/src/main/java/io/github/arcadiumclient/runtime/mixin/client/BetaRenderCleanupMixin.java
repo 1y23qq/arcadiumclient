@@ -31,6 +31,7 @@ public abstract class BetaRenderCleanupMixin {
         RetainedHudBuffers.closeAll(); WorldRenderScale.release(); GpuModelTransforms.close(); GpuNameTags.closeAll(); GpuParticles.close();
         GpuTerrainCommands.reset();
         GpuVoxelSkinPipeline.reset();
+        GpuVoxelSkinUploadFacts.shutdown();
         ModernArmorGlintPipeline.close();
     }
 }

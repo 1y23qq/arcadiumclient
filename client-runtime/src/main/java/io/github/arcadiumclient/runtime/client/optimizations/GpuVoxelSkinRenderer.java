@@ -5,6 +5,7 @@ import java.nio.*;
 import java.util.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.render.model.ModelPart;
+import net.minecraft.client.render.model.entity.PlayerModel;
 import net.minecraft.resource.Identifier;
 import org.embeddedt.embeddium.impl.gl.device.CommandList;
 import org.embeddedt.embeddium.impl.gl.device.RenderDevice;
@@ -24,6 +25,10 @@ public final class GpuVoxelSkinRenderer implements GpuVoxelSkinPipeline.Backend 
     private final Map<Long, Integer> variants = new HashMap<>();
     private final Matrix4f marker = new Matrix4f();
     private final float[] template = new float[192];
+    private final GpuVoxelSkinAdmission admission = new GpuVoxelSkinAdmission();
+    private final ModelPart[] observedParts = new ModelPart[12];
+    private Object admissionCapture;
+    private boolean observedModel;
     private long optionsRevision = -1;
     private long epoch;
     private int neutralTemplate = -1;
@@ -93,6 +98,10 @@ public final class GpuVoxelSkinRenderer implements GpuVoxelSkinPipeline.Backend 
             if (actor == null || !(boolean)api.capture.active.invoke(actor)) return 0;
             Object backend = api.capture.backend.get(actor); State storage = prepared(backend);
             if (storage == null||!supported()||!materialSupported()) return 0;
+            admission.beginActor();admissionCapture=api.capture.activeCapture.get(actor);
+            System.arraycopy(parts,0,observedParts,0,12);observedModel=true;
+            if(!admission.admit(api,backend,texture,parts,mask)){state=admission.reason();return 0;}
+            if(!prepareTexture(storage,backend,texture,admission.admittedUpload()))return 0;
             int templateId = variantTemplate(sourceTemplate, parts);
             for (int part = 0; part < 12; part++) {
                 if ((mask & 1 << part) == 0) continue;
@@ -174,6 +183,12 @@ public final class GpuVoxelSkinRenderer implements GpuVoxelSkinPipeline.Backend 
             Object pass = api.capture.capturePass.get(capture); String kind = ((Enum<?>)pass).name();
             if (!kind.equals("NORMAL") && !kind.equals("TRANSLUCENT")) return reject("Unsupported native voxel material pass", false);
             Identifier texture = (Identifier)api.capture.captureTexture.get(capture);
+            if(admissionCapture!=capture){admission.beginActor();admissionCapture=capture;}
+            int capturedPart=GpuVoxelSkinBridge.part(mesh);
+            if(!observedModel||capturedPart<6||!admission.admit(api,backend,texture,observedParts,1<<capturedPart)){
+                state=observedModel?admission.reason():"Outer skin model unavailable; using original layers";return false;
+            }
+            if(!prepareTexture(storage,backend,texture,admission.admittedUpload()))return false;
             Matrix4f matrix = (Matrix4f)api.capture.captureMatrices.get(capture);
             if (texture == null || !finite(matrix) || !GpuVoxelSkinMath.normalTransformMatches(matrix, offset))
                 return reject("Custom voxel matrix or normal scale", false);
@@ -214,11 +229,6 @@ public final class GpuVoxelSkinRenderer implements GpuVoxelSkinPipeline.Backend 
 
     private boolean submit(State storage, GpuVoxelSkinGeometryCache.Entry geometry, Object backend, Identifier texture, Object pass,
                            Matrix4f matrix, int light, Vector4fc color, float time, Vector4fc overlay, Object capture) throws Throwable {
-        var source=Minecraft.getInstance().getTextureManager().get(texture);
-        var descriptor=source==null?null:api.sourceDescriptor(backend,texture,source,source.getGlId());
-        long previousBytes=storage.textureBudget.bytes();
-        if(!storage.textureBudget.admit(source,texture,descriptor)){state="Voxel texture descriptor/budget fallback";GpuVoxelSkinPipeline.budgetFallbacks++;return false;}
-        GpuVoxelSkinPipeline.auxiliaryTextureBytes+=storage.textureBudget.bytes()-previousBytes;
         backend=storage.auxiliary;
         Object batch = api.capture.select.invoke(backend, texture, pass);
         Object instances = api.capture.instances.invoke(storage.geometry, batch);
@@ -242,13 +252,32 @@ public final class GpuVoxelSkinRenderer implements GpuVoxelSkinPipeline.Backend 
             throw failure;
         }
     }
+    private boolean prepareTexture(State storage,Object main,Identifier texture,Object fact)throws Throwable{
+        var source=Minecraft.getInstance().getTextureManager().get(texture);if(source==null)return reject("Skin source became unavailable",false);
+        int name=source.getGlId(),generation=api.sourceGeneration(source);Object key=api.sourcePoolKey(main,texture,source,name,generation);
+        if(key==null||fact!=GpuVoxelSkinUploadFacts.current(source,name,generation))return reject("Skin upload changed before auxiliary preparation",false);
+        var descriptor=storage.descriptors.get(key);
+        if(descriptor==null){descriptor=api.sourceDescriptor(main,texture,source,name);if(descriptor==null)return reject("Skin source pool is unavailable",false);}
+        long previousBytes=storage.textureBudget.bytes();
+        if(!storage.textureBudget.admit(source,texture,descriptor)){GpuVoxelSkinPipeline.budgetFallbacks++;state="Voxel texture budget; using original layers";return false;}
+        storage.descriptors.putIfAbsent(key,descriptor);GpuVoxelSkinPipeline.auxiliaryTextureBytes+=storage.textureBudget.bytes()-previousBytes;
+        api.capture.select.invoke(storage.auxiliary,texture,api.normalPass);
+        if(!api.sourceCopyMatches(storage.auxiliary,texture,source,name,generation,fact))return reject("Auxiliary skin array has no current upload copy",false);
+        return true;
+    }
 
     @Override public void observe(Object model) {
-        try { GpuVoxelSkinBridge.observeModel(model); }
+        try {
+            GpuVoxelSkinBridge.observeModel(model);admission.beginActor();admissionCapture=null;observedModel=model instanceof PlayerModel;
+            Arrays.fill(observedParts,null);
+            if(model instanceof PlayerModel player){observedParts[6]=player.hat;observedParts[7]=player.leftPants;observedParts[8]=player.rightPants;
+                observedParts[9]=player.leftSleeve;observedParts[10]=player.rightSleeve;observedParts[11]=player.jacket;}
+        }
         catch (Throwable error) { fail(error); }
     }
     @Override public void dispose(Object mesh) {
         GpuVoxelSkinBridge.dispose(mesh);
+        admission.dispose(mesh);
         for (State storage : owners.values()) storage.cache.dispose(mesh);
     }
     @Override public void beginBatch() {
@@ -298,13 +327,17 @@ public final class GpuVoxelSkinRenderer implements GpuVoxelSkinPipeline.Backend 
             } finally { GpuVoxelSkinNativeAccess.releaseManagedScope(owned, RenderDevice::exitManagedCode); }
         }
         owners.clear(); geometries.clear(); variants.clear(); neutralTemplate = -1; optionsRevision = -1;
+        admission.reset();Arrays.fill(observedParts,null);admissionCapture=null;observedModel=false;
         GpuVoxelSkinBridge.reset(); GpuVoxelSkinDraw.resetProgram(); failed = false; state = "Waiting for voxel skins";
     }
     @Override public String status() {
         long words = 0, hits = 0, budget = 0;
         for (State storage : owners.values()) { words += storage.cache.sizeWords(); hits += storage.cache.hits; budget += storage.cache.budgetFallbacks; }
         return state + " | Atlas bytes: " + words*4 + " | Mesh reuse: " + hits + " | Texture budget bytes: " + GpuVoxelSkinPipeline.auxiliaryTextureBytes
-                + " | Pre-shadow/fallback flushes: "+GpuVoxelSkinPipeline.preShadowFlushes+"/"+GpuVoxelSkinPipeline.fallbackFlushes+" | Budget fallback: " + budget;
+                + " | Pre-shadow/fallback flushes: "+GpuVoxelSkinPipeline.preShadowFlushes+"/"+GpuVoxelSkinPipeline.fallbackFlushes+" | Budget fallback: " + budget
+                + " | Opaque admission sources/meshes: "+GpuVoxelSkinPipeline.admissionSources+"/"+GpuVoxelSkinPipeline.admissionMeshes
+                + " | Binary/fractional/unknown: "+GpuVoxelSkinPipeline.binaryAlphaFallbacks+"/"+GpuVoxelSkinPipeline.fractionalAlphaFallbacks+"/"+GpuVoxelSkinPipeline.unknownImageFallbacks
+                + " | Upload alpha bytes/copy pools: "+GpuVoxelSkinUploadFacts.retainedAlphaBytes()+"/"+GpuVoxelSkinUploadFacts.retainedPools();
     }
     private void fail(Throwable error) { failed = true; state = "Disabled after error; using original voxels"; GpuVoxelSkinPipeline.fail(error); }
     private static boolean finite(Matrix4fc matrix) {
@@ -322,6 +355,7 @@ public final class GpuVoxelSkinRenderer implements GpuVoxelSkinPipeline.Backend 
         final Object auxiliary;
         final GpuVoxelSkinGeometryCache cache = new GpuVoxelSkinGeometryCache();
         final GpuVoxelSkinTextureBudget textureBudget=new GpuVoxelSkinTextureBudget();
+        final Map<Object,GpuVoxelSkinTextureBudget.Descriptor> descriptors=new HashMap<>();
         final GpuVoxelSkinBatchState batch=new GpuVoxelSkinBatchState();
         final GpuVoxelSkinDraw draw;
         boolean failed,closed;
@@ -331,7 +365,7 @@ public final class GpuVoxelSkinRenderer implements GpuVoxelSkinPipeline.Backend 
             try{try{draw.delete(commands);}finally{api.modelClose.invoke(auxiliary,commands);}}
             catch(Throwable failure){fail(failure);}
             finally{
-                GpuVoxelSkinPipeline.auxiliaryTextureBytes-=textureBudget.bytes();textureBudget.reset();cache.reset();
+                GpuVoxelSkinPipeline.auxiliaryTextureBytes-=textureBudget.bytes();textureBudget.reset();descriptors.clear();cache.reset();
                 GpuVoxelSkinPipeline.unregisterAuxiliary(auxiliary);
             }
         }

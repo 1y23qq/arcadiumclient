@@ -115,10 +115,17 @@ public final class NextRenderingQa {
                 if(CASES[scenario].equals("players-all-a"))capture("gpu-players-and-names.png");
                 if(CASES[scenario].equals("latest-a"))capture("latest-baseline.png");
                 if(CASES[scenario].equals("retained-a")){if(Boolean.getBoolean("arcadium.nextRendering.defaultBudgets"))require(RetainedNameTags.reused==0&&GpuNameTags.packetsDrawn==0,"Small scene used the retained GPU path");else require(RetainedNameTags.reused>0,"No name tag scenes reused: "+RetainedNameTags.status());capture("retained-names.png");}
-                if(CASES[scenario].equals("equipment-a")){require(GpuEquipmentPipeline.partsQueued>0,"GPU equipment path was never used: "+GpuEquipmentPipeline.status());capture("gpu-equipment.png");}
+                if(CASES[scenario].equals("equipment-a")){
+                    require(GpuEquipmentPipeline.partsQueued>0||NativePlayerPosePipeline.armorPartsQueued>0,
+                            "GPU equipment path was never used: "+GpuEquipmentPipeline.status()+"; "+NativePlayerPosePipeline.status());
+                    capture("gpu-equipment.png");
+                }
                 if(CASES[scenario].equals("skin-resource")){
-                    require(Features062Qa.voxelDraws>0,"Voxel skins stopped rendering");require(GpuPlayerPipeline.rejectedModel>0,"Detailed skin players did not use the original path");
-                    report.put("voxelDraws",Features062Qa.voxelDraws);report.put("voxelMeshCompiles",Features062Qa.meshCompiles);report.put("resourceReload",reloaded);capture("gpu-with-skins.png");
+                    require(Features062Qa.voxelDraws>0,"Voxel skins stopped rendering");
+                    require(GpuSkinLayers.hybridPlayers>0&&GpuSkinLayers.voxelParts>0,"Voxel skins did not retain the compact body path: "+GpuSkinLayers.status());
+                    report.put("voxelDraws",Features062Qa.voxelDraws);report.put("voxelMeshCompiles",Features062Qa.meshCompiles);
+                    report.put("hybridSkinPlayers",GpuSkinLayers.hybridPlayers);report.put("hybridVoxelParts",GpuSkinLayers.voxelParts);
+                    report.put("resourceReload",reloaded);capture("gpu-with-skins.png");
                 }
                 if(CASES[scenario].equals("budget")){
                     require(GpuModelTransforms.offloadedParts==budgetParts,"Few-player budget still used compute");require(GpuNameTags.packetsDrawn==budgetNames,"Few-label budget still used multi-draw");report.put("smallSceneBudget",true);
@@ -143,6 +150,9 @@ public final class NextRenderingQa {
             report.put("compactPlayers",GpuPlayerPipeline.playersDrawn);report.put("compactParts",GpuPlayerPipeline.partsQueued);report.put("playerStateFallback",GpuPlayerPipeline.rejectedState);report.put("playerLayerFallback",GpuPlayerPipeline.rejectedLayers);report.put("playerModelFallback",GpuPlayerPipeline.rejectedModel);
             report.put("goldenMatrices",golden.size());report.put("verifiedAgainstNativeMatrices",verifiedMatrices);report.put("maximumNativeMatrixError",maximumMatrixError);
             report.put("equipmentStates",GpuEquipmentPipeline.statesQueued);report.put("equipmentParts",GpuEquipmentPipeline.partsQueued);report.put("glintStates",GpuEquipmentPipeline.glintStates);report.put("leatherStates",GpuEquipmentPipeline.leatherStates);report.put("equipmentFallbacks",GpuEquipmentPipeline.fallbacks);
+            report.put("nativeCallbackPlayers",NativePlayerPosePipeline.playersQueued);report.put("nativeCallbackBodyParts",NativePlayerPosePipeline.bodyPartsQueued);
+            report.put("nativeCallbackArmorParts",NativePlayerPosePipeline.armorPartsQueued);report.put("nativeCallbackPoseGroups",NativePlayerPosePipeline.poseGroups);
+            report.put("nativeCallbackFallbacks",NativePlayerPosePipeline.fallbacks);report.put("nativeCallbackGlintDuplicates",NativePlayerPosePipeline.glintDuplicates);
             if(RetainedNameTags.reused>0){try{RetainedSceneQa.verifyRendererReplacement();report.put("rendererReplacement",true);}catch(ReflectiveOperationException error){throw new IllegalStateException(error);}}report.put("retainedLabels",RetainedNameTags.reused);report.put("retainedSceneChecks",RetainedSceneQa.checks);report.put("retainedSceneMatrixError",RetainedSceneQa.error);report.put("retainedOptionsTested",RetainedSceneQa.testedOptions());if(RetainedSceneQa.enabled())require(RetainedSceneQa.checks>4000,"Too few scene comparisons");
             if(!AUTO_BUDGET&&!Set.of("profile","retained","scene-verify").contains(System.getProperty("arcadium.nextRendering.focus","")))require(verifiedMatrices>0,"No GPU player matrices were checked against the original renderer");
             else if(AUTO_BUDGET)require(GpuModelTransforms.offloadedParts==0&&GpuNameTags.packetsDrawn==0,"Small scene default budget used GPU work");
