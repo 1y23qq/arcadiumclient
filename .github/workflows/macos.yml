@@ -1,4 +1,4 @@
-name: macOS packages
+name: Platform packages
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
       mode:
         type: choice
         default: package
-        options: [package, warm, renderer-qa]
+        options: [package, package-all, windows, warm, warm-windows, renderer-qa]
       build_tag:
         type: string
         default: ci-inputs-0.5.6
@@ -18,7 +18,7 @@ permissions:
 
 jobs:
   build:
-    if: inputs.mode != 'renderer-qa'
+    if: inputs.mode == 'package' || inputs.mode == 'package-all' || inputs.mode == 'warm'
     permissions:
       contents: write
     strategy:
@@ -66,7 +66,7 @@ jobs:
         if: inputs.mode == 'warm'
         run: cargo build --locked --profile macos-testing --target '${{ matrix.target }}' -p freya
       - name: Import verified client components
-        if: inputs.mode == 'package'
+        if: inputs.mode == 'package' || inputs.mode == 'package-all'
         env:
           GH_TOKEN: ${{ github.token }}
           BUILD_TAG: ${{ inputs.build_tag }}
@@ -75,7 +75,7 @@ jobs:
           gh release download "$BUILD_TAG" --repo "$GITHUB_REPOSITORY" --pattern ArcadiumBuildInputs.zip --dir "$RUNNER_TEMP/components"
           python3 scripts/import_build_components.py "$RUNNER_TEMP/components/ArcadiumBuildInputs.zip" --sha256 "$COMPONENT_SHA256"
       - name: Build launcher and verify accent rendering
-        if: inputs.mode == 'package'
+        if: inputs.mode == 'package' || inputs.mode == 'package-all'
         run: |
           cargo build --locked --profile macos-testing --target '${{ matrix.target }}' -p arcadium_app --bin Arcadium
           cargo test --locked --profile macos-testing --target '${{ matrix.target }}' -p arcadium_app --lib theme::accent -- --test-threads=1
@@ -83,13 +83,13 @@ jobs:
           cargo test --locked --profile macos-testing --target '${{ matrix.target }}' -p arcadium_app --lib components::update_prompt::tests -- --test-threads=1
           cargo test --locked --profile macos-testing --target '${{ matrix.target }}' -p arcadium_core --lib game::settings_share::tests -- --test-threads=1
       - name: Package and verify macOS application
-        if: inputs.mode == 'package'
+        if: inputs.mode == 'package' || inputs.mode == 'package-all'
         run: |
           python3 scripts/build_macos.py --target '${{ matrix.target }}' --skip-compile
           python3 scripts/check_macos_compatibility.py --binary "$CARGO_TARGET_DIR/${{ matrix.target }}/macos-testing/Arcadium" --target '${{ matrix.target }}' --minimum '${{ matrix.minimum }}' --static-root "$CARGO_TARGET_DIR/${{ matrix.target }}/macos-testing" --fetch-sdk --output build/macos-compatibility-tests.json
           python3 scripts/smoke_native_helpers.py --executable "$CARGO_TARGET_DIR/${{ matrix.target }}/macos-testing/Arcadium" --output build/macos-native-helper-tests.json
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        if: inputs.mode == 'package' && always()
+        if: (inputs.mode == 'package' || inputs.mode == 'package-all') && always()
         with:
           name: ${{ matrix.platform }}
           path: |
@@ -97,6 +97,97 @@ jobs:
             build/macos-compatibility-tests.json
             build/macos-native-helper-tests.json
             build/theme-accent-evidence/
+          if-no-files-found: warn
+          retention-days: 3
+
+  windows:
+    if: inputs.mode == 'windows' || inputs.mode == 'package-all' || inputs.mode == 'warm-windows'
+    runs-on: windows-2022
+    timeout-minutes: 180
+    env:
+      SQLX_OFFLINE: 'true'
+      CARGO_TARGET_DIR: target
+      CARGO_BUILD_JOBS: '2'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4
+        with:
+          toolchain: '1.99.0'
+          targets: x86_64-pc-windows-msvc
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
+        with:
+          distribution: temurin
+          java-version: '25'
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        with:
+          python-version: '3.13'
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: windows-source-v1-x64-${{ hashFiles('Cargo.lock') }}-${{ github.sha }}-${{ inputs.mode }}
+          restore-keys: windows-source-v1-x64-
+      - name: Import verified client components
+        if: inputs.mode != 'warm-windows'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BUILD_TAG: ${{ inputs.build_tag }}
+          COMPONENT_SHA256: ${{ inputs.component_sha256 }}
+        run: |
+          gh release download $env:BUILD_TAG --repo $env:GITHUB_REPOSITORY --pattern ArcadiumBuildInputs.zip --dir "$env:RUNNER_TEMP/components"
+          if ($LASTEXITCODE -ne 0) { throw 'Could not download the component archive.' }
+          python scripts/import_build_components.py "$env:RUNNER_TEMP/components/ArcadiumBuildInputs.zip" --sha256 $env:COMPONENT_SHA256
+          if ($LASTEXITCODE -ne 0) { throw 'Component archive verification failed.' }
+      - name: Build Windows launcher
+        shell: pwsh
+        env:
+          BUILD_MODE: ${{ inputs.mode }}
+        run: |
+          $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio/Installer/vswhere.exe'
+          $vsRoot = & $vswhere -latest -products '*' -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+          if (!$vsRoot) { throw 'Visual Studio C++ build tools are missing.' }
+          $vcvars = Join-Path $vsRoot 'VC/Auxiliary/Build/vcvars64.bat'
+          $vcEnvironment = & cmd /d /s /c "call ""$vcvars"" >nul && set"
+          if ($LASTEXITCODE -ne 0) { throw 'Could not initialize the MSVC environment.' }
+          foreach ($row in $vcEnvironment) {
+            $separator = $row.IndexOf('=')
+            if ($separator -gt 0) {
+              [Environment]::SetEnvironmentVariable($row.Substring(0, $separator), $row.Substring($separator + 1), 'Process')
+            }
+          }
+          if ($env:BUILD_MODE -eq 'warm-windows') {
+            cargo build --release --locked --target x86_64-pc-windows-msvc -p freya
+          } else {
+            cargo build --release --locked --target x86_64-pc-windows-msvc -p arcadium_app --bin Arcadium
+          }
+          if ($LASTEXITCODE -ne 0) { throw 'Windows launcher build failed.' }
+      - name: Package and verify Windows installer
+        if: inputs.mode != 'warm-windows'
+        shell: pwsh
+        run: |
+          $makensis = Join-Path ${env:ProgramFiles(x86)} 'NSIS/makensis.exe'
+          if (!(Test-Path -LiteralPath $makensis)) {
+            choco install nsis --version=3.11 --yes --no-progress
+            if ($LASTEXITCODE -ne 0) { throw 'NSIS installation failed.' }
+          }
+          ./scripts/build_windows.ps1 -TargetDirectory $env:CARGO_TARGET_DIR -JavaHome $env:JAVA_HOME -Makensis $makensis -SkipCompile
+          $version = python -c "import pathlib,tomllib; print(tomllib.loads(pathlib.Path('Cargo.toml').read_text(encoding='utf-8'))['workspace']['package']['version'])"
+          if ($LASTEXITCODE -ne 0) { throw 'Could not read the launcher version.' }
+          ./scripts/verify_windows_installer.ps1 -Version $version
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: inputs.mode != 'warm-windows' && always()
+        with:
+          name: windows-x64
+          path: |
+            build/installers/ArcadiumClientSetup-*-x64.exe
+            build/installers/package-manifest.json
+            build/windows-*-installer-checks.json
+            build/windows-*-native-helper-tests.json
           if-no-files-found: warn
           retention-days: 3
 
