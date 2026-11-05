@@ -13,6 +13,6 @@ public abstract class CeraAdmission072AnalyticProbe {
     @WrapMethod(method="queueAnalytic",remap=false)
     private static int cera$texture(ModelPart[] parts,int mask,Identifier texture,int job,int template,int light,float age,Operation<Integer> original){
         int token=CeraAdmission072Qa.beginAnalytic(mask,texture);
-        try{return original.call(parts,mask,texture,job,template,light,age);}finally{CeraAdmission072Qa.endAnalytic(token);}
+        try{int result=original.call(parts,mask,texture,job,template,light,age);CeraAdmission072Qa.analyticQueued(texture,result);return result;}finally{CeraAdmission072Qa.endAnalytic(token);}
     }
 }

@@ -47,6 +47,8 @@ def main() -> None:
     test_cases = ET.parse(output / "native-tests.xml").getroot().findall(".//testcase")
     metal = next((case for case in test_cases if case.get("name") == "metal_resident_scene"), None)
     metal_status = "not-applicable" if metal is None else "skipped-no-device" if metal.find("skipped") is not None else "passed"
+    presentation = next((case for case in test_cases if case.get("name") == "metal_current_frame_presentation"), None)
+    presentation_status = "not-applicable" if presentation is None else "skipped-no-device-or-context" if presentation.find("skipped") is not None else "passed"
     home = arguments.java_home
     java = str(home / "bin" / ("java.exe" if sys.platform == "win32" else "java")) if home else shutil.which("java")
     javac = str(home / "bin" / ("javac.exe" if sys.platform == "win32" else "javac")) if home else shutil.which("javac")
@@ -58,7 +60,8 @@ def main() -> None:
         raise RuntimeError(f"Expected exactly one native library, found {libraries}")
     library = libraries[0]
     java_source = root / "client-runtime/src/main/java/io/github/arcadiumclient/runtime/client/optimizations/backend"
-    java_files = [java_source / name for name in ("ResidentSceneBackend.java", "SceneBufferChecks.java", "MetalResidentSceneBackend.java")]
+    java_files = [java_source / name for name in ("ResidentSceneBackend.java", "SceneBufferChecks.java", "MetalResidentSceneBackend.java",
+                                               "MetalPresentationCalls.java", "MetalPresentFrame.java")]
     java_files += sorted((source / "tests").glob("*.java"))
     java_output = output / "java"
     run([javac, "-d", str(java_output), *map(str, java_files)], "javac.log")
@@ -67,10 +70,17 @@ def main() -> None:
                      "io.github.arcadiumclient.runtime.client.optimizations.backend." + probe, str(library)]
     if sys.platform == "darwin": probe_command.append(str(source / "tests/reference_scene.metal"))
     probe_code = run(probe_command, "java-native-probe.log", (0, 77) if sys.platform == "darwin" else (0,))
+    presentation_probe = None
+    if sys.platform != "darwin":
+        presentation_probe = run([java, "--enable-native-access=ALL-UNNAMED", "-cp", str(java_output),
+                                  "io.github.arcadiumclient.runtime.client.optimizations.backend.UnsupportedPresentationBindingsProbe", str(library)],
+                                 "java-presentation-probe.log") == 0
     report = {"passed": True, "platform": sys.platform, "architecture": arguments.arch,
               "nativeCompiled": True, "metalDeviceTest": metal_status,
               "javaMetalDeviceTest": "skipped-no-device" if probe_code == 77 else "passed" if sys.platform == "darwin" else "not-applicable",
               "javaNativeAbiProbe": probe_code == 0, "presentationIntegrated": False,
+              "nativeWindowPresentation": presentation_status, "presentationPixelReadbackVariant": presentation is not None,
+              "unsupportedPresentationFfiProbe": presentation_probe,
               "nativeLibrary": str(library), "commands": commands}
     (output / "verification.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({key: value for key, value in report.items() if key not in {"commands", "nativeLibrary"}}, indent=2))

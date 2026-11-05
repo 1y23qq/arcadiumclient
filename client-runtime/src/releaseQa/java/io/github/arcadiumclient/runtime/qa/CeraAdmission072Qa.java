@@ -43,7 +43,7 @@ public final class CeraAdmission072Qa {
     private static final long[] before = new long[5];
     private static final Set<String> analyticTextures = new TreeSet<>();
     private static final List<String> analyticOrder = new ArrayList<>();
-    private static int phase,ticks,wait,warm,scenario,mode,voxelDepth,analyticDepth,rendering = -1;
+    private static int phase,ticks,wait,warm,scenario,mode,voxelDepth,analyticDepth,preparationDepth,rendering = -1;
     private static boolean done;
     private static boolean configured, configuredGpu, configuredSkin,cameraPrepared;
     private static Future<?> environment;
@@ -152,6 +152,7 @@ public final class CeraAdmission072Qa {
             result.put("actualAnalyticSkinOrder",new ArrayList<>(analyticOrder));
             result.put("actualAuxiliaryLayerHits",new LinkedHashMap<>(CeraAdmission072PoolEvidence.counts()));
             result.put("actualVoxelDrawSources",new LinkedHashMap<>(CeraAdmission072PoolEvidence.drawnCounts()));
+            result.put("actualPreparationLeases",CeraAdmission072LeaseEvidence.counts());result.put("actualUploadFacts",CeraAdmission072LeaseEvidence.facts());
             result.put("nativeActorTraces",Arrays.stream(traces[1]).map(long[]::clone).toArray(long[][]::new));result.put("guardedActorTraces",Arrays.stream(traces[2]).map(long[]::clone).toArray(long[][]::new));report.put(label,result);progress(label+"-captured");
             require(max<=(BASELINE?0:2),"Native/GPU image differs beyond the fixed color criterion: "+max);require(bright>20,"No visible bright emissive pixels in the reference");
             for(int actor=0;actor<3;actor++)require(traces[1][actor][0]>0&&traces[2][actor][0]>0,"An actor was not rendered by native PlayerRenderer");
@@ -174,6 +175,10 @@ public final class CeraAdmission072Qa {
                 require(traces[1][0][6]>0&&traces[1][0][6]==traces[2][0][6],"Emissive original voxel invocation was lost");
                 if(!BASELINE){require(analyticTextures.contains(ORDINARY.toString())&&analyticTextures.contains(SECOND.toString()),"Both different cached ordinary skins must reach analytic source-binding checks");
                     for(Identifier id:List.of(ORDINARY,SECOND)){require(CeraAdmission072PoolEvidence.counts().getOrDefault(id.toString(),0L)>0,"No actual auxiliary layer cache hit: "+id);require(CeraAdmission072PoolEvidence.drawnCounts().getOrDefault(id.toString(),0L)>0,"No actual voxel MDI draw for source: "+id);}
+                    for(Identifier id:List.of(ORDINARY,SECOND)){require(CeraAdmission072LeaseEvidence.counts().getOrDefault("used:"+id,0L)>0&&CeraAdmission072LeaseEvidence.counts().getOrDefault("queued:"+id,0L)>0,"No exact single-use preparation lease for queued skin: "+id);}
+                    require(CeraAdmission072PoolEvidence.counts().getOrDefault("calls:preparation",0L)>0&&CeraAdmission072PoolEvidence.counts().getOrDefault("calls:queue",0L)==0,"Actual selection did not use preparation then cached queue lease");
+                    for(String error:List.of("invalidUse","queueWithoutUse","unpreparedFact","unknownFactLayout","overflow"))require(CeraAdmission072LeaseEvidence.counts().getOrDefault(error,0L)==0,"Preparation lease observer failed: "+error);
+                    for(String error:List.of("wrongOwner","unknownLayout","unbalanced","depthOverflow","poolOverflow","bindingOverflow"))require(CeraAdmission072PoolEvidence.counts().getOrDefault(error,0L)==0,"Pool observer failed: "+error);
                     if(scenario==2){var previous=new ArrayList<>((List<String>)((Map<?,?>)report.get("3d-skin")).get("actualAnalyticSkinOrder"));Collections.reverse(previous);require(previous.equals(analyticOrder),"Reversed source assignment did not exercise opposite cached source order");}}}
             require(GL11.glGetError()==0,"OpenGL error after Cera comparison");
             result.put("validated",true);progress(label+"-validated");
@@ -182,7 +187,8 @@ public final class CeraAdmission072Qa {
         }catch(Throwable error){failure=error.toString();}finally{mode=0;rendering=-1;}
     }
     private static BufferedImage render(Minecraft mc,int which,boolean gpu,boolean skin,long deadline,Operation<Void> original){
-        mode=which;for(long[] row:traces[which])Arrays.fill(row,0);submissions[which].clear();analyticTextures.clear();analyticOrder.clear();CeraAdmission072PoolEvidence.reset();configure(gpu,skin);freeze(mc);
+        require(analyticDepth==0&&preparationDepth==0,"Voxel observer scope was unbalanced");
+        mode=which;for(long[] row:traces[which])Arrays.fill(row,0);submissions[which].clear();analyticTextures.clear();analyticOrder.clear();CeraAdmission072PoolEvidence.reset();CeraAdmission072LeaseEvidence.reset();configure(gpu,skin);freeze(mc);
         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT|GL11.GL_DEPTH_BUFFER_BIT);original.call(.5f,deadline);return capture(mc);
     }
     private static void nameReplay(Minecraft mc,boolean skin,long deadline,Operation<Void> original)throws Throwable{
@@ -227,7 +233,18 @@ public final class CeraAdmission072Qa {
             require(bound==expected&&GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)==bound,"Analytic voxel call entered with another skin bound");if(analyticTextures.add(texture.toString()))analyticOrder.add(texture.toString());
         }catch(Throwable error){failure=error.toString();}
     }
-    public static boolean analyticScope(){return enabled()&&!done&&!BASELINE&&mode==2&&analyticDepth>0;}
+    public static boolean observingSelection(){return enabled()&&!done&&!BASELINE&&mode==2;}
+    public static boolean analyticScope(){return observingSelection()&&(analyticDepth>0||preparationDepth>0);}
+    public static String poolPhase(){return preparationDepth>0?"preparation":"queue";}
+    public static void beginPreparation(Object storage){
+        if(!observingSelection())return;
+        try{Object auxiliary=CeraAdmission072LeaseEvidence.value(storage,"auxiliary");
+            require((boolean)Class.forName("io.github.arcadiumclient.runtime.client.optimizations.GpuVoxelSkinPipeline").getMethod("isAuxiliaryBackend",Object.class).invoke(null,auxiliary),"Preparation selected an unregistered auxiliary backend");
+            CeraAdmission072PoolEvidence.owner(CeraAdmission072LeaseEvidence.value(auxiliary,"textureArrays"));preparationDepth++;
+        }catch(Throwable error){failure=error.toString();}
+    }
+    public static void endPreparation(Object texture,Object fact,boolean accepted){if(observingSelection()&&preparationDepth>0){CeraAdmission072LeaseEvidence.prepared(texture,fact,accepted);preparationDepth--;}}
+    public static void analyticQueued(Object texture,int mask){CeraAdmission072LeaseEvidence.queued(texture,mask);}
     public static int beginAnalytic(int mask,Identifier texture){if(!enabled()||done||BASELINE||mode!=2||mask==0)return 0;analyticTexture(mask,texture);return ++analyticDepth;}
     public static void endAnalytic(int token){if(token>0)analyticDepth--;}
     public static void voxelDraw(IntBuffer payload,int count){

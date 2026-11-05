@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 #include "arc_scene.h"
+#include "arc_scene_metal_objects.h"
 #import <Foundation/Foundation.h>
 #import <Metal/Metal.h>
 #include <dispatch/dispatch.h>
@@ -41,6 +42,13 @@ static const uint64_t arc_resident_limit = UINT64_C(512) * 1024 * 1024;
 @end
 
 static ArcResidentScene *arc_context(void *pointer) { return (__bridge ArcResidentScene *) pointer; }
+int arc_scene_metal_objects(void *pointer, id<MTLDevice> __strong *device, id<MTLCommandQueue> __strong *queue) {
+    if (!pointer || !device || !queue) return ARC_INVALID;
+    ArcResidentScene *scene = arc_context(pointer);
+    if (!scene.device || !scene.queue) return ARC_UNAVAILABLE;
+    *device = scene.device; *queue = scene.queue;
+    return ARC_OK;
+}
 static int arc_fail(ArcResidentScene *scene, NSString *message, int status) {
     snprintf(scene ? scene->error : arc_global_error, 1024, "%s", message.UTF8String ?: "Unknown Metal error");
     return status;

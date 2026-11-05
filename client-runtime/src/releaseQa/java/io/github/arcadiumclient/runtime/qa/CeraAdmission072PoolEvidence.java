@@ -14,12 +14,14 @@ public final class CeraAdmission072PoolEvidence {
     private static final Set<String> names=new HashSet<>();
     private static final Deque<Frame> frames=new ArrayDeque<>();
     private static int overflowDepth;
+    private static Object expectedManager;
     private static final Frame INACTIVE=new Frame(null,null,null,null,null,0,0,0,false);
     private static final class Pool{long copies;}
     private record Frame(Object pool,Pool stats,String name,Object previous,Object source,int sourceId,int generation,long copies,boolean matches){}
     private CeraAdmission072PoolEvidence(){}
 
-    public static void reset(){pools.clear();sources.clear();counters.clear();drawn.clear();names.clear();frames.clear();overflowDepth=0;}
+    public static void reset(){pools.clear();sources.clear();counters.clear();drawn.clear();names.clear();frames.clear();overflowDepth=0;expectedManager=null;}
+    public static void owner(Object manager){expectedManager=manager;}
     public static Map<String,Long> counts(){return Collections.unmodifiableMap(new TreeMap<>(counters));}
     public static Map<String,Long> drawnCounts(){return Collections.unmodifiableMap(new TreeMap<>(drawn));}
     public static String sourceFor(int array,int layer){return sources.get(key(array,layer));}
@@ -28,11 +30,13 @@ public final class CeraAdmission072PoolEvidence {
         if(overflowDepth!=0||frames.size()==MAX_DEPTH){overflowDepth++;add(counters,"depthOverflow",1);return;}
         if(!CeraAdmission072Qa.analyticScope()){frames.push(INACTIVE);return;}
         try{
+            if(expectedManager==null||((Map<?,?>)value(expectedManager,"pools")).values().stream().noneMatch(candidate->candidate==pool)){add(counters,"wrongOwner",1);frames.push(INACTIVE);return;}
+            add(counters,"ownerChecks",1);
             String name=texture.toString();if(!names.contains(name)&&names.size()==MAX_NAMES){add(counters,"nameOverflow",1);frames.push(INACTIVE);return;}names.add(name);
             Pool stats=pools.get(pool);if(stats==null){if(pools.size()==MAX_POOLS){add(counters,"poolOverflow",1);frames.push(INACTIVE);return;}stats=new Pool();pools.put(pool,stats);}
             Object previous=((Map<?,?>)value(pool,"layers")).get(texture);
             boolean same=previous!=null&&value(previous,"source")==source&&(int)value(previous,"sourceId")==sourceId&&(int)value(previous,"generation")==generation;
-            frames.push(new Frame(pool,stats,name,previous,source,sourceId,generation,stats.copies,same));add(counters,"calls",1);add(counters,"calls:"+name,1);
+            frames.push(new Frame(pool,stats,name,previous,source,sourceId,generation,stats.copies,same));add(counters,"calls",1);add(counters,"calls:"+CeraAdmission072Qa.poolPhase(),1);add(counters,"calls:"+name,1);
         }catch(Exception mismatch){add(counters,"unknownLayout",1);frames.push(INACTIVE);}
     }
     public static void returned(Object pool,Object layer){

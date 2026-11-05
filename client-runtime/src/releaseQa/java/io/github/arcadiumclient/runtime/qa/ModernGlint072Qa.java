@@ -65,6 +65,8 @@ public final class ModernGlint072Qa {
     private static String nativeLayerType = "";
     private static final float[] actualEntryTranslation = new float[16], shiftedEntryTranslation = new float[16];
     private static int matrixBufferChecks;
+    private static long minimumNoMaterialStore=Long.MAX_VALUE;
+    private static int wholeStoreChecks;
 
     private ModernGlint072Qa() {}
     public static boolean enabled() { return System.getProperty("arcadium.modernGlint072.output") != null; }
@@ -79,6 +81,10 @@ public final class ModernGlint072Qa {
                 require("ArcadiumTest".equals(mc.getSession().getUsername()) && "0".equals(mc.getSession().getAccessToken()), "Modern glint QA requires the isolated fake account");
                 require(!Boolean.getBoolean("arcadium.forge.prepared"), "Positive modern glint fixture must not fake or enable Forge");
                 io.github.arcadiumclient.runtime.client.ClientPreferences.setSetupComplete(true);
+                require(validDummyExtent(7,7,0,0,64,64)&&validDummyExtent(7,7,0,64,64,64),"Whole-store/range64 extent policy rejected a valid binding");
+                require(!validDummyExtent(7,0,0,0,64,64)&&!validDummyExtent(7,8,0,0,64,64)&&!validDummyExtent(7,7,0,0,0,64)&&!validDummyExtent(7,7,0,0,63,64)
+                        &&!validDummyExtent(7,7,1,0,128,64)&&!validDummyExtent(7,7,0,65,64,64)&&!validDummyExtent(7,7,-1,64,128,64)&&!validDummyExtent(7,7,0,-1,128,64),"Invalid/unknown/undersized extent policy was accepted");
+                report.put("specBufferExtentPolicyCases",10);
                 Skin3DConfig.INSTANCE.chooseEnabled(false);
                 BetaOptimizationsConfig.setGpuModelTransforms(false); BetaOptimizationsConfig.setGpuPlayerPipeline(false);
                 BetaOptimizationsConfig.setGpuEquipmentPipeline(true); BetaOptimizationsConfig.setMinimumPlayers(1);
@@ -312,12 +318,16 @@ public final class ModernGlint072Qa {
         if (GL20.glGetUniformi(program, pass) < 0) {
             normalSeen = true;
             if (zeroBindingGuard && count >= 0) {
-                if (GL20.glGetUniformi(program, count) != 0 || GL30.glGetIntegeri(GL43.GL_SHADER_STORAGE_BUFFER_BINDING, 7) == 0 ||
-                        GL32.glGetInteger64i(GL43.GL_SHADER_STORAGE_BUFFER_SIZE, 7) < 64) {
+                int binding=GL30.glGetIntegeri(GL43.GL_SHADER_STORAGE_BUFFER_BINDING,7),owned=ownedDummy();
+                long start=binding==0?0:GL32.glGetInteger64i(GL43.GL_SHADER_STORAGE_BUFFER_START,7),range=binding==0?0:GL32.glGetInteger64i(GL43.GL_SHADER_STORAGE_BUFFER_SIZE,7),store=bufferStore(binding);
+                int block=GL43.glGetProgramResourceIndex(program,GL43.GL_SHADER_STORAGE_BLOCK,"ArcadiumModernGlintMatrices");int[] layout={-1,-1};
+                if(block!=GL43.GL_INVALID_INDEX)GL43.glGetProgramResourceiv(program,GL43.GL_SHADER_STORAGE_BLOCK,block,new int[]{GL43.GL_BUFFER_BINDING,GL43.GL_BUFFER_DATA_SIZE},(int[])null,layout);
+                if (GL20.glGetUniformi(program, count) != 0 ||layout[0]!=7||!registeredVerified(program)||!validDummyExtent(owned,binding,start,range,store,layout[1])) {
                     report.put("noMaterialBindingFailure", materialProgramState(program, count));
                     failure = "Globally patched no-material native shader has no valid dummy SSBO7; exact state is recorded";
                     throw new IllegalStateException(failure);
                 }
+                minimumNoMaterialStore=Math.min(minimumNoMaterialStore,store);if(range==0)wholeStoreChecks++;
                 zeroMaterialDrawChecks++;
             }
             return;
@@ -338,6 +348,7 @@ public final class ModernGlint072Qa {
         int binding=GL30.glGetIntegeri(GL43.GL_SHADER_STORAGE_BUFFER_BINDING,7);
         result.put("indexedBinding7",binding);result.put("indexedStart7",binding==0?0:GL32.glGetInteger64i(GL43.GL_SHADER_STORAGE_BUFFER_START,7));result.put("indexedSize7",binding==0?0:GL32.glGetInteger64i(GL43.GL_SHADER_STORAGE_BUFFER_SIZE,7));
         result.put("genericBinding",GL11.glGetInteger(GL43.GL_SHADER_STORAGE_BUFFER_BINDING));
+        result.put("actualBufferStoreBytes",bufferStore(binding));
         int block=GL43.glGetProgramResourceIndex(program,GL43.GL_SHADER_STORAGE_BLOCK,"ArcadiumModernGlintMatrices");result.put("modernStorageBlock",block);
         if(block!=GL43.GL_INVALID_INDEX){int[] layout=new int[2];GL43.glGetProgramResourceiv(program,GL43.GL_SHADER_STORAGE_BLOCK,block,new int[]{GL43.GL_BUFFER_BINDING,GL43.GL_BUFFER_DATA_SIZE},(int[])null,layout);result.put("blockBinding",layout[0]);result.put("blockMinimumBytes",layout[1]);}
         int item=GL20.glGetUniformLocation(program,"uItemGlintPass"),alpha=GL20.glGetUniformLocation(program,"uAlphaPass");
@@ -350,6 +361,20 @@ public final class ModernGlint072Qa {
             List<Object> records=new java.util.ArrayList<>();for(int i=0;i<registered;i++)records.add(Map.of("program",ids[i],"location",uniforms[i],"verified",good[i],"current",ids[i]==program));result.put("registeredPrograms",records);
         }catch(ReflectiveOperationException unavailable){result.put("pipelineInspection",unavailable.toString());}
         return result;
+    }
+    private static boolean validDummyExtent(int owned,int binding,long start,long range,long store,int block){
+        if(owned<=0||binding!=owned||start<0||range<0||store<64||block!=64)return false;
+        // BindBufferBase's zero indexed size denotes the whole data store (GL 4.3, 6.7.1).
+        if(range==0)return start==0;
+        return range>=64&&start<=store&&range<=store-start;
+    }
+    private static int ownedDummy(){try{Field field=ModernArmorGlintPipeline.class.getDeclaredField("dummyStorage");field.setAccessible(true);return field.getInt(null);}catch(ReflectiveOperationException unavailable){return 0;}}
+    private static boolean registeredVerified(int program){try{Class<?> type=ModernArmorGlintPipeline.class;Field ids=type.getDeclaredField("programHandles"),valid=type.getDeclaredField("verifiedPrograms"),count=type.getDeclaredField("programCount");ids.setAccessible(true);valid.setAccessible(true);count.setAccessible(true);int[] values=(int[])ids.get(null);boolean[] checks=(boolean[])valid.get(null);for(int i=0;i<count.getInt(null);i++)if(values[i]==program)return checks[i];}catch(ReflectiveOperationException unavailable){}return false;}
+    private static long bufferStore(int buffer){
+        if(buffer<=0||!GL15.glIsBuffer(buffer))return 0;
+        int generic=GL11.glGetInteger(GL43.GL_SHADER_STORAGE_BUFFER_BINDING);
+        try{GL15.glBindBuffer(GL43.GL_SHADER_STORAGE_BUFFER,buffer);return GL15.glGetBufferParameteri(GL43.GL_SHADER_STORAGE_BUFFER,GL15.GL_BUFFER_SIZE);}
+        finally{GL15.glBindBuffer(GL43.GL_SHADER_STORAGE_BUFFER,generic);}
     }
 
     public static long clock(long original, double speed) { return enabled() ? (long)(1234567L * speed * 8.0) : original; }
@@ -409,6 +434,7 @@ public final class ModernGlint072Qa {
         report.put("fullRgbaPixelFailures", pixelFailures);
         report.put("fixedFunctionAndInstancedGlintPixelTrace", ModernGlintPixelTrace072Qa.report());
         report.put("originallyUnboundSsbo7WorldChecks", zeroRangeChecks); report.put("zeroMaterialNativeDrawChecks", zeroMaterialDrawChecks);
+        report.put("baseWholeStoreBindingChecks",wholeStoreChecks);report.put("minimumNoMaterialDatastoreBytes",minimumNoMaterialStore==Long.MAX_VALUE?0:minimumNoMaterialStore);
         report.put("dummyProgramBinds", ModernArmorGlintPipeline.dummyProgramBinds); report.put("materialProgramBinds", ModernArmorGlintPipeline.materialProgramBinds);
         report.put("originalVertexArmorParts", io.github.arcadiumclient.runtime.client.optimizations.NativePlayerPosePipeline.originalArmorPartsQueued);
         if (error != null) { report.put("error", error.toString()); report.put("diagnostic", ModernArmorGlintPipeline.status()); error.printStackTrace(); }

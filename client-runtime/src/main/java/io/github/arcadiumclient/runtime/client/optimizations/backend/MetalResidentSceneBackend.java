@@ -16,6 +16,8 @@ public final class MetalResidentSceneBackend implements ResidentSceneBackend {
     private MethodHandle error, destroy, pipeline, mesh, material, removeMesh, removeMaterial,
             write, submit, await, read, query, reset;
     private MemorySegment context;
+    private SymbolLookup symbols;
+    private Runnable releasePresentation;
     private int width, height;
 
     public static MetalResidentSceneBackend open(Path library, Layout layout, String source, String vertex, String fragment) {
@@ -29,6 +31,7 @@ public final class MetalResidentSceneBackend implements ResidentSceneBackend {
         this.layout = layout;
         try {
             var lookup = LIBRARIES.computeIfAbsent(library.toRealPath(), path -> SymbolLookup.libraryLookup(path, Arena.global()));
+            symbols=lookup;
             var linker = Linker.nativeLinker();
             var abi = function(linker, lookup, "arc_scene_abi", FunctionDescriptor.of(JAVA_INT));
             if ((int) abi.invokeExact() != 1) throw new IllegalStateException("Incompatible resident scene ABI");
@@ -66,6 +69,12 @@ public final class MetalResidentSceneBackend implements ResidentSceneBackend {
 
     @Override public String name() { return "Metal resident scene (offscreen prototype)"; }
     @Override public Layout layout() { return layout; }
+
+    void presentationAvailable() { ready();if(releasePresentation!=null)throw new IllegalStateException("The scene already owns a presentation surface"); }
+    void presentationReady() { ready(); }
+    SymbolLookup presentationSymbols() { ready();return symbols; }
+    MemorySegment presentationContext() { ready();return context; }
+    void ownPresentation(Runnable cleanup) { presentationAvailable();releasePresentation=java.util.Objects.requireNonNull(cleanup); }
 
     private void ready() {
         if (Thread.currentThread() != owner) throw new IllegalStateException("The resident backend belongs to its render thread");
@@ -155,6 +164,7 @@ public final class MetalResidentSceneBackend implements ResidentSceneBackend {
     @Override public void close() {
         if (Thread.currentThread() != owner) throw new IllegalStateException("The resident backend belongs to its render thread");
         if (context == null || context.address() == 0) return;
+        if(releasePresentation!=null){releasePresentation.run();releasePresentation=null;}
         try { destroy.invokeExact(context); }
         catch (Throwable failure) { throw propagate(failure); }
         finally { context = MemorySegment.NULL; }
