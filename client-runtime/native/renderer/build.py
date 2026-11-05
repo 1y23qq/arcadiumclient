@@ -118,14 +118,16 @@ def main() -> None:
         pylon_sources.append(source / "tests/pylon/MetalPylonPresentationProbe.java")
         run([javac, "-cp", pylon["path"], "-d", str(pylon_output), *map(str, pylon_sources)], "java-pylon-compile.log")
         if sys.platform == "darwin" and probe_code == 0:
-            run([java, "-XstartOnFirstThread", "--enable-native-access=ALL-UNNAMED", "-cp",
-                 os.pathsep.join((str(pylon_output), pylon["path"])),
-                 "io.github.arcadiumclient.runtime.client.optimizations.backend.MetalPylonPresentationProbe",
-                 str(library), str(source / "tests/reference_scene.metal"), str(output / "java-pylon-result.json")],
-                "java-pylon-presentation.log")
-            result = json.loads((output / "java-pylon-result.json").read_text(encoding="utf-8"))
-            if not result.get("passed"):
-                raise RuntimeError("The actual Pylon SDL/Metal surface probe did not pass")
+            for case in ("transport", "fallback"):
+                result_path = output / f"java-pylon-{case}-result.json"
+                run([java, "-XstartOnFirstThread", "--enable-native-access=ALL-UNNAMED", "-cp",
+                     os.pathsep.join((str(pylon_output), pylon["path"])),
+                     "io.github.arcadiumclient.runtime.client.optimizations.backend.MetalPylonPresentationProbe",
+                     str(library), str(source / "tests/reference_scene.metal"), str(result_path), case],
+                    f"java-pylon-{case}.log")
+                result = json.loads(result_path.read_text(encoding="utf-8"))
+                if not result.get("passed"):
+                    raise RuntimeError("The actual Pylon SDL/Metal surface probe did not pass: " + case)
             pylon_status = "passed"
         else:
             pylon_status = "skipped-no-device" if sys.platform == "darwin" else "compiled-not-applicable"

@@ -54,17 +54,22 @@ public final class MetalPylonPresentationProbe {
     }
 
     public static void main(String[] args) throws Exception {
-        if(args.length!=3)throw new IllegalArgumentException("Pass library, reference Metal shader and owned report path");
+        if(args.length!=4||!List.of("transport","fallback").contains(args[3]))
+            throw new IllegalArgumentException("Pass library, reference Metal shader, owned report path and transport|fallback");
         if(!System.getProperty("os.name").toLowerCase(Locale.ROOT).contains("mac")) {
             System.out.println("SKIP: Real SDL/Metal presentation requires macOS");System.exit(77);return;
         }
         require(!MainThread.DISPATCH,"Use -XstartOnFirstThread for this explicit main-thread SDL probe");
         Path output=Path.of(args[2]);Map<String,Object> report=new LinkedHashMap<>();
+        report.put("case",args[3]);
         report.put("minecraft",false);report.put("skikoOrCeraQualified",false);report.put("performanceClaim",false);
         Throwable failure=null;
         try {
-            stage="current-frame-window";currentFrames(Path.of(args[0]),Path.of(args[1]),report);
-            stage="unsupported-color-fallback";fallback(Path.of(args[0]),Path.of(args[1]),report);
+            if(args[3].equals("transport")) {
+                stage="current-frame-window";currentFrames(Path.of(args[0]),Path.of(args[1]),report);
+            } else {
+                stage="unsupported-color-fallback";fallback(Path.of(args[0]),Path.of(args[1]),report);
+            }
             report.put("passed",true);stage="complete";
         } catch(Throwable caught) {
             failure=caught;report.put("passed",false);report.put("failureClass",caught.getClass().getName());
