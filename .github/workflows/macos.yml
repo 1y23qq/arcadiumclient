@@ -12,6 +12,12 @@ on:
         default: ci-inputs-0.5.6
       component_sha256:
         type: string
+      pylon_tag:
+        type: string
+        description: Optional draft input tag for the actual Java SDL Metal surface probe
+      pylon_sha256:
+        type: string
+        description: Exact Pylon JAR SHA-256, also checked against the source component catalog
 
 permissions:
   contents: read
@@ -211,11 +217,28 @@ jobs:
         with:
           distribution: temurin
           java-version: '25'
+      - name: Fetch optional pinned Pylon surface input
+        if: inputs.pylon_tag != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PYLON_TAG: ${{ inputs.pylon_tag }}
+          PYLON_SHA256: ${{ inputs.pylon_sha256 }}
+        run: |
+          test -n "$PYLON_SHA256"
+          gh release download "$PYLON_TAG" --repo "$GITHUB_REPOSITORY" --pattern ArcadiumPylon-1.8.9.jar --dir "$RUNNER_TEMP/pylon-surface"
       - name: Compile and test the native Metal prototype
         env:
           CFLAGS: -Werror=unguarded-availability -Werror=unguarded-availability-new
           OBJCFLAGS: -Werror=unguarded-availability -Werror=unguarded-availability-new
-        run: python3 client-runtime/native/renderer/build.py --arch '${{ matrix.arch }}'
+          PYLON_TAG: ${{ inputs.pylon_tag }}
+          PYLON_SHA256: ${{ inputs.pylon_sha256 }}
+        run: |
+          if [ -n "$PYLON_TAG" ]; then
+            python3 client-runtime/native/renderer/build.py --arch '${{ matrix.arch }}' --pylon-jar "$RUNNER_TEMP/pylon-surface/ArcadiumPylon-1.8.9.jar" --pylon-sha256 "$PYLON_SHA256"
+          else
+            test -z "$PYLON_SHA256"
+            python3 client-runtime/native/renderer/build.py --arch '${{ matrix.arch }}'
+          fi
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:

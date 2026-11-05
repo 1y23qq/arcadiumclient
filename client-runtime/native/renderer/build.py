@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -11,6 +12,35 @@ import shutil
 import subprocess
 import sys
 import xml.etree.ElementTree as ET
+import zipfile
+
+
+def validate_pylon_input(path: Path, expected: str, root: Path) -> dict:
+    if len(expected) != 64 or any(value not in "0123456789abcdef" for value in expected):
+        raise RuntimeError("Pass the exact lowercase Pylon SHA-256")
+    lock = json.loads((root / "distribution/oneclient-1.8.9.lock.json").read_text(encoding="utf-8-sig"))
+    entries = [entry for entry in lock["arcadiumComponents"] if entry["file"] == "ArcadiumPylon-1.8.9.jar"]
+    if len(entries) != 1 or entries[0].get("modId") != "pylon":
+        raise RuntimeError("The source Pylon component pin is missing")
+    pin = entries[0]
+    if (not path.is_file() or path.stat().st_size != pin["bytes"] or pin["bytes"] > 64 * 1024 * 1024
+            or hashlib.sha256(path.read_bytes()).hexdigest() != expected or expected != pin["sha256"]):
+        raise RuntimeError("Pylon input does not match the explicit and source component checksums")
+    properties = dict(tuple(part.strip() for part in line.split("=", 1)) for line in
+                      (root / "client-legacy-mods/pylon/gradle.properties").read_text(encoding="utf-8").splitlines()
+                      if "=" in line and not line.lstrip().startswith("#"))
+    with zipfile.ZipFile(path) as archive:
+        metadata = json.loads(archive.read("fabric.mod.json"))
+        if metadata.get("id") != "pylon" or metadata.get("version") != properties["version"].strip():
+            raise RuntimeError("The Pylon input has the wrong mod identity or version")
+        required = {"pl/tomgirl/pylon/window/DisplaySdl.class", "pl/tomgirl/pylon/window/GlSurface.class",
+                    "pl/tomgirl/pylon/window/MainThread.class", "org/lwjgl/sdl/SDLVideo.class"}
+        required |= {f"macos/{arch}/org/lwjgl/{name}" for arch in ("arm64", "x64")
+                     for name in ("liblwjgl.dylib", "opengl/liblwjgl_opengl.dylib", "sdl/libSDL3.dylib")}
+        if not required.issubset(archive.namelist()):
+            raise RuntimeError("The Pylon input lacks its actual SDL/GL classes or Mac native libraries")
+    return {"path": str(path.resolve()), "sha256": expected, "bytes": pin["bytes"],
+            "modId": metadata["id"], "version": metadata["version"], "sourceCatalogVerified": True}
 
 
 def main() -> None:
@@ -20,7 +50,12 @@ def main() -> None:
     parser.add_argument("--output", type=Path)
     parser.add_argument("--java-home", type=Path, default=Path(os.environ["JAVA_HOME"]) if os.environ.get("JAVA_HOME") else None)
     parser.add_argument("--arch", choices=("arm64", "x64"), default="arm64" if platform.machine().lower() in {"arm64", "aarch64"} else "x64")
+    parser.add_argument("--pylon-jar", type=Path)
+    parser.add_argument("--pylon-sha256")
     arguments = parser.parse_args()
+    if bool(arguments.pylon_jar) != bool(arguments.pylon_sha256):
+        parser.error("--pylon-jar and --pylon-sha256 must be supplied together")
+    pylon = validate_pylon_input(arguments.pylon_jar, arguments.pylon_sha256, root) if arguments.pylon_jar else None
     output = (arguments.output or root / "build/resident-renderer" / arguments.arch).resolve()
     output.mkdir(parents=True, exist_ok=True)
     commands: list[list[str]] = []
@@ -75,12 +110,33 @@ def main() -> None:
         presentation_probe = run([java, "--enable-native-access=ALL-UNNAMED", "-cp", str(java_output),
                                   "io.github.arcadiumclient.runtime.client.optimizations.backend.UnsupportedPresentationBindingsProbe", str(library)],
                                  "java-presentation-probe.log") == 0
+    pylon_status = "not-requested"
+    if pylon is not None:
+        pylon_output = output / "pylon-java"
+        pylon_sources = [java_source / name for name in ("ResidentSceneBackend.java", "SceneBufferChecks.java",
+                         "MetalResidentSceneBackend.java", "MetalPresentationCalls.java", "MetalPresentFrame.java", "MetalCompositeSurface.java")]
+        pylon_sources.append(source / "tests/pylon/MetalPylonPresentationProbe.java")
+        run([javac, "-cp", pylon["path"], "-d", str(pylon_output), *map(str, pylon_sources)], "java-pylon-compile.log")
+        if sys.platform == "darwin" and probe_code == 0:
+            run([java, "-XstartOnFirstThread", "--enable-native-access=ALL-UNNAMED", "-cp",
+                 os.pathsep.join((str(pylon_output), pylon["path"])),
+                 "io.github.arcadiumclient.runtime.client.optimizations.backend.MetalPylonPresentationProbe",
+                 str(library), str(source / "tests/reference_scene.metal"), str(output / "java-pylon-result.json")],
+                "java-pylon-presentation.log")
+            result = json.loads((output / "java-pylon-result.json").read_text(encoding="utf-8"))
+            if not result.get("passed"):
+                raise RuntimeError("The actual Pylon SDL/Metal surface probe did not pass")
+            pylon_status = "passed"
+        else:
+            pylon_status = "skipped-no-device" if sys.platform == "darwin" else "compiled-not-applicable"
     report = {"passed": True, "platform": sys.platform, "architecture": arguments.arch,
               "nativeCompiled": True, "metalDeviceTest": metal_status,
               "javaMetalDeviceTest": "skipped-no-device" if probe_code == 77 else "passed" if sys.platform == "darwin" else "not-applicable",
               "javaNativeAbiProbe": probe_code == 0, "presentationIntegrated": False,
               "nativeWindowPresentation": presentation_status, "presentationPixelReadbackVariant": presentation is not None,
               "unsupportedPresentationFfiProbe": presentation_probe,
+              "pylonInput": pylon, "javaSdlMetalSurface": pylon_status,
+              "minecraftOrSkikoOrCeraIntegrated": False,
               "nativeLibrary": str(library), "commands": commands}
     (output / "verification.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({key: value for key, value in report.items() if key not in {"commands", "nativeLibrary"}}, indent=2))

@@ -21,7 +21,17 @@ Pylon creates the SDL OpenGL window and owns its context. Compose/Skiko obtains 
 
 The presentation ABI uses a reusable 32-byte current-frame descriptor for the completed default framebuffer and `GL_BACK`. Native prepare runs with the original CGL context; publish and child-view changes run on the main thread. Failed or busy presentation must hide the child layer before swapping the same frame through OpenGL. Fallback remains active until restart. Cleanup releases GL storage before removing the native child view and destroying the delegated SDL window; failed cleanup keeps the parent scene alive for a retry.
 
-Java lifecycle tests and the actual Windows unsupported-platform FFM checks cover that boundary. They do not qualify Mac window presentation. Actual Cocoa/GL/Metal synchronization, color, scale, input and current-frame output still require native Mac verification. Transporting a composited GL frame is also not a Metal world renderer: direct world passes, Metal-backed Skiko composition and Cera integration remain unfinished. Existing OpenGL and Intel Mac support remain available.
+Java lifecycle tests and the actual Windows unsupported-platform FFM checks cover that boundary. The Cocoa native test renders three current frames, checks their full pixels, resizes, mirrors the GL swap interval and requires actual presented callbacks. It also checks MRT state and resource teardown. Its result is distinct from the Java/Pylon and Minecraft integrations.
+
+An optional probe compiles the six backend sources against the exact shipped Pylon JAR, including its embedded LWJGL classes and platform native libraries:
+
+```text
+python3 client-runtime/native/renderer/build.py --arch arm64 --pylon-jar packages/arcadium_common/assets/distribution/ArcadiumPylon-1.8.9.jar --pylon-sha256 4d8e0778d6b7d4f7056e071ce8667c46eb1229764c9c58bb28687aedeae91fd1
+```
+
+The optional JAR must match both its explicit checksum and the source component catalog. On macOS the probe uses `-XstartOnFirstThread`, the real `DisplaySdl.setSurface` and `create` calls, current displayed-frame IDs, resize, retained SDL/GL ownership, sticky GL fallback and ordered teardown. Other platforms compile the optional probe without claiming a Metal runtime result. Without the two Pylon arguments, the core ABI build needs no Pylon dependency.
+
+Transporting a composited GL frame is not a Metal world renderer. Actual Minecraft, Skiko/Compose, Cera, HUD, blur and input coverage still require application-level verification. Direct Metal world passes and Metal-backed Skiko composition remain unfinished. Existing OpenGL and Intel Mac support remain available; no backend chooser or automatic activation is added here.
 
 API references:
 
