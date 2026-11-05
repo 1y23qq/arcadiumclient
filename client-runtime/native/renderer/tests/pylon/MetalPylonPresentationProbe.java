@@ -100,7 +100,10 @@ public final class MetalPylonPresentationProbe {
             for(int frame=1;frame<=3;frame++) {
                 stage="current-frame-"+frame;
                 if(frame==3) {
-                    MainThread.run(()->require(SDL_SetWindowSize(original.window,96,80),"SDL resize was rejected"));
+                    MainThread.run(()->{
+                        require(SDL_SetWindowSize(original.window,96,80),"SDL resize was rejected");
+                        require(SDL_SyncWindow(original.window),"The asynchronous SDL resize did not finalize");
+                    });
                     long limit=System.nanoTime()+5_000_000_000L;
                     while((display.getWindowWidth()!=96||display.getWindowHeight()!=80)&&System.nanoTime()<limit)pump();
                     require(display.getWindowWidth()==96&&display.getWindowHeight()==80,"SDL resize events did not settle");
@@ -122,7 +125,8 @@ public final class MetalPylonPresentationProbe {
             require(original.owner.nativeCounter(ATTACHED)==0,"Backend close retained its child view");
             original.owner.makeCurrent();draw(4);original.owner.swapBuffers();original.sameWindow();
             require(original.swaps==1&&original.owner.fallbackFrames()==1,"The live original window did not resume GL swaps");
-            report.put("displayedCurrentFrames",3);report.put("resize",true);report.put("originalWindowAndContextRetained",true);
+            report.put("displayedCurrentFrames",3);report.put("resize",true);report.put("nativeResizeBarrier",true);
+            report.put("originalWindowAndContextRetained",true);
             report.put("backendCloseRestoresReleasedContext",true);report.put("glFallbackAfterSuccessfulMetal",true);
         } finally {
             if(display.isCreated())display.destroy();backend.close();
