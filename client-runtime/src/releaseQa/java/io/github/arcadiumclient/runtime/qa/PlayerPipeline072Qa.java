@@ -40,6 +40,7 @@ public final class PlayerPipeline072Qa {
     private static final boolean VISUAL = System.getProperty("arcadium.playerPipeline072.mode", "visual").equals("visual");
     private static final boolean BASELINE = Boolean.getBoolean("arcadium.playerPipeline072.baseline");
     private static final boolean PROFILING = Boolean.getBoolean("arcadium.playerPipeline072.profiling");
+    private static final boolean NATIVE_BODY_CONTROL = Boolean.getBoolean("arcadium.playerPipeline072.nativeBodyControl");
     private static final int PLAYERS = Integer.getInteger("arcadium.playerPipeline072.players", 20);
     private static final int WARMUP = Integer.getInteger("arcadium.playerPipeline072.warmup", 25);
     private static final int SECONDS = Integer.getInteger("arcadium.playerPipeline072.seconds", 30);
@@ -56,7 +57,7 @@ public final class PlayerPipeline072Qa {
     private static int ticks, phase, phaseTicks, sampleCount, visualStage;
     private static long settled, started, last;
     private static long phaseHybridStart;
-    private static long phaseCompactStart, phaseNativeStart;
+    private static long phaseCompactStart, phaseNativeStart, phaseNativeSkinStart;
     private static int phaseVoxelStart;
     private static long phaseAnalyticVoxelStart, phaseNativeVoxelStart, phaseVoxelDrawStart, phaseVoxelVerticesStart;
     private static long phaseAdmissionStart;
@@ -82,15 +83,18 @@ public final class PlayerPipeline072Qa {
     private PlayerPipeline072Qa() {}
     public static boolean enabled() { return System.getProperty("arcadium.playerPipeline072.output") != null; }
     public static float delta(float original) { return enabled() && VISUAL ? .5f : original; }
+    public static boolean sceneReady() { return enabled() && !done && phase >= 2 && world != null && Minecraft.getInstance().world == world; }
 
     public static void tick() {
         if (!enabled() || done) return;
         Minecraft mc = Minecraft.getInstance();
         try {
+            ActorPacket072Qa.check();
             require("ArcadiumTest".equals(mc.getSession().getUsername()) && "0".equals(mc.getSession().getAccessToken()), "Use only the owned offline fixture");
             require(List.of("default", "3d-skin", "wavy", "skin+wavy").contains(SCENE), "Unknown scene");
             require(Set.of(3, 20, 50).contains(PLAYERS), "Use 3, 20 or 50 players");
             require(VOXEL_ADMISSIONS.contains(VOXEL_ADMISSION) && (VOXEL_ADMISSION.equals("gpu") || VISUAL && SKIN), "Admission fallback checks require an explicit visual skin fixture");
+            require(!NATIVE_BODY_CONTROL || VISUAL && !BASELINE && SKIN, "Native body control requires an explicit optimized visual skin fixture");
             require(SECONDS >= 5 && SECONDS <= 120 && WARMUP >= 5, "Invalid capture duration");
             require(++ticks < 12000, "Player fixture timed out at phase " + phase); phaseTicks++;
             if (phase == 0 && ticks > 65 && mc.screen != null) {
@@ -263,6 +267,7 @@ public final class PlayerPipeline072Qa {
             image.put("terrain", terrain); image.put("stableFullFrameCrc32", hash); image.put("stableSamples", stablePixelSamples);
             image.put("fogAndSky", fogState(mc));
             image.put("voxelProof", voxelEvidence());
+            if(ActorPacket072Qa.enabled())image.put("residentActorPacketProof",ActorPacket072Qa.requestSample());
             image.put("stableSeconds", (now - stablePixelsSince) / 1e9); images.add(image);
             report.put("images", images);
             for (Actor actor : actors) require(renderTraces.get(actor) != null && renderTraces.get(actor).calls > 0,
@@ -313,6 +318,7 @@ public final class PlayerPipeline072Qa {
         result.put("camera", Map.of("x", mc.player.x, "y", mc.player.y, "z", mc.player.z, "yaw", mc.player.yaw, "pitch", mc.player.pitch));
         result.put("gpuTimers", false); result.put("gpuReadbacksDuringTiming", false); result.put("fixedDeltaDuringTiming", false);
         result.put("profiling", PROFILING); result.put("notFinalPerformance", PROFILING);
+        result.put("nativeBodyControl", NATIVE_BODY_CONTROL);
         return result;
     }
 
@@ -374,6 +380,7 @@ public final class PlayerPipeline072Qa {
         phaseHybridStart = counter("GpuSkinLayers", "hybridPlayers");
         phaseCompactStart = counter("GpuPlayerPipeline", "playersDrawn");
         phaseNativeStart = counter("NativePlayerPosePipeline", "bodyPartsQueued");
+        phaseNativeSkinStart = counter("GpuPlayerPipeline", "nativeSkinCallbacks");
         phaseVoxelStart = Features062Qa.voxelDraws;
         phaseAnalyticVoxelStart = counter("GpuVoxelSkinPipeline", "analyticParts"); phaseNativeVoxelStart = counter("GpuVoxelSkinPipeline", "nativeParts");
         phaseVoxelDrawStart = counter("GpuVoxelSkinPipeline", "drawCalls"); phaseVoxelVerticesStart = counter("GpuVoxelSkinPipeline", "verticesDrawn");
@@ -381,6 +388,18 @@ public final class PlayerPipeline072Qa {
         stageStarted = System.nanoTime(); stablePixelHash = -1; stablePixelSamples = 0; stablePixelsSince = 0; lastPixelSample = 0;
     }
     private static void requireBodyPath() {
+        if (NATIVE_BODY_CONTROL) {
+            require(BetaOptimizationsConfig.getGpuPlayerPipeline() && !gpuVoxels(), "Native body control requires GPU bodies and original voxel layers");
+            require(counter("GpuPlayerPipeline", "playersDrawn") == phaseCompactStart && counter("NativePlayerPosePipeline", "bodyPartsQueued") > phaseNativeStart,
+                    "Native body control did not retain original player callbacks and GPU body poses");
+            for (Actor actor : actors) {
+                RenderTrace trace = renderTraces.get(actor);
+                require(trace != null && trace.compact == 0 && trace.nativeParts > 0, "An actor did not use the native GPU body control: " + actor.getName());
+                if (effectiveSkin) require(trace.voxels == 6 && trace.analyticVoxels == 0 && trace.nativeGpuVoxels == 0,
+                        "Native body control did not draw all six original voxel parts: " + actor.getName());
+            }
+            return;
+        }
         if (!BASELINE && BetaOptimizationsConfig.getGpuPlayerPipeline()) require(counter("GpuPlayerPipeline", "playersDrawn") > phaseCompactStart || counter("NativePlayerPosePipeline", "bodyPartsQueued") > phaseNativeStart,
                 "The optimized scene never submitted compact/native GPU body parts");
     }
@@ -414,8 +433,18 @@ public final class PlayerPipeline072Qa {
             require((mask & 0xFC0) == 0xFC0, "GPU voxel rendering omitted an outer skin part: " + Long.toHexString(mask));
         } else {
             require(Features062Qa.voxelDraws > phaseVoxelStart, "Native compiled voxel meshes did not draw during the measured phase");
-            if (!BASELINE && BetaOptimizationsConfig.getGpuPlayerPipeline()) require(counter("GpuSkinLayers", "hybridPlayers") > phaseHybridStart,
-                    "Detailed skins never used the compact body/native voxel hybrid");
+            if (!BASELINE && BetaOptimizationsConfig.getGpuPlayerPipeline() && !NATIVE_BODY_CONTROL) {
+                boolean nativeRoute=counter("GpuPlayerPipeline", "nativeSkinCallbacks")>phaseNativeSkinStart
+                        && counter("NativePlayerPosePipeline", "bodyPartsQueued")>phaseNativeStart;
+                require(counter("GpuSkinLayers", "hybridPlayers")>phaseHybridStart || nativeRoute,
+                        "Detailed skins never used compact bodies or the verified native-callback GPU body path");
+                if(nativeRoute)for(Actor actor:actors){
+                    RenderTrace trace=renderTraces.get(actor);
+                    require(trace!=null&&(trace.compact>0||trace.nativeParts>0),"The native skin route lost an actor body: "+actor.getName());
+                    if(trace.voxels>0)require(trace.voxels==6&&trace.compact==0&&trace.nativeParts>0&&trace.analyticVoxels==0&&trace.nativeGpuVoxels==0,
+                            "The native skin route did not preserve all original outer parts and GPU body poses: "+actor.getName());
+                }
+            }
         }
     }
     private static String admissionCounter() {
@@ -711,6 +740,7 @@ public final class PlayerPipeline072Qa {
 
     public static void beginWorld() {
         NameReset072Qa.beforeWorld();
+        ActorPacket072Qa.beforeWorld();
         if (enabled() && VISUAL && !done) renderTraces.clear();
     }
     public record RenderCheckpoint(long compact, long nativeParts, int voxels, long analyticVoxels, long nativeGpuVoxels) {}
@@ -728,6 +758,7 @@ public final class PlayerPipeline072Qa {
         trace.voxels += Features062Qa.voxelDraws - before.voxels();
         trace.analyticVoxels += counter("GpuVoxelSkinPipeline", "analyticParts") - before.analyticVoxels();
         trace.nativeGpuVoxels += counter("GpuVoxelSkinPipeline", "nativeParts") - before.nativeGpuVoxels();
+        ActorPacket072Qa.afterPlayer(actor,counter("GpuPlayerPipeline", "playersDrawn")-before.compact());
     }
     private static List<Map<String, Object>> actorRenderState() {
         List<Map<String, Object>> result = new ArrayList<>();
@@ -760,6 +791,7 @@ public final class PlayerPipeline072Qa {
     private static void finish(Throwable failure) {
         if (done) return;
         if (failure == null && NameReset072Qa.enabled()) try { report.put("nativeNameResetProof", NameReset072Qa.verify()); } catch (Throwable error) { failure = error; }
+        if (failure == null && ActorPacket072Qa.enabled()) try { report.put("nativeActorPacketProof", ActorPacket072Qa.verify()); } catch (Throwable error) { failure = error; }
         done = true; report.put("passed", failure == null); report.put("syntheticOffline", true); report.put("phase", phase);
         report.put("profiling", PROFILING); report.put("diagnosticOnly", PROFILING); report.put("notFinalPerformance", PROFILING);
         report.put("scope", PROFILING ? "Diagnostic-only JFR capture; timing includes profiler overhead and is not final FPS evidence. Owned offline synthetic players."

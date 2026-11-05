@@ -45,7 +45,7 @@ public final class CeraAdmission072Qa {
     private static final List<String> analyticOrder = new ArrayList<>();
     private static int phase,ticks,wait,warm,scenario,mode,voxelDepth,analyticDepth,rendering = -1;
     private static boolean done;
-    private static boolean configured, configuredGpu, configuredSkin;
+    private static boolean configured, configuredGpu, configuredSkin,cameraPrepared;
     private static Future<?> environment;
     private static String failure;
     private static BufferedImage base,second,emissive;
@@ -80,7 +80,8 @@ public final class CeraAdmission072Qa {
                 });return;}
                 if(!environment.isDone()||mc.world.entities.stream().anyMatch(entity->!(entity instanceof net.minecraft.entity.living.player.PlayerEntity)))return;
                 environment.get();report.put("authoritativeNoMobWorld",true);
-                mc.openScreen(null);mc.player.abilities.flying=true;mc.player.updatePositionAndAngles(0,6,-10,0,8);
+                if(!cameraPrepared){mc.openScreen(null);mc.player.abilities.flying=true;mc.player.updatePositionAndAngles(0,6,-10,0,8);cameraPrepared=true;return;}
+                if(!CeraAdmission072Readiness.ready(mc))return;
                 seedSkins(mc);
                 for(int i=0;i<3;i++){
                     Actor actor=new Actor(mc,new GameProfile(new UUID(0x7207290000000000L,i+1),"CeraMaterial"+i),i);
@@ -134,6 +135,7 @@ public final class CeraAdmission072Qa {
             if(++warm<=160){configure(true,skin);original.call(.5f,deadline);return;}
             require(emissive(GLOW),"Synthetic emissive texture was not identified by the real Cera API");require(!emissive(ORDINARY)&&!emissive(SECOND),"Ordinary neighbor became emissive");
             for(int i=0;i<3;i++)require(!actors[i].removed&&mc.world.entities.contains(actors[i])&&mc.world.getEntity(729000+i)==actors[i],"Synthetic actor is not in the native world");
+            var registration=CeraAdmission072Readiness.actors(mc,Arrays.asList(actors));report.put("nativeActorRegistration",registration);require(Boolean.TRUE.equals(registration.get("allRegistered")),"Synthetic actor is absent from its actual stable native entity/render section");
             BufferedImage reference=render(mc,1,false,skin,deadline,original),optimized=render(mc,2,!BASELINE,skin,deadline,original);
             int max=0,changed=0,bright=0;
             for(int y=0;y<reference.getHeight();y++)for(int x=0;x<reference.getWidth();x++){

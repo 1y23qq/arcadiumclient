@@ -16,6 +16,7 @@ public final class GpuVoxelSkinPipeline {
     public static long admissionFallbacks,binaryAlphaFallbacks,fractionalAlphaFallbacks,unknownImageFallbacks,
             dimensionFallbacks,samplerFallbacks,emissiveFallbacks,admissionSnapshots,admissionInvalidations,admissionHits,admissionAlphaBytes;
     public static int admissionSources,admissionMeshes,admissionClassifications;
+    public static long analyticPreflights,analyticPreflightPasses,analyticPreflightDeclines;
     public static volatile String admissionFailure="";
     public static int auxiliaryBackends;
     public static int analyticPartMask, nativePartMask;
@@ -26,6 +27,7 @@ public final class GpuVoxelSkinPipeline {
     private GpuVoxelSkinPipeline() {}
 
     interface Backend {
+        boolean preflight(Object main,ModelPart[] parts,int mask,Identifier texture,int sourceTemplate);
         int queue(ModelPart[] parts, int mask, Identifier texture, int sourceJob, int sourceTemplate, int light, float age);
         boolean capture(Object mesh, float scale);
         void observe(Object model);
@@ -62,6 +64,12 @@ public final class GpuVoxelSkinPipeline {
     public static void beforeMainFlush(Object main,Object commands){if(backend!=null&&!isAuxiliaryBackend(main))backend.flush(main,commands,false);}
     public static void observeModel(Object model) { if (ready()) backend.observe(model); }
     public static boolean captureMesh(Object mesh, float scale) { return ready() && backend.capture(mesh, scale); }
+    public static boolean canUseAnalytic(Object main,ModelPart[] parts,int mask,Identifier texture,int sourceTemplate){
+        if(mask==0)return true;analyticPreflights++;
+        boolean accepted=ready()&&backend.preflight(main,parts,mask,texture,sourceTemplate);
+        if(accepted)analyticPreflightPasses++;else analyticPreflightDeclines++;
+        return accepted;
+    }
     public static int queueAnalytic(ModelPart[] parts, int mask, Identifier texture, int sourceJob, int sourceTemplate, int light, float age) {
         return ready() ? backend.queue(parts, mask, texture, sourceJob, sourceTemplate, light, age) : 0;
     }

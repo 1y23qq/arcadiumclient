@@ -111,14 +111,15 @@ def prepare(args):
                                   "ForgePose072PartReference", "ForgePose072SubmitReference", "ForgePose072GlintProbe", "ForgePose072NativeEntry"]
                 if args.modern_quality:
                     meta["client"] = ["ModernGlint072GameProbe", "ModernGlint072WorldProbe", "ModernGlint072ClockProbe", "ModernGlint072DrawProbe",
-                                      "ModernGlint072NativePartProbe", "ModernGlint072CaptureProbe", "ModernGlint072NativePoseProbe", "ModernGlint072GlintProbe"]
+                                      "ModernGlint072NativePartProbe", "ModernGlint072CaptureProbe", "ModernGlint072NativePoseProbe", "ModernGlint072GlintProbe", "ModernGlint072PlayerProbe",
+                                      "PlayerPipeline072ChunksAccess", "PlayerPipeline072ChunkStateAccess", "PlayerPipeline072ChunkMapAccess"]
                 if args.resolved_quality:
                     meta["client"] = ["ResolvedInstance072GameProbe", "ResolvedInstance072WorldProbe", "ResolvedInstance072BufferProbe", "ResolvedInstance072DriverProbe",
                                       "ResolvedInstance072ServiceProbe", "ResolvedInstance072MutableProbe", "ResolvedInstance072SortProbe", "ResolvedInstance072MaterialProbe", "ResolvedInstance072ScreenClick"]
                 if cera_quality:
                     meta["client"] = ["CeraAdmission072GameProbe", "CeraAdmission072WorldProbe", "CeraAdmission072PlayerProbe", "CeraAdmission072SubmitProbe",
                                       "CeraAdmission072ClockProbe", "CeraAdmission072VoxelProbe", "CeraAdmission072NativeListProbe", "CeraAdmission072AnalyticProbe",
-                                      "CeraAdmission072PoolProbe", "CeraAdmission072DrawProbe"]
+                                      "CeraAdmission072PoolProbe", "CeraAdmission072DrawProbe", "PlayerPipeline072ChunksAccess", "PlayerPipeline072ChunkStateAccess", "PlayerPipeline072ChunkMapAccess"]
                 for mixin in meta["client"]:
                     assert meta["package"].replace(".", "/") + "/" + mixin + ".class" in source.namelist(), "Selected QA class is absent: " + mixin
                 raw = json.dumps(meta).encode()

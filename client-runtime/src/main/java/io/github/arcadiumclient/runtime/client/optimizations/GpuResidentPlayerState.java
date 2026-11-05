@@ -24,6 +24,8 @@ public final class GpuResidentPlayerState {
 
     public static void beginBatch() { batch++; active = bound = -1; }
 
+    public static boolean canRetainActors() { return enabled && !failed && available(); }
+
     public static boolean bind(FloatBuffer actors, FloatBuffer poses, long revision) {
         bound = -1;
         if (!enabled || failed) return false;

@@ -15,6 +15,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.Future;
 import javax.imageio.ImageIO;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.living.player.RemoteClientPlayerEntity;
@@ -43,6 +44,7 @@ public final class ResolvedInstance072Qa {
     private static final Set<Object> ownerDraws = Collections.newSetFromMap(new IdentityHashMap<>());
     private static int phase, ticks, wait, warm, index, mode, templateNonce = 1, menuFrames;
     private static boolean done, afterReload;
+    private static Future<?> environment;
     private static String failure;
     private static long deletes;
     private static long unloadInvalidations;
@@ -80,6 +82,19 @@ public final class ResolvedInstance072Qa {
                 mc.startGame("arcadium-resolved072", "Resolved Instance QA", new WorldSettings(720722, WorldSettings.GameMode.CREATIVE, false, false, WorldGeneratorType.FLAT).enableCommands());
                 phase = 1; wait = 0;
             } else if (phase == 1 && mc.world != null && mc.player != null && wait > 100) {
+                if (environment == null) {
+                    environment = mc.getServer().executeTask(() -> {
+                        var world = mc.getServer().getWorld(0);
+                        world.getGameRules().set("doMobSpawning", "false"); world.getGameRules().set("doDaylightCycle", "false"); world.getGameRules().set("randomTickSpeed", "0");
+                        world.setTimeOfDay(6000); world.getData().setRaining(false); world.getData().setThundering(false);
+                        int removed = 0;
+                        for (var entity : new ArrayList<>(world.entities)) if (!(entity instanceof net.minecraft.entity.living.player.PlayerEntity)) { world.removeEntityNow(entity); removed++; }
+                        return removed;
+                    });
+                    return;
+                }
+                if (!environment.isDone() || mc.world.entities.stream().anyMatch(entity -> !(entity instanceof net.minecraft.entity.living.player.PlayerEntity))) return;
+                report.put("authoritativeMobSpawning", false); report.put("removedInitialNonPlayers", environment.get());
                 mc.openScreen(null); mc.player.abilities.flying = true; mc.player.updatePositionAndAngles(0, 19, -10, 0, 5);
                 for (int actor = 0; actor < actors.length; actor++) {
                     actors[actor] = new Frozen(mc, new GameProfile(new UUID(0x7207220000000000L, actor + 1), "Resolved" + actor));
@@ -107,7 +122,7 @@ public final class ResolvedInstance072Qa {
         }
         mc.player.yaw = mc.player.lastYaw = 0; mc.player.pitch = mc.player.lastPitch = 5;
         mc.player.lastX = mc.player.prevX = mc.player.x; mc.player.lastY = mc.player.prevY = mc.player.y; mc.player.lastZ = mc.player.prevZ = mc.player.z;
-        mc.world.setTimeOfDay(6000);
+        mc.world.setTimeOfDay(6000); mc.world.getData().setRaining(false); mc.world.getData().setThundering(false);
     }
 
     public static void world(float delta, long deadline, Operation<Void> original) {

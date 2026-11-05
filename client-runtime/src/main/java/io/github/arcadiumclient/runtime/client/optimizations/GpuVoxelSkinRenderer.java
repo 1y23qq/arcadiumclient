@@ -26,6 +26,7 @@ public final class GpuVoxelSkinRenderer implements GpuVoxelSkinPipeline.Backend 
     private final Matrix4f marker = new Matrix4f();
     private final float[] template = new float[192];
     private final GpuVoxelSkinAdmission admission = new GpuVoxelSkinAdmission();
+    private final GpuVoxelSkinPreflight preflight=new GpuVoxelSkinPreflight();
     private final ModelPart[] observedParts = new ModelPart[12];
     private Object admissionCapture;
     private boolean observedModel;
@@ -98,11 +99,10 @@ public final class GpuVoxelSkinRenderer implements GpuVoxelSkinPipeline.Backend 
             if (actor == null || !(boolean)api.capture.active.invoke(actor)) return 0;
             Object backend = api.capture.backend.get(actor); State storage = prepared(backend);
             if (storage == null||!supported()||!materialSupported()) return 0;
-            admission.beginActor();admissionCapture=api.capture.activeCapture.get(actor);
+            Object fact=preflight.fact();int templateId=preflight.consume(backend,parts,mask,texture,sourceTemplate,epoch);
+            if(templateId<0||fact!=admission.admittedUpload()){reject("Analytic voxel preflight was not current; using original layers",false);return 0;}
+            admissionCapture=api.capture.activeCapture.get(actor);
             System.arraycopy(parts,0,observedParts,0,12);observedModel=true;
-            if(!admission.admit(api,backend,texture,parts,mask)){state=admission.reason();return 0;}
-            if(!prepareTexture(storage,backend,texture,admission.admittedUpload()))return 0;
-            int templateId = variantTemplate(sourceTemplate, parts);
             for (int part = 0; part < 12; part++) {
                 if ((mask & 1 << part) == 0) continue;
                 Object mesh = GpuVoxelSkinBridge.mesh(parts[part]), rawOffset = GpuVoxelSkinBridge.rawOffset(parts[part]);
@@ -132,6 +132,32 @@ public final class GpuVoxelSkinRenderer implements GpuVoxelSkinPipeline.Backend 
             if (queued == 0 && variant >= 0) GpuPlayerPackets.rollback(variant);
             fail(error); return queued;
         }
+    }
+    @Override public boolean preflight(Object main,ModelPart[] parts,int mask,Identifier texture,int sourceTemplate){
+        preflight.clear();admission.beginActor();
+        try{
+            State storage=prepared(main);if(storage==null||!GL.getCapabilities().OpenGL43||!GpuVoxelSkinDraw.ready())return false;
+            if(GL11.glIsEnabled(GL11.GL_NORMALIZE)||!GpuVoxelSkinMaterialPolicy.standardCutout(
+                    GL11.glGetInteger(GL20.GL_CURRENT_PROGRAM),GL11.glIsEnabled(GL11.GL_BLEND),true,
+                    GL11.glGetInteger(GL11.GL_ALPHA_TEST_FUNC),GL11.glGetFloat(GL11.GL_ALPHA_TEST_REF),GL11.glIsEnabled(GL11.GL_DEPTH_TEST),
+                    GL11.glGetBoolean(GL11.GL_DEPTH_WRITEMASK),GL11.glGetInteger(GL11.GL_DEPTH_FUNC)))return reject("Native outer skin material retains original callbacks",false);
+            if(!admission.admit(api,main,texture,parts,mask)){state=admission.reason();return false;}
+            if(!prepareTexture(storage,main,texture,admission.admittedUpload()))return false;
+            int variantTemplate=variantTemplate(sourceTemplate,parts),nonempty=0;
+            for(int part=6;part<12;part++)if((mask&1<<part)!=0){
+                Object mesh=GpuVoxelSkinBridge.mesh(parts[part]),raw=GpuVoxelSkinBridge.rawOffset(parts[part]);
+                if(mesh==null||raw==null||!standardOffset(part,raw))return reject("Native outer skin attachment retains original callbacks",true);
+                var offset=GpuVoxelSkinBridge.offset(raw);if(offset==null)return reject("Native outer skin offset retains original callbacks",true);
+                var geometry=storage.mesh(mesh,.0625f,offset);if(geometry==null){GpuVoxelSkinPipeline.budgetFallbacks++;return false;}
+                if(geometry.vertexCount()!=0)nonempty++;
+            }
+            Object batch=api.capture.select.invoke(storage.auxiliary,texture,api.normalPass),instances=api.capture.instances.invoke(storage.geometry,batch);
+            if(!GpuVoxelSkinPreflight.hasRoom(GpuPlayerPackets.count(),GpuPlayerPackets.MAX_PLAYERS,(int)api.capture.count.get(instances),nonempty)){
+                GpuVoxelSkinPipeline.budgetFallbacks++;state="Voxel job budget retains original callbacks";return false;
+            }
+            preflight.arm(main,parts,mask,texture,sourceTemplate,variantTemplate,epoch,admission.admittedUpload());return true;
+        }catch(IllegalArgumentException budget){GpuVoxelSkinPipeline.budgetFallbacks++;state="Voxel preflight budget retains original callbacks";return false;}
+        catch(Throwable unsupported){GpuVoxelSkinPipeline.admissionFailure=unsupported.toString();return reject("Voxel preflight unavailable; retaining original callbacks",false);}
     }
 
     private int variantTemplate(int source, ModelPart[] parts) throws Throwable {
@@ -176,6 +202,7 @@ public final class GpuVoxelSkinRenderer implements GpuVoxelSkinPipeline.Backend 
             if (capture == null || !(boolean)api.capturedPlayer.invoke(capture) || !(boolean)api.capture.captureActive.get(capture)
                     || (boolean)api.capture.captureFinished.get(capture) || (boolean)api.capture.captureArmor.get(capture)
                     || (int)api.capture.captureMode.get(capture) != GL11.GL_MODELVIEW || GpuVoxelSkinBridge.excludedMesh(mesh)) return false;
+            preflight.clear();
             Object backend = api.capture.backend.get(actor); State storage = prepared(backend);
             if(storage==null||!supported()||!materialSupported())return false;
             GpuVoxelSkinMath.Offset offset = GpuVoxelSkinBridge.offsetForMesh(mesh);
@@ -269,6 +296,7 @@ public final class GpuVoxelSkinRenderer implements GpuVoxelSkinPipeline.Backend 
     @Override public void observe(Object model) {
         try {
             GpuVoxelSkinBridge.observeModel(model);admission.beginActor();admissionCapture=null;observedModel=model instanceof PlayerModel;
+            preflight.clear();
             Arrays.fill(observedParts,null);
             if(model instanceof PlayerModel player){observedParts[6]=player.hat;observedParts[7]=player.leftPants;observedParts[8]=player.rightPants;
                 observedParts[9]=player.leftSleeve;observedParts[10]=player.rightSleeve;observedParts[11]=player.jacket;}
@@ -283,6 +311,7 @@ public final class GpuVoxelSkinRenderer implements GpuVoxelSkinPipeline.Backend 
     @Override public void beginBatch() {
         try {
             epoch++;
+            preflight.clear();
             GpuVoxelSkinBridge.refreshOptions();
             for (State storage : owners.values()) {
                 storage.batch.discard();storage.cache.beginBatch();
@@ -328,6 +357,7 @@ public final class GpuVoxelSkinRenderer implements GpuVoxelSkinPipeline.Backend 
         }
         owners.clear(); geometries.clear(); variants.clear(); neutralTemplate = -1; optionsRevision = -1;
         admission.reset();Arrays.fill(observedParts,null);admissionCapture=null;observedModel=false;
+        preflight.clear();
         GpuVoxelSkinBridge.reset(); GpuVoxelSkinDraw.resetProgram(); failed = false; state = "Waiting for voxel skins";
     }
     @Override public String status() {

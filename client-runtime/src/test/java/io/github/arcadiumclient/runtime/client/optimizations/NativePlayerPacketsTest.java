@@ -5,10 +5,11 @@ import org.joml.Matrix4f;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import java.util.Random;
+import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 class NativePlayerPacketsTest {
-    @AfterEach void clear() { GpuPlayerPackets.resetTemplates(); }
+    @AfterEach void clear() { GpuPlayerPackets.resetTemplates(); GpuResidentPlayerState.enabled=false; }
 
     @Test void nativeModelPivotsAndCustomRotationsKeepTheirExactComposition() {
         GpuPlayerPackets.resetTemplates();
@@ -80,6 +81,66 @@ class NativePlayerPacketsTest {
         expected=new Matrix4f().translate(1,2,3).translate(.5f,.75f,1).rotateZ(.3f).rotateY(.2f).rotateX(.1f);
         assertTrue(expected.equals(GpuPlayerPackets.resolve(variant*16+2,new Matrix4f()),.00001f));
         assertThrows(IllegalArgumentException.class,()->GpuPlayerPackets.copyTemplate(1,new float[192]));
+    }
+
+    @Test void explicitPoseRowsRemainDenseAcrossAnalyticJobsAndSharedVariants() {
+        GpuPlayerPackets.resetTemplates();
+        int template=GpuPlayerPackets.registerTemplate(template());
+        for(int i=0;i<20;i++)assertEquals(i,GpuPlayerPackets.add(new Matrix4f(),0,0,0,0,0,0,0,0,false,false,false,template));
+        int first=GpuPlayerPackets.addPose(new Matrix4f().translate(1,2,3),template);
+        GpuPlayerPackets.writePose(first,0,4,5,6,.1f,.2f,.3f);
+        Matrix4f expected=GpuPlayerPackets.resolve(first*16,new Matrix4f());
+        int variant=GpuPlayerPackets.addVariant(first,template);
+        for(int i=0;i<9;i++)GpuPlayerPackets.add(new Matrix4f(),0,0,0,0,0,0,0,0,false,false,false,template);
+        int second=GpuPlayerPackets.addPose(new Matrix4f().translate(7,8,9),template);
+        GpuPlayerPackets.writePose(second,0,1,2,3,.4f,.5f,.6f);
+        assertEquals(2,GpuPlayerPackets.explicitPoseRows());
+        assertTrue(expected.equals(GpuPlayerPackets.resolve(first*16,new Matrix4f()),0));
+        assertTrue(expected.equals(GpuPlayerPackets.resolve(variant*16,new Matrix4f()),0));
+        GpuPlayerPackets.rollback(second);assertEquals(1,GpuPlayerPackets.explicitPoseRows());
+        for(int i=GpuPlayerPackets.count()-1;i>variant;i--)GpuPlayerPackets.rollback(i);
+        GpuPlayerPackets.rollback(variant);assertEquals(1,GpuPlayerPackets.explicitPoseRows());
+        assertTrue(expected.equals(GpuPlayerPackets.resolve(first*16,new Matrix4f()),0));
+        GpuPlayerPackets.rollback(first);assertEquals(0,GpuPlayerPackets.explicitPoseRows());
+        int replacement=GpuPlayerPackets.addPose(new Matrix4f(),template);
+        GpuPlayerPackets.writePose(replacement,0,8,9,10,0,0,0);assertEquals(1,GpuPlayerPackets.explicitPoseRows());
+    }
+
+    @Test void residentBodiesKeepDenseSlotsDespiteInterleavedArmorAndRenderOrder() {
+        GpuPlayerPackets.resetTemplates();GpuResidentPlayerState.enabled=true;
+        Object world=new Object(),a=new Object(),b=new Object(),c=new Object();
+        int template=GpuPlayerPackets.registerTemplate(template());
+        GpuPlayerPackets.prepareActors(world,List.of(a,b,c),true);long epoch=GpuPlayerPackets.actorEpoch();GpuPlayerPackets.beginBatch();
+        assertEquals(3,GpuPlayerPackets.count());assertEquals(3,GpuPlayerPackets.residentActorCount());
+        assertEquals(2,actor(c,3,template));int armor=GpuPlayerPackets.addPose(new Matrix4f(),template);assertEquals(3,armor);
+        GpuPlayerPackets.writePose(armor,0,1,2,3,0,0,0);assertEquals(1,GpuPlayerPackets.explicitPoseRows());
+        assertEquals(0,actor(a,1,template));assertEquals(1,actor(b,2,template));
+        Matrix4f first=GpuPlayerPackets.resolve(0,new Matrix4f());int duplicate=actor(a,9,template);
+        assertEquals(4,duplicate);assertTrue(first.equals(GpuPlayerPackets.resolve(0,new Matrix4f()),0));
+        assertFalse(first.equals(GpuPlayerPackets.resolve(duplicate*16,new Matrix4f()),0));
+        GpuPlayerPackets.prepareActors(world,List.of(c,a,b),true);GpuPlayerPackets.beginBatch();
+        assertEquals(epoch,GpuPlayerPackets.actorEpoch());assertEquals(0,actor(a,5,template));assertEquals(2,actor(c,7,template));
+        Matrix4f retained=GpuPlayerPackets.resolve(2*16,new Matrix4f());
+        GpuPlayerPackets.prepareActors(world,List.of(c,a),true);GpuPlayerPackets.beginBatch();
+        assertEquals(2,GpuPlayerPackets.count());assertTrue(retained.equals(GpuPlayerPackets.resolve(16,new Matrix4f()),0));
+        assertEquals(1,actor(c,11,template));assertEquals(0,actor(a,13,template));
+        GpuPlayerPackets.prepareActors(new Object(),List.of(a),true);GpuPlayerPackets.beginBatch();
+        assertNotEquals(epoch,GpuPlayerPackets.actorEpoch());assertEquals(0,actor(a,17,template));
+        GpuPlayerPackets.prepareActors(world,List.of(a),false);GpuPlayerPackets.beginBatch();
+        assertEquals(0,GpuPlayerPackets.residentActorCount());assertEquals(0,GpuPlayerPackets.count());assertEquals(0,actor(a,23,template));
+    }
+
+    private static int actor(Object owner,float x,int template) {
+        return GpuPlayerPackets.addActor(owner,new Matrix4f().translation(x,0,0),0,0,0,0,0,0,0,0,false,false,false,template);
+    }
+
+    @Test void nonPowerOfTwoActorReservationsCannotOvergrowTheCpuBudget() {
+        int first=3000*GpuPlayerPackets.PLAYER_WORDS,maximum=GpuPlayerPackets.MAX_PLAYERS*GpuPlayerPackets.PLAYER_WORDS;
+        int intermediate=GpuPlayerPackets.grownPlayerWords(first,first+GpuPlayerPackets.PLAYER_WORDS);
+        assertEquals(first*2,intermediate);assertEquals(maximum,GpuPlayerPackets.grownPlayerWords(intermediate,maximum));
+        assertEquals(maximum,GpuPlayerPackets.grownPlayerWords(maximum,1));
+        assertThrows(IllegalArgumentException.class,()->GpuPlayerPackets.grownPlayerWords(maximum,maximum+1));
+        assertThrows(IllegalArgumentException.class,()->GpuPlayerPackets.grownPlayerWords(-1,1));
     }
 
     private static float[] template() {

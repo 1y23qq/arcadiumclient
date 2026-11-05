@@ -4,6 +4,8 @@ package io.github.arcadiumclient.runtime.client.optimizations;
 import java.nio.*;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.BitSet;
+import java.util.List;
 import org.joml.Matrix4f;
 import org.joml.Matrix4fc;
 import org.lwjgl.BufferUtils;
@@ -18,6 +20,12 @@ public final class GpuPlayerPackets {
     private static final HashMap<TemplateKey,Integer> templateIds=new HashMap<>();
     private static int playerCount,poseCount,templateWords,uploadedPlayers,uploadedTemplates,playerBuffer,templateBuffer,sineBuffer,poseBuffer;
     private static long poseRevision,uploadedPoseRevision=-1,stateRevision,playerRevision,uploadedPlayerRevision=-1,templateRevision;
+    private static final BitSet poseOwners=new BitSet();
+    private static final DenseActorSlots actors=new DenseActorSlots(MAX_PLAYERS);
+    private static boolean actorFrameReady;
+    private static int reservedActors;
+    private static long actorBatch;
+    public static long actorReconciliations,actorAssignments,actorDuplicateCaptures,actorCompactions;
     private static final Matrix4f root=new Matrix4f();
     private static final float[] scratch=new float[6];
     private GpuPlayerPackets(){}
@@ -31,7 +39,36 @@ public final class GpuPlayerPackets {
     public static long playerRevision(){return playerRevision;}
     public static long poseRevision(){return poseRevision;}
     public static long templateRevision(){return templateRevision;}
-    public static void beginBatch(){playerCount=poseCount=uploadedPlayers=0;uploadedPoseRevision=uploadedPlayerRevision=-1;playerRevision++;poseRevision++;GpuResidentPlayerState.beginBatch();}
+    public static int explicitPoseRows(){return poseCount;}
+    public static int residentActorCount(){return actorFrameReady?actors.size():0;}
+    public static long actorEpoch(){return actors.epoch();}
+    public static void prepareActors(Object world,List<?> owners,boolean enabled){
+        if(!enabled||world==null){clearActors();return;}
+        if(!actors.prepare(world,owners)){clearActors();return;}
+        ensurePlayers(actors.size());
+        for(int move=0;move<actors.moves();move++){
+            int source=actors.moveFrom(move)*PLAYER_WORDS,target=actors.moveTo(move)*PLAYER_WORDS;
+            for(int word=0;word<PLAYER_WORDS;word++)players.put(target+word,players.get(source+word));
+        }
+        actorCompactions+=actors.moves();actorReconciliations++;actorFrameReady=true;
+    }
+    private static void clearActors(){if(actorFrameReady||actors.size()!=0)actors.clear();actorFrameReady=false;reservedActors=0;}
+    private static void ensurePlayers(int count){
+        int words=count*PLAYER_WORDS;if(words<=players.capacity())return;
+        FloatBuffer next=BufferUtils.createFloatBuffer(grownPlayerWords(players.capacity(),words));
+        next.put(players.duplicate().position(0).limit(playerCount*PLAYER_WORDS));players=next;playerView=players.duplicate();
+    }
+    static int grownPlayerWords(int current,int required){
+        int maximum=MAX_PLAYERS*PLAYER_WORDS;
+        if(current<0||current>maximum||required<0||required>maximum)throw new IllegalArgumentException("Player packet capacity exceeded");
+        return required<=current?current:Math.max(required,Math.min(maximum,current*2));
+    }
+    public static void beginBatch(){
+        if(actorBatch==Long.MAX_VALUE){clearActors();actorBatch=0;}actorBatch++;
+        playerCount=reservedActors=actorFrameReady&&GpuResidentPlayerState.enabled?actors.size():0;
+        poseCount=uploadedPlayers=0;poseOwners.clear();uploadedPoseRevision=uploadedPlayerRevision=-1;
+        playerRevision++;poseRevision++;GpuResidentPlayerState.beginBatch();
+    }
     public static int registerTemplate(float[] parts){
         if(parts.length!=PARTS*PART_WORDS)
             throw new IllegalArgumentException("Player template budget exceeded or invalid template");
@@ -43,26 +80,32 @@ public final class GpuPlayerPackets {
     public static int add(Matrix4fc base,float walk,float speed,float age,float yaw,float pitch,float swing,int left,int right,
                           boolean sneak,boolean riding,boolean bow,int template){
         if(playerCount==MAX_PLAYERS)return -1;
-        int offset=playerCount*PLAYER_WORDS;
-        if(offset+PLAYER_WORDS>players.capacity()){
-            var next=BufferUtils.createFloatBuffer(players.capacity()*2);next.put(players.duplicate().position(0).limit(offset));players=next;playerView=players.duplicate();
-        }
+        ensurePlayers(playerCount+1);int job=playerCount;write(job,base,walk,speed,age,yaw,pitch,swing,left,right,sneak,riding,bow,template);playerCount++;return job;
+    }
+    public static int addActor(Object owner,Matrix4fc base,float walk,float speed,float age,float yaw,float pitch,float swing,int left,int right,
+                               boolean sneak,boolean riding,boolean bow,int template){
+        int job=actorFrameReady&&GpuResidentPlayerState.enabled&&reservedActors==actors.size()?actors.claim(owner,actorBatch):-1;
+        if(job<0){if(actorFrameReady&&actors.index(owner)>=0)actorDuplicateCaptures++;return add(base,walk,speed,age,yaw,pitch,swing,left,right,sneak,riding,bow,template);}
+        write(job,base,walk,speed,age,yaw,pitch,swing,left,right,sneak,riding,bow,template);actorAssignments++;return job;
+    }
+    private static void write(int job,Matrix4fc base,float walk,float speed,float age,float yaw,float pitch,float swing,int left,int right,
+                              boolean sneak,boolean riding,boolean bow,int template){
+        int offset=job*PLAYER_WORDS;
         players.clear();base.get(offset,players);
         players.put(offset+16,walk).put(offset+17,speed).put(offset+18,age).put(offset+19,yaw).put(offset+20,pitch).put(offset+21,swing);
         players.put(offset+22,sneak?1:0).put(offset+23,bow?1:0).put(offset+24,left).put(offset+25,right).put(offset+26,riding?1:0).put(offset+27,template).put(offset+28,PlayerPoseOptions.flags());
-        players.put(offset+29,-1);
+        players.put(offset+29,-1);poseOwners.clear(job);
         stateRevision++;playerRevision++;
-        return playerCount++;
     }
     public static int addPose(Matrix4fc base,int template){
         int job=add(base,0,0,0,0,0,0,0,0,false,false,false,template);
         if(job<0)return job;
-        int words=(job+1)*POSE_WORDS;
+        int row=poseCount,words=(row+1)*POSE_WORDS;
         if(words>poses.capacity()){
             FloatBuffer next=BufferUtils.createFloatBuffer(Math.max(words,poses.capacity()*2));
             next.put(poses.duplicate().position(0).limit(poseCount*POSE_WORDS));poses=next;poseView=poses.duplicate();
         }
-        players.put(job*PLAYER_WORDS+29,job);poseCount=job+1;poseRevision++;stateRevision++;playerRevision++;
+        players.put(job*PLAYER_WORDS+29,row);poseOwners.set(job);poseCount++;poseRevision++;stateRevision++;playerRevision++;
         return job;
     }
     public static void copyTemplate(int offset,float[] destination){
@@ -75,13 +118,10 @@ public final class GpuPlayerPackets {
             throw new IllegalArgumentException("Invalid player pose variant");
         if(playerCount==MAX_PLAYERS)return -1;
         int target=playerCount*PLAYER_WORDS;
-        if(target+PLAYER_WORDS>players.capacity()){
-            FloatBuffer next=BufferUtils.createFloatBuffer(players.capacity()*2);
-            next.put(players.duplicate().position(0).limit(target));players=next;playerView=players.duplicate();
-        }
+        ensurePlayers(playerCount+1);
         int origin=source*PLAYER_WORDS;
         for(int word=0;word<PLAYER_WORDS;word++)players.put(target+word,players.get(origin+word));
-        players.put(target+27,template);stateRevision++;playerRevision++;
+        players.put(target+27,template);poseOwners.clear(playerCount);stateRevision++;playerRevision++;
         return playerCount++;
     }
     public static void writePose(int job,int part,float tx,float ty,float tz,float rx,float ry,float rz){
@@ -91,8 +131,11 @@ public final class GpuPlayerPackets {
         poses.put(offset,tx).put(offset+1,ty).put(offset+2,tz).put(offset+3,rx).put(offset+4,ry).put(offset+5,rz);
         poseRevision++;stateRevision++;
     }
-    public static void rollback(int index){if(index==playerCount-1){playerCount--;if(poseCount>playerCount)poseCount=playerCount;poseRevision++;stateRevision++;playerRevision++;}}
-    public static void resetTemplates(){templateIds.clear();templateWords=0;templateRevision++;uploadedTemplates=-1;beginBatch();}
+    public static void rollback(int index){if(index>=reservedActors&&index>=0&&index==playerCount-1){
+        if(poseOwners.get(index)&&(int)players.get(index*PLAYER_WORDS+29)==poseCount-1)poseCount--;
+        poseOwners.clear(index);playerCount--;poseRevision++;stateRevision++;playerRevision++;
+    }}
+    public static void resetTemplates(){clearActors();templateIds.clear();templateWords=0;templateRevision++;uploadedTemplates=-1;beginBatch();}
     public static Matrix4f resolve(int encoded,Matrix4f destination){
         int player=encoded/16,part=encoded%16,base=player*PLAYER_WORDS;
         if(player<0||player>=playerCount||part>=PARTS)throw new IllegalArgumentException("Invalid compact player instance");
@@ -139,6 +182,8 @@ public final class GpuPlayerPackets {
         if(playerBuffer!=0)GL15.glDeleteBuffers(playerBuffer);if(templateBuffer!=0)GL15.glDeleteBuffers(templateBuffer);if(sineBuffer!=0)GL15.glDeleteBuffers(sineBuffer);if(poseBuffer!=0)GL15.glDeleteBuffers(poseBuffer);
         playerBuffer=templateBuffer=sineBuffer=poseBuffer=uploadedPlayers=uploadedTemplates=playerCount=poseCount=templateWords=0;uploadedPoseRevision=uploadedPlayerRevision=-1;
         templateIds.clear();
+        poseOwners.clear();
+        clearActors();
         playerRevision++;poseRevision++;templateRevision++;
     }
 }

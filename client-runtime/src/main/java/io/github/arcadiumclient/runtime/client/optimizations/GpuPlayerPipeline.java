@@ -37,6 +37,7 @@ public final class GpuPlayerPipeline {
     private static String waitingState=state;
     private static int waitingPlayers=-1,waitingMinimum=-1;
     public static long playersDrawn,partsQueued,rejectedState,rejectedLayers,rejectedModel,nativeCallbackRoutes;
+    public static long nativeSkinCallbacks;
     public static long customRenderers,outlinePlayers,invisiblePlayers,burningPlayers,babyPlayers,ridingPlayers,sleepingPlayers,spectatorPlayers,hurtPlayers,deadPlayers;
     public static long inactiveBatches,waitingForPlayers,unavailableCompute,customAnimations;
     public static long backendInvalidations,worldInvalidations;
@@ -109,15 +110,24 @@ public final class GpuPlayerPipeline {
             extraLayers|=skinMask!=0;
             int mask=0;for(int i=0;i<12;i++)if(profile.parts[i].visible&&!profile.parts[i].invisible&&(skinMask&(1<<i))==0)mask|=1<<i;
             if(mask==0)return false;
+            Object batch=null;
+            if(skinMask!=0){
+                if(!GpuVoxelSkinPipeline.enabled){nativeSkinCallbacks++;state="Detailed skins retain native callbacks and GPU body capture";return false;}
+                Minecraft.getInstance().getTextureManager().bind(skin);
+                batch=api.select.invoke(backend,skin,api.translucent);
+                if(!GpuVoxelSkinPipeline.canUseAnalytic(backend,profile.parts,skinMask,skin,profile.template)){
+                    nativeSkinCallbacks++;state="Native outer skins retain original callbacks and GPU body capture";return false;
+                }
+            }
             float body=angle(player.lastBodyYaw,player.bodyYaw,delta),head=angle(player.lastHeadYaw,player.headYaw,delta)-body,pitch=player.lastPitch+(player.pitch-player.lastPitch)*delta;
             float walk=player.walkAnimationProgress-player.walkAnimationSpeed*(1-delta),speed=Math.min(1,player.lastWalkAnimationSpeed+(player.walkAnimationSpeed-player.lastWalkAnimationSpeed)*delta),age=player.ticks+delta;
             root.identity().translate((float)x,(float)y,(float)z).rotateY((float)Math.toRadians(180-body));
             if(PlayerPoseOptions.upsideDown(player.getName(),player.isModelPartVisible(PlayerModelPart.CAPE)))
                 root.translate(0,player.height+.1f,0).rotateZ((float)Math.PI);
             root.scale(-1,-1,1).scale(.9375f).translate(0,-1.5078125f,0);
-            job=GpuPlayerPackets.add(root,walk,speed,age,head,pitch,player.getAttackAnimationProgress(delta),model.itemInLeftHand,model.itemInRightHand,model.sneaking,false,model.aimingBow,profile.template);
+            job=GpuPlayerPackets.addActor(player,root,walk,speed,age,head,pitch,player.getAttackAnimationProgress(delta),model.itemInLeftHand,model.itemInRightHand,model.sneaking,false,model.aimingBow,profile.template);
             if(job<0)return false;
-            Object batch=api.select.invoke(backend,skin,api.translucent);
+            if(batch==null)batch=api.select.invoke(backend,skin,api.translucent);
             int light=player.getLightLevel(delta),layer=(int)api.selectedLayer.get(backend),lightWord=(light&255)|((light>>>16&255)<<8)|(layer&255)<<16;
             int added=0;
             for(int mirror=0;mirror<2;mirror++){
@@ -212,7 +222,7 @@ public final class GpuPlayerPipeline {
         try{return forgeActive||forgeConfiguration!=null&&forgeConfiguration.get(null)!=null;}
         catch(IllegalAccessException error){return true;}
     }
-    static boolean hasForgeHooks(){return forge();}
+    public static boolean hasForgeHooks(){return forge();}
     public static void invalidateBackend(Object value){
         if(value==null||invalidatingBackend||GpuVoxelSkinPipeline.isAuxiliaryBackend(value))return;
         if(value!=lastBackend&&!GpuEquipmentPipeline.usesBackend(value)&&!NativePlayerPosePipeline.usesBackend(value)&&!GpuVoxelSkinPipeline.usesMainBackend(value))return;

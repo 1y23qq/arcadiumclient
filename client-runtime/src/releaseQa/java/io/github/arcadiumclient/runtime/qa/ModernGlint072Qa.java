@@ -19,6 +19,7 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.Future;
 import javax.imageio.ImageIO;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.living.player.RemoteClientPlayerEntity;
@@ -58,6 +59,12 @@ public final class ModernGlint072Qa {
     private static int glintDepth;
     private static boolean zeroBindingGuard;
     private static int zeroRangeChecks, zeroMaterialDrawChecks;
+    private static Future<?> environment;
+    private static boolean cameraPrepared;
+    private static int nativePlayerEntries, nativeLayerAttempts, translationChecks;
+    private static String nativeLayerType = "";
+    private static final float[] actualEntryTranslation = new float[16], shiftedEntryTranslation = new float[16];
+    private static int matrixBufferChecks;
 
     private ModernGlint072Qa() {}
     public static boolean enabled() { return System.getProperty("arcadium.modernGlint072.output") != null; }
@@ -91,9 +98,17 @@ public final class ModernGlint072Qa {
                 mc.startGame("arcadium-modern-glint072", "Modern Glint QA", new WorldSettings(720721, WorldSettings.GameMode.CREATIVE, false, false, WorldGeneratorType.FLAT).enableCommands());
                 phase = 1; wait = 0;
             } else if (phase == 1 && mc.world != null && mc.player != null && wait > 100) {
-                mc.openScreen(null); mc.player.abilities.flying = true; mc.player.updatePositionAndAngles(0, 19, -10, 0, 5);
+                if(environment==null){environment=mc.getServer().executeTask(()->{
+                    var world=mc.getServer().getWorld(0);world.getGameRules().set("doMobSpawning","false");world.getGameRules().set("doDaylightCycle","false");world.getGameRules().set("randomTickSpeed","0");world.setTimeOfDay(6000);
+                    world.getData().setRaining(false);world.getData().setThundering(false);int removed=0;
+                    for(var entity:new java.util.ArrayList<>(world.entities))if(!(entity instanceof net.minecraft.entity.living.player.PlayerEntity)){world.removeEntityNow(entity);removed++;}return removed;
+                });return;}
+                if(!environment.isDone()||mc.world.entities.stream().anyMatch(entity->!(entity instanceof net.minecraft.entity.living.player.PlayerEntity)))return;
+                report.put("removedInitialNonPlayers",environment.get());
+                if(!cameraPrepared){mc.openScreen(null);mc.player.abilities.flying=true;mc.player.updatePositionAndAngles(0,6,-10,0,5);cameraPrepared=true;return;}
+                if(!CeraAdmission072Readiness.ready(mc,Path.of(System.getProperty("arcadium.modernGlint072.output"))))return;
                 actor = new Frozen(mc, new GameProfile(new UUID(0x7210000000000000L, 1), "ModernGlintQA"));
-                actor.updatePositionAndAngles(0, 17, 3, 190, 12);
+                actor.updatePositionAndAngles(0, 4, 3, 190, 12);
                 actor.setEquipment(0, new net.minecraft.item.ItemStack(net.minecraft.item.Items.DIAMOND_SWORD));
                 net.minecraft.item.Item[] pieces = {net.minecraft.item.Items.DIAMOND_BOOTS, net.minecraft.item.Items.DIAMOND_LEGGINGS, net.minecraft.item.Items.DIAMOND_CHESTPLATE, net.minecraft.item.Items.DIAMOND_HELMET};
                 for (int slot = 1; slot <= 4; slot++) {
@@ -140,6 +155,11 @@ public final class ModernGlint072Qa {
                 return;
             }
             String effectiveStyle = ((Enum<?>)styleField.get(items)).name();
+            report.put("nativeActorRegistration",CeraAdmission072Readiness.actors(mc,List.of(actor)));
+            require(Boolean.TRUE.equals(((Map<?,?>)report.get("nativeActorRegistration")).get("allRegistered")),"Modern actor is absent from its actual mature native section");
+            report.put("nativePlayerRendererEntries",nativePlayerEntries);report.put("nativeLayerAttempts",nativeLayerAttempts);report.put("nativeLayerType",nativeLayerType);
+            report.put("effectiveEquipmentPipeline",BetaOptimizationsConfig.getGpuEquipmentPipeline());
+            report.put("nativeLegacyGlintReplacement",Class.forName("org.polyfrost.overflowanimations.legacy.tint.LegacyGlint").getMethod("replacesArmorGlint").invoke(null));
             require(effectiveStyle.equals(STYLES[style]), "Another callback changed the requested native armor style to " + effectiveStyle);
             if (style < 2) require(ModernArmorGlintPipeline.layersSupported > styleLayers && ModernArmorGlintPipeline.glintParts > styleParts,
                     "Modern adapter did not activate: " + ModernArmorGlintPipeline.status() + " shaderPins=" + ModernGlintShaderPatch.vertexPatched + "/" + ModernGlintShaderPatch.fragmentPatched);
@@ -211,6 +231,24 @@ public final class ModernGlint072Qa {
     public static String currentCase() { return CASES[style]; }
     public static boolean needsModelViewReference() { return enabled() && !done && phase == 2 && comparisonMode == 2; }
     public static void referenceFailure(Throwable error) { failure = error.toString(); }
+    public static void playerEntry(net.minecraft.entity.Entity entity,double x,double y,double z){
+        if(!enabled()||done||phase!=2||entity!=actor)return;
+        nativePlayerEntries++;
+        if(translationChecks>=16)return;
+        try{
+            double entityY=actor.lastY+(actor.y-actor.lastY)*.5,derivedCameraY=entityY-y,oldRelativeY=(entityY+13)-(derivedCameraY+13);
+            require(Float.floatToRawIntBits((float)y)==Float.floatToRawIntBits((float)oldRelativeY),"Height-shift fixture changed the actual renderer-relative translation");
+            int matrixMode=GL11.glGetInteger(GL11.GL_MATRIX_MODE);GL11.glMatrixMode(GL11.GL_MODELVIEW);
+            try{
+                GL11.glPushMatrix();try{GL11.glTranslatef((float)x,(float)y,(float)z);GL11.glGetFloatv(GL11.GL_MODELVIEW_MATRIX,actualEntryTranslation);}finally{GL11.glPopMatrix();}
+                GL11.glPushMatrix();try{GL11.glTranslatef((float)x,(float)oldRelativeY,(float)z);GL11.glGetFloatv(GL11.GL_MODELVIEW_MATRIX,shiftedEntryTranslation);}finally{GL11.glPopMatrix();}
+            }finally{GL11.glMatrixMode(matrixMode);}
+            for(int i=0;i<16;i++)require(Float.floatToRawIntBits(actualEntryTranslation[i])==Float.floatToRawIntBits(shiftedEntryTranslation[i]),"Native entry matrix changed under equal actor/camera height shift");
+            translationChecks++;matrixBufferChecks+=16;
+            report.put("nativeHeightShiftEquivalence",Map.of("actorY",entityY,"derivedCameraY",derivedCameraY,"actualRendererXYZ",List.of(x,y,z),"heightShift",13,"reconstructedOldRelativeY",oldRelativeY,"actualTranslatedModelView",actualEntryTranslation.clone(),"shiftedTranslatedModelView",shiftedEntryTranslation.clone(),"bitExact",true));
+        }catch(Throwable error){failure=error.toString();}
+    }
+    public static void layerAttempt(Object layer,Object entity){if(enabled()&&!done&&phase==2&&entity==actor){nativeLayerAttempts++;nativeLayerType=layer==null?"null":layer.getClass().getName();}}
     public static void captureCamera() {
         if (needsModelViewReference()) GL11.glGetFloatv(GL11.GL_MODELVIEW_MATRIX, cameraModelView);
     }
@@ -274,8 +312,12 @@ public final class ModernGlint072Qa {
         if (GL20.glGetUniformi(program, pass) < 0) {
             normalSeen = true;
             if (zeroBindingGuard && count >= 0) {
-                require(GL20.glGetUniformi(program, count) == 0 && GL30.glGetIntegeri(GL43.GL_SHADER_STORAGE_BUFFER_BINDING, 7) != 0 &&
-                        GL32.glGetInteger64i(GL43.GL_SHADER_STORAGE_BUFFER_SIZE, 7) >= 64, "Globally patched no-material native shader has no valid dummy SSBO7");
+                if (GL20.glGetUniformi(program, count) != 0 || GL30.glGetIntegeri(GL43.GL_SHADER_STORAGE_BUFFER_BINDING, 7) == 0 ||
+                        GL32.glGetInteger64i(GL43.GL_SHADER_STORAGE_BUFFER_SIZE, 7) < 64) {
+                    report.put("noMaterialBindingFailure", materialProgramState(program, count));
+                    failure = "Globally patched no-material native shader has no valid dummy SSBO7; exact state is recorded";
+                    throw new IllegalStateException(failure);
+                }
                 zeroMaterialDrawChecks++;
             }
             return;
@@ -288,6 +330,26 @@ public final class ModernGlint072Qa {
                 !GL11.glIsEnabled(GL11.GL_BLEND) || GL11.glGetInteger(GL11.GL_BLEND_SRC) != GL11.GL_SRC_COLOR || GL11.glGetInteger(GL11.GL_BLEND_DST) != GL11.GL_ONE)
             failure = "Modern GLINT did not retain normal-before-glint/depth/blend state";
         orderChecks++;
+    }
+
+    private static Map<String,Object> materialProgramState(int program,int count) {
+        Map<String,Object> result=new LinkedHashMap<>();
+        result.put("program",program);result.put("countLocation",count);result.put("countValue",GL20.glGetUniformi(program,count));
+        int binding=GL30.glGetIntegeri(GL43.GL_SHADER_STORAGE_BUFFER_BINDING,7);
+        result.put("indexedBinding7",binding);result.put("indexedStart7",binding==0?0:GL32.glGetInteger64i(GL43.GL_SHADER_STORAGE_BUFFER_START,7));result.put("indexedSize7",binding==0?0:GL32.glGetInteger64i(GL43.GL_SHADER_STORAGE_BUFFER_SIZE,7));
+        result.put("genericBinding",GL11.glGetInteger(GL43.GL_SHADER_STORAGE_BUFFER_BINDING));
+        int block=GL43.glGetProgramResourceIndex(program,GL43.GL_SHADER_STORAGE_BLOCK,"ArcadiumModernGlintMatrices");result.put("modernStorageBlock",block);
+        if(block!=GL43.GL_INVALID_INDEX){int[] layout=new int[2];GL43.glGetProgramResourceiv(program,GL43.GL_SHADER_STORAGE_BLOCK,block,new int[]{GL43.GL_BUFFER_BINDING,GL43.GL_BUFFER_DATA_SIZE},(int[])null,layout);result.put("blockBinding",layout[0]);result.put("blockMinimumBytes",layout[1]);}
+        int item=GL20.glGetUniformLocation(program,"uItemGlintPass"),alpha=GL20.glGetUniformLocation(program,"uAlphaPass");
+        result.put("nativeItemGlintPass",item<0?-1:GL20.glGetUniformi(program,item));result.put("nativeAlphaPass",alpha<0?-1:GL20.glGetUniformi(program,alpha));result.put("attachedShaderCount",GL20.glGetProgrami(program,GL20.GL_ATTACHED_SHADERS));
+        try{
+            Class<?> type=ModernArmorGlintPipeline.class;
+            for(String name:List.of("programCount","drawDepth","dummyStorage","storage","scopeDepth")){Field field=type.getDeclaredField(name);field.setAccessible(true);result.put(name,field.get(null));}
+            Field handles=type.getDeclaredField("programHandles"),locations=type.getDeclaredField("countLocations"),verified=type.getDeclaredField("verifiedPrograms");handles.setAccessible(true);locations.setAccessible(true);verified.setAccessible(true);
+            int[] ids=(int[])handles.get(null),uniforms=(int[])locations.get(null);boolean[] good=(boolean[])verified.get(null);int registered=((Number)result.get("programCount")).intValue();
+            List<Object> records=new java.util.ArrayList<>();for(int i=0;i<registered;i++)records.add(Map.of("program",ids[i],"location",uniforms[i],"verified",good[i],"current",ids[i]==program));result.put("registeredPrograms",records);
+        }catch(ReflectiveOperationException unavailable){result.put("pipelineInspection",unavailable.toString());}
+        return result;
     }
 
     public static long clock(long original, double speed) { return enabled() ? (long)(1234567L * speed * 8.0) : original; }
@@ -316,6 +378,7 @@ public final class ModernGlint072Qa {
         if (failure != null) finish(new IllegalStateException(failure));
         else if (phase == 3) {
             try {
+                require(translationChecks>0&&nativePlayerEntries>0&&matrixBufferChecks==translationChecks*16,"Missing actual native height-shift matrix equivalence");
                 require(pixelFailures.isEmpty(), "Modern glint full RGBA quality failed: " + pixelFailures);
                 require(zeroRangeChecks >= 20 && zeroMaterialDrawChecks > 0 && ModernArmorGlintPipeline.dummyProgramBinds > 0,
                         "No proof of valid no-material draws with an originally unbound SSBO7");
@@ -335,6 +398,8 @@ public final class ModernGlint072Qa {
     }
     private static void finish(Throwable error) {
         if (done) return; done = true; report.put("passed", error == null);
+        report.put("nativePlayerRendererEntries",nativePlayerEntries);report.put("nativeLayerAttempts",nativeLayerAttempts);report.put("nativeLayerType",nativeLayerType);
+        report.put("nativeHeightShiftChecks",translationChecks);report.put("nativeHeightShiftMatrixWords",matrixBufferChecks);
         report.put("nonzeroSsbo7RangeChecks", guardedDraws); report.put("glintOrderingChecks", orderChecks);
         report.put("verifiedProgramHandles", verifiedPrograms); report.put("vertexSourcePinMatched", ModernGlintShaderPatch.vertexPatched);
         report.put("fragmentSourcePinMatched", ModernGlintShaderPatch.fragmentPatched); report.put("nativeTextureMatrixChecks", textureChecks);
