@@ -2,6 +2,7 @@
 package io.github.arcadiumclient.runtime.qa.mixin;
 
 import io.github.arcadiumclient.runtime.qa.PlayerPipeline072Qa;
+import io.github.arcadiumclient.runtime.qa.GpuVoxelSkin072QualityControls;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.living.player.ClientPlayerEntity;
 import net.minecraft.client.render.entity.PlayerRenderer;
@@ -16,12 +17,14 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class GpuVoxelSkin072NativeBodyControlMixin {
     @Inject(method="capture",at=@At("HEAD"),cancellable=true,remap=false)
     private static void voxel072$nativeBody(PlayerRenderer renderer,ClientPlayerEntity player,double x,double y,double z,float delta,CallbackInfoReturnable<Boolean> callback){
-        if(!Boolean.getBoolean("arcadium.playerPipeline072.nativeBodyControl")||!PlayerPipeline072Qa.enabled()
+        boolean voxelRoot=Boolean.getBoolean("arcadium.playerPipeline072.nativeVoxelRootControl");
+        if(!(Boolean.getBoolean("arcadium.playerPipeline072.nativeBodyControl")||voxelRoot)||!PlayerPipeline072Qa.enabled()
                 ||!player.getClass().getName().equals("io.github.arcadiumclient.runtime.qa.PlayerPipeline072Qa$Actor"))return;
         Minecraft mc=Minecraft.getInstance();
         if(!System.getProperty("arcadium.playerPipeline072.mode","visual").equals("visual")
                 ||!"ArcadiumTest".equals(mc.getSession().getUsername())||!"0".equals(mc.getSession().getAccessToken()))
             throw new IllegalStateException("Native body control requires the owned offline visual fixture");
+        if(voxelRoot)GpuVoxelSkin072QualityControls.nativeVoxelRootBypass();
         callback.setReturnValue(false);
     }
 }

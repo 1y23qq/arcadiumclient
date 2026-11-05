@@ -15,17 +15,9 @@ static void pattern(int width, int height, int frame) {
     }
 }
 static int checkImage(ArcPresentation *p, const uint8_t *source, int width, int height) {
-    NSUInteger stride=((NSUInteger)width*4+255)&~(NSUInteger)255;
-    id<MTLBuffer> bytes=[p.device newBufferWithLength:stride*height options:MTLResourceStorageModeShared];
-    CHECK(bytes);
-    id<MTLCommandBuffer> command=[p.queue commandBuffer];
-    id<MTLBlitCommandEncoder> blit=[command blitCommandEncoder];
-    CHECK(command&&blit&&p.testingDrawable);
-    [blit copyFromTexture:p.testingDrawable.texture sourceSlice:0 sourceLevel:0 sourceOrigin:MTLOriginMake(0,0,0)
-        sourceSize:MTLSizeMake(width,height,1) toBuffer:bytes destinationOffset:0 destinationBytesPerRow:stride destinationBytesPerImage:stride*height];
-    [blit endEncoding];[command commit];[command waitUntilCompleted];
-    CHECK(command.status==MTLCommandBufferStatusCompleted);
-    const uint8_t *pixels=bytes.contents;
+    NSUInteger stride=p.testingStride;
+    CHECK(p.testingPixels&&stride>=(NSUInteger)width*4&&p.testingPixels.length>=stride*height);
+    const uint8_t *pixels=p.testingPixels.contents;
     for(int y=0;y<height;y++)for(int x=0;x<width;x++) {
         const uint8_t *actual=pixels+y*stride+x*4,*expected=source+((height-1-y)*width+x)*4;
         CHECK(actual[0]==expected[2]&&actual[1]==expected[1]&&actual[2]==expected[0]&&actual[3]==255);
@@ -100,8 +92,14 @@ int main(void) {
         }
         CHECK(arc_present_publish(out,2)==ARC_PRESENT_BUSY&&arc_present_query(out,ARC_PRESENT_HIDDEN)==1);
         __block int offMain=ARC_PRESENT_OK;
-        dispatch_sync(dispatch_get_global_queue(QOS_CLASS_DEFAULT,0),^{offMain=arc_present_hide(out);});
-        CHECK(offMain==ARC_PRESENT_INVALID);
+        __block BOOL workerWasMain=YES;
+        dispatch_semaphore_t workerDone=dispatch_semaphore_create(0);
+        NSThread *worker=[[NSThread alloc]initWithBlock:^{
+            workerWasMain=NSThread.isMainThread;offMain=arc_present_hide(out);dispatch_semaphore_signal(workerDone);
+        }];
+        [worker start];
+        CHECK(dispatch_semaphore_wait(workerDone,dispatch_time(DISPATCH_TIME_NOW,INT64_C(5000000000)))==0);
+        CHECK(!workerWasMain&&offMain==ARC_PRESENT_INVALID);
         CHECK(arc_present_hide(out)==ARC_PRESENT_OK&&arc_present_query(out,ARC_PRESENT_HIDDEN)==1);
         CHECK(arc_present_release_gl(out)==ARC_PRESENT_OK&&arc_present_query(out,ARC_PRESENT_GL_RELEASED)==1);
         NSDate *retired=[NSDate dateWithTimeIntervalSinceNow:1];

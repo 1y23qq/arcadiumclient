@@ -16,7 +16,7 @@ public final class GpuVoxelSkin072QualityControls {
     private static final float OFFSET = YAW == null ? 0 : Float.parseFloat(YAW);
     private static final long TIME_OF_DAY = TIME == null ? 6000 : Long.parseLong(TIME);
     private static boolean hooked;
-    private static long actorTicks, worldTicks, captureBypasses;
+    private static long actorTicks, worldTicks, captureBypasses,nativeVoxelRootBypasses,phaseNativeVoxelRootStart;
     private static List<Float> observedAngles = List.of();
     private static final Map<String,Float> observedScales = new TreeMap<>();
     private static final List<Map<String,Object>> captureProofs = new ArrayList<>();
@@ -31,14 +31,15 @@ public final class GpuVoxelSkin072QualityControls {
                 && System.getProperty("arcadium.playerPipeline072.mode", "visual").equals("visual");
     }
     public static boolean captureOnly() {
-        if (!captureRequested()) return false;
+        if (!Boolean.getBoolean("arcadium.voxelQuality072.captureOnly")||!captureRequested()) return false;
         captureBypasses++; hook(); return true;
     }
     public static boolean captureRequested() {
-        return Boolean.getBoolean("arcadium.voxelQuality072.captureOnly") && PlayerPipeline072Qa.enabled()
+        return (Boolean.getBoolean("arcadium.voxelQuality072.captureOnly")||Boolean.getBoolean("arcadium.playerPipeline072.nativeVoxelRootControl")) && PlayerPipeline072Qa.enabled()
                 && System.getProperty("arcadium.playerPipeline072.mode", "visual").equals("visual");
     }
-    public static void armCapture() { if (captureRequested()) Arrays.fill(phaseCapturedParts, 0); }
+    public static void nativeVoxelRootBypass(){nativeVoxelRootBypasses++;hook();}
+    public static void armCapture() { if (captureRequested()) { Arrays.fill(phaseCapturedParts, 0);phaseNativeVoxelRootStart=nativeVoxelRootBypasses; } }
     public static void nativeCapture(Object mesh) {
         if (!captureRequested()) return;
         try {
@@ -53,11 +54,11 @@ public final class GpuVoxelSkin072QualityControls {
         int observedMask = 0; long observedParts = 0;
         for (int part=0;part<12;part++) { observedParts += phaseCapturedParts[part]; if (phaseCapturedParts[part] != 0) observedMask |= 1<<part; }
         if (nativeParts <= 0 || analyticParts != 0 || (partMask & 0xFC0) != 0xFC0 || (observedMask & 0xFC0) != 0xFC0
-                || observedParts != nativeParts || captureBypasses <= 0)
+                || observedParts != nativeParts || (Boolean.getBoolean("arcadium.playerPipeline072.nativeVoxelRootControl")?nativeVoxelRootBypasses<=phaseNativeVoxelRootStart:captureBypasses<=0))
             throw new IllegalStateException("The capture-only voxel fixture did not use all six actual native GPU skin parts");
         if (captureProofs.size() < 16) captureProofs.add(Map.of("nativeParts", nativeParts, "analyticParts", analyticParts,
                 "nativePartMask", Long.toHexString(partMask), "phaseObservedPartMask", Integer.toHexString(observedMask),
-                "phaseObservedPartCounts", phaseCapturedParts.clone(), "analyticCallsBypassed", captureBypasses));
+                "phaseObservedPartCounts", phaseCapturedParts.clone(), "analyticCallsBypassed", captureBypasses,"nativeVoxelRootBypasses",nativeVoxelRootBypasses-phaseNativeVoxelRootStart));
         hook();
     }
     public static void skinOffsets() throws ReflectiveOperationException {
@@ -112,6 +113,7 @@ public final class GpuVoxelSkin072QualityControls {
                 result.put("actorTicksControlled", actorTicks); result.put("worldTicksControlled", worldTicks);
                 result.put("observedFirstActorAngles", observedAngles); result.put("observedWorldTime", observedTime);
                 result.put("captureOnly", Boolean.getBoolean("arcadium.voxelQuality072.captureOnly")); result.put("analyticCallsBypassed", captureBypasses);
+                result.put("nativeVoxelRootControl",Boolean.getBoolean("arcadium.playerPipeline072.nativeVoxelRootControl"));result.put("nativeVoxelRootBypasses",nativeVoxelRootBypasses);
                 result.put("observedVoxelScales", observedScales);
                 result.put("requestedEntityShadows", SHADOWS); result.put("observedEntityShadows", observedEntityShadows);
                 result.put("captureProofs", captureProofs);

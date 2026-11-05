@@ -79,7 +79,8 @@ static const uint64_t image_limit = UINT64_C(128) * 1024 * 1024;
 @property(nonatomic) BOOL ticket;
 @property(nonatomic) GLint preparedSwapInterval;
 #if defined(ARC_PRESENT_TESTING)
-@property(nonatomic, strong) id<CAMetalDrawable> testingDrawable;
+@property(nonatomic, strong) id<MTLBuffer> testingPixels;
+@property(nonatomic) NSUInteger testingStride;
 #endif
 @end
 @implementation ArcPresentation
@@ -272,9 +273,6 @@ int arc_present_publish(void *value, uint64_t frame) {
         if (!drawable || drawable.texture.width != p.image.width || drawable.texture.height != p.image.height) {
             hideView(p); return failure(p, @"No correctly sized current Metal drawable", ARC_PRESENT_UNAVAILABLE);
         }
-#if defined(ARC_PRESENT_TESTING)
-        p.testingDrawable = drawable;
-#endif
         MTLRenderPassDescriptor *pass = [MTLRenderPassDescriptor renderPassDescriptor];
         pass.colorAttachments[0].texture = drawable.texture;
         pass.colorAttachments[0].loadAction = MTLLoadActionDontCare; pass.colorAttachments[0].storeAction = MTLStoreActionStore;
@@ -283,6 +281,16 @@ int arc_present_publish(void *value, uint64_t frame) {
         if (!command || !encoder) { hideView(p); return failure(p, @"Could not encode current Metal presentation", ARC_PRESENT_FAILED); }
         [encoder setRenderPipelineState:p.pipeline]; [encoder setFragmentTexture:p.image.metal atIndex:0];
         [encoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:3]; [encoder endEncoding];
+#if defined(ARC_PRESENT_TESTING)
+        NSUInteger stride = ((NSUInteger)p.image.width * 4 + 255) & ~(NSUInteger)255;
+        id<MTLBuffer> pixels = [p.device newBufferWithLength:stride * p.image.height options:MTLResourceStorageModeShared];
+        id<MTLBlitCommandEncoder> readback = [command blitCommandEncoder];
+        if (!pixels || !readback) { hideView(p); return failure(p, @"Could not encode presentation test readback", ARC_PRESENT_FAILED); }
+        [readback copyFromTexture:pass.colorAttachments[0].texture sourceSlice:0 sourceLevel:0 sourceOrigin:MTLOriginMake(0, 0, 0)
+            sourceSize:MTLSizeMake(p.image.width, p.image.height, 1) toBuffer:pixels destinationOffset:0
+            destinationBytesPerRow:stride destinationBytesPerImage:stride * p.image.height];
+        [readback endEncoding]; p.testingPixels = pixels; p.testingStride = stride;
+#endif
         ArcPresentationState *state = p.state; ArcPresentationImage *ownedImage = p.image;
         atomic_store(&state->inFlight, true); p.submitted = frame; p.ticket = NO;
         [drawable addPresentedHandler:^(id<MTLDrawable> shown) { (void)shown; latest(&state->displayed, frame); }];

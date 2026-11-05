@@ -41,6 +41,7 @@ public final class PlayerPipeline072Qa {
     private static final boolean BASELINE = Boolean.getBoolean("arcadium.playerPipeline072.baseline");
     private static final boolean PROFILING = Boolean.getBoolean("arcadium.playerPipeline072.profiling");
     private static final boolean NATIVE_BODY_CONTROL = Boolean.getBoolean("arcadium.playerPipeline072.nativeBodyControl");
+    private static final boolean NATIVE_VOXEL_ROOT_CONTROL=Boolean.getBoolean("arcadium.playerPipeline072.nativeVoxelRootControl");
     private static final int PLAYERS = Integer.getInteger("arcadium.playerPipeline072.players", 20);
     private static final int WARMUP = Integer.getInteger("arcadium.playerPipeline072.warmup", 25);
     private static final int SECONDS = Integer.getInteger("arcadium.playerPipeline072.seconds", 30);
@@ -95,6 +96,10 @@ public final class PlayerPipeline072Qa {
             require(Set.of(3, 20, 50).contains(PLAYERS), "Use 3, 20 or 50 players");
             require(VOXEL_ADMISSIONS.contains(VOXEL_ADMISSION) && (VOXEL_ADMISSION.equals("gpu") || VISUAL && SKIN), "Admission fallback checks require an explicit visual skin fixture");
             require(!NATIVE_BODY_CONTROL || VISUAL && !BASELINE && SKIN, "Native body control requires an explicit optimized visual skin fixture");
+            require(!NATIVE_VOXEL_ROOT_CONTROL||VISUAL&&!BASELINE&&SKIN&&!NATIVE_BODY_CONTROL&&!PROFILING&&VOXEL_ADMISSION.equals("gpu")
+                    &&!Boolean.getBoolean("arcadium.voxelQuality072.captureOnly")&&!Boolean.getBoolean("arcadium.actorPacket072.proof")
+                    &&!Boolean.getBoolean("arcadium.nameReset072.proof")&&!Boolean.getBoolean("arcadium.playerPipeline072.reloadProbe")
+                    &&!Boolean.getBoolean("arcadium.voxelQuality072.pendingPart"),"Native voxel root control requires its exclusive optimized visual GPU skin fixture");
             require(SECONDS >= 5 && SECONDS <= 120 && WARMUP >= 5, "Invalid capture duration");
             require(++ticks < 12000, "Player fixture timed out at phase " + phase); phaseTicks++;
             if (phase == 0 && ticks > 65 && mc.screen != null) {
@@ -317,8 +322,9 @@ public final class PlayerPipeline072Qa {
         result.put("unfocusedFpsEnabled", OneConfigConfig.limitUnfocusedFps);
         result.put("camera", Map.of("x", mc.player.x, "y", mc.player.y, "z", mc.player.z, "yaw", mc.player.yaw, "pitch", mc.player.pitch));
         result.put("gpuTimers", false); result.put("gpuReadbacksDuringTiming", false); result.put("fixedDeltaDuringTiming", false);
-        result.put("profiling", PROFILING); result.put("notFinalPerformance", PROFILING);
+        result.put("profiling", PROFILING); result.put("notFinalPerformance", PROFILING||NATIVE_VOXEL_ROOT_CONTROL);
         result.put("nativeBodyControl", NATIVE_BODY_CONTROL);
+        result.put("nativeVoxelRootControl",NATIVE_VOXEL_ROOT_CONTROL);
         return result;
     }
 
@@ -388,6 +394,15 @@ public final class PlayerPipeline072Qa {
         stageStarted = System.nanoTime(); stablePixelHash = -1; stablePixelSamples = 0; stablePixelsSince = 0; lastPixelSample = 0;
     }
     private static void requireBodyPath() {
+        if(NATIVE_VOXEL_ROOT_CONTROL){
+            require(BetaOptimizationsConfig.getGpuPlayerPipeline()&&gpuVoxels(),"Native voxel root research requires GPU bodies and GPU outer layers");
+            require(counter("GpuPlayerPipeline","playersDrawn")==phaseCompactStart&&counter("NativePlayerPosePipeline","bodyPartsQueued")>phaseNativeStart,
+                    "Native voxel root research lost original callbacks or native GPU body capture");
+            for(Actor actor:actors){RenderTrace trace=renderTraces.get(actor);
+                require(trace!=null&&trace.compact==0&&trace.nativeParts>0,"An actor lost original root/native GPU body capture: "+actor.getName());
+                if(effectiveSkin)require(trace.nativeGpuVoxels==6&&trace.analyticVoxels==0&&trace.voxels==0,"An actor lost one of six native GPU outer parts or drew duplicate original layers: "+actor.getName());
+            }return;
+        }
         if (NATIVE_BODY_CONTROL) {
             require(BetaOptimizationsConfig.getGpuPlayerPipeline() && !gpuVoxels(), "Native body control requires GPU bodies and original voxel layers");
             require(counter("GpuPlayerPipeline", "playersDrawn") == phaseCompactStart && counter("NativePlayerPosePipeline", "bodyPartsQueued") > phaseNativeStart,
@@ -793,8 +808,9 @@ public final class PlayerPipeline072Qa {
         if (failure == null && NameReset072Qa.enabled()) try { report.put("nativeNameResetProof", NameReset072Qa.verify()); } catch (Throwable error) { failure = error; }
         if (failure == null && ActorPacket072Qa.enabled()) try { report.put("nativeActorPacketProof", ActorPacket072Qa.verify()); } catch (Throwable error) { failure = error; }
         done = true; report.put("passed", failure == null); report.put("syntheticOffline", true); report.put("phase", phase);
-        report.put("profiling", PROFILING); report.put("diagnosticOnly", PROFILING); report.put("notFinalPerformance", PROFILING);
-        report.put("scope", PROFILING ? "Diagnostic-only JFR capture; timing includes profiler overhead and is not final FPS evidence. Owned offline synthetic players."
+        report.put("profiling", PROFILING); report.put("diagnosticOnly", PROFILING||NATIVE_VOXEL_ROOT_CONTROL); report.put("notFinalPerformance", PROFILING||NATIVE_VOXEL_ROOT_CONTROL);
+        report.put("scope", NATIVE_VOXEL_ROOT_CONTROL ? "Correctness-only original-callback body root and GPU voxel diagnostic on the pinned pre-admission main. No FPS qualification."
+                : PROFILING ? "Diagnostic-only JFR capture; timing includes profiler overhead and is not final FPS evidence. Owned offline synthetic players."
                 : "Owned local synthetic player rendering fixture; not real Hypixel performance or another PC measurement.");
         report.put("nativeVoxelDraws", Features062Qa.voxelDraws); report.put("nativeVoxelCompiles", Features062Qa.meshCompiles);
         if (failure != null) { report.put("failure", failure.toString()); failure.printStackTrace(); }
