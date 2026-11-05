@@ -275,10 +275,8 @@ int arc_scene_submit(void *pointer, int width, int height, const void *uniforms,
         [encoder endEncoding];
         scene.submitted++;
         scene.commandFailed = NO;
-        __weak ArcResidentScene *weak_scene = scene;
         [command addCompletedHandler:^(id<MTLCommandBuffer> completed) {
-            ArcResidentScene *retained = weak_scene;
-            if (!retained) return;
+            ArcResidentScene *retained = scene;
             retained.completed++;
             retained.drawCalls += draws;
             double elapsed = completed.GPUEndTime - completed.GPUStartTime;
@@ -318,16 +316,13 @@ int arc_scene_read_rgba(void *pointer, void *destination, uint64_t length) {
             [blit synchronizeResource:scene.color];
             [blit endEncoding];
             dispatch_semaphore_t completed = dispatch_semaphore_create(0);
-            __weak ArcResidentScene *weak_scene = scene;
             [command addCompletedHandler:^(id<MTLCommandBuffer> finished) {
-                ArcResidentScene *retained = weak_scene;
-                if (retained) {
-                    if (finished.status == MTLCommandBufferStatusError) {
-                        retained.commandFailed = YES;
-                        arc_fail(retained, finished.error.localizedDescription ?: @"Metal readback failed", ARC_FAILED);
-                    }
-                    arc_release(retained);
+                ArcResidentScene *retained = scene;
+                if (finished.status == MTLCommandBufferStatusError) {
+                    retained.commandFailed = YES;
+                    arc_fail(retained, finished.error.localizedDescription ?: @"Metal readback failed", ARC_FAILED);
                 }
+                arc_release(retained);
                 dispatch_semaphore_signal(completed);
             }];
             [command commit];

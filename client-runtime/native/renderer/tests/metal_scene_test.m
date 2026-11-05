@@ -57,9 +57,11 @@ int main(int argc, const char **argv) {
         CHECK(arc_scene_submit(context, 64, 64, camera, sizeof(camera), &draw, 1) == ARC_OK);
         CHECK(arc_scene_read_rgba(context, pixels, 64 * 64 * 4) == ARC_OK);
         CHECK(pixel_matches(pixels, 64, 64, 51, 102, 204));
-        printf("Metal device: %s\n", device.name.UTF8String);
-        printf("Metal scene passed: resident mesh/material, base instance, dirty update, readback, resize, invalid commands, reset; actor upload bytes=%llu\n", (unsigned long long) arc_scene_query(context, 4));
+        uint64_t uploaded = arc_scene_query(context, 4);
+        CHECK(arc_scene_submit(context, 64, 64, camera, sizeof(camera), &draw, 1) == ARC_OK);
         arc_scene_destroy(context);
+        printf("Metal device: %s\n", device.name.UTF8String);
+        printf("Metal scene passed: resident mesh/material, base instance, dirty update, readback, resize, invalid commands, reset, close after submission; actor upload bytes=%llu\n", (unsigned long long) uploaded);
         return 0;
     }
 }

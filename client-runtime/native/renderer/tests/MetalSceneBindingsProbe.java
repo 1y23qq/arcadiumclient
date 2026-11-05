@@ -53,6 +53,9 @@ public final class MetalSceneBindingsProbe {
             reader.start(); reader.join();
             require(wrongThread.get() instanceof IllegalStateException, "A worker reached the render-thread backend");
             backend.removeMaterial(2); backend.removeMesh(1); backend.reset();
+            backend.putMesh(1, floats(-1, -1, 0, .5f, .5f, 1, -1, 0, .5f, .5f, 0, 1, 0, .5f, .5f));
+            backend.putMaterial(2, 1, 1, material); backend.writeActors(80, actor);
+            require(backend.submit(64, 64, camera, command, 1), "The close-after-submit frame was unexpectedly busy");
         }
         backend.close();
         try { backend.awaitFrame(); throw new AssertionError("A closed backend accepted a GPU operation"); }
