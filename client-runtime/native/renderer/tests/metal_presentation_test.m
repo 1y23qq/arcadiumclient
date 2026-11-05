@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 #define ARC_PRESENT_TESTING 1
 #include "../arc_present_macos.m"
+#import <QuartzCore/CATransaction.h>
 #include <stdlib.h>
 
 #define CHECK(x) do { if (!(x)) { fprintf(stderr, "CHECK failed at %d: %s\n", __LINE__, #x); return 1; } } while (0)
