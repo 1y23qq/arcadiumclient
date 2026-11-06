@@ -25,6 +25,9 @@ public abstract class MixinGpuModelBatch {
     }
     @Inject(method = "flush", at = @At("HEAD"), remap = false)
     private void arcadium$flushPendingVoxels(@Coerce Object commands,CallbackInfoReturnable<?> callback) {
+        GpuResidentBodies.beforeMainFlush(this);
         GpuVoxelSkinPipeline.beforeMainFlush(this,commands);
     }
+    @Inject(method="flush",at=@At("RETURN"),remap=false)
+    private void arcadium$bodyFlushed(@Coerce Object commands,CallbackInfoReturnable<?> callback){GpuResidentBodies.afterMainFlush(this);}
 }

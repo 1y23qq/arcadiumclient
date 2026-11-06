@@ -22,9 +22,12 @@ public final class GpuResidentBodies {
     private static boolean failed;
     private static volatile String state="Private resident body renderer is off";
     public static long actorsQueued,partsQueued,actorsDrawn,drawCalls,poseDispatches,replayedParts,materialFallbacks,budgetFallbacks,errors;
+    public static long sharedPoseDispatches,sharedPoseReuses,sharedPoseFallbacks,sharedInputWrites,sharedInputReuses,lateBodyCaptures;
     private GpuResidentBodies() { }
     private static boolean enabled(){return GpuResidentBodyShaders.active()&&!failed;}
-    public static void beginBatch(Object main){if(GpuModelAuxiliaries.isAuxiliaryBackend(main))return;if(owners.containsKey(main))budget.begin(main);}
+    public static void beginBatch(Object main){if(GpuModelAuxiliaries.isAuxiliaryBackend(main))return;Owner owner=owners.get(main);if(owner!=null){budget.begin(main);if(owner.palette!=null)owner.palette.begin();}}
+    public static void beforeMainFlush(Object main){Owner owner=owners.get(main);if(owner!=null&&owner.palette!=null)owner.palette.beforeFlush();}
+    public static void afterMainFlush(Object main){Owner owner=owners.get(main);if(owner!=null&&owner.palette!=null)owner.palette.afterFlush();}
 
     static boolean queue(Object main,Object source,int job,int mask,Object batch,Identifier texture,int light,float age,Matrix4fc root) {
         if(!enabled())return false;
@@ -38,6 +41,7 @@ public final class GpuResidentBodies {
             if(fact==null||!binary(fact)){materialFallbacks++;state="Skin material keeps native per-part rendering";return false;}
             Owner owner=owners.get(main);
             if(owner==null){if(!budget.owner(main)){budgetFallbacks++;return false;}owner=new Owner(main);owners.put(main,owner);}
+            if(owner.palette!=null&&!owner.palette.canAdd(job,mask)){lateBodyCaptures++;return false;}
             Profile profile=owner.profiles.get(source);
             if(profile==null){if(!budget.profile(main,source)||owner.profiles.size()==128){budgetFallbacks++;return false;}profile=new Profile(owner,source);owner.profiles.put(source,profile);geometries.put(profile.geometry,profile);}
             profile.draw.prepare(program.handle());
@@ -58,6 +62,7 @@ public final class GpuResidentBodies {
             oldBatch=(int)api.capture.batchCount.get(batch);oldMain=(int)api.capture.backendCount.get(main);
             GpuResidentBodyPacket.write(data,oldSize,job,mask,profile.id,(light&255)|((light>>>16&255)<<8)|((int)api.capture.selectedLayer.get(main)&255)<<16,age,root.m30(),root.m31(),root.m32());
             changed=true;api.capture.size.set(instances,oldSize+19);api.capture.count.set(instances,oldCount+1);api.capture.batchCount.set(batch,oldBatch+1);api.capture.backendCount.set(main,oldMain+1);
+            if(owner.palette!=null)owner.palette.add(job,mask);
             owner.batches.put(batch,Boolean.TRUE);actorsQueued++;partsQueued+=Integer.bitCount(mask);state="Whole-body actor records queued";return true;
         } catch(Throwable failure) {
             if(changed)try{api.capture.size.set(instances,oldSize);api.capture.count.set(instances,oldCount);api.capture.batchCount.set(batch,oldBatch);api.capture.backendCount.set(main,oldMain);budget.used(instances,oldCount);}catch(Throwable repair){failure.addSuppressed(repair);}
@@ -74,7 +79,7 @@ public final class GpuResidentBodies {
             if(failed){profile.draw.replay(payload,profile.uv);return;}
             try {
                 if(GL30.glGetIntegeri(GL33.GL_SAMPLER_BINDING,0)!=0)throw new IllegalStateException("Foreign sampler requires native per-part rendering");
-                int meta=profile.owner.metadata();profile.draw.draw(payload,count,meta,profile.owner.profiles.size(),budget.gpuCapacity(geometry));
+                int meta=profile.owner.metadata();profile.draw.draw(payload,count,meta,profile.owner.profiles.size(),budget.gpuCapacity(geometry),profile.owner.palette);
                 state="Whole-body resident rendering active";
             } catch(Throwable failure){fail(failure);profile.draw.replay(payload,profile.uv);}
         } catch(Throwable failure){throw new IllegalStateException("Resident body replay could not preserve native rendering",failure);}
@@ -87,7 +92,7 @@ public final class GpuResidentBodies {
             try(var commands=RenderDevice.INSTANCE.createCommandList()){for(Owner owner:owners.values())owner.close();}
             finally{GpuVoxelSkinNativeAccess.releaseManagedScope(own,RenderDevice::exitManagedCode);}
         }
-        owners.clear();geometries.clear();binary.clear();normal=mirrored=null;GpuResidentBodyDraw.closeProgram();GpuResidentBodyShaderState.close();failed=false;state="Waiting for a supported whole-body actor";
+        owners.clear();geometries.clear();binary.clear();normal=mirrored=null;GpuResidentBodyDraw.closeProgram();GpuResidentBodyPalette.closeProgram();GpuResidentBodyShaderState.close();failed=false;state="Waiting for a supported whole-body actor";
     }
     private static void fail(Throwable failure){if(!failed)LogManager.getLogger("Arcadium/Resident Bodies").warn("Private whole-body renderer disabled; native part rendering retained",failure);failed=true;errors++;state="Native per-part rendering retained after an error";}
     public static String status(){return GpuResidentBodyShaders.active()?state:"Private resident body renderer is off";}
@@ -97,11 +102,12 @@ public final class GpuResidentBodies {
 
     private static final class Owner {
         final Object main;
+        final GpuResidentBodyPalette palette;
         final IdentityHashMap<Object,Profile> profiles=new IdentityHashMap<>();
         final IdentityHashMap<Object,Profile> instances=new IdentityHashMap<>();
         final IdentityHashMap<Object,Boolean> batches=new IdentityHashMap<>();
         final int[] uv=new int[128*36];int uvBuffer,uploadedProfiles;
-        Owner(Object main){this.main=main;}
+        Owner(Object main){this.main=main;palette=GpuResidentBodyPalette.ENABLED?new GpuResidentBodyPalette(main):null;}
         int metadata(){
             if(uvBuffer==0)uvBuffer=GL15.glGenBuffers();if(uploadedProfiles==profiles.size())return uvBuffer;
             int old=GL11.glGetInteger(GL43.GL_SHADER_STORAGE_BUFFER_BINDING);
@@ -111,6 +117,7 @@ public final class GpuResidentBodies {
         void close(){
             for(Object batch:batches.keySet()){Map<?,?> parts=(Map<?,?>)api.batchParts.get(batch);for(Profile profile:profiles.values())parts.remove(profile.geometry);}
             for(Profile profile:profiles.values()){profile.draw.close();geometries.remove(profile.geometry);}if(uvBuffer!=0)GL15.glDeleteBuffers(uvBuffer);
+            if(palette!=null)palette.close();
             uvBuffer=0;profiles.clear();instances.clear();batches.clear();budget.release(main);
         }
     }

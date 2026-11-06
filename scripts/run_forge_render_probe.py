@@ -120,7 +120,7 @@ def prepare(args):
                 if cera_quality:
                     meta["client"] = ["CeraAdmission072GameProbe", "CeraAdmission072WorldProbe", "CeraAdmission072PlayerProbe", "CeraAdmission072SubmitProbe",
                                       "CeraAdmission072ClockProbe", "CeraAdmission072VoxelProbe", "CeraAdmission072NativeListProbe", "CeraAdmission072AnalyticProbe",
-                                      "CeraAdmission072PoolProbe", "CeraAdmission072DrawProbe", "CeraAdmission072PreparationProbe", "CeraAdmission072LeaseProbe", "PlayerPipeline072ChunksAccess", "PlayerPipeline072ChunkStateAccess", "PlayerPipeline072ChunkMapAccess"]
+                                      "CeraAdmission072PoolProbe", "CeraAdmission072DrawProbe", "CeraAdmission072PreparationProbe", "CeraAdmission072LeaseProbe", "ResolvedInstance072ScreenClick", "PlayerPipeline072ChunksAccess", "PlayerPipeline072ChunkStateAccess", "PlayerPipeline072ChunkMapAccess"]
                 for mixin in meta["client"]:
                     assert meta["package"].replace(".", "/") + "/" + mixin + ".class" in source.namelist(), "Selected QA class is absent: " + mixin
                 raw = json.dumps(meta).encode()

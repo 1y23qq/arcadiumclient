@@ -37,7 +37,8 @@
     "ScoreboardPreparation065SortProbe",
     "ScoreboardPreparation065VisibilityProbe",
     "ScoreboardPreparation065MutationProbe",
-    "HypixelLabKeyProbe"
+    "HypixelLabKeyProbe",
+    "ResidentBody072LifecycleProbe"
   ],
   "injectors": {
     "defaultRequire": 1

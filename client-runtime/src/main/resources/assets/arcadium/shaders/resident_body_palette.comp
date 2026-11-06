@@ -1,0 +1,18 @@
+#version 430
+// SPDX-License-Identifier: GPL-3.0-only
+layout(local_size_x=64) in;
+layout(std430,binding=0) buffer BonePalette { float boneWords[]; };
+layout(std430,binding=1) readonly buffer Jobs { uint jobTokens[]; };
+uniform uint jobCount;
+uniform uint rowCount;
+void main() {
+    uint index=gl_GlobalInvocationID.x,collected=index/12u,part=index%12u;
+    if(collected>=jobCount)return;
+    uint token=jobTokens[collected],job=token&65535u;
+    if(job>=rowCount||((token>>16u)&(1u<<part))==0u)return;
+    mat4 pose=playerPart(job*16u+part);
+    uint outputOffset=(job*12u+part)*12u;
+    if(outputOffset+11u>=uint(boneWords.length()))return;
+    for(uint column=0u;column<4u;column++)for(uint row=0u;row<3u;row++)
+        boneWords[outputOffset+column*3u+row]=pose[column][row];
+}

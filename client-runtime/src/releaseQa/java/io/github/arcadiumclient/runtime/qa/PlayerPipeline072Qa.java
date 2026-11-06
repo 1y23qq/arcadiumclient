@@ -41,6 +41,8 @@ public final class PlayerPipeline072Qa {
     private static final boolean BASELINE = Boolean.getBoolean("arcadium.playerPipeline072.baseline");
     private static final boolean PROFILING = Boolean.getBoolean("arcadium.playerPipeline072.profiling");
     private static final String RESIDENT_BODY_MODE=System.getProperty("arcadium.residentBodies072.mode","off");
+    private static final boolean RESIDENT_BODY_PERFORMANCE=Boolean.getBoolean("arcadium.residentBodies072.performanceQualified");
+    private static final boolean RESIDENT_BODY_SHARED=Boolean.getBoolean("arcadium.residentBodies072.sharedPalette");
     private static final boolean NATIVE_BODY_CONTROL = Boolean.getBoolean("arcadium.playerPipeline072.nativeBodyControl");
     private static final boolean NATIVE_VOXEL_ROOT_CONTROL=Boolean.getBoolean("arcadium.playerPipeline072.nativeVoxelRootControl");
     private static final int PLAYERS = Integer.getInteger("arcadium.playerPipeline072.players", 20);
@@ -84,6 +86,7 @@ public final class PlayerPipeline072Qa {
 
     private PlayerPipeline072Qa() {}
     public static boolean enabled() { return System.getProperty("arcadium.playerPipeline072.output") != null; }
+    public static boolean timingActive(){return enabled()&&!done&&phase==3;}
     public static float delta(float original) { return enabled() && VISUAL ? .5f : original; }
     public static boolean sceneReady() { return enabled() && !done && phase >= 2 && world != null && Minecraft.getInstance().world == world; }
 
@@ -92,7 +95,7 @@ public final class PlayerPipeline072Qa {
         Minecraft mc = Minecraft.getInstance();
         try {
             ActorPacket072Qa.check();
-            require(Set.of("off","control","active").contains(RESIDENT_BODY_MODE)&&(RESIDENT_BODY_MODE.equals("off")||VISUAL&&!BASELINE),"Private resident bodies require an explicit optimized visual fixture");
+            require(Set.of("off","control","active").contains(RESIDENT_BODY_MODE)&&(RESIDENT_BODY_MODE.equals("off")||!BASELINE&&(VISUAL||RESIDENT_BODY_PERFORMANCE&&!PROFILING)),"Private resident bodies require an explicit optimized visual or qualified unprofiled fixture");
             require("ArcadiumTest".equals(mc.getSession().getUsername()) && "0".equals(mc.getSession().getAccessToken()), "Use only the owned offline fixture");
             require(List.of("default", "3d-skin", "wavy", "skin+wavy").contains(SCENE), "Unknown scene");
             require(Set.of(3, 20, 50).contains(PLAYERS), "Use 3, 20 or 50 players");
@@ -324,9 +327,10 @@ public final class PlayerPipeline072Qa {
         result.put("unfocusedFpsEnabled", OneConfigConfig.limitUnfocusedFps);
         result.put("camera", Map.of("x", mc.player.x, "y", mc.player.y, "z", mc.player.z, "yaw", mc.player.yaw, "pitch", mc.player.pitch));
         result.put("gpuTimers", false); result.put("gpuReadbacksDuringTiming", false); result.put("fixedDeltaDuringTiming", false);
-        result.put("profiling", PROFILING); result.put("notFinalPerformance", PROFILING||NATIVE_VOXEL_ROOT_CONTROL||!RESIDENT_BODY_MODE.equals("off"));
+        result.put("profiling", PROFILING); result.put("notFinalPerformance", PROFILING||NATIVE_VOXEL_ROOT_CONTROL||!RESIDENT_BODY_MODE.equals("off")||RESIDENT_BODY_PERFORMANCE);
         result.put("nativeBodyControl", NATIVE_BODY_CONTROL);
         result.put("residentBodyMode",RESIDENT_BODY_MODE);
+        result.put("residentBodySharedPalette",RESIDENT_BODY_SHARED);
         result.put("nativeVoxelRootControl",NATIVE_VOXEL_ROOT_CONTROL);
         return result;
     }
@@ -404,7 +408,8 @@ public final class PlayerPipeline072Qa {
             if(RESIDENT_BODY_MODE.equals("control"))require(counter("GpuResidentBodies","actorsQueued")==phaseResidentActors,"Shader control unexpectedly replaced native body records");
             else if(!effectiveSkin||gpuVoxels()) {
                 require(counter("GpuResidentBodies","actorsQueued")>phaseResidentActors&&counter("GpuResidentBodies","actorsDrawn")>phaseResidentDraws,"Whole-body records did not reach actual GPU drawing");
-                for(Actor actor:actors){RenderTrace trace=renderTraces.get(actor);require(trace!=null&&trace.resident==1,"An expected actor did not queue exactly one whole-body record: "+actor.getName());}
+                if(RESIDENT_BODY_SHARED)require(counter("GpuResidentBodies","sharedPoseDispatches")>0&&counter("GpuResidentBodies","sharedPoseReuses")>0&&counter("GpuResidentBodies","sharedPoseFallbacks")==0&&counter("GpuResidentBodies","lateBodyCaptures")==0,"The shared body palette did not run or fell back unexpectedly");
+                if(VISUAL)for(Actor actor:actors){RenderTrace trace=renderTraces.get(actor);require(trace!=null&&trace.resident==1,"An expected actor did not queue exactly one whole-body record: "+actor.getName());}
             }
         }
         if(NATIVE_VOXEL_ROOT_CONTROL){
@@ -825,7 +830,7 @@ public final class PlayerPipeline072Qa {
         if (failure == null && NameReset072Qa.enabled()) try { report.put("nativeNameResetProof", NameReset072Qa.verify()); } catch (Throwable error) { failure = error; }
         if (failure == null && ActorPacket072Qa.enabled()) try { report.put("nativeActorPacketProof", ActorPacket072Qa.verify()); } catch (Throwable error) { failure = error; }
         done = true; report.put("passed", failure == null); report.put("syntheticOffline", true); report.put("phase", phase);
-        report.put("profiling", PROFILING); report.put("diagnosticOnly", PROFILING||NATIVE_VOXEL_ROOT_CONTROL); report.put("notFinalPerformance", PROFILING||NATIVE_VOXEL_ROOT_CONTROL);
+        report.put("profiling", PROFILING); report.put("diagnosticOnly", PROFILING||NATIVE_VOXEL_ROOT_CONTROL||!RESIDENT_BODY_MODE.equals("off")||RESIDENT_BODY_PERFORMANCE); report.put("notFinalPerformance", PROFILING||NATIVE_VOXEL_ROOT_CONTROL||!RESIDENT_BODY_MODE.equals("off")||RESIDENT_BODY_PERFORMANCE);
         report.put("scope", NATIVE_VOXEL_ROOT_CONTROL ? "Correctness-only original-callback body root and GPU voxel diagnostic on the pinned pre-admission main. No FPS qualification."
                 : PROFILING ? "Diagnostic-only JFR capture; timing includes profiler overhead and is not final FPS evidence. Owned offline synthetic players."
                 : "Owned local synthetic player rendering fixture; not real Hypixel performance or another PC measurement.");

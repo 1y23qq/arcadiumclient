@@ -54,14 +54,17 @@ public final class GpuResidentBodyShaderState {
         } catch(RuntimeException|Error failure){end(token);throw failure;}
     }
     static int beginOwned(int bones,int uv,int actors,int profiles) {
+        return beginOwned(bones,uv,actors,profiles,1);
+    }
+    static int beginOwned(int bones,int uv,int actors,int profiles,int mode) {
         int program=GL11.glGetInteger(GL20.GL_CURRENT_PROGRAM),record=index(program);
-        if(!GpuResidentBodyShaders.active()||record<0||!verified[record]||actors<1||actors>8192||profiles<1||profiles>256)
+        if(!GpuResidentBodyShaders.active()||record<0||!verified[record]||actors<1||actors>8192||profiles<1||profiles>256||(mode!=1&&mode!=2))
             throw new IllegalStateException("Resident body draw has no verified native program");
         int token=save(program,locations[record]);
         try {
             extent(bones,(long)actors*12*12*4);extent(uv,(long)profiles*36*4);
             GL30.glBindBufferBase(GL43.GL_SHADER_STORAGE_BUFFER,0,bones);GL30.glBindBufferBase(GL43.GL_SHADER_STORAGE_BUFFER,1,uv);
-            GL41.glProgramUniform1i(program,locations[record],1);ownedBinds++;return token;
+            GL41.glProgramUniform1i(program,locations[record],mode);ownedBinds++;return token;
         } catch(RuntimeException|Error failure){end(token);throw failure;}
     }
     private static int save(int program,int location) {

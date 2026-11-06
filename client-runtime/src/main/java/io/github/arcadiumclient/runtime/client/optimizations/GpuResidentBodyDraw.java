@@ -31,7 +31,7 @@ final class GpuResidentBodyDraw {
             actorUniform=GL20.glGetUniformLocation(candidate,"actorCount");if(actorUniform<0)throw new IllegalStateException("Resident bone count uniform is absent");poseProgram=candidate;accepted=true;return true;
         } finally {GL20.glDeleteShader(shader);if(!accepted)GL20.glDeleteProgram(candidate);}
     }
-    private static String read(String name){try(var stream=GpuResidentBodyDraw.class.getResourceAsStream("/assets/arcadium/shaders/"+name)){if(stream==null)throw new IllegalStateException("Missing resident body shader");return new String(stream.readAllBytes(),StandardCharsets.UTF_8);}catch(java.io.IOException failure){throw new IllegalStateException(failure);}}
+    static String read(String name){try(var stream=GpuResidentBodyDraw.class.getResourceAsStream("/assets/arcadium/shaders/"+name)){if(stream==null)throw new IllegalStateException("Missing resident body shader");return new String(stream.readAllBytes(),StandardCharsets.UTF_8);}catch(java.io.IOException failure){throw new IllegalStateException(failure);}}
 
     void prepare(int program) {
         if(arrays.containsKey(program))return;if(arrays.size()==4)throw new IllegalStateException("Resident body program budget reached");
@@ -49,7 +49,7 @@ final class GpuResidentBodyDraw {
     }
     private static void pointer(int location,int count,int type,boolean normalized,int stride,long offset,int divisor){GL20.glEnableVertexAttribArray(location);GL20.glVertexAttribPointer(location,count,type,normalized,stride,offset);GL33.glVertexAttribDivisor(location,divisor);}
 
-    void draw(IntBuffer payload,int count,int uvBuffer,int profiles,int reservedCapacity) {
+    void draw(IntBuffer payload,int count,int uvBuffer,int profiles,int reservedCapacity,GpuResidentBodyPalette palette) {
         if(count<1||count>8192||!payload.isDirect()||payload.order()!=ByteOrder.nativeOrder()||payload.remaining()!=count*19||reservedCapacity<count||reservedCapacity>8192)
             throw new IllegalStateException("Invalid resident body draw range");
         int program=GL11.glGetInteger(GL20.GL_CURRENT_PROGRAM);prepare(program);
@@ -57,7 +57,9 @@ final class GpuResidentBodyDraw {
         try {
             capacity=Math.max(capacity,reservedCapacity);
             GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER,instanceBuffer);GL15.glBufferData(GL15.GL_ARRAY_BUFFER,(long)capacity*76,GL15.GL_STREAM_DRAW);GL15.glBufferSubData(GL15.GL_ARRAY_BUFFER,0,payload);
-            expand(program,count);int token=GpuResidentBodyShaderState.beginOwned(bones,uvBuffer,count,profiles);
+            int shared=palette==null?0:palette.prepare(payload);
+            if(shared==0)expand(program,count);
+            int token=GpuResidentBodyShaderState.beginOwned(shared==0?bones:shared,uvBuffer,shared==0?count:palette.rows(),profiles,shared==0?1:2);
             try {GL30.glBindVertexArray(arrays.get(program));GL31.glDrawArraysInstanced(GL11.GL_QUADS,0,288,count);GpuResidentBodies.drawCalls++;GpuResidentBodies.actorsDrawn+=count;}
             finally {GpuResidentBodyShaderState.end(token);}
         } finally {GL30.glBindVertexArray(oldArray);GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER,oldBuffer);}

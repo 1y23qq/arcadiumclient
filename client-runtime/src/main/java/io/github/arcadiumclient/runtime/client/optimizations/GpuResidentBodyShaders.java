@@ -45,7 +45,8 @@ public final class GpuResidentBodyShaders {
         if(uArcResidentBodies!=0) {
             uint bone=uint(aTexCoord.x),profile=uint(aBoxTexture.z),mask=uint(aBoxTexture.y);
             if(bone>=12u||profile>=256u||uint(aBoxTexture.x)>=8192u||(mask&(1u<<bone))==0u) {arcClipBodyVertex();return;}
-            uint matrixOffset=(uint(gl_InstanceID)*12u+bone)*12u,uv=profile*36u+bone*3u;
+            uint actor=uArcResidentBodies==2?uint(aBoxTexture.x):uint(gl_InstanceID);
+            uint matrixOffset=(actor*12u+bone)*12u,uv=profile*36u+bone*3u;
             if(matrixOffset+11u>=uint(arcBoneWords.length())||uv+2u>=uint(arcUvWords.length())) {arcClipBodyVertex();return;}
             model=arcBodyMatrix(matrixOffset);
             uvec3 arcMetadata=uvec3(arcUvWords[uv],arcUvWords[uv+1u],arcUvWords[uv+2u]);
