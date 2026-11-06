@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 #include "arc_scene.h"
 #include "arc_scene_passes.h"
+#include "arc_scene_lease.h"
 #include "arc_scene_metal_objects.h"
 #import <Foundation/Foundation.h>
 #import <Metal/Metal.h>
@@ -8,6 +9,9 @@
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
+#include <pthread.h>
+#include <stdatomic.h>
+#include <stdbool.h>
 
 static _Thread_local char arc_global_error[1024];
 static const uint64_t arc_resident_limit = UINT64_C(512) * 1024 * 1024;
@@ -23,6 +27,9 @@ static const uint64_t arc_resident_limit = UINT64_C(512) * 1024 * 1024;
 
 @interface ArcResidentScene : NSObject {
 @public char error[1024];
+@public atomic_int deviceLease, targetLease;
+@public atomic_bool frameInFlight;
+@public pthread_t ownerThread;
 }
 @property(nonatomic, strong) id<MTLDevice> device;
 @property(nonatomic, strong) id<MTLCommandQueue> queue;
@@ -50,6 +57,9 @@ static const uint64_t arc_resident_limit = UINT64_C(512) * 1024 * 1024;
 @property(atomic) BOOL commandFailed;
 @property(nonatomic) uint32_t storedAttachments;
 @property(atomic) uint64_t completedPasses;
+@property(nonatomic, strong) dispatch_group_t externalWork;
+@property(atomic) BOOL externallyClosed;
+@property(nonatomic) uint64_t targetGeneration;
 @end
 @implementation ArcResidentScene
 @end
@@ -67,7 +77,12 @@ static int arc_fail(ArcResidentScene *scene, NSString *message, int status) {
     return status;
 }
 static BOOL arc_acquire(ArcResidentScene *scene) {
-    return scene && dispatch_semaphore_wait(scene.permit, DISPATCH_TIME_NOW) == 0;
+    if (!scene || scene.externallyClosed || atomic_load(&scene->targetLease) != 0
+        || dispatch_semaphore_wait(scene.permit, DISPATCH_TIME_NOW) != 0) return NO;
+    if (scene.externallyClosed || atomic_load(&scene->targetLease) != 0) {
+        dispatch_semaphore_signal(scene.permit); return NO;
+    }
+    return YES;
 }
 static void arc_release(ArcResidentScene *scene) { dispatch_semaphore_signal(scene.permit); }
 static BOOL arc_id(int identifier) { return identifier >= 1 && identifier <= 4095; }
@@ -88,6 +103,8 @@ void *arc_scene_create(int capacity, int actor_stride, int vertex_stride, int un
             arc_fail(nil, @"Invalid resident scene layout", ARC_INVALID); return NULL;
         }
         ArcResidentScene *scene = [ArcResidentScene new];
+        scene->ownerThread = pthread_self(); atomic_init(&scene->deviceLease, 0); atomic_init(&scene->targetLease, 0);
+        atomic_init(&scene->frameInFlight, false); scene.externalWork = dispatch_group_create();
         scene.device = MTLCreateSystemDefaultDevice();
         if (!scene.device) { arc_fail(nil, @"No Metal device is available", ARC_UNAVAILABLE); return NULL; }
         scene.queue = [scene.device newCommandQueue];
@@ -118,7 +135,10 @@ void arc_scene_destroy(void *pointer) {
     @autoreleasepool {
         if (!pointer) return;
         ArcResidentScene *scene = (__bridge_transfer ArcResidentScene *) pointer;
-        if (dispatch_semaphore_wait(scene.permit, dispatch_time(DISPATCH_TIME_NOW, INT64_C(5000000000))) == 0)
+        scene.externallyClosed = YES;
+        dispatch_time_t deadline = dispatch_time(DISPATCH_TIME_NOW, INT64_C(5000000000));
+        if (atomic_load(&scene->targetLease) != 1) (void)dispatch_group_wait(scene.externalWork, deadline);
+        if (dispatch_semaphore_wait(scene.permit, deadline) == 0)
             dispatch_semaphore_signal(scene.permit);
     }
 }
@@ -231,6 +251,7 @@ int arc_scene_write(void *pointer, uint64_t offset, const void *bytes, uint64_t 
 
 static int arc_targets(ArcResidentScene *scene, int width, int height) {
     if (scene.color.width == (NSUInteger) width && scene.color.height == (NSUInteger) height) return ARC_OK;
+    if (scene.targetGeneration == UINT64_MAX) return ARC_INVALID;
     uint64_t size = 0;
     if (!arc_scene_rgba_bytes(width, height, &size)) return ARC_INVALID;
     uint64_t old = (uint64_t) scene.color.width * scene.color.height * 8;
@@ -244,7 +265,7 @@ static int arc_targets(ArcResidentScene *scene, int width, int height) {
     id<MTLTexture> color = [scene.device newTextureWithDescriptor:color_descriptor];
     id<MTLTexture> depth = [scene.device newTextureWithDescriptor:depth_descriptor];
     if (!color || !depth) return arc_fail(scene, @"Metal target allocation failed", ARC_FAILED);
-    scene.color = color; scene.depth = depth; scene.storedAttachments = 0;
+    scene.color = color; scene.depth = depth; scene.storedAttachments = 0; scene.targetGeneration++;
     return ARC_OK;
 }
 
@@ -298,6 +319,7 @@ int arc_scene_submit(void *pointer, int width, int height, const void *uniforms,
         scene.storedAttachments = ARC_ATTACH_COLOR;
         scene.submitted++;
         scene.commandFailed = NO;
+        atomic_store(&scene->frameInFlight, true);
         [command addCompletedHandler:^(id<MTLCommandBuffer> completed) {
             ArcResidentScene *retained = scene;
             retained.completed++;
@@ -308,7 +330,7 @@ int arc_scene_submit(void *pointer, int width, int height, const void *uniforms,
                 retained.commandFailed = YES;
                 arc_fail(retained, completed.error.localizedDescription ?: @"Metal command execution failed", ARC_FAILED);
             }
-            arc_release(retained);
+            atomic_store(&retained->frameInFlight, false); arc_release(retained);
         }];
         [command commit];
         return ARC_OK;
@@ -317,8 +339,10 @@ int arc_scene_submit(void *pointer, int width, int height, const void *uniforms,
 
 int arc_scene_wait(void *pointer) {
     ArcResidentScene *scene = arc_context(pointer);
-    if (!scene) return ARC_INVALID;
-    if (dispatch_semaphore_wait(scene.permit, dispatch_time(DISPATCH_TIME_NOW, INT64_C(5000000000))) != 0) {
+    if (!scene || scene.externallyClosed) return ARC_INVALID;
+    if (atomic_load(&scene->targetLease) == 1) return ARC_BUSY;
+    dispatch_time_t deadline = dispatch_time(DISPATCH_TIME_NOW, INT64_C(5000000000));
+    if (dispatch_group_wait(scene.externalWork, deadline) != 0 || dispatch_semaphore_wait(scene.permit, deadline) != 0) {
         return arc_fail(scene, @"Metal frame did not complete within five seconds", ARC_FAILED);
     }
     BOOL failed = scene.commandFailed;
@@ -451,12 +475,13 @@ int arc_scene_submit_passes(void *pointer, int width, int height, const void *un
             [encoder endEncoding];
         }
         scene.submitted++; scene.storedAttachments = stored;
+        atomic_store(&scene->frameInFlight, true);
         [command addCompletedHandler:^(id<MTLCommandBuffer> completed) {
             scene.completed++; scene.drawCalls += draws; scene.completedPasses += (uint64_t)pass_count;
             if (completed.status == MTLCommandBufferStatusError) {
                 scene.commandFailed = YES; arc_fail(scene, completed.error.localizedDescription ?: @"Ordered Metal pass failed", ARC_FAILED);
             }
-            arc_release(scene);
+            atomic_store(&scene->frameInFlight, false); arc_release(scene);
         }];
         [command commit]; return ARC_OK;
     }
@@ -549,6 +574,9 @@ uint64_t arc_scene_query(void *pointer, int key) {
         case 7: return scene.passPipelines.count;
         case 8: return scene.completedPasses;
         case 9: return scene.storedAttachments;
+        case 10: return (uint64_t)atomic_load(&scene->deviceLease);
+        case 11: return (uint64_t)atomic_load(&scene->targetLease);
+        case 12: return scene.targetGeneration;
         default: return 0;
     }
 }
@@ -560,13 +588,98 @@ int arc_scene_reset(void *pointer) {
         int result = arc_scene_wait(pointer);
         if (result != ARC_OK) return result;
         if (!arc_acquire(scene)) return ARC_BUSY;
+        if (scene.targetGeneration == UINT64_MAX) { arc_release(scene); return ARC_INVALID; }
         [scene.meshes removeAllObjects];
         [scene.materials removeAllObjects];
         [scene.passPipelines removeAllObjects];
         scene.meshBytes = scene.materialBytes = 0;
-        scene.color = nil; scene.depth = nil; scene.storedAttachments = 0;
+        scene.color = nil; scene.depth = nil; scene.storedAttachments = 0; scene.targetGeneration++;
         memset(scene.actors.contents, 0, scene.actors.length);
         memset(scene.uniforms.contents, 0, scene.uniforms.length);
         arc_release(scene); return ARC_OK;
+    }
+}
+
+@interface ArcMetalLease : NSObject
+@property(nonatomic, strong) ArcResidentScene *scene;
+@property(nonatomic, strong) id<MTLDevice> device;
+@property(nonatomic, strong) id<MTLCommandQueue> queue;
+@property(nonatomic, strong) id<MTLTexture> texture;
+@property(nonatomic) int kind;
+@property(nonatomic) uint64_t frame, generation;
+@property(nonatomic) BOOL released;
+@end
+@implementation ArcMetalLease
+@end
+
+int arc_scene_metal_lease_abi(void) { return 1; }
+int arc_scene_metal_lease_acquire(void *pointer, int kind, uint64_t frame, void **out) {
+    @autoreleasepool {
+    if (!out) return ARC_INVALID;
+    *out = NULL;
+    ArcResidentScene *scene = arc_context(pointer);
+    if (!scene || scene.externallyClosed || !pthread_equal(scene->ownerThread, pthread_self())
+        || (kind != ARC_METAL_DEVICE_LEASE && kind != ARC_METAL_TARGET_LEASE)
+        || (kind == ARC_METAL_DEVICE_LEASE && frame != 0)) return ARC_INVALID;
+    atomic_int *flag = kind == ARC_METAL_DEVICE_LEASE ? &scene->deviceLease : &scene->targetLease;
+    int expected = 0;
+    if (!atomic_compare_exchange_strong(flag, &expected, 1)) return ARC_BUSY;
+    BOOL held = NO;
+    if (kind == ARC_METAL_TARGET_LEASE) {
+        held = dispatch_semaphore_wait(scene.permit, DISPATCH_TIME_NOW) == 0;
+        if (!held && !atomic_load(&scene->frameInFlight)) {
+            atomic_store(flag, 0); return ARC_BUSY;
+        }
+        if (!frame || frame != scene.submitted || !(scene.storedAttachments & ARC_ATTACH_COLOR)
+            || !scene.color || !scene.targetGeneration || scene.externallyClosed) {
+            if (held) arc_release(scene);
+            atomic_store(flag, 0); return ARC_INVALID;
+        }
+    }
+    if (scene.externallyClosed) { if (held) arc_release(scene); atomic_store(flag, 0); return ARC_INVALID; }
+    ArcMetalLease *lease = [ArcMetalLease new];
+    if (!lease) { if (held) arc_release(scene); atomic_store(flag, 0); return ARC_FAILED; }
+    lease.scene = scene; lease.device = scene.device; lease.queue = scene.queue; lease.kind = kind;
+    if (kind == ARC_METAL_TARGET_LEASE) {
+        lease.texture = scene.color; lease.generation = scene.targetGeneration; lease.frame = frame;
+        dispatch_group_enter(scene.externalWork);
+    }
+    if (held) arc_release(scene);
+    *out = (__bridge_retained void *)lease;
+    return ARC_OK;
+    }
+}
+
+int arc_scene_metal_lease_info(void *pointer, arc_scene_metal_info *out) {
+    if (!out) return ARC_INVALID;
+    memset(out, 0, sizeof(*out));
+    ArcMetalLease *lease = (__bridge ArcMetalLease *)pointer;
+    if (!lease || lease.released || lease.scene.externallyClosed
+        || !pthread_equal(lease.scene->ownerThread, pthread_self())) return ARC_INVALID;
+    if (lease.kind == ARC_METAL_TARGET_LEASE && (lease.frame != lease.scene.submitted
+        || lease.generation != lease.scene.targetGeneration || lease.texture != lease.scene.color)) return ARC_INVALID;
+    *out = (arc_scene_metal_info){lease.frame, lease.generation, (uint32_t)lease.texture.width, (uint32_t)lease.texture.height,
+        (uint64_t)(uintptr_t)(__bridge void *)lease.device, (uint64_t)(uintptr_t)(__bridge void *)lease.queue,
+        (uint64_t)(uintptr_t)(__bridge void *)lease.texture};
+    return ARC_OK;
+}
+
+int arc_scene_metal_lease_release(void *pointer) {
+    @autoreleasepool {
+    ArcMetalLease *lease = (__bridge ArcMetalLease *)pointer;
+    if (!lease || lease.released || !pthread_equal(lease.scene->ownerThread, pthread_self())) return ARC_INVALID;
+    id<MTLCommandBuffer> fence = [lease.queue commandBuffer];
+    if (!fence) return ARC_FAILED;
+    ArcResidentScene *scene = lease.scene;
+    atomic_int *flag = lease.kind == ARC_METAL_DEVICE_LEASE ? &scene->deviceLease : &scene->targetLease;
+    if (lease.kind == ARC_METAL_DEVICE_LEASE) dispatch_group_enter(scene.externalWork);
+    lease.released = YES; atomic_store(flag, 2);
+    [fence addCompletedHandler:^(id<MTLCommandBuffer> completed) {
+        if (completed.status == MTLCommandBufferStatusError) scene.commandFailed = YES;
+        atomic_store(lease.kind == ARC_METAL_DEVICE_LEASE ? &scene->deviceLease : &scene->targetLease, 0);
+        dispatch_group_leave(scene.externalWork);
+    }];
+    [fence commit]; (void)CFBridgingRelease(pointer);
+    return ARC_OK;
     }
 }

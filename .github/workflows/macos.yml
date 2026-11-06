@@ -18,6 +18,12 @@ on:
       pylon_sha256:
         type: string
         description: Exact Pylon JAR SHA-256, also checked against the source component catalog
+      skiko_tag:
+        type: string
+        description: Optional private input tag for the actual shipped Skiko Metal lease smoke
+      skiko_sha256:
+        type: string
+        description: Exact whitelisted Skiko/font archive SHA-256
       metal_client_tag:
         type: string
         description: Optional draft input tag for the private fake-account Minecraft composition probe
@@ -245,19 +251,36 @@ jobs:
         run: |
           test -n "$PYLON_SHA256"
           gh release download "$PYLON_TAG" --repo "$GITHUB_REPOSITORY" --pattern ArcadiumPylon-1.8.9.jar --dir "$RUNNER_TEMP/pylon-surface"
+      - name: Fetch optional pinned Skiko Metal input
+        if: inputs.skiko_tag != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SKIKO_TAG: ${{ inputs.skiko_tag }}
+          SKIKO_SHA256: ${{ inputs.skiko_sha256 }}
+        run: |
+          test -n "$SKIKO_SHA256"
+          gh release download "$SKIKO_TAG" --repo "$GITHUB_REPOSITORY" --pattern ArcadiumSkikoMetalInputs-073.zip --dir "$RUNNER_TEMP/skiko-metal"
       - name: Compile and test the native Metal prototype
         env:
           CFLAGS: -Werror=unguarded-availability -Werror=unguarded-availability-new
           OBJCFLAGS: -Werror=unguarded-availability -Werror=unguarded-availability-new
           PYLON_TAG: ${{ inputs.pylon_tag }}
           PYLON_SHA256: ${{ inputs.pylon_sha256 }}
+          SKIKO_TAG: ${{ inputs.skiko_tag }}
+          SKIKO_SHA256: ${{ inputs.skiko_sha256 }}
         run: |
+          args=(--arch '${{ matrix.arch }}')
           if [ -n "$PYLON_TAG" ]; then
-            python3 client-runtime/native/renderer/build.py --arch '${{ matrix.arch }}' --pylon-jar "$RUNNER_TEMP/pylon-surface/ArcadiumPylon-1.8.9.jar" --pylon-sha256 "$PYLON_SHA256"
+            args+=(--pylon-jar "$RUNNER_TEMP/pylon-surface/ArcadiumPylon-1.8.9.jar" --pylon-sha256 "$PYLON_SHA256")
           else
             test -z "$PYLON_SHA256"
-            python3 client-runtime/native/renderer/build.py --arch '${{ matrix.arch }}'
           fi
+          if [ -n "$SKIKO_TAG" ]; then
+            args+=(--skiko-inputs "$RUNNER_TEMP/skiko-metal/ArcadiumSkikoMetalInputs-073.zip" --skiko-sha256 "$SKIKO_SHA256")
+          else
+            test -z "$SKIKO_SHA256"
+          fi
+          python3 client-runtime/native/renderer/build.py "${args[@]}"
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
         if: inputs.metal_client_tag != ''
         with:

@@ -17,6 +17,8 @@ public final class MetalResidentSceneBackend implements PassSceneBackend {
     private MethodHandle error, destroy, pipeline, mesh, material, removeMesh, removeMaterial,
             write, submit, await, read, query, reset;
     private MethodHandle passPipeline,removePassPipeline,submitPasses,readDepth;
+    private MethodHandle acquireMetalLease,metalLeaseInfo,releaseMetalLease;
+    private MetalDeviceLease deviceLease;
     private MemorySegment context;
     private SymbolLookup symbols;
     private Runnable releasePresentation;
@@ -61,6 +63,15 @@ public final class MetalResidentSceneBackend implements PassSceneBackend {
                     readDepth=function(linker,lookup,"arc_scene_read_depth",FunctionDescriptor.of(JAVA_INT,ADDRESS,ADDRESS,JAVA_LONG));
                 }
             }
+            if(lookup.find("arc_scene_metal_lease_abi").isPresent()&&lookup.find("arc_scene_metal_lease_acquire").isPresent()
+                    &&lookup.find("arc_scene_metal_lease_info").isPresent()&&lookup.find("arc_scene_metal_lease_release").isPresent()) {
+                var leaseAbi=function(linker,lookup,"arc_scene_metal_lease_abi",FunctionDescriptor.of(JAVA_INT));
+                if((int)leaseAbi.invokeExact()==1) {
+                    acquireMetalLease=function(linker,lookup,"arc_scene_metal_lease_acquire",FunctionDescriptor.of(JAVA_INT,ADDRESS,JAVA_INT,JAVA_LONG,ADDRESS));
+                    metalLeaseInfo=function(linker,lookup,"arc_scene_metal_lease_info",FunctionDescriptor.of(JAVA_INT,ADDRESS,ADDRESS));
+                    releaseMetalLease=function(linker,lookup,"arc_scene_metal_lease_release",FunctionDescriptor.of(JAVA_INT,ADDRESS));
+                }
+            }
             var create = function(linker, lookup, "arc_scene_create", FunctionDescriptor.of(ADDRESS, JAVA_INT, JAVA_INT, JAVA_INT, JAVA_INT));
             context = (MemorySegment) create.invokeExact(layout.actorCapacity(), layout.actorStride(), layout.vertexStride(), layout.uniformBytes());
             if (context.address() == 0) throw new IllegalStateException(nativeError());
@@ -91,9 +102,40 @@ public final class MetalResidentSceneBackend implements PassSceneBackend {
     MemorySegment presentationContext() { ready();return context; }
     void ownPresentation(Runnable cleanup) { presentationAvailable();releasePresentation=java.util.Objects.requireNonNull(cleanup); }
 
-    private void ready() {
+    private void ownerLive() {
         if (Thread.currentThread() != owner) throw new IllegalStateException("The resident backend belongs to its render thread");
         if (context == null || context.address() == 0) throw new IllegalStateException("The resident backend is closed");
+    }
+    private void ready() {
+        ownerLive();if(deviceLease!=null&&deviceLease.blocksBackend())throw new IllegalStateException("Finish the owned Metal target/resource scope before mutating its scene");
+    }
+
+    public MetalDeviceLease metalDeviceLease() {
+        ready();if(acquireMetalLease==null)throw new UnsupportedOperationException("The native library has no compatible Metal lifetime leases");
+        if(deviceLease!=null&&!deviceLease.isClosed())throw new IllegalStateException("The backend already owns a device lease");
+        deviceLease=new MetalDeviceLease(new MetalDeviceLease.Calls() {
+            @Override public void ownerLive(){MetalResidentSceneBackend.this.ownerLive();}
+            @Override public MetalDeviceLease.Acquisition acquire(int kind,long frame) {
+                try(Arena output=Arena.ofConfined()) {
+                    MemorySegment pointer=output.allocate(ADDRESS);pointer.set(ADDRESS,0,MemorySegment.NULL);
+                    int code=(int)acquireMetalLease.invokeExact(context,kind,frame,pointer);
+                    return new MetalDeviceLease.Acquisition(code,pointer.get(ADDRESS,0).address());
+                }catch(Throwable failure){throw propagate(failure);}
+            }
+            @Override public MetalDeviceLease.InfoResult info(long token) {
+                try(Arena output=Arena.ofConfined()) {
+                    MemorySegment data=output.allocate(48,8);data.fill((byte)0);
+                    int code=(int)metalLeaseInfo.invokeExact(MemorySegment.ofAddress(token),data);
+                    return new MetalDeviceLease.InfoResult(code,new MetalDeviceLease.Info(data.get(JAVA_LONG,0),data.get(JAVA_LONG,8),
+                            data.get(JAVA_INT,16),data.get(JAVA_INT,20),data.get(JAVA_LONG,24),data.get(JAVA_LONG,32),data.get(JAVA_LONG,40)));
+                }catch(Throwable failure){throw propagate(failure);}
+            }
+            @Override public int release(long token) {
+                try{return (int)releaseMetalLease.invokeExact(MemorySegment.ofAddress(token));}catch(Throwable failure){throw propagate(failure);}
+            }
+        });
+        try{deviceLease.open();return deviceLease;}
+        catch(RuntimeException|Error failure){try{deviceLease.close();}catch(Throwable cleanup){if(cleanup!=failure)failure.addSuppressed(cleanup);}throw failure;}
     }
 
     private String nativeError() {
@@ -214,6 +256,7 @@ public final class MetalResidentSceneBackend implements PassSceneBackend {
     @Override public void close() {
         if (Thread.currentThread() != owner) throw new IllegalStateException("The resident backend belongs to its render thread");
         if (context == null || context.address() == 0) return;
+        if(deviceLease!=null&&!deviceLease.isClosed())deviceLease.close();
         if(releasePresentation!=null){releasePresentation.run();releasePresentation=null;}
         try { destroy.invokeExact(context); }
         catch (Throwable failure) { throw propagate(failure); }

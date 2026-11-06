@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 #include "arc_scene.h"
 #include "arc_scene_passes.h"
+#include "arc_scene_lease.h"
+#include <string.h>
 
 static const char message[1024] = "Metal is unavailable on this operating system; keep the OpenGL backend";
 int arc_scene_abi(void) { return 1; }
@@ -30,3 +32,11 @@ int arc_scene_submit_passes(void *c, int w, int h, const void *u, uint64_t n, co
     (void)c; (void)w; (void)h; (void)u; (void)n; (void)p; (void)pc; (void)d; (void)dc; return ARC_UNAVAILABLE;
 }
 int arc_scene_read_depth(void *c, void *d, uint64_t n) { (void)c; (void)d; (void)n; return ARC_UNAVAILABLE; }
+int arc_scene_metal_lease_abi(void) { return 1; }
+int arc_scene_metal_lease_acquire(void *c, int kind, uint64_t frame, void **out) {
+    (void)c; (void)kind; (void)frame; if (out) *out = NULL; return ARC_UNAVAILABLE;
+}
+int arc_scene_metal_lease_info(void *lease, arc_scene_metal_info *out) {
+    (void)lease; if (out) memset(out, 0, sizeof(*out)); return ARC_UNAVAILABLE;
+}
+int arc_scene_metal_lease_release(void *lease) { (void)lease; return ARC_UNAVAILABLE; }

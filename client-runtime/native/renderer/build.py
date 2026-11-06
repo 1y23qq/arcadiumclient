@@ -53,10 +53,18 @@ def main() -> None:
     parser.add_argument("--pylon-jar", type=Path)
     parser.add_argument("--pylon-sha256")
     parser.add_argument("--hosted-layer-experiment", action="store_true")
+    parser.add_argument("--skiko-inputs", type=Path)
+    parser.add_argument("--skiko-sha256")
     arguments = parser.parse_args()
     if bool(arguments.pylon_jar) != bool(arguments.pylon_sha256):
         parser.error("--pylon-jar and --pylon-sha256 must be supplied together")
     pylon = validate_pylon_input(arguments.pylon_jar, arguments.pylon_sha256, root) if arguments.pylon_jar else None
+    if bool(arguments.skiko_inputs) != bool(arguments.skiko_sha256):
+        parser.error("--skiko-inputs and --skiko-sha256 must be supplied together")
+    skiko = None
+    if arguments.skiko_inputs:
+        from skiko_probe_inputs import validate
+        skiko = validate(arguments.skiko_inputs, arguments.skiko_sha256, root)
     output = (arguments.output or root / "build/resident-renderer" / arguments.arch).resolve()
     output.mkdir(parents=True, exist_ok=True)
     commands: list[list[str]] = []
@@ -85,11 +93,14 @@ def main() -> None:
     failed_tests = [case.get("name") for case in test_cases if case.find("failure") is not None or case.find("error") is not None]
     if ctest_code == 0 and failed_tests:
         raise RuntimeError("CTest status disagrees with its failed native XML results")
-    if ctest_code != 0 and failed_tests != ["metal_current_frame_presentation"]:
-        raise RuntimeError("Native contract or scene tests failed; do not continue independent presentation probes")
     pass_result = output / "native/metal-pass-result.json"
     if pass_result.is_file():
         shutil.copyfile(pass_result, output / "metal-pass-result.json")
+    lease_result = output / "native/metal-lease-result.json"
+    if lease_result.is_file():
+        shutil.copyfile(lease_result, output / "metal-lease-result.json")
+    if ctest_code != 0 and failed_tests != ["metal_current_frame_presentation"]:
+        raise RuntimeError("Native contract or scene tests failed; do not continue independent presentation probes")
     below_code = None
     if sys.platform == "darwin":
         below_code = run([str(output / "native/arcadium_metal_presentation_test"), "-1"], "native-surface-below.log", None)
@@ -110,7 +121,7 @@ def main() -> None:
         raise RuntimeError(f"Expected exactly one native library, found {libraries}")
     library = libraries[0]
     java_source = root / "client-runtime/src/main/java/io/github/arcadiumclient/runtime/client/optimizations/backend"
-    java_files = [java_source / name for name in ("ResidentSceneBackend.java", "PassSceneBackend.java", "ScenePasses.java", "SceneBufferChecks.java", "MetalResidentSceneBackend.java",
+    java_files = [java_source / name for name in ("ResidentSceneBackend.java", "PassSceneBackend.java", "ScenePasses.java", "MetalDeviceLease.java", "SceneBufferChecks.java", "MetalResidentSceneBackend.java",
                                                "MetalPresentationCalls.java", "MetalPresentFrame.java")]
     java_files += sorted((source / "tests").glob("*.java"))
     java_output = output / "java"
@@ -125,10 +136,34 @@ def main() -> None:
         presentation_probe = run([java, "--enable-native-access=ALL-UNNAMED", "-cp", str(java_output),
                                   "io.github.arcadiumclient.runtime.client.optimizations.backend.UnsupportedPresentationBindingsProbe", str(library)],
                                  "java-presentation-probe.log") == 0
+    skiko_status = "not-requested"
+    if skiko is not None:
+        from skiko_probe_inputs import unpack, run_owned
+        skiko_directory = output / "skiko-inputs"
+        unpack(arguments.skiko_inputs, arguments.skiko_sha256, root, skiko_directory)
+        skiko_classes = output / "skiko-java"
+        skiko_cp = os.pathsep.join([str(java_output), *map(str, sorted(skiko_directory.glob("*.jar")))])
+        run([javac, "-cp", skiko_cp, "-d", str(skiko_classes), str(source / "tests/skiko/MetalSkikoLeaseProbe.java")], "java-skiko-compile.log")
+        skiko_status = "compiled-not-applicable"
+        if sys.platform == "darwin":
+            fixture = output / "skiko-smoke"
+            result_path = output / "java-skiko-metal-result.json"
+            properties = {"user.home": str(fixture / "home"), "java.io.tmpdir": str(fixture / "tmp"), "java.awt.headless": "true",
+                "skiko.gc.auto": "false", "skiko.rendering.useScreenMenuBar": "false", "skiko.rendering.laf.global": "false",
+                "http.proxyHost": "127.0.0.1", "http.proxyPort": "9", "https.proxyHost": "127.0.0.1", "https.proxyPort": "9",
+                "socksProxyHost": "127.0.0.1", "socksProxyPort": "9"}
+            command = [java, "-XstartOnFirstThread", "--enable-native-access=ALL-UNNAMED", *["-D" + k + "=" + v for k, v in properties.items()],
+                "-cp", os.pathsep.join([str(skiko_classes), skiko_cp]),
+                "io.github.arcadiumclient.runtime.client.optimizations.backend.MetalSkikoLeaseProbe", str(library),
+                hashlib.sha256(library.read_bytes()).hexdigest(), str(source / "tests/reference_scene.metal"),
+                str(skiko_directory / "Poppins-Regular.ttf"), str(result_path)]
+            process = run_owned(command, fixture, output / "java-skiko-metal.log", output / "java-skiko-process.json")
+            result = json.loads(result_path.read_text()) if result_path.exists() else {}
+            skiko_status = "passed" if process["passed"] and result.get("passed") is True and result.get("actualMetalDirectContext") is True else "failed"
     pylon_status = "not-requested"
     if pylon is not None:
         pylon_output = output / "pylon-java"
-        pylon_sources = [java_source / name for name in ("ResidentSceneBackend.java", "PassSceneBackend.java", "ScenePasses.java", "SceneBufferChecks.java",
+        pylon_sources = [java_source / name for name in ("ResidentSceneBackend.java", "PassSceneBackend.java", "ScenePasses.java", "MetalDeviceLease.java", "SceneBufferChecks.java",
                          "MetalResidentSceneBackend.java", "MetalPresentationCalls.java", "MetalPresentFrame.java", "MetalCompositeSurface.java")]
         pylon_sources.append(source / "tests/pylon/MetalPylonPresentationProbe.java")
         run([javac, "-cp", pylon["path"], "-d", str(pylon_output), *map(str, pylon_sources)], "java-pylon-compile.log")
@@ -154,8 +189,10 @@ def main() -> None:
             pylon_status = "passed"
         else:
             pylon_status = "skipped-no-device" if sys.platform == "darwin" else "compiled-not-applicable"
-    report = {"passed": ctest_code == 0 and below_code in (None, 0, 77), "platform": sys.platform, "architecture": arguments.arch,
+    report = {"passed": ctest_code == 0 and below_code in (None, 0, 77) and skiko_status != "failed", "platform": sys.platform, "architecture": arguments.arch,
               "orderedPassNativeProof": json.loads(pass_result.read_text()) if pass_result.is_file() else None,
+              "metalLifetimeNativeProof": json.loads(lease_result.read_text()) if lease_result.is_file() else None,
+              "actualSkikoMetalLeaseSmoke": skiko_status, "skikoInputSha256": skiko["sha256"] if skiko else None,
               "nativeCTestExitCode": ctest_code, "failedNativeTests": failed_tests,
               "hostedLayerExperiment": arguments.hosted_layer_experiment,
               "nativeSurfaceBelowProbe": below_code,
@@ -171,6 +208,8 @@ def main() -> None:
     print(json.dumps({key: value for key, value in report.items() if key not in {"commands", "nativeLibrary"}}, indent=2))
     if ctest_code != 0 or below_code not in (None, 0, 77):
         raise RuntimeError("Native presentation DISPLAYED gate failed; independent probe results are preserved, not accepted as a suite pass")
+    if skiko_status == "failed":
+        raise RuntimeError("The actual pinned Skiko Metal lease smoke failed; preserve the owned terminal receipt")
 
 
 if __name__ == "__main__":
