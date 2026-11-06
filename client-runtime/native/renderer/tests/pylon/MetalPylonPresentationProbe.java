@@ -8,9 +8,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Locale;
+import java.lang.foreign.*;
+import java.lang.invoke.MethodHandle;
 import org.lwjgl.opengl.DisplayMode;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.CGL;
 import org.lwjgl.opengl.PixelFormat;
 import pl.tomgirl.pylon.window.DisplaySdl;
 import pl.tomgirl.pylon.window.GlSurface;
@@ -23,6 +24,35 @@ public final class MetalPylonPresentationProbe {
     private static final DisplaySdl display=DisplaySdl.instance();
     private static final List<Map<String,Object>> frames=new ArrayList<>();
     private static String stage="start";
+    private static final class Cgl {
+        static final int SURFACE_ORDER=235;
+        static final Arena libraryArena=Arena.ofAuto();
+        static final SymbolLookup symbols=SymbolLookup.libraryLookup("/System/Library/Frameworks/OpenGL.framework/OpenGL",libraryArena);
+        static final Linker linker=Linker.nativeLinker();
+        static final MethodHandle current=function("CGLGetCurrentContext",FunctionDescriptor.of(ValueLayout.ADDRESS));
+        static final MethodHandle get=function("CGLGetParameter",FunctionDescriptor.of(ValueLayout.JAVA_INT,ValueLayout.ADDRESS,ValueLayout.JAVA_INT,ValueLayout.ADDRESS));
+        static final MethodHandle set=function("CGLSetParameter",FunctionDescriptor.of(ValueLayout.JAVA_INT,ValueLayout.ADDRESS,ValueLayout.JAVA_INT,ValueLayout.ADDRESS));
+        static MethodHandle function(String name,FunctionDescriptor descriptor) {
+            return linker.downcallHandle(symbols.find(name).orElseThrow(()->new UnsupportedOperationException("Required CGL test symbol is absent: "+name)),descriptor);
+        }
+        static long current() {
+            try { return ((MemorySegment)current.invokeExact()).address(); }
+            catch(Throwable error){throw new IllegalStateException("Current CGL test context is unavailable",error);}
+        }
+        static int get(long context) {
+            try(Arena arena=Arena.ofConfined()) {
+                MemorySegment value=arena.allocate(ValueLayout.JAVA_INT);
+                int code=(int)get.invokeExact(MemorySegment.ofAddress(context),SURFACE_ORDER,value);
+                require(code==0,"CGL test parameter read failed");return value.get(ValueLayout.JAVA_INT,0);
+            } catch(Throwable error){throw new IllegalStateException("CGL test parameter read failed",error);}
+        }
+        static int set(long context,int value) {
+            try(Arena arena=Arena.ofConfined()) {
+                MemorySegment input=arena.allocate(ValueLayout.JAVA_INT);input.set(ValueLayout.JAVA_INT,0,value);
+                return (int)set.invokeExact(MemorySegment.ofAddress(context),SURFACE_ORDER,input);
+            } catch(Throwable error){throw new IllegalStateException("CGL test parameter write failed",error);}
+        }
+    }
 
     private static final class OriginalSurface implements GpuSurface {
         final GlSurface delegate=new GlSurface(new PixelFormat());
@@ -55,30 +85,26 @@ public final class MetalPylonPresentationProbe {
             require(SDL_GL_GetCurrentContext()==context,"The original GL context changed");
             require((SDL_GetWindowFlags(window)&SDL_WINDOW_OPENGL)!=0,"The SDL window lost OpenGL ownership");
             require((SDL_GetWindowFlags(window)&SDL_WINDOW_METAL)==0,"The live SDL window was converted to Metal");
-            if(cglContext!=0)require(CGL.CGLGetCurrentContext()==cglContext,"The original CGL context changed");
+            if(cglContext!=0)require(Cgl.current()==cglContext,"The original CGL context changed");
         }
         int surfaceOrder() {
-            require(cglContext!=0&&CGL.CGLGetCurrentContext()==cglContext,"Surface order requires the original current CGL context");
-            try(var stack=org.lwjgl.system.MemoryStack.stackPush()) {
-                var value=stack.mallocInt(1);
-                require(CGL.CGLGetParameter(cglContext,CGL.kCGLCPSurfaceOrder,value)==CGL.kCGLNoError,"CGL surface order read failed");
-                return value.get(0);
-            }
+            require(cglContext!=0&&Cgl.current()==cglContext,"Surface order requires the original current CGL context");
+            return Cgl.get(cglContext);
         }
         void configureSurfaceOrder(int value,Map<String,Object> report) {
-            this.report=report;cglContext=CGL.CGLGetCurrentContext();savedSurfaceOrder=surfaceOrder();
+            this.report=report;cglContext=Cgl.current();savedSurfaceOrder=surfaceOrder();
             require(savedSurfaceOrder==0,"Fresh control CGL surface order is not zero");requestedSurfaceOrder=value;
             report.put("originalSurfaceOrder",savedSurfaceOrder);report.put("requestedSurfaceOrder",value);
             if(value!=savedSurfaceOrder) {
                 surfaceOrderChanged=true;
-                require(CGL.CGLSetParameter(cglContext,CGL.kCGLCPSurfaceOrder,value)==CGL.kCGLNoError,"CGL surface order setup failed");
+                require(Cgl.set(cglContext,value)==0,"CGL surface order setup failed");
             }
             require(surfaceOrder()==value,"The selected CGL surface order did not apply");
         }
         void restoreSurfaceOrder() {
             if(!surfaceOrderChanged)return;
-            require(CGL.CGLGetCurrentContext()==cglContext,"Cannot restore a foreign or released CGL context");
-            require(CGL.CGLSetParameter(cglContext,CGL.kCGLCPSurfaceOrder,savedSurfaceOrder)==CGL.kCGLNoError,
+            require(Cgl.current()==cglContext,"Cannot restore a foreign or released CGL context");
+            require(Cgl.set(cglContext,savedSurfaceOrder)==0,
                     "Original CGL surface order restoration failed");
             require(surfaceOrder()==savedSurfaceOrder,"Original CGL surface order was not restored");
             surfaceOrderChanged=false;report.put("surfaceOrderRestoredBeforeFallbackAndClose",true);
