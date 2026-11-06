@@ -30,6 +30,11 @@ on:
       metal_client_defaults_sha256:
         type: string
         description: Exact fresh-profile defaults certificate SHA-256
+      presentation_ownership:
+        type: choice
+        default: backed
+        options: [backed, compare-hosted]
+        description: Optional isolated compositor-owned hosted layer comparison
 
 permissions:
   contents: read
@@ -257,6 +262,17 @@ jobs:
         if: inputs.metal_client_tag != ''
         with:
           python-version: '3.13'
+      - name: Compare compositor-owned hosted layer presentation
+        if: always() && inputs.presentation_ownership == 'compare-hosted'
+        env:
+          CFLAGS: -Werror=unguarded-availability -Werror=unguarded-availability-new
+          OBJCFLAGS: -Werror=unguarded-availability -Werror=unguarded-availability-new
+          PYLON_TAG: ${{ inputs.pylon_tag }}
+          PYLON_SHA256: ${{ inputs.pylon_sha256 }}
+        run: |
+          test -n "$PYLON_TAG"
+          test -n "$PYLON_SHA256"
+          python3 client-runtime/native/renderer/build.py --arch '${{ matrix.arch }}' --output 'build/resident-renderer/${{ matrix.arch }}-hosted' --hosted-layer-experiment --pylon-jar "$RUNNER_TEMP/pylon-surface/ArcadiumPylon-1.8.9.jar" --pylon-sha256 "$PYLON_SHA256"
       - name: Fetch optional pinned fake-client inputs
         if: inputs.metal_client_tag != ''
         env:
@@ -337,6 +353,9 @@ jobs:
             build/resident-renderer/${{ matrix.arch }}/*.json
             build/resident-renderer/${{ matrix.arch }}/*.log
             build/resident-renderer/${{ matrix.arch }}/*.xml
+            build/resident-renderer/${{ matrix.arch }}-hosted/*.json
+            build/resident-renderer/${{ matrix.arch }}-hosted/*.log
+            build/resident-renderer/${{ matrix.arch }}-hosted/*.xml
             build/resident-renderer/${{ matrix.arch }}/ArcadiumMetalClient072-CI/evidence/
           if-no-files-found: warn
           retention-days: 7

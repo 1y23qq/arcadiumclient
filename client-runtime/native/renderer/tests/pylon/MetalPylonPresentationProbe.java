@@ -62,6 +62,7 @@ public final class MetalPylonPresentationProbe {
         require(!MainThread.DISPATCH,"Use -XstartOnFirstThread for this explicit main-thread SDL probe");
         Path output=Path.of(args[2]);Map<String,Object> report=new LinkedHashMap<>();
         report.put("case",args[3]);
+        report.put("expectedHostedOwnership",Boolean.getBoolean("arcadium.present072.expectedHostedLayer"));
         report.put("minecraft",false);report.put("skikoOrCeraQualified",false);report.put("performanceClaim",false);
         report.put("detailedObservationAfterDisplayDecisionOnly",true);
         Throwable failure=null;
@@ -93,6 +94,8 @@ public final class MetalPylonPresentationProbe {
         display.setHighPixelDensity(true);display.setResizable(true);
         original.owner=MetalCompositeSurface.prototype(backend,original,encoding);
         display.setSurface(original.owner);display.create(original);original.sameWindow();
+        require((original.owner.nativeCounter(72)==1)==Boolean.getBoolean("arcadium.present072.expectedHostedLayer"),
+                "The actual child-layer ownership differs from the selected experiment");
     }
     private static void currentFrames(Path library,Path shader,Map<String,Object> report,String pacingCase) throws Exception {
         MetalResidentSceneBackend backend=scene(library,shader);OriginalSurface original=new OriginalSurface();
@@ -188,6 +191,7 @@ public final class MetalPylonPresentationProbe {
         value.put("parentAttached",original.owner.nativeCounter(21)==1);value.put("windowVisible",original.owner.nativeCounter(22)==1);
         value.put("windowOcclusionVisible",original.owner.nativeCounter(23)==1);
         value.put("transactionalPresentation",original.owner.nativeCounter(24)==1);
+        value.put("hostedOwnership",original.owner.nativeCounter(72)==1);
         return value;
     }
     private static Map<String,Object> layerState(OriginalSurface original) {

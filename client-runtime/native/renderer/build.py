@@ -52,6 +52,7 @@ def main() -> None:
     parser.add_argument("--arch", choices=("arm64", "x64"), default="arm64" if platform.machine().lower() in {"arm64", "aarch64"} else "x64")
     parser.add_argument("--pylon-jar", type=Path)
     parser.add_argument("--pylon-sha256")
+    parser.add_argument("--hosted-layer-experiment", action="store_true")
     arguments = parser.parse_args()
     if bool(arguments.pylon_jar) != bool(arguments.pylon_sha256):
         parser.error("--pylon-jar and --pylon-sha256 must be supplied together")
@@ -68,7 +69,8 @@ def main() -> None:
             raise RuntimeError(f"{name} failed with exit code {result.returncode}; inspect {output / name}")
         return result.returncode
 
-    configure = ["cmake", "-S", str(source), "-B", str(output / "native")]
+    configure = ["cmake", "-S", str(source), "-B", str(output / "native"),
+                 "-DARC_PRESENT_HOSTED_EXPERIMENT=" + ("ON" if arguments.hosted_layer_experiment else "OFF")]
     if sys.platform == "darwin":
         configure += ["-DCMAKE_BUILD_TYPE=Release", "-DCMAKE_OSX_ARCHITECTURES=" + ("arm64" if arguments.arch == "arm64" else "x86_64"),
                       "-DCMAKE_OSX_DEPLOYMENT_TARGET=" + ("13.0" if arguments.arch == "arm64" else "12.0")]
@@ -126,7 +128,8 @@ def main() -> None:
             outcomes = []
             for case in ("transport", "transport-sync0", "transport-sync1", "fallback"):
                 result_path = output / f"java-pylon-{case}-result.json"
-                code = run([java, "-XstartOnFirstThread", "--enable-native-access=ALL-UNNAMED", "-cp",
+                code = run([java, "-XstartOnFirstThread", "--enable-native-access=ALL-UNNAMED",
+                     "-Darcadium.present072.expectedHostedLayer=" + str(arguments.hosted_layer_experiment).lower(), "-cp",
                      os.pathsep.join((str(pylon_output), pylon["path"])),
                      "io.github.arcadiumclient.runtime.client.optimizations.backend.MetalPylonPresentationProbe",
                      str(library), str(source / "tests/reference_scene.metal"), str(result_path), case],
@@ -144,6 +147,7 @@ def main() -> None:
             pylon_status = "skipped-no-device" if sys.platform == "darwin" else "compiled-not-applicable"
     report = {"passed": ctest_code == 0, "platform": sys.platform, "architecture": arguments.arch,
               "nativeCTestExitCode": ctest_code, "failedNativeTests": failed_tests,
+              "hostedLayerExperiment": arguments.hosted_layer_experiment,
               "nativeCompiled": True, "metalDeviceTest": metal_status,
               "javaMetalDeviceTest": "skipped-no-device" if probe_code == 77 else "passed" if sys.platform == "darwin" else "not-applicable",
               "javaNativeAbiProbe": probe_code == 0, "presentationIntegrated": False,

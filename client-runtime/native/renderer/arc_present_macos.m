@@ -62,6 +62,15 @@ static const uint64_t image_limit = UINT64_C(128) * 1024 * 1024;
 - (NSView *)hitTest:(NSPoint)point { (void)point; return nil; }
 @end
 
+#if defined(ARC_PRESENT_HOSTED_EXPERIMENT)
+@interface ArcHostedPresentationView : NSView
+@end
+@implementation ArcHostedPresentationView
+- (BOOL)isOpaque { return YES; }
+- (NSView *)hitTest:(NSPoint)point { (void)point; return nil; }
+@end
+#endif
+
 @interface ArcPresentation : NSObject {
 @public char error[1024];
 @public CGLContextObj context;
@@ -70,7 +79,8 @@ static const uint64_t image_limit = UINT64_C(128) * 1024 * 1024;
 @public uint64_t publishedLayer, publishedSuperlayer, publishedDrawableLayer, publishedView, publishedContentView, publishedDrawable;
 }
 @property(nonatomic, weak) NSWindow *window;
-@property(nonatomic, strong) ArcPresentationView *view;
+@property(nonatomic, strong) NSView *view;
+@property(nonatomic, strong) CAMetalLayer *ownedLayer;
 @property(nonatomic, strong) id<MTLDevice> device;
 @property(nonatomic, strong) id<MTLCommandQueue> queue;
 @property(nonatomic, strong) id<MTLRenderPipelineState> pipeline;
@@ -111,7 +121,8 @@ static BOOL renderContext(ArcPresentation *p) {
     return p && p->context && pthread_equal(p->renderThread, pthread_self()) && CGLGetCurrentContext() == p->context;
 }
 static void hideView(ArcPresentation *p) {
-    p.view.hidden = YES; p.hidden = YES; p.ticket = NO; p.fallbacks++;
+    p.view.hidden = YES; if (p.ownedLayer) p.ownedLayer.hidden = YES;
+    p.hidden = YES; p.ticket = NO; p.fallbacks++;
 }
 static void deleteImageGl(ArcPresentationImage *image) {
     if (image->framebuffer) glDeleteFramebuffersEXT(1, &image->framebuffer);
@@ -154,7 +165,15 @@ int arc_present_create(void *scene, void *windowPointer, void **out) {
             p.pipeline = [device newRenderPipelineStateWithDescriptor:descriptor error:&error];
             if (!p.pipeline || CVMetalTextureCacheCreate(kCFAllocatorDefault, NULL, device, NULL, &p->cache) != kCVReturnSuccess)
                 return ARC_PRESENT_UNAVAILABLE;
+#if defined(ARC_PRESENT_HOSTED_EXPERIMENT)
+            p.view = [[ArcHostedPresentationView alloc] initWithFrame:window.contentView.bounds];
+            p.ownedLayer = [CAMetalLayer layer];
+            p.ownedLayer.frame = NSRectToCGRect(p.view.bounds);
+            p.ownedLayer.hidden = YES;
+            p.view.layer = p.ownedLayer;
+#else
             p.view = [[ArcPresentationView alloc] initWithFrame:window.contentView.bounds];
+#endif
             p.view.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
             p.view.wantsLayer = YES; p.view.hidden = YES;
             CAMetalLayer *layer = (CAMetalLayer *)p.view.layer;
@@ -171,7 +190,7 @@ int arc_present_create(void *scene, void *windowPointer, void **out) {
             return ARC_PRESENT_OK;
         } @catch (NSException *exception) {
             (void)exception;
-            [p.view removeFromSuperview]; p.attached = NO; p.view = nil; p.window = nil;
+            [p.view removeFromSuperview]; p.attached = NO; p.view = nil; p.ownedLayer = nil; p.window = nil;
             return ARC_PRESENT_FAILED;
         }
     }
@@ -283,7 +302,8 @@ int arc_present_publish(void *value, uint64_t frame) {
         BOOL submitted = NO;
         @try {
             NSView *parent = p.window.contentView;
-            if (!parent || p.view.superview != parent || ![p.view.layer isKindOfClass:CAMetalLayer.class]) {
+            if (!parent || p.view.superview != parent || ![p.view.layer isKindOfClass:CAMetalLayer.class]
+                    || (p.ownedLayer && p.view.layer != p.ownedLayer)) {
                 hideView(p); return failure(p, @"The owned Metal view is detached from its original window", ARC_PRESENT_UNAVAILABLE);
             }
             CAMetalLayer *layer = (CAMetalLayer *)p.view.layer;
@@ -299,6 +319,7 @@ int arc_present_publish(void *value, uint64_t frame) {
                     hideView(p); return failure(p, @"The current window and framebuffer sizes are inconsistent", ARC_PRESENT_UNAVAILABLE);
                 }
                 p.view.frame = bounds; [p.view layoutSubtreeIfNeeded];
+                if (p.ownedLayer) { p.ownedLayer.frame = NSRectToCGRect(p.view.bounds); p.ownedLayer.hidden = NO; }
                 layer.displaySyncEnabled = p.preparedSwapInterval != 0;
                 layer.contentsScale = sy; layer.drawableSize = CGSizeMake(p.image.width, p.image.height);
                 p.view.hidden = NO; p.hidden = NO;
@@ -371,7 +392,7 @@ int arc_present_destroy(void *value) {
     if (!value) return ARC_PRESENT_OK;
     ArcPresentation *p = bridge(value);
     if (!mainThread() || !p.glReleased) return ARC_PRESENT_INVALID;
-    hideView(p); [p.view removeFromSuperview]; p.attached = NO; p.view = nil; p.window = nil;
+    hideView(p); [p.view removeFromSuperview]; p.attached = NO; p.view = nil; p.ownedLayer = nil; p.window = nil;
     [CATransaction flush];
     (void)CFBridgingRelease(value);
     return ARC_PRESENT_OK;
@@ -430,6 +451,7 @@ uint64_t arc_present_query(void *value, int key) {
             case ARC_PRESENT_WINDOW_VISIBLE: return p.window.isVisible;
             case ARC_PRESENT_WINDOW_OCCLUSION_VISIBLE: return (p.window.occlusionState & NSWindowOcclusionStateVisible) != 0;
             case ARC_PRESENT_WITH_TRANSACTION: return layer.presentsWithTransaction;
+            case ARC_PRESENT_HOSTED_OWNERSHIP: return p.ownedLayer && layer == p.ownedLayer;
             case ARC_PRESENT_CHILD_WINDOW_MATCH: return p.window && p.view.window == p.window;
             case ARC_PRESENT_PARENT_VIEW_ID: return presentationObjectId(parent);
             case ARC_PRESENT_CHILD_SUPERVIEW_ID: return presentationObjectId(p.view.superview);
