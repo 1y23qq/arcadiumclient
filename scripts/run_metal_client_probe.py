@@ -5,6 +5,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import stat
 import subprocess
 import sys
@@ -16,6 +17,15 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'scripts'))
 from test_forge_compat_runtime import child_environment
 
+BOOLEAN_DEFAULT_KEYS = frozenset((
+    'cachedNameMasking', 'cachedFontMetrics', 'batchedVanillaFont', 'gpuNameTags',
+    'retainedNameTagScenes', 'compactNameTagPreparation', 'fastInvisibleHolograms',
+    'reduceRenderHookAllocations', 'efficientMotionBlur', 'retainedScoreboardPreparation',
+    'gpuParticles', 'retainedParticleRecipes', 'retainedHudBatches', 'gpuModelTransforms',
+    'gpuPlayerPipeline', 'residentPlayerState', 'gpuVoxelSkinLayers', 'gpuEquipmentPipeline',
+    'directFramebufferPresentation', 'gpuTerrainCommands', 'worldRenderScale',
+))
+
 
 def digest(path):
     with path.open('rb') as stream:
@@ -26,13 +36,24 @@ def write(path, value):
     path.write_text(json.dumps(value, indent=2) + '\n', encoding='utf-8')
 
 
+def read_defaults(path, expected_digest):
+    assert re.fullmatch('[0-9a-f]{64}', expected_digest or ''), 'Missing defaults certificate checksum'
+    assert path.is_file() and path.stat().st_size <= 64 * 1024, 'Missing or oversized defaults certificate'
+    assert digest(path) == expected_digest, 'Defaults certificate checksum mismatch'
+    defaults = json.loads(path.read_text(encoding='utf-8-sig'))
+    boolean_defaults = defaults['guiBooleanDefaults']
+    assert set(boolean_defaults) == BOOLEAN_DEFAULT_KEYS, 'Unknown Beta default properties'
+    assert all(type(value) is bool for value in boolean_defaults.values()), 'Defaults must be booleans'
+    assert sum(boolean_defaults.values()) == 20 and boolean_defaults['worldRenderScale'] is False
+    assert re.fullmatch('[0-9a-f]{64}', defaults['main']['sha256']), 'Missing runtime checksum'
+    return defaults
+
+
 def prepare(arguments):
     assert len(arguments.inputs_sha256) == 64 and digest(arguments.inputs) == arguments.inputs_sha256
     assert len(arguments.qa_sha256) == 64 and digest(arguments.qa) == arguments.qa_sha256
-    defaults = json.loads(arguments.defaults_proof.read_text(encoding='utf-8-sig'))
+    defaults = read_defaults(arguments.defaults_proof, arguments.defaults_sha256)
     boolean_defaults = defaults['guiBooleanDefaults']
-    assert len(boolean_defaults) == 21 and sum(value is True for value in boolean_defaults.values()) == 20
-    assert boolean_defaults['worldRenderScale'] is False
     if not arguments.control_gl:
         assert arguments.native_library and arguments.native_sha256 and digest(arguments.native_library) == arguments.native_sha256
         assert arguments.shader and arguments.shader_sha256 and digest(arguments.shader) == arguments.shader_sha256
@@ -90,7 +111,9 @@ def prepare(arguments):
     marker = {'schema': 'arcadium.metal-client072.fixture.v1', 'syntheticOffline': True, 'root': str(root),
               'evidence': str(root / 'evidence'), 'controlGl': arguments.control_gl,
               'baseInputSha256': arguments.inputs_sha256, 'qaSourceSha256': arguments.qa_sha256,
-              'featureSha256': manifest['sourceRuntimeSha256'], 'capCorrectnessOnly': 60}
+              'featureSha256': manifest['sourceRuntimeSha256'], 'capCorrectnessOnly': 60,
+              'defaultsProofSha256': arguments.defaults_sha256,
+              'runnerSha256': digest(Path(__file__)), 'sourceCommit': arguments.source_commit}
     marker.update(expectedBooleanDefaults=boolean_defaults, storedOffReloadProof=arguments.stored_off_reload)
     if not arguments.control_gl:
         marker.update(nativeLibrary=str(arguments.native_library.resolve()), nativeSha256=arguments.native_sha256,
@@ -130,6 +153,8 @@ def main():
     parser.add_argument('--qa', required=True, type=Path)
     parser.add_argument('--qa-sha256', required=True)
     parser.add_argument('--defaults-proof', required=True, type=Path)
+    parser.add_argument('--defaults-sha256', required=True)
+    parser.add_argument('--source-commit')
     parser.add_argument('--fixture', required=True, type=Path)
     parser.add_argument('--java', required=True, type=Path)
     parser.add_argument('--native-library', type=Path)
@@ -140,12 +165,14 @@ def main():
     parser.add_argument('--stored-off-reload', action='store_true')
     parser.add_argument('--launch', action='store_true')
     arguments = parser.parse_args()
+    assert arguments.source_commit is None or re.fullmatch('[0-9a-f]{40}', arguments.source_commit)
     root, command = prepare(arguments)
     print(json.dumps({'fixture': str(root), 'launched': False}), flush=True)
     if not arguments.launch:
         return
     started = time.monotonic()
     natural = False
+    forced = False
     with (root / 'evidence/console.log').open('wb') as log:
         kwargs = {'creationflags': subprocess.CREATE_NO_WINDOW} if os.name == 'nt' else {}
         child = subprocess.Popen(command, cwd=root / 'game', env=child_environment(root / 'game'),
@@ -158,13 +185,16 @@ def main():
             code = child.wait(timeout=240)
             natural = True
         except subprocess.TimeoutExpired:
+            forced = True
             child.kill()
             code = child.wait(timeout=10)
     result_path = root / 'evidence/result.json'
     result = json.loads(result_path.read_text()) if result_path.is_file() else {}
     report = {'passed': natural and code == 0 and result.get('passed', False), 'naturalExit': natural,
               'exitCode': code, 'seconds': time.monotonic() - started, 'pid': child.pid, 'fixture': str(root),
-              'fakeClient': True, 'performanceClaim': False, 'result': result}
+              'fakeClient': True, 'performanceClaim': False, 'result': result,
+              'forcedTermination': forced, 'terminationVerified': child.poll() is not None,
+              'runnerSha256': digest(Path(__file__)), 'sourceCommit': arguments.source_commit}
     write(root / 'evidence/run.json', report)
     print(json.dumps({key: report[key] for key in ('passed', 'naturalExit', 'exitCode', 'seconds')}), flush=True)
     raise SystemExit(0 if report['passed'] else 1)

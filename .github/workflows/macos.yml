@@ -18,6 +18,18 @@ on:
       pylon_sha256:
         type: string
         description: Exact Pylon JAR SHA-256, also checked against the source component catalog
+      metal_client_tag:
+        type: string
+        description: Optional draft input tag for the private fake-account Minecraft composition probe
+      metal_client_sha256:
+        type: string
+        description: Exact public-input archive SHA-256
+      metal_client_qa_sha256:
+        type: string
+        description: Exact compiled private QA JAR SHA-256
+      metal_client_defaults_sha256:
+        type: string
+        description: Exact fresh-profile defaults certificate SHA-256
 
 permissions:
   contents: read
@@ -241,6 +253,82 @@ jobs:
             test -z "$PYLON_SHA256"
             python3 client-runtime/native/renderer/build.py --arch '${{ matrix.arch }}'
           fi
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        if: inputs.metal_client_tag != ''
+        with:
+          python-version: '3.13'
+      - name: Fetch optional pinned fake-client inputs
+        if: inputs.metal_client_tag != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          METAL_CLIENT_TAG: ${{ inputs.metal_client_tag }}
+          METAL_CLIENT_SHA256: ${{ inputs.metal_client_sha256 }}
+          METAL_CLIENT_QA_SHA256: ${{ inputs.metal_client_qa_sha256 }}
+          METAL_CLIENT_DEFAULTS_SHA256: ${{ inputs.metal_client_defaults_sha256 }}
+          PYLON_TAG: ${{ inputs.pylon_tag }}
+        run: |
+          python3 - <<'PY'
+          import os,re
+          assert re.fullmatch(r'ci-metal-client-072-[a-f0-9]{8,64}', os.environ['METAL_CLIENT_TAG'])
+          assert os.environ['PYLON_TAG'], 'The actual Pylon SDL Metal surface probe is required first'
+          for name in ('METAL_CLIENT_SHA256','METAL_CLIENT_QA_SHA256','METAL_CLIENT_DEFAULTS_SHA256'):
+              assert re.fullmatch(r'[a-f0-9]{64}', os.environ[name]), 'Missing exact private input checksum'
+          PY
+          gh release download "$METAL_CLIENT_TAG" --repo "$GITHUB_REPOSITORY" --dir "$RUNNER_TEMP/metal-client" --pattern ArcadiumMetalClientPublicInputs-072.zip --pattern ArcadiumMetalClientQa-072.jar --pattern ArcadiumMetalClientDefaults-072.json
+      - name: Test actual Minecraft Skiko composition through the private Metal surface
+        if: inputs.metal_client_tag != ''
+        env:
+          METAL_CLIENT_SHA256: ${{ inputs.metal_client_sha256 }}
+          METAL_CLIENT_QA_SHA256: ${{ inputs.metal_client_qa_sha256 }}
+          METAL_CLIENT_DEFAULTS_SHA256: ${{ inputs.metal_client_defaults_sha256 }}
+          PROBE_ARCH: ${{ matrix.arch }}
+        run: |
+          python3 - <<'PY'
+          import hashlib,json,os,pathlib,subprocess,sys
+          root=pathlib.Path.cwd()
+          output=root/'build/resident-renderer'/os.environ['PROBE_ARCH']
+          inputs=pathlib.Path(os.environ['RUNNER_TEMP'])/'metal-client'
+          verification_path=output/'verification.json'
+          verification=json.loads(verification_path.read_text())
+          assert verification['passed'] and verification['javaSdlMetalSurface']=='passed'
+          assert verification['metalDeviceTest']=='passed' and verification['nativeWindowPresentation']=='passed'
+          native=pathlib.Path(verification['nativeLibrary']).resolve(strict=True)
+          assert native.is_relative_to((output/'native').resolve()) and native.suffix=='.dylib'
+          shader=root/'client-runtime/native/renderer/tests/reference_scene.metal'
+          def sha(path):
+              with path.open('rb') as source: return hashlib.file_digest(source,'sha256').hexdigest()
+          fixture=output/'ArcadiumMetalClient072-CI'
+          command=[sys.executable,'scripts/run_metal_client_probe.py',
+              '--inputs',str(inputs/'ArcadiumMetalClientPublicInputs-072.zip'),'--inputs-sha256',os.environ['METAL_CLIENT_SHA256'],
+              '--qa',str(inputs/'ArcadiumMetalClientQa-072.jar'),'--qa-sha256',os.environ['METAL_CLIENT_QA_SHA256'],
+              '--defaults-proof',str(inputs/'ArcadiumMetalClientDefaults-072.json'),'--defaults-sha256',os.environ['METAL_CLIENT_DEFAULTS_SHA256'],
+              '--source-commit',os.environ['GITHUB_SHA'],'--fixture',str(fixture),'--java',str(pathlib.Path(os.environ['JAVA_HOME'])/'bin/java'),
+              '--native-library',str(native),'--native-sha256',sha(native),'--shader',str(shader),'--shader-sha256',sha(shader),
+              '--stored-off-reload','--launch']
+          provenance={'sourceCommit':os.environ['GITHUB_SHA'],'runnerSha256':sha(root/'scripts/run_metal_client_probe.py'),
+              'nativeLibrarySha256':sha(native),'referenceShaderSha256':sha(shader),'nativeVerificationSha256':sha(verification_path),
+              'inputSha256':os.environ['METAL_CLIENT_SHA256'],'qaSha256':os.environ['METAL_CLIENT_QA_SHA256'],
+              'defaultsSha256':os.environ['METAL_CLIENT_DEFAULTS_SHA256'],'fakeAccountOnly':True,'performanceClaim':False}
+          (output/'metal-client-ci-inputs.json').write_text(json.dumps(provenance,indent=2)+'\n')
+          subprocess.run(command,check=True)
+          run_path=fixture/'evidence/run.json'
+          run=json.loads(run_path.read_text())
+          result=run['result']
+          assert run['passed'] and run['naturalExit'] and run['terminationVerified'] and not run['forcedTermination']
+          assert result['controlGl'] is False and result['freshDefaultsVerified'] and result['normalShutdownComplete']
+          captures=result['captures']
+          assert [row['name'] for row in captures]==['title','options','title-resized','title-gl-fallback']
+          previous=0
+          for row in captures[:3]:
+              assert row['metalDisplayed']>previous and row['metalSubmitted']>=row['metalDisplayed'] and row['originalGlSwaps']==0
+              previous=row['metalDisplayed']
+          assert captures[-1]['originalGlSwaps']>0 and result['skikoFlushes']>0 and result['composeSubmits']>0
+          for row in captures: assert sha(fixture/'evidence'/(row['name']+'.png'))==row['sha256']
+          qualification={**provenance,'passed':True,'runSha256':sha(run_path),'captures':captures,
+              'scope':'Real Minecraft title/Skiko options/resize/current-frame Metal transport/explicit GL fallback only',
+              'worldOrCeraQualified':False,'fullMetalRendererQualified':False,'publicGameRelease':False}
+          (output/'metal-client-qualification.json').write_text(json.dumps(qualification,indent=2)+'\n')
+          PY
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
@@ -249,5 +337,6 @@ jobs:
             build/resident-renderer/${{ matrix.arch }}/*.json
             build/resident-renderer/${{ matrix.arch }}/*.log
             build/resident-renderer/${{ matrix.arch }}/*.xml
+            build/resident-renderer/${{ matrix.arch }}/ArcadiumMetalClient072-CI/evidence/
           if-no-files-found: warn
           retention-days: 7
