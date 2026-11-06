@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Locale;
 import org.lwjgl.opengl.DisplayMode;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.CGL;
 import org.lwjgl.opengl.PixelFormat;
 import pl.tomgirl.pylon.window.DisplaySdl;
 import pl.tomgirl.pylon.window.GlSurface;
@@ -26,7 +27,10 @@ public final class MetalPylonPresentationProbe {
     private static final class OriginalSurface implements GpuSurface {
         final GlSurface delegate=new GlSurface(new PixelFormat());
         MetalCompositeSurface owner;
-        long window,context;
+        long window,context,cglContext;
+        int savedSurfaceOrder,requestedSurfaceOrder;
+        boolean surfaceOrderChanged;
+        Map<String,Object> report;
         int creates,swaps,destroys;
         @Override public long createWindow(String title,int width,int height,boolean resizable) {
             require(++creates==1,"Original window was created more than once");
@@ -36,6 +40,7 @@ public final class MetalPylonPresentationProbe {
         @Override public void makeCurrent() { delegate.makeCurrent(); }
         @Override public void releaseCurrent() { delegate.releaseCurrent(); }
         @Override public void swapBuffers() {
+            restoreSurfaceOrder();
             require(owner==null||owner.nativeCounter(ATTACHED)==0||owner.nativeCounter(HIDDEN)==1,
                     "OpenGL swap preceded confirmed child-layer hiding");
             swaps++;sameWindow();delegate.swapBuffers();
@@ -43,18 +48,46 @@ public final class MetalPylonPresentationProbe {
         @Override public void setVSyncEnabled(boolean enabled) { delegate.setVSyncEnabled(enabled); }
         @Override public void destroy() {
             require(owner==null||owner.nativeCounter(ATTACHED)==0,"SDL destruction preceded native child detachment");
-            destroys++;delegate.destroy();
+            try { restoreSurfaceOrder(); } finally { destroys++;delegate.destroy(); }
         }
         void sameWindow() {
             require(display.getHandle()==window&&SDL_GL_GetCurrentWindow()==window,"The original SDL window changed");
             require(SDL_GL_GetCurrentContext()==context,"The original GL context changed");
             require((SDL_GetWindowFlags(window)&SDL_WINDOW_OPENGL)!=0,"The SDL window lost OpenGL ownership");
             require((SDL_GetWindowFlags(window)&SDL_WINDOW_METAL)==0,"The live SDL window was converted to Metal");
+            if(cglContext!=0)require(CGL.CGLGetCurrentContext()==cglContext,"The original CGL context changed");
+        }
+        int surfaceOrder() {
+            require(cglContext!=0&&CGL.CGLGetCurrentContext()==cglContext,"Surface order requires the original current CGL context");
+            try(var stack=org.lwjgl.system.MemoryStack.stackPush()) {
+                var value=stack.mallocInt(1);
+                require(CGL.CGLGetParameter(cglContext,CGL.kCGLCPSurfaceOrder,value)==CGL.kCGLNoError,"CGL surface order read failed");
+                return value.get(0);
+            }
+        }
+        void configureSurfaceOrder(int value,Map<String,Object> report) {
+            this.report=report;cglContext=CGL.CGLGetCurrentContext();savedSurfaceOrder=surfaceOrder();
+            require(savedSurfaceOrder==0,"Fresh control CGL surface order is not zero");requestedSurfaceOrder=value;
+            report.put("originalSurfaceOrder",savedSurfaceOrder);report.put("requestedSurfaceOrder",value);
+            if(value!=savedSurfaceOrder) {
+                surfaceOrderChanged=true;
+                require(CGL.CGLSetParameter(cglContext,CGL.kCGLCPSurfaceOrder,value)==CGL.kCGLNoError,"CGL surface order setup failed");
+            }
+            require(surfaceOrder()==value,"The selected CGL surface order did not apply");
+        }
+        void restoreSurfaceOrder() {
+            if(!surfaceOrderChanged)return;
+            require(CGL.CGLGetCurrentContext()==cglContext,"Cannot restore a foreign or released CGL context");
+            require(CGL.CGLSetParameter(cglContext,CGL.kCGLCPSurfaceOrder,savedSurfaceOrder)==CGL.kCGLNoError,
+                    "Original CGL surface order restoration failed");
+            require(surfaceOrder()==savedSurfaceOrder,"Original CGL surface order was not restored");
+            surfaceOrderChanged=false;report.put("surfaceOrderRestoredBeforeFallbackAndClose",true);
         }
     }
 
     public static void main(String[] args) throws Exception {
-        if(args.length!=4||!List.of("transport","transport-sync0","transport-sync1","fallback").contains(args[3]))
+        if((args.length!=4&&args.length!=5)||!List.of("transport","transport-sync0","transport-sync1","fallback").contains(args[3])
+                ||args.length==5&&!List.of("0","-1").contains(args[4]))
             throw new IllegalArgumentException("Pass library, reference Metal shader, owned report path and transport[-sync0|-sync1]|fallback");
         if(!System.getProperty("os.name").toLowerCase(Locale.ROOT).contains("mac")) {
             System.out.println("SKIP: Real SDL/Metal presentation requires macOS");System.exit(77);return;
@@ -68,9 +101,9 @@ public final class MetalPylonPresentationProbe {
         Throwable failure=null;
         try {
             if(args[3].startsWith("transport")) {
-                stage="current-frame-window";currentFrames(Path.of(args[0]),Path.of(args[1]),report,args[3]);
+                stage="current-frame-window";currentFrames(Path.of(args[0]),Path.of(args[1]),report,args[3],args.length==5?Integer.parseInt(args[4]):0);
             } else {
-                stage="unsupported-color-fallback";fallback(Path.of(args[0]),Path.of(args[1]),report);
+                stage="unsupported-color-fallback";fallback(Path.of(args[0]),Path.of(args[1]),report,args.length==5?Integer.parseInt(args[4]):0);
             }
             report.put("passed",true);stage="complete";
         } catch(Throwable caught) {
@@ -97,10 +130,11 @@ public final class MetalPylonPresentationProbe {
         require((original.owner.nativeCounter(72)==1)==Boolean.getBoolean("arcadium.present072.expectedHostedLayer"),
                 "The actual child-layer ownership differs from the selected experiment");
     }
-    private static void currentFrames(Path library,Path shader,Map<String,Object> report,String pacingCase) throws Exception {
+    private static void currentFrames(Path library,Path shader,Map<String,Object> report,String pacingCase,int surfaceOrder) throws Exception {
         MetalResidentSceneBackend backend=scene(library,shader);OriginalSurface original=new OriginalSurface();
         try {
             create(backend,original,MetalCompositeSurface.RGBA8_LINEAR);
+            original.configureSurfaceOrder(surfaceOrder,report);
             int[] widths={64,64,96,112,80,96},heights={64,64,80,80,96,80};
             for(int frame=1;frame<=widths.length;frame++) {
                 stage="current-frame-"+frame;
@@ -116,6 +150,7 @@ public final class MetalPylonPresentationProbe {
                     original.owner.makeCurrent();
                 }
                 Map<String,Object> before=geometry(original);before.put("frame",frame);before.put("stage","before-publish");frames.add(before);
+                require(original.surfaceOrder()==surfaceOrder,"CGL surface order changed before current-frame submission");
                 boolean synced=pacingCase.equals("transport-sync1")||pacingCase.equals("transport")&&(frame&1)==0;
                 display.setVSyncEnabled(synced);draw(frame);original.owner.swapBuffers();
                 awaitDisplayed(original,frame);original.sameWindow();
@@ -132,6 +167,7 @@ public final class MetalPylonPresentationProbe {
             }
             report.put("finalLayerAudit",layerState(original));
             stage="backend-close-with-live-sdl-window";
+            original.restoreSurfaceOrder();require(original.surfaceOrder()==original.savedSurfaceOrder,"Surface order changed before backend close");
             original.owner.releaseCurrent();require(SDL_GL_GetCurrentContext()==0,"Original context release failed");
             backend.close();require(SDL_GL_GetCurrentContext()==0,"Backend cleanup did not restore the released context state");
             require(original.owner.nativeCounter(ATTACHED)==0,"Backend close retained its child view");
@@ -141,14 +177,15 @@ public final class MetalPylonPresentationProbe {
             report.put("originalWindowAndContextRetained",true);
             report.put("backendCloseRestoresReleasedContext",true);report.put("glFallbackAfterSuccessfulMetal",true);
         } finally {
-            if(display.isCreated())display.destroy();backend.close();
+            try { original.restoreSurfaceOrder(); } finally { if(display.isCreated())display.destroy();backend.close(); }
             require(original.destroys==1&&!display.isCreated(),"Original SDL window was not destroyed exactly once");
         }
     }
-    private static void fallback(Path library,Path shader,Map<String,Object> report) throws Exception {
+    private static void fallback(Path library,Path shader,Map<String,Object> report,int surfaceOrder) throws Exception {
         MetalResidentSceneBackend backend=scene(library,shader);OriginalSurface original=new OriginalSurface();
         try {
             create(backend,original,MetalCompositeSurface.RGBA8_SRGB);
+            original.configureSurfaceOrder(surfaceOrder,report);
             for(int frame=1;frame<=2;frame++) {
                 draw(frame);original.owner.swapBuffers();original.sameWindow();display.processMessages();
                 require(original.owner.submittedFrames()==0&&original.owner.nativeCounter(SUBMITTED)==0,
@@ -159,7 +196,7 @@ public final class MetalPylonPresentationProbe {
             require(GL11.glGetError()==GL11.GL_NO_ERROR,"GL fallback state error");
             report.put("unsupportedColorStickyFallback",true);report.put("fallbackHidesBeforeGlSwap",true);
         } finally {
-            if(display.isCreated())display.destroy();backend.close();
+            try { original.restoreSurfaceOrder(); } finally { if(display.isCreated())display.destroy();backend.close(); }
             require(original.destroys==1&&!display.isCreated(),"Fallback SDL window was not destroyed exactly once");
         }
     }

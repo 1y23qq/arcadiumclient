@@ -15,7 +15,7 @@ public final class ModernArmorMvp072Qa {
     private static long matrixRestores,nativeMvpChecks,uniformRestores,ownedDraws,controlDraws;
     private static Field nativeViews,arenaField,nativeRoots;
     private static long nativeEntryChecks,nativeEntryRootMatches,nativeEntryProjectionMatches;
-    private static Map<String,Object> firstEntryComparison;
+    private static Map<String,Object> firstEntryComparison,firstEntryDifference;
     private static Map<String,Object> firstMismatch;
     private static final class Snapshot{int mode,stack;final float[] model=new float[16],projection=new float[16];}
     static{for(int i=0;i<states.length;i++)states[i]=new Snapshot();}
@@ -29,7 +29,7 @@ public final class ModernArmorMvp072Qa {
         if(index<0||!ModernGlint072Qa.needsModelViewReference())return;
         try{
             if(nativeViews==null){nativeViews=ModernGlint072Qa.class.getDeclaredField("nativeModelViews");nativeViews.setAccessible(true);nativeRoots=ModernGlint072Qa.class.getDeclaredField("nativeModelRoots");nativeRoots.setAccessible(true);arenaField=ModernArmorGlintPipeline.class.getDeclaredField("matrices");arenaField.setAccessible(true);}
-            float[] reference=((IdentityHashMap<ModelPart,float[]>)nativeViews.get(null)).get(part);require(reference!=null,"No actual native part matrix for MVP comparison");Object entryValue=((IdentityHashMap<?,?>)nativeRoots.get(null)).get(part);require(entryValue instanceof Map,"No actual native part entry matrix for MVP comparison");var entry=(Map<?,?>)entryValue;float[] entryRoot=(float[])entry.get("modelView"),entryProjection=(float[])entry.get("projection");boolean rootMatch=same(entryRoot,s.model),projectionMatch=same(entryProjection,projection);nativeEntryChecks++;if(rootMatch)nativeEntryRootMatches++;if(projectionMatch)nativeEntryProjectionMatches++;
+            float[] reference=((IdentityHashMap<ModelPart,float[]>)nativeViews.get(null)).get(part);require(reference!=null,"No actual native part matrix for MVP comparison");Object entryValue=((IdentityHashMap<?,?>)nativeRoots.get(null)).get(part);require(entryValue instanceof Map,"No actual native part entry matrix for MVP comparison");var entry=(Map<?,?>)entryValue;float[] entryRoot=(float[])entry.get("modelView"),entryProjection=(float[])entry.get("projection");boolean rootMatch=same(entryRoot,s.model),projectionMatch=same(entryProjection,projection);nativeEntryChecks++;if(rootMatch)nativeEntryRootMatches++;if(projectionMatch)nativeEntryProjectionMatches++;if(!rootMatch||!projectionMatch)entryDifference(part,entry,s,projection,index);
             if(firstEntryComparison==null){var sample=new java.util.LinkedHashMap<String,Object>();firstEntryComparison=sample;sample.put("nativeRoot",entryRoot.clone());sample.put("nativeRootBits",bits(entryRoot));sample.put("gpuPhysicalRoot",s.model.clone());sample.put("gpuPhysicalRootBits",bits(s.model));sample.put("nativeMode",entry.get("matrixMode"));sample.put("nativeDepth",entry.get("matrixDepth"));sample.put("gpuMode",s.mode);sample.put("gpuDepth",s.stack);sample.put("rootRaw16Exact",rootMatch);sample.put("projectionRaw16Exact",projectionMatch);sample.put("noAdditionalGlQueries",true);}
             float[] expected=new float[16];ModernArmorMvpMath.multiply(projection,reference,expected);ModernGlintMatrices table=(ModernGlintMatrices)arenaField.get(null);require(index<table.count(),"MVP row outside actual shared arena");for(int i=0;i<16;i++)if(Float.floatToRawIntBits(expected[i])!=Float.floatToRawIntBits(table.values()[index*16+i])){captureMismatch(part,s.model,reference,projection,expected,table,index,i);var failure=new IllegalStateException("Native/client MVP raw bits differ at"+i);ModernGlint072Qa.referenceFailure(failure);throw failure;}nativeMvpChecks++;
         }catch(ReflectiveOperationException e){throw new IllegalStateException(e);}
@@ -45,7 +45,32 @@ public final class ModernArmorMvp072Qa {
         }catch(ReflectiveOperationException e){throw new IllegalStateException(e);}
     }
     public static Map<String,Object> report(){
-        var result=new java.util.LinkedHashMap<String,Object>();result.put("mode",ModernArmorGlintPipeline.mvpMode());result.put("matrixStateRestores",matrixRestores);result.put("actualNativeMvpRawBitChecks",nativeMvpChecks);result.put("uniformScopeRestores",uniformRestores);result.put("actualOwnedMvpInstances",ownedDraws);result.put("mode0ControlInstances",controlDraws);result.put("balancedClientScopes",depth==0);result.put("productionMvpGpuReadbacks",0);result.put("layerRootCaptures",ModernArmorMvp.layerRoots);result.put("clientMatrixConstructions",ModernArmorMvp.clientMatrixConstructions);result.put("cachedPartMvpHits",ModernArmorMvp.cacheHits);result.put("nativeSneakPreludeRoots",ModernArmorMvp.nativeSneakPreludeRoots);result.put("identityPreludeRoots",ModernArmorMvp.identityPreludeRoots);result.put("actualNativeEntryComparisons",nativeEntryChecks);result.put("actualNativeEntryRootRaw16Matches",nativeEntryRootMatches);result.put("actualNativeEntryProjectionRaw16Matches",nativeEntryProjectionMatches);if(firstEntryComparison!=null)result.put("firstNativeEntryComparison",firstEntryComparison);if(firstMismatch!=null)result.put("firstNativeMvpMismatch",firstMismatch);return result;
+        var result=new java.util.LinkedHashMap<String,Object>();result.put("mode",ModernArmorGlintPipeline.mvpMode());result.put("matrixStateRestores",matrixRestores);result.put("actualNativeMvpRawBitChecks",nativeMvpChecks);result.put("uniformScopeRestores",uniformRestores);result.put("actualOwnedMvpInstances",ownedDraws);result.put("mode0ControlInstances",controlDraws);result.put("balancedClientScopes",depth==0);result.put("productionMvpGpuReadbacks",0);result.put("layerRootCaptures",ModernArmorMvp.layerRoots);result.put("clientMatrixConstructions",ModernArmorMvp.clientMatrixConstructions);result.put("cachedPartMvpHits",ModernArmorMvp.cacheHits);result.put("nativeSneakPreludeRoots",ModernArmorMvp.nativeSneakPreludeRoots);result.put("identityPreludeRoots",ModernArmorMvp.identityPreludeRoots);result.put("actualNativeEntryComparisons",nativeEntryChecks);result.put("actualNativeEntryRootRaw16Matches",nativeEntryRootMatches);result.put("actualNativeEntryProjectionRaw16Matches",nativeEntryProjectionMatches);if(firstEntryComparison!=null)result.put("firstNativeEntryComparison",firstEntryComparison);if(firstEntryDifference!=null)result.put("firstNonmatchingNativeEntry",firstEntryDifference);if(firstMismatch!=null)result.put("firstNativeMvpMismatch",firstMismatch);return result;
+    }
+    private static void entryDifference(ModelPart part,Map<?,?> entry,Snapshot state,float[] projection,int index){
+        if(firstEntryDifference!=null)return;
+        var record=new java.util.LinkedHashMap<String,Object>();firstEntryDifference=record;
+        float[] nativeRoot=(float[])entry.get("modelView"),nativeProjection=(float[])entry.get("projection");
+        record.put("nativeRoot",nativeRoot.clone());record.put("nativeRootBits",bits(nativeRoot));record.put("gpuPhysicalRoot",state.model.clone());record.put("gpuPhysicalRootBits",bits(state.model));
+        record.put("nativeProjection",nativeProjection.clone());record.put("nativeProjectionBits",bits(nativeProjection));record.put("gpuProjection",projection.clone());record.put("gpuProjectionBits",bits(projection));
+        record.put("nativeMode",entry.get("matrixMode"));record.put("nativeDepth",entry.get("matrixDepth"));record.put("gpuMode",state.mode);record.put("gpuDepth",state.stack);record.put("tableRow",index);
+        record.put("partIdentity",System.identityHashCode(part));record.put("pivot",new float[]{part.x,part.y,part.z});record.put("translation",new float[]{part.translateX,part.translateY,part.translateZ});record.put("anglesRadians",new float[]{part.rotationX,part.rotationY,part.rotationZ});record.put("visible",part.visible);record.put("invisible",part.invisible);
+        Object model=((io.github.arcadiumclient.runtime.mixin.client.access.BetaModelPartAccess)part).arcadium$baseModel();record.put("modelIdentity",System.identityHashCode(model));
+        if(model instanceof net.minecraft.client.render.model.entity.HumanoidModel h)record.put("part",part==h.head?"head":part==h.hat?"hat":part==h.body?"body":part==h.rightArm?"rightArm":part==h.leftArm?"leftArm":part==h.rightLeg?"rightLeg":part==h.leftLeg?"leftLeg":"unknown");
+        var differences=new java.util.ArrayList<Object>();
+        for(int i=0;i<16;i++){
+            int a=Float.floatToRawIntBits(nativeRoot[i]),b=Float.floatToRawIntBits(state.model[i]);if(a==b)continue;
+            var difference=new java.util.LinkedHashMap<String,Object>();difference.put("word",i);difference.put("nativeBits",a);difference.put("gpuBits",b);
+            if(Float.isFinite(nativeRoot[i])&&Float.isFinite(state.model[i])){
+                boolean signedZero=nativeRoot[i]==0&&state.model[i]==0;long orderedA=a<0?(long)Integer.MIN_VALUE-a:a,orderedB=b<0?(long)Integer.MIN_VALUE-b:b;
+                difference.put("classification",signedZero?"signed-zero":"finite-numeric");difference.put("numericDeltaGpuMinusNative",(double)state.model[i]-nativeRoot[i]);difference.put("ulpDistance",Math.abs(orderedB-orderedA));
+            }else difference.put("classification","non-finite-no-numeric-difference");
+            differences.add(difference);
+        }
+        record.put("rootDifferences",differences);record.put("rootRawBitsIgnored",false);record.put("noAdditionalGlQueries",true);
+        try{
+            Field helperField=ModernArmorGlintPipeline.class.getDeclaredField("geometryMvp");helperField.setAccessible(true);Object helper=helperField.get(null);Field rootField=ModernArmorMvp.class.getDeclaredField("root");rootField.setAccessible(true);float[] layerRoot=((float[])rootField.get(helper)).clone();record.put("helperLayerRoot",layerRoot);record.put("helperLayerRootBits",bits(layerRoot));
+        }catch(ReflectiveOperationException error){record.put("snapshotFailureClass",error.getClass().getName());}
     }
     private static void captureMismatch(ModelPart part,float[] physicalRoot,float[] nativePart,float[] projection,float[] expected,ModernGlintMatrices table,int index,int word){
         if(firstMismatch!=null)return;

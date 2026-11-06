@@ -4,7 +4,17 @@
 #import <QuartzCore/CATransaction.h>
 #include <stdlib.h>
 
-#define CHECK(x) do { if (!(x)) { fprintf(stderr, "CHECK failed at %d: %s\n", __LINE__, #x); return 1; } } while (0)
+static CGLContextObj testContext;
+static GLint savedSurfaceOrder;
+static BOOL changedSurfaceOrder;
+static int restoreSurfaceOrder(void) {
+    if(!changedSurfaceOrder)return 0;
+    GLint observed=INT32_MIN;
+    if(CGLGetCurrentContext()!=testContext||CGLSetParameter(testContext,kCGLCPSurfaceOrder,&savedSurfaceOrder)!=kCGLNoError
+            ||CGLGetParameter(testContext,kCGLCPSurfaceOrder,&observed)!=kCGLNoError||observed!=savedSurfaceOrder)return 1;
+    changedSurfaceOrder=NO;return 0;
+}
+#define CHECK(x) do { if (!(x)) { fprintf(stderr, "CHECK failed at %d: %s\n", __LINE__, #x); if(restoreSurfaceOrder())fprintf(stderr,"CGL surface restoration failed\n"); return 1; } } while (0)
 static void pump(void) {
     NSDate *limit=[NSDate dateWithTimeIntervalSinceNow:.01];NSEvent *event;
     while((event=[NSApp nextEventMatchingMask:NSEventMaskAny untilDate:limit inMode:NSDefaultRunLoopMode dequeue:YES]))[NSApp sendEvent:event];
@@ -44,7 +54,9 @@ static int checkImage(ArcPresentation *p, const uint8_t *source, int width, int 
     return 0;
 }
 
-int main(void) {
+int main(int argc,char **argv) {
+    CHECK(argc==1||(argc==2&&(!strcmp(argv[1],"0")||!strcmp(argv[1],"-1"))));
+    GLint selectedOrder=argc==2?atoi(argv[1]):0;
     @autoreleasepool {
         [NSApplication sharedApplication];CHECK([NSApp setActivationPolicy:NSApplicationActivationPolicyRegular]);[NSApp finishLaunching];
         void *scene=arc_scene_create(2,80,20,64);
@@ -59,6 +71,12 @@ int main(void) {
         window.releasedWhenClosed=NO;window.contentView=gl;window.opaque=YES;
         [window makeKeyAndOrderFront:nil];[NSApp activateIgnoringOtherApps:YES];pump();
         [gl.openGLContext makeCurrentContext];[gl.openGLContext update];
+        testContext=CGLGetCurrentContext();
+        CHECK(testContext&&CGLGetParameter(testContext,kCGLCPSurfaceOrder,&savedSurfaceOrder)==kCGLNoError&&savedSurfaceOrder==0);
+        if(selectedOrder!=savedSurfaceOrder) {
+            changedSurfaceOrder=YES;CHECK(CGLSetParameter(testContext,kCGLCPSurfaceOrder,&selectedOrder)==kCGLNoError);
+        }
+        fprintf(stderr,"surfaceOrder original=%d requested=%d\n",savedSurfaceOrder,selectedOrder);
         NSSize pixels=[gl convertSizeToBacking:gl.bounds.size];int width=(int)pixels.width,height=(int)pixels.height;
         CHECK(width>0&&height>0&&(width&1)==0&&(height&1)==0);
         GLint interval=0;[gl.openGLContext setValues:&interval forParameter:NSOpenGLCPSwapInterval];
@@ -88,6 +106,8 @@ int main(void) {
                 CHECK(width>0&&height>0&&(width&1)==0&&(height&1)==0);
             }
             source=realloc(source,(size_t)width*height*4);CHECK(source);
+            GLint observedOrder=INT32_MIN;
+            CHECK(CGLGetCurrentContext()==testContext&&CGLGetParameter(testContext,kCGLCPSurfaceOrder,&observedOrder)==kCGLNoError&&observedOrder==selectedOrder);
             interval=frame==2?1:0;[gl.openGLContext setValues:&interval forParameter:NSOpenGLCPSwapInterval];
             CHECK(arc_present_set_swap_interval(out,interval)==ARC_PRESENT_OK);
             pattern(width,height,(int)frame);glReadBuffer(GL_BACK);glPixelStorei(GL_PACK_ALIGNMENT,1);glReadPixels(0,0,width,height,GL_RGBA,GL_UNSIGNED_BYTE,source);
@@ -116,6 +136,7 @@ int main(void) {
             CHECK(checkImage(p,source,width,height)==0);
             CHECK(glGetError()==GL_NO_ERROR);
         }
+        CHECK(restoreSurfaceOrder()==0);
         CHECK(arc_present_publish(out,2)==ARC_PRESENT_BUSY&&arc_present_query(out,ARC_PRESENT_HIDDEN)==1);
         CHECK(arc_present_set_swap_interval(out,-1)==ARC_PRESENT_INVALID);
         CHECK(arc_present_set_swap_interval(out,2)==ARC_PRESENT_INVALID);

@@ -59,7 +59,8 @@ public final class ModernGlint072Qa {
     private static final IdentityHashMap<net.minecraft.client.render.model.ModelPart, float[]> nativeModelViews = new IdentityHashMap<>();
     private static final float[] cameraModelView = new float[16];
     private static final IdentityHashMap<net.minecraft.client.render.model.ModelPart,Map<String,Object>> nativeModelRoots=new IdentityHashMap<>();
-    private static long nativeRootEntries;
+    private static final IdentityHashMap<net.minecraft.client.render.model.ModelPart,Map<String,Object>> pendingNativeModelRoots=new IdentityHashMap<>();
+    private static long nativeRootEntries,nativePairedRootDraws,nativeFrameToken,nativeReferenceGeneration;
     private static int modelViewChecks;
     private static double maximumModelViewError;
     private static double maximumRootModelViewError;
@@ -176,6 +177,7 @@ public final class ModernGlint072Qa {
     }
 
     public static void world(float delta, long deadline, Operation<Void> original) {
+        nativeFrameToken++;clearNativeReference();
         if (!done && phase == 3 && !auxiliaryLifecycleDone) {
             try {
                 Minecraft mc = Minecraft.getInstance(); freeze(mc); setPaths(false);
@@ -224,7 +226,7 @@ public final class ModernGlint072Qa {
                     ModernArmorGlintPipeline.nativeLayers > styleNativeLayers, "Unsupported hurt armor was not retained by the original scoped layer");
             if (style < 2) baseControl(mc, deadline, original);
             setPaths(false); normalSeen = false;
-            comparisonMode = 1; nativeTextureReady = false; nativeModelViews.clear();nativeModelRoots.clear();
+            comparisonMode = 1; nativeTextureReady = false; clearNativeReference();
             guardBegin();
             try { GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT); original.call(.5f, deadline); guardCheck(); }
             finally { guardEnd(); }
@@ -262,7 +264,7 @@ public final class ModernGlint072Qa {
     private static void baseControl(Minecraft mc, long deadline, Operation<Void> original) throws Exception {
         baseOnly = true;
         try {
-            setPaths(false); normalSeen = false; comparisonMode = 1; nativeModelViews.clear();nativeModelRoots.clear();
+            setPaths(false); normalSeen = false; comparisonMode = 1; clearNativeReference();
             guardBegin();
             try { GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT); original.call(.5f, deadline); guardCheck(); }
             finally { guardEnd(); }
@@ -317,14 +319,20 @@ public final class ModernGlint072Qa {
     public static void captureCamera() {
         if (needsModelViewReference()) GL11.glGetFloatv(GL11.GL_MODELVIEW_MATRIX, cameraModelView);
     }
+    private static void clearNativeReference(){nativeModelViews.clear();nativeModelRoots.clear();pendingNativeModelRoots.clear();nativeReferenceGeneration++;}
     public static void nativeModelRoot(net.minecraft.client.render.model.ModelPart part){
         if(!tracingNative()||((io.github.arcadiumclient.runtime.mixin.client.access.BetaModelPartAccess)part).arcadium$baseModel().getClass()!=net.minecraft.client.render.model.entity.HumanoidModel.class)return;
         float[] root=new float[16],projection=new float[16];GL11.glGetFloatv(GL11.GL_MODELVIEW_MATRIX,root);GL11.glGetFloatv(GL11.GL_PROJECTION_MATRIX,projection);
-        nativeModelRoots.put(part,Map.of("modelView",root,"projection",projection,"matrixMode",GL11.glGetInteger(GL11.GL_MATRIX_MODE),"matrixDepth",GL11.glGetInteger(GL11.GL_MODELVIEW_STACK_DEPTH),"beforePartTransforms",true));nativeRootEntries++;
+        pendingNativeModelRoots.put(part,Map.of("modelView",root,"projection",projection,"matrixMode",GL11.glGetInteger(GL11.GL_MATRIX_MODE),"matrixDepth",GL11.glGetInteger(GL11.GL_MODELVIEW_STACK_DEPTH),"beforePartTransforms",true,"frameToken",nativeFrameToken,"referenceGeneration",nativeReferenceGeneration,"partIdentity",System.identityHashCode(part)));nativeRootEntries++;
     }
     public static void nativeModelView(net.minecraft.client.render.model.ModelPart part) {
         if (!enabled() || done || phase != 2 || comparisonMode != 1 ||
                 ((io.github.arcadiumclient.runtime.mixin.client.access.BetaModelPartAccess)part).arcadium$baseModel().getClass() != net.minecraft.client.render.model.entity.HumanoidModel.class) return;
+        if(style<2){
+            Map<String,Object> entry=pendingNativeModelRoots.remove(part);
+            require(entry!=null&&((Number)entry.get("frameToken")).longValue()==nativeFrameToken&&((Number)entry.get("referenceGeneration")).longValue()==nativeReferenceGeneration&&((Number)entry.get("partIdentity")).intValue()==System.identityHashCode(part),"Actual native callList has no matching current-frame part ENTRY");
+            nativeModelRoots.put(part,entry);nativePairedRootDraws++;
+        }
         float[] matrix = new float[16]; GL11.glGetFloatv(GL11.GL_MODELVIEW_MATRIX, matrix); nativeModelViews.put(part, matrix);
     }
     public static void optimizedModelView(net.minecraft.client.render.model.ModelPart part, org.joml.Matrix4fc local) {
@@ -509,7 +517,7 @@ public final class ModernGlint072Qa {
         report.put("verifiedProgramHandles", verifiedPrograms); report.put("vertexSourcePinMatched", ModernGlintShaderPatch.vertexPatched);
         report.put("fragmentSourcePinMatched", ModernGlintShaderPatch.fragmentPatched); report.put("nativeTextureMatrixChecks", textureChecks);
         report.put("maximumNativeTextureMatrixError", maximumTextureError); report.put("finalOpenGlError", GL11.glGetError());
-        report.put("actualNativeModelRootEntries",nativeRootEntries);
+        report.put("actualNativeModelRootEntries",nativeRootEntries);report.put("actualPairedNativeRootDraws",nativePairedRootDraws);report.put("nativeEntryPairing","HEAD pending committed only by same-part actual callList, scoped to frame and reference generation");
         report.put("actualFixedFunctionModelViewChecks", modelViewChecks); report.put("maximumFixedFunctionModelViewError", maximumModelViewError);
         report.put("maximumCurrentDriverRootModelViewError", maximumRootModelViewError);
         report.put("fullRgbaPixelFailures", pixelFailures);
