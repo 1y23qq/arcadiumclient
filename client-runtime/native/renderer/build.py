@@ -43,6 +43,22 @@ def validate_pylon_input(path: Path, expected: str, root: Path) -> dict:
             "modId": metadata["id"], "version": metadata["version"], "sourceCatalogVerified": True}
 
 
+def pylon_case_plan() -> list[dict]:
+    cases = [{"label": case + ("-surface-below" if order == -1 else ""), "probeCase": case,
+              "surfaceOrder": order, "matched": False}
+             for order in (0, -1) for case in ("transport", "transport-sync0", "transport-sync1", "fallback")]
+    schedules = [(1, "sync0", ("sleep2", "cf0-sleep2", "cf2")),
+                 (1, "alternating", ("cf2", "cf0-sleep2", "sleep2")),
+                 (2, "alternating", ("sleep2", "cf0-sleep2", "cf2")),
+                 (2, "sync0", ("cf2", "cf0-sleep2", "sleep2"))]
+    suffix = {"sleep2": "", "cf0-sleep2": "-runloop0", "cf2": "-runloop"}
+    for repeat, pacing, styles in schedules:
+        for style in styles:
+            cases.append({"label": f"matched-r{repeat}-{pacing}-{style}", "probeCase": ("transport-sync0" if pacing == "sync0" else "transport") + suffix[style],
+                          "surfaceOrder": 0, "matched": True, "repeat": repeat, "pacing": pacing, "pumpStyle": style})
+    return [{"ordinal": i + 1, **case} for i, case in enumerate(cases)]
+
+
 def main() -> None:
     source = Path(__file__).resolve().parent
     root = source.parents[2]
@@ -169,10 +185,10 @@ def main() -> None:
         run([javac, "-cp", pylon["path"], "-d", str(pylon_output), *map(str, pylon_sources)], "java-pylon-compile.log")
         if sys.platform == "darwin" and probe_code == 0:
             outcomes = []
-            cases = [(case, order) for order in (0, -1) for case in ("transport", "transport-sync0", "transport-sync1", "fallback")]
-            cases += [("transport-runloop", 0), ("transport-sync0-runloop", 0)]
-            for case, order in cases:
-                label = case + ("-surface-below" if order == -1 else "")
+            cases = pylon_case_plan()
+            (output / "java-pylon-case-plan.json").write_text(json.dumps({"freshJvmPerCase": True, "matchedRepeats": 2, "cases": cases}, indent=2) + "\n")
+            for planned in cases:
+                case, order, label = planned["probeCase"], planned["surfaceOrder"], planned["label"]
                 result_path = output / f"java-pylon-{label}-result.json"
                 code = run([java, "-XstartOnFirstThread", "--enable-native-access=ALL-UNNAMED",
                      "-Darcadium.present072.expectedHostedLayer=" + str(arguments.hosted_layer_experiment).lower(), "-cp",
@@ -181,8 +197,8 @@ def main() -> None:
                      str(library), str(source / "tests/reference_scene.metal"), str(result_path), case, str(order)],
                     f"java-pylon-{label}.log", None)
                 result = json.loads(result_path.read_text(encoding="utf-8")) if result_path.is_file() else {}
-                outcomes.append({"case": label, "surfaceOrder": order, "exitCode": code, "passed": code == 0 and result.get("passed", False),
-                                 "resultPresent": result_path.is_file(), "pumpStyle": result.get("pumpStyle")})
+                outcomes.append({**planned, "case": label, "exitCode": code, "passed": code == 0 and result.get("passed", False),
+                                 "resultPresent": result_path.is_file(), "observedPumpStyle": result.get("pumpStyle"), "ownedProcessId": result.get("ownedProcessId")})
             suite = {"passed": all(result["passed"] for result in outcomes), "freshJvmPerCase": True,
                      "currentDisplayedGateUnchanged": True, "cases": outcomes}
             (output / "java-pylon-suite-result.json").write_text(json.dumps(suite, indent=2) + "\n", encoding="utf-8")
