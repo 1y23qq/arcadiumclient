@@ -38,6 +38,8 @@ public final class MetalClientComposition072Qa {
     private static int phase,ticks,phaseFrames,frames,skikoFlushes,skikoStart,composeSubmits,composeStart;
     private static long submittedStart;
     private static String capture;
+    private static Map<String,Object> pendingCapture;
+    private static long pendingFrame;
 
     public static boolean enabled(){return System.getProperty("arcadium.metalClient072.fixture")!=null;}
     @SuppressWarnings("unchecked")
@@ -152,8 +154,33 @@ public final class MetalClientComposition072Qa {
     }
     private static boolean doneCapture(String name){return captures.stream().anyMatch(row->name.equals(row.get("name")));}
     private static void afterSwap() {
-        if(!resizeRequested||failed||stopping)return;
+        if(failed||stopping)return;
         try {
+            if(pendingCapture!=null&&pendingFrame==0) {
+                require(SDL_GL_GetCurrentWindow()==original.window&&SDL_GL_GetCurrentContext()==original.context,
+                        "The captured frame left its original SDL window or context");
+                int interval;
+                try(var stack=org.lwjgl.system.MemoryStack.stackPush()) {
+                    var value=stack.mallocInt(1);require(SDL_GL_GetSwapInterval(value),"Actual SDL interval read failed");interval=value.get(0);
+                }
+                require(interval==0||interval==1,"Unknown current-frame SDL interval");
+                pendingCapture.put("currentSdlSwapInterval",interval);
+                pendingCapture.put("currentOriginalGlSwaps",original.swaps);
+                if(control||explicitFallback) {
+                    require(original.swaps>((Number)pendingCapture.get("originalGlSwaps")).intValue(),"The captured GL frame did not swap");
+                    pendingCapture.put("capturedFramePath","original-gl");captures.add(pendingCapture);pendingCapture=null;
+                } else {
+                    long prepared=metal.nativeCounter(1),submitted=metal.nativeCounter(2);
+                    require(prepared>0&&prepared==submitted&&submitted==metal.submittedFrames(),"Captured current-frame submission IDs differ");
+                    long configured=metal.nativeCounter(53),copied=metal.nativeCounter(54),sync=metal.nativeCounter(45);
+                    require(configured==interval&&copied==interval&&sync==(interval==1?1:0),"SDL and actual current Metal pacing differ");
+                    pendingFrame=submitted;pendingCapture.put("capturedFramePath","current-metal");
+                    pendingCapture.put("currentFrameTarget",submitted);pendingCapture.put("currentFramePrepared",prepared);
+                    pendingCapture.put("currentFrameSubmitted",submitted);pendingCapture.put("currentNativeConfiguredInterval",configured);
+                    pendingCapture.put("currentNativePreparedInterval",copied);pendingCapture.put("currentLayerDisplaySync",sync!=0);
+                }
+            }
+            if(!resizeRequested)return;
             require(phase==5,"Unexpected resize boundary");
             require(control||metal!=null&&metal.fallbackFrames()==0,"Resize preceded a successful Metal swap");
             MainThread.run(()->{require(SDL_SetWindowSize(original.window,1152,720),"SDL resize rejected");require(SDL_SyncWindow(original.window),"SDL resize did not finalize");});
@@ -161,8 +188,16 @@ public final class MetalClientComposition072Qa {
         } catch(Throwable error){fail(error);}
     }
     private static void beforeSwap() {
-        if(capture==null||failed)return;
+        if(failed||stopping)return;
         try {
+            if(pendingCapture!=null) {
+                require(pendingFrame>0,"A captured source frame lacks its submission ticket");
+                long completed=metal.nativeCounter(3),displayed=metal.nativeCounter(4);
+                pendingCapture.put("currentFrameCompleted",completed);pendingCapture.put("currentFrameDisplayed",displayed);
+                require(completed==pendingFrame&&displayed==pendingFrame,"Captured current frame was not displayed before the next submission");
+                pendingCapture.put("exactCapturedFrameDisplayed",true);captures.add(pendingCapture);pendingCapture=null;pendingFrame=0;
+            }
+            if(capture==null)return;
             require(GL11.glGetInteger(EXTFramebufferObject.GL_FRAMEBUFFER_BINDING_EXT)==0,"Composition is not resolved to the default framebuffer");
             require(GL11.glGetInteger(GL21.GL_PIXEL_PACK_BUFFER_BINDING)==0,"Unexpected pixel-pack buffer");
             int width=DisplaySdl.instance().getWidth(),height=DisplaySdl.instance().getHeight();
@@ -176,7 +211,7 @@ public final class MetalClientComposition072Qa {
             for(int y=0;y<height;y++)for(int x=0;x<width;x++){int p=((height-1-y)*width+x)*4;int color=0xff000000|(bytes.get(p)&255)<<16|(bytes.get(p+1)&255)<<8|(bytes.get(p+2)&255);image.setRGB(x,y,color);if(colors.size()<1024)colors.add(color);}
             require(colors.size()>32,"The actual composed source image is blank");String name=capture;capture=null;Path file=evidence.resolve(name+".png");ImageIO.write(image,"png",file.toFile());
             Map<String,Object> row=new LinkedHashMap<>();row.put("name",name);row.put("width",width);row.put("height",height);row.put("skikoFlushes",skikoFlushes);
-            row.put("composeSubmits",composeSubmits);row.put("metalSubmitted",metal==null?0:metal.submittedFrames());row.put("metalDisplayed",metal==null?0:metal.nativeCounter(4));row.put("originalGlSwaps",original.swaps);row.put("sha256",hash(file));captures.add(row);
+            row.put("composeSubmits",composeSubmits);row.put("metalSubmitted",metal==null?0:metal.submittedFrames());row.put("metalDisplayed",metal==null?0:metal.nativeCounter(4));row.put("originalGlSwaps",original.swaps);row.put("sha256",hash(file));pendingCapture=row;
         }catch(Throwable error){fail(error);}
     }
     private static void fail(Throwable error) {
@@ -185,19 +220,20 @@ public final class MetalClientComposition072Qa {
     }
     private static void write(boolean finalResult)throws Exception {
         report.put("phase",phase);report.put("frames",frames);report.put("skikoFlushes",skikoFlushes);report.put("composeSubmits",composeSubmits);report.put("captures",captures);
+        if(pendingCapture!=null)report.put("pendingCapturedFrame",pendingCapture);
         report.put("normalShutdownComplete",destroyed);report.put("passed",finalResult&&!failed&&stopping&&destroyed&&captures.size()==4&&original.destroys==1&&Boolean.TRUE.equals(report.get("minecraftStopObserved")));
         Files.writeString(evidence.resolve("result.json"),GSON.toJson(report));
     }
     private static String hash(Path path)throws Exception {return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(Files.readAllBytes(path)));}
     private static void require(boolean value,String message){if(!value)throw new IllegalStateException(message);}
     private static final class Surface implements GpuSurface {
-        final GpuSurface delegate;final boolean outer;long window;int swaps,destroys;
+        final GpuSurface delegate;final boolean outer;long window,context;int swaps,destroys;
         Surface(GpuSurface delegate,boolean outer){this.delegate=delegate;this.outer=outer;}
-        @Override public long createWindow(String title,int width,int height,boolean resizable){window=delegate.createWindow(title,width,height,resizable);if(!outer)delegate.setVSyncEnabled(true);return window;}
-        @Override public void makeCurrent(){delegate.makeCurrent();}
+        @Override public long createWindow(String title,int width,int height,boolean resizable){window=delegate.createWindow(title,width,height,resizable);if(!outer){context=SDL_GL_GetCurrentContext();delegate.setVSyncEnabled(true);}return window;}
+        @Override public void makeCurrent(){delegate.makeCurrent();if(!outer){long value=SDL_GL_GetCurrentContext();require(value!=0&&SDL_GL_GetCurrentWindow()==window,"Original SDL context did not become current");if(context==0)context=value;else require(context==value,"Original SDL context changed");}}
         @Override public void releaseCurrent(){delegate.releaseCurrent();}
         @Override public void setVSyncEnabled(boolean enabled){delegate.setVSyncEnabled(enabled);}
-        @Override public void swapBuffers(){if(outer)beforeSwap();else{require(metal==null||metal.nativeCounter(6)==0||metal.nativeCounter(7)==1,"GL swapped before hiding the old Metal layer");swaps++;}delegate.swapBuffers();if(outer)afterSwap();}
+        @Override public void swapBuffers(){if(outer){beforeSwap();if(failed)return;}else{require(metal==null||metal.nativeCounter(6)==0||metal.nativeCounter(7)==1,"GL swapped before hiding the old Metal layer");swaps++;}delegate.swapBuffers();if(outer)afterSwap();}
         @Override public void destroy(){
             if(!outer)require(metal==null||metal.nativeCounter(6)==0,"Original window destruction preceded child detachment");
             delegate.destroy();destroys++;

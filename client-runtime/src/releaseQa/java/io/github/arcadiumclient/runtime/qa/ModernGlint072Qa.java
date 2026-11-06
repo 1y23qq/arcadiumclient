@@ -33,13 +33,19 @@ public final class ModernGlint072Qa {
     private static final boolean BODY = Boolean.getBoolean("arcadium.modernGlint072.body");
     private static final String CAMERA = System.getProperty("arcadium.modernGlint072.camera", "default");
     private static final String SNEAK_ANIMATION=System.getProperty("arcadium.modernGlint072.sneakAnimation","configured");
+    private static final String ACTOR_NAME=System.getProperty("arcadium.modernGlint072.actorName","ModernGlintQA");
+    private static final String CAPE=System.getProperty("arcadium.modernGlint072.cape","configured");
+    private static final String FORCE_DINNERBONE=System.getProperty("arcadium.modernGlint072.forceDinnerbone","configured");
+    private static final boolean CONTROLLED_INVERSION=!ACTOR_NAME.equals("ModernGlintQA")||!CAPE.equals("configured")||!FORCE_DINNERBONE.equals("configured");
     private static final boolean ANGLED = CAMERA.equals("angled");
     private static final String[] STYLES = {"V1_19_4", "V1_15", "V1_19_4"};
     private static final String[] CASES = {"V1_19_4", "V1_15", "V1_19_4-hurt-fallback"};
     private static final Map<String, Object> report = new LinkedHashMap<>();
     private static Field styleField;
     private static Object items, originalStyle, movement, originalSneakAnimation;
-    private static Field sneakAnimationField;
+    private static Field sneakAnimationField,dinnerbonePlayersField,dinnerboneEntitiesField;
+    private static boolean originalDinnerbonePlayers,originalDinnerboneEntities,skinFlagsCaptured;
+    private static byte originalActorSkinFlags;
     private static Frozen actor;
     private static int ticks, wait, phase, style, warmFrames, guardedDraws, orderChecks;
     private static int guard, genericGuard, originalIndexed, originalGeneric, alignment;
@@ -108,7 +114,11 @@ public final class ModernGlint072Qa {
                 Class<?> configType = Class.forName("org.polyfrost.overflowanimations.config.OverflowAnimationsConfig");
                 Object config = configType.getMethod("instance").invoke(null);
                 require(List.of("configured","VANILLA","V1_7").contains(SNEAK_ANIMATION),"Unknown native sneak setting");
-                movement=configType.getField("movement").get(config);sneakAnimationField=movement.getClass().getField("sneakAnimation");originalSneakAnimation=sneakAnimationField.get(movement);
+                require(List.of("ModernGlintQA","Dinnerbone","Grumm").contains(ACTOR_NAME)&&List.of("configured","on","off").contains(CAPE)&&List.of("configured","on","off").contains(FORCE_DINNERBONE),"Unknown actual public inversion control");
+                movement=configType.getField("movement").get(config);
+                dinnerbonePlayersField=movement.getClass().getField("dinnerboneMode");dinnerboneEntitiesField=movement.getClass().getField("dinnerboneModeEntities");originalDinnerbonePlayers=dinnerbonePlayersField.getBoolean(movement);originalDinnerboneEntities=dinnerboneEntitiesField.getBoolean(movement);
+                if(!FORCE_DINNERBONE.equals("configured")){dinnerbonePlayersField.setBoolean(movement,FORCE_DINNERBONE.equals("on"));dinnerboneEntitiesField.setBoolean(movement,false);}
+                sneakAnimationField=movement.getClass().getField("sneakAnimation");originalSneakAnimation=sneakAnimationField.get(movement);
                 if(!SNEAK_ANIMATION.equals("configured")){boolean selected=false;for(Object setting:sneakAnimationField.getType().getEnumConstants())if(((Enum<?>)setting).name().equals(SNEAK_ANIMATION)){sneakAnimationField.set(movement,setting);selected=true;}require(selected,"Native requested sneak setting is absent");}
                 boolean actualOld=(boolean)Class.forName("org.polyfrost.overflowanimations.legacy.model.LegacyEyeHeight").getMethod("isOldSneakModel").invoke(null);
                 if(SNEAK_ANIMATION.equals("V1_7"))require(actualOld,"Native old sneak mode did not apply");if(SNEAK_ANIMATION.equals("VANILLA"))require(!actualOld,"Native modern sneak mode did not apply");
@@ -135,7 +145,9 @@ public final class ModernGlint072Qa {
                 report.put("removedInitialNonPlayers",environment.get());
                 if(!cameraPrepared){mc.openScreen(null);mc.player.abilities.flying=true;mc.player.updatePositionAndAngles(ANGLED?1.25:0,ANGLED?6.75:6,ANGLED?-11:-10,ANGLED?7:0,ANGLED?9:5);cameraPrepared=true;return;}
                 if(!CeraAdmission072Readiness.ready(mc,Path.of(System.getProperty("arcadium.modernGlint072.output"))))return;
-                actor = new Frozen(mc, new GameProfile(new UUID(0x7210000000000000L, 1), "ModernGlintQA"));
+                actor = new Frozen(mc, new GameProfile(new UUID(0x7210000000000000L, 1), ACTOR_NAME));
+                originalActorSkinFlags=actor.getSyncedData().getByte(10);skinFlagsCaptured=true;
+                if(!CAPE.equals("configured")){int flag=net.minecraft.client.render.model.PlayerModelPart.CAPE.getFlag();actor.getSyncedData().update(10,(byte)(CAPE.equals("on")?originalActorSkinFlags|flag:originalActorSkinFlags&~flag));}
                 actor.updatePositionAndAngles(0, 4, 3, 190, 12);
                 actor.setEquipment(0, new net.minecraft.item.ItemStack(net.minecraft.item.Items.DIAMOND_SWORD));
                 net.minecraft.item.Item[] pieces = {net.minecraft.item.Items.DIAMOND_BOOTS, net.minecraft.item.Items.DIAMOND_LEGGINGS, net.minecraft.item.Items.DIAMOND_CHESTPLATE, net.minecraft.item.Items.DIAMOND_HELMET};
@@ -483,6 +495,12 @@ public final class ModernGlint072Qa {
                 else require(((Number)mvpProof.get("mode0ControlInstances")).longValue() > 0, "Private mode0 control vertex path never executed");
                 var nativeRootProof=nativeLayerRootProof();report.put("nativeLayerRoot",nativeRootProof);
                 if(Boolean.getBoolean("arcadium.nativeLayerRoot072.replay"))require(Boolean.TRUE.equals(nativeRootProof.get("enabled"))&&((Number)nativeRootProof.get("actualReplays")).longValue()>0,"Requested native physical layer-root path did not actually execute");
+                var inversion=publicInversionProof();report.put("actualPublicInversionInputs",inversion);
+                if(CONTROLLED_INVERSION){
+                    require(Boolean.TRUE.equals(inversion.get("inputsValid"))&&Boolean.TRUE.equals(inversion.get("sessionUnaffected")),"Actual public inversion controls/session changed");
+                    var sample=(Map<?,?>)mvpProof.get("firstNativeEntryComparison");require(sample!=null,"No paired native entry for public inversion control");float nativeY=((float[])sample.get("nativeRoot"))[5],gpuY=((float[])sample.get("gpuPhysicalRoot"))[5];boolean expected=(boolean)inversion.get("expectedSingleInversion");
+                    require((nativeY>0)==expected&&(gpuY>0)==expected,"Actual native/GPU vertical basis did not match one requested public inversion");report.put("actualInversionBasis",Map.of("nativeY",nativeY,"gpuY",gpuY,"expectedSingleInversion",expected,"observedOddInversionParity",nativeY>0,"oneVsDoubleCheckedWithFullMvp",true));
+                }
                 require(pixelFailures.isEmpty(), "Modern glint full RGBA quality failed: " + pixelFailures);
                 require(zeroRangeChecks >= 20 && zeroMaterialDrawChecks > 0 && ModernArmorGlintPipeline.dummyProgramBinds > 0,
                         "No proof of valid no-material draws with an originally unbound SSBO7");
@@ -490,6 +508,15 @@ public final class ModernGlint072Qa {
                 report.put("nonzeroSsbo7RangeChecks", guardedDraws); report.put("glintOrderingChecks", orderChecks); finish(null);
             } catch (Throwable error) { finish(error); }
         }
+    }
+
+    private static Map<String,Object> publicInversionProof(){
+        try{
+            String name=actor.getGameProfile().getName();boolean cape=actor.isModelPartVisible(net.minecraft.client.render.model.PlayerModelPart.CAPE),players=dinnerbonePlayersField.getBoolean(movement),entities=dinnerboneEntitiesField.getBoolean(movement);
+            boolean valid=name.equals(ACTOR_NAME)&&(CAPE.equals("configured")||cape==CAPE.equals("on"))&&(FORCE_DINNERBONE.equals("configured")||players==FORCE_DINNERBONE.equals("on")&&!entities);
+            boolean nativeName=(name.equals("Dinnerbone")||name.equals("Grumm"))&&cape;
+            var result=new java.util.LinkedHashMap<String,Object>();result.put("profileName",name);result.put("capeRequested",CAPE);result.put("capeVisible",cape);result.put("skinFlagsByte",actor.getSyncedData().getByte(10));result.put("forcedRequested",FORCE_DINNERBONE);result.put("dinnerbonePlayers",players);result.put("dinnerboneEntities",entities);result.put("nativeNameInversion",nativeName);result.put("expectedSingleInversion",nativeName||players||entities);result.put("actualPublicApiOnly",true);result.put("privatePoseFieldsSet",false);result.put("inputsValid",valid);result.put("sessionUnaffected","ArcadiumTest".equals(Minecraft.getInstance().getSession().getUsername())&&"0".equals(Minecraft.getInstance().getSession().getAccessToken()));return result;
+        }catch(ReflectiveOperationException error){throw new IllegalStateException(error);}
     }
 
     private static Map<String,Object> nativeLayerRootProof(){
@@ -524,6 +551,7 @@ public final class ModernGlint072Qa {
         report.put("fixedFunctionAndInstancedGlintPixelTrace", ModernGlintPixelTrace072Qa.report());
         report.put("privateMvpState", io.github.arcadiumclient.runtime.client.optimizations.ModernArmorMvp072Qa.report());
         report.put("nativeLayerRoot",nativeLayerRootProof());
+        if(actor!=null)report.put("actualPublicInversionInputs",publicInversionProof());
         report.put("originallyUnboundSsbo7WorldChecks", zeroRangeChecks); report.put("zeroMaterialNativeDrawChecks", zeroMaterialDrawChecks);
         report.put("baseWholeStoreBindingChecks",wholeStoreChecks);report.put("minimumNoMaterialDatastoreBytes",minimumNoMaterialStore==Long.MAX_VALUE?0:minimumNoMaterialStore);
         report.put("dummyProgramBinds", ModernArmorGlintPipeline.dummyProgramBinds); report.put("materialProgramBinds", ModernArmorGlintPipeline.materialProgramBinds);
@@ -532,6 +560,9 @@ public final class ModernGlint072Qa {
         try {
             if (styleField != null) styleField.set(items, originalStyle);
             if(sneakAnimationField!=null)sneakAnimationField.set(movement,originalSneakAnimation);
+            if(dinnerbonePlayersField!=null){dinnerbonePlayersField.setBoolean(movement,originalDinnerbonePlayers);dinnerboneEntitiesField.setBoolean(movement,originalDinnerboneEntities);}
+            if(actor!=null&&skinFlagsCaptured)actor.getSyncedData().update(10,originalActorSkinFlags);
+            boolean controlsRestored=(dinnerbonePlayersField==null||dinnerbonePlayersField.getBoolean(movement)==originalDinnerbonePlayers&&dinnerboneEntitiesField.getBoolean(movement)==originalDinnerboneEntities)&&(actor==null||!skinFlagsCaptured||actor.getSyncedData().getByte(10)==originalActorSkinFlags);report.put("publicInversionControlsRestored",controlsRestored);if(!controlsRestored){report.put("passed",false);report.put("restoreError","Actual public config or SyncedData flags were not restored");}
             Path output = Path.of(System.getProperty("arcadium.modernGlint072.output")); Files.createDirectories(output.toAbsolutePath().getParent());
             Files.writeString(output, new GsonBuilder().setPrettyPrinting().create().toJson(report));
             if (guard != 0) GL15.glDeleteBuffers(guard); if (genericGuard != 0) GL15.glDeleteBuffers(genericGuard);
