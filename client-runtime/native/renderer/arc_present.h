@@ -21,7 +21,8 @@ enum { ARC_PRESENT_LAST_PREPARED = 1, ARC_PRESENT_LAST_SUBMITTED = 2,
        ARC_PRESENT_DRAWABLE_WIDTH = 17, ARC_PRESENT_DRAWABLE_HEIGHT = 18,
        ARC_PRESENT_SCALE_FP64 = 19, ARC_PRESENT_WINDOW_SCALE_FP64 = 20,
        ARC_PRESENT_PARENT_ATTACHED = 21, ARC_PRESENT_WINDOW_VISIBLE = 22,
-       ARC_PRESENT_WINDOW_OCCLUSION_VISIBLE = 23 };
+       ARC_PRESENT_WINDOW_OCCLUSION_VISIBLE = 23,
+       ARC_PRESENT_WITH_TRANSACTION = 24 };
 
 typedef struct {
     uint64_t frame_id;
@@ -45,7 +46,7 @@ ARC_API int arc_present_hide(void *bridge);
 ARC_API int arc_present_release_gl(void *bridge);
 // Main thread, after successful release_gl, before parent SDL destruction/backend close.
 ARC_API int arc_present_destroy(void *bridge);
-// Geometry queries11..23 require the Cocoa main thread; FP64 values are IEEE754 bits.
+// View queries11..24 require the Cocoa main thread; FP64 values are IEEE754 bits.
 ARC_API uint64_t arc_present_query(void *bridge, int key);
 
 int arc_present_valid_frame(const arc_present_frame *frame, uint64_t *rgba_bytes);

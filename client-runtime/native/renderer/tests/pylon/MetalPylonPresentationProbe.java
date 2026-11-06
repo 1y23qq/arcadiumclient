@@ -97,25 +97,28 @@ public final class MetalPylonPresentationProbe {
         MetalResidentSceneBackend backend=scene(library,shader);OriginalSurface original=new OriginalSurface();
         try {
             create(backend,original,MetalCompositeSurface.RGBA8_LINEAR);
-            for(int frame=1;frame<=3;frame++) {
+            int[] widths={64,64,96,112,80,96},heights={64,64,80,80,96,80};
+            for(int frame=1;frame<=widths.length;frame++) {
                 stage="current-frame-"+frame;
-                if(frame==3) {
+                if(frame>=3) {
+                    int width=widths[frame-1],height=heights[frame-1];
                     MainThread.run(()->{
-                        require(SDL_SetWindowSize(original.window,96,80),"SDL resize was rejected");
+                        require(SDL_SetWindowSize(original.window,width,height),"SDL resize was rejected");
                         require(SDL_SyncWindow(original.window),"The asynchronous SDL resize did not finalize");
                     });
                     long limit=System.nanoTime()+5_000_000_000L;
-                    while((display.getWindowWidth()!=96||display.getWindowHeight()!=80)&&System.nanoTime()<limit)pump();
-                    require(display.getWindowWidth()==96&&display.getWindowHeight()==80,"SDL resize events did not settle");
+                    while((display.getWindowWidth()!=width||display.getWindowHeight()!=height)&&System.nanoTime()<limit)pump();
+                    require(display.getWindowWidth()==width&&display.getWindowHeight()==height,"SDL resize events did not settle");
                     original.owner.makeCurrent();
                 }
                 Map<String,Object> before=geometry(original);before.put("frame",frame);before.put("stage","before-publish");frames.add(before);
-                display.setVSyncEnabled(frame==2);draw(frame);original.owner.swapBuffers();
+                display.setVSyncEnabled((frame&1)==0);draw(frame);original.owner.swapBuffers();
                 awaitDisplayed(original,frame);original.sameWindow();
                 require(original.swaps==0&&original.owner.submittedFrames()==frame&&original.owner.fallbackFrames()==0,
                         "The current-frame Metal path unexpectedly used OpenGL fallback: "+original.owner.status());
                 require(original.owner.nativeCounter(PREPARED)==frame&&original.owner.nativeCounter(SUBMITTED)==frame,
                         "Current submitted frame IDs do not match");
+                require(original.owner.nativeCounter(24)==1,"The current drawable was not published in its view transaction");
                 require(original.owner.nativeCounter(BYTES)>0&&original.owner.nativeCounter(BYTES)<=256L*1024*1024,
                         "Shared image ownership is absent or over budget");
                 require(GL11.glGetError()==GL11.GL_NO_ERROR,"GL state error after Metal presentation");
@@ -124,9 +127,9 @@ public final class MetalPylonPresentationProbe {
             original.owner.releaseCurrent();require(SDL_GL_GetCurrentContext()==0,"Original context release failed");
             backend.close();require(SDL_GL_GetCurrentContext()==0,"Backend cleanup did not restore the released context state");
             require(original.owner.nativeCounter(ATTACHED)==0,"Backend close retained its child view");
-            original.owner.makeCurrent();draw(4);original.owner.swapBuffers();original.sameWindow();
+            original.owner.makeCurrent();draw(7);original.owner.swapBuffers();original.sameWindow();
             require(original.swaps==1&&original.owner.fallbackFrames()==1,"The live original window did not resume GL swaps");
-            report.put("displayedCurrentFrames",3);report.put("resize",true);report.put("nativeResizeBarrier",true);
+            report.put("displayedCurrentFrames",6);report.put("resizeTransitions",4);report.put("resize",true);report.put("nativeResizeBarrier",true);
             report.put("originalWindowAndContextRetained",true);
             report.put("backendCloseRestoresReleasedContext",true);report.put("glFallbackAfterSuccessfulMetal",true);
         } finally {
@@ -173,7 +176,8 @@ public final class MetalPylonPresentationProbe {
         value.put("contentsScale",Double.longBitsToDouble(original.owner.nativeCounter(19)));
         value.put("windowBackingScale",Double.longBitsToDouble(original.owner.nativeCounter(20)));
         value.put("parentAttached",original.owner.nativeCounter(21)==1);value.put("windowVisible",original.owner.nativeCounter(22)==1);
-        value.put("windowOcclusionVisible",original.owner.nativeCounter(23)==1);return value;
+        value.put("windowOcclusionVisible",original.owner.nativeCounter(23)==1);
+        value.put("transactionalPresentation",original.owner.nativeCounter(24)==1);return value;
     }
     private static void pump() throws Exception { display.processMessages();Thread.sleep(2); }
     private static void draw(int frame) {

@@ -155,6 +155,7 @@ int arc_present_create(void *scene, void *windowPointer, void **out) {
             p.view.wantsLayer = YES; p.view.hidden = YES;
             CAMetalLayer *layer = (CAMetalLayer *)p.view.layer;
             layer.device = device; layer.pixelFormat = MTLPixelFormatBGRA8Unorm;
+            layer.presentsWithTransaction = YES;
             layer.framebufferOnly = YES; layer.opaque = YES;
 #if defined(ARC_PRESENT_TESTING)
             layer.framebufferOnly = NO;
@@ -263,64 +264,71 @@ int arc_present_publish(void *value, uint64_t frame) {
             || atomic_load(&p.state->inFlight) || atomic_load(&p.state->failed)) {
         hideView(p); return failure(p, @"No current prepared frame can be published", ARC_PRESENT_BUSY);
     }
-    BOOL submitted = NO;
-    @try {
-        NSView *parent = p.window.contentView;
-        if (!parent || p.view.superview != parent || ![p.view.layer isKindOfClass:CAMetalLayer.class]) {
-            hideView(p); return failure(p, @"The owned Metal view is detached from its original window", ARC_PRESENT_UNAVAILABLE);
-        }
-        CAMetalLayer *layer = (CAMetalLayer *)p.view.layer;
-        [CATransaction begin]; [CATransaction setDisableActions:YES];
+    @autoreleasepool {
+        BOOL submitted = NO;
         @try {
-            [parent layoutSubtreeIfNeeded];
-            NSRect bounds = parent.bounds;
-            double sx = p.image.width / bounds.size.width, sy = p.image.height / bounds.size.height;
-            if (!isfinite(bounds.size.width) || !isfinite(bounds.size.height) || bounds.size.width <= 0 || bounds.size.height <= 0
-                    || !isfinite(sx) || !isfinite(sy) || sx <= 0 || sy <= 0
-                    || fabs(sx - sy) > 1.0 / fmax(bounds.size.width, bounds.size.height)) {
-                hideView(p); return failure(p, @"The current window and framebuffer sizes are inconsistent", ARC_PRESENT_UNAVAILABLE);
+            NSView *parent = p.window.contentView;
+            if (!parent || p.view.superview != parent || ![p.view.layer isKindOfClass:CAMetalLayer.class]) {
+                hideView(p); return failure(p, @"The owned Metal view is detached from its original window", ARC_PRESENT_UNAVAILABLE);
             }
-            p.view.frame = bounds; [p.view layoutSubtreeIfNeeded];
-            layer.displaySyncEnabled = p.preparedSwapInterval != 0;
-            layer.contentsScale = sy; layer.drawableSize = CGSizeMake(p.image.width, p.image.height);
-            p.view.hidden = NO; p.hidden = NO;
-        } @finally { [CATransaction commit]; }
-        [CATransaction flush];
-        id<CAMetalDrawable> drawable = [layer nextDrawable];
-        if (!drawable || drawable.texture.width != p.image.width || drawable.texture.height != p.image.height) {
-            hideView(p); return failure(p, @"No correctly sized current Metal drawable", ARC_PRESENT_UNAVAILABLE);
-        }
-        MTLRenderPassDescriptor *pass = [MTLRenderPassDescriptor renderPassDescriptor];
-        pass.colorAttachments[0].texture = drawable.texture;
-        pass.colorAttachments[0].loadAction = MTLLoadActionDontCare; pass.colorAttachments[0].storeAction = MTLStoreActionStore;
-        id<MTLCommandBuffer> command = [p.queue commandBuffer];
-        id<MTLRenderCommandEncoder> encoder = [command renderCommandEncoderWithDescriptor:pass];
-        if (!command || !encoder) { hideView(p); return failure(p, @"Could not encode current Metal presentation", ARC_PRESENT_FAILED); }
-        [encoder setRenderPipelineState:p.pipeline]; [encoder setFragmentTexture:p.image.metal atIndex:0];
-        [encoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:3]; [encoder endEncoding];
+            CAMetalLayer *layer = (CAMetalLayer *)p.view.layer;
+            [CATransaction begin];
+            @try {
+                [CATransaction setDisableActions:YES];
+                [parent layoutSubtreeIfNeeded];
+                NSRect bounds = parent.bounds;
+                double sx = p.image.width / bounds.size.width, sy = p.image.height / bounds.size.height;
+                if (!isfinite(bounds.size.width) || !isfinite(bounds.size.height) || bounds.size.width <= 0 || bounds.size.height <= 0
+                        || !isfinite(sx) || !isfinite(sy) || sx <= 0 || sy <= 0
+                        || fabs(sx - sy) > 1.0 / fmax(bounds.size.width, bounds.size.height)) {
+                    hideView(p); return failure(p, @"The current window and framebuffer sizes are inconsistent", ARC_PRESENT_UNAVAILABLE);
+                }
+                p.view.frame = bounds; [p.view layoutSubtreeIfNeeded];
+                layer.displaySyncEnabled = p.preparedSwapInterval != 0;
+                layer.contentsScale = sy; layer.drawableSize = CGSizeMake(p.image.width, p.image.height);
+                p.view.hidden = NO; p.hidden = NO;
+                id<CAMetalDrawable> drawable = [layer nextDrawable];
+                if (!drawable || drawable.texture.width != p.image.width || drawable.texture.height != p.image.height) {
+                    hideView(p); return failure(p, @"No correctly sized current Metal drawable", ARC_PRESENT_UNAVAILABLE);
+                }
+                MTLRenderPassDescriptor *pass = [MTLRenderPassDescriptor renderPassDescriptor];
+                pass.colorAttachments[0].texture = drawable.texture;
+                pass.colorAttachments[0].loadAction = MTLLoadActionDontCare; pass.colorAttachments[0].storeAction = MTLStoreActionStore;
+                id<MTLCommandBuffer> command = [p.queue commandBuffer];
+                id<MTLRenderCommandEncoder> encoder = [command renderCommandEncoderWithDescriptor:pass];
+                if (!command || !encoder) { hideView(p); return failure(p, @"Could not encode current Metal presentation", ARC_PRESENT_FAILED); }
+                [encoder setRenderPipelineState:p.pipeline]; [encoder setFragmentTexture:p.image.metal atIndex:0];
+                [encoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:3]; [encoder endEncoding];
 #if defined(ARC_PRESENT_TESTING)
-        NSUInteger stride = ((NSUInteger)p.image.width * 4 + 255) & ~(NSUInteger)255;
-        id<MTLBuffer> pixels = [p.device newBufferWithLength:stride * p.image.height options:MTLResourceStorageModeShared];
-        id<MTLBlitCommandEncoder> readback = [command blitCommandEncoder];
-        if (!pixels || !readback) { hideView(p); return failure(p, @"Could not encode presentation test readback", ARC_PRESENT_FAILED); }
-        [readback copyFromTexture:pass.colorAttachments[0].texture sourceSlice:0 sourceLevel:0 sourceOrigin:MTLOriginMake(0, 0, 0)
-            sourceSize:MTLSizeMake(p.image.width, p.image.height, 1) toBuffer:pixels destinationOffset:0
-            destinationBytesPerRow:stride destinationBytesPerImage:stride * p.image.height];
-        [readback endEncoding]; p.testingPixels = pixels; p.testingStride = stride;
+                NSUInteger stride = ((NSUInteger)p.image.width * 4 + 255) & ~(NSUInteger)255;
+                id<MTLBuffer> pixels = [p.device newBufferWithLength:stride * p.image.height options:MTLResourceStorageModeShared];
+                id<MTLBlitCommandEncoder> readback = [command blitCommandEncoder];
+                if (!pixels || !readback) { hideView(p); return failure(p, @"Could not encode presentation test readback", ARC_PRESENT_FAILED); }
+                [readback copyFromTexture:pass.colorAttachments[0].texture sourceSlice:0 sourceLevel:0 sourceOrigin:MTLOriginMake(0, 0, 0)
+                    sourceSize:MTLSizeMake(p.image.width, p.image.height, 1) toBuffer:pixels destinationOffset:0
+                    destinationBytesPerRow:stride destinationBytesPerImage:stride * p.image.height];
+                [readback endEncoding]; p.testingPixels = pixels; p.testingStride = stride;
 #endif
-        ArcPresentationState *state = p.state; ArcPresentationImage *ownedImage = p.image;
-        atomic_store(&state->inFlight, true); p.submitted = frame; p.ticket = NO;
-        [drawable addPresentedHandler:^(id<MTLDrawable> shown) { (void)shown; latest(&state->displayed, frame); }];
-        [command addCompletedHandler:^(id<MTLCommandBuffer> finished) {
-            if (!ownedImage.metal || ownedImage.width == 0 || ownedImage.height == 0) atomic_store(&state->failed, true);
-            if (finished.status == MTLCommandBufferStatusError) atomic_store(&state->failed, true);
-            latest(&state->completed, frame); atomic_store(&state->inFlight, false);
-        }];
-        [command presentDrawable:drawable]; [command commit]; submitted = YES;
-        return ARC_PRESENT_OK;
-    } @catch (NSException *exception) {
-        if (!submitted) atomic_store(&p.state->inFlight, false);
-        hideView(p); return failure(p, exception.reason, ARC_PRESENT_FAILED);
+                ArcPresentationState *state = p.state; ArcPresentationImage *ownedImage = p.image;
+                atomic_store(&state->inFlight, true); p.submitted = frame; p.ticket = NO;
+                [drawable addPresentedHandler:^(id<MTLDrawable> shown) { (void)shown; latest(&state->displayed, frame); }];
+                [command addCompletedHandler:^(id<MTLCommandBuffer> finished) {
+                    if (!ownedImage.metal || ownedImage.width == 0 || ownedImage.height == 0) atomic_store(&state->failed, true);
+                    if (finished.status == MTLCommandBufferStatusError) atomic_store(&state->failed, true);
+                    latest(&state->completed, frame); atomic_store(&state->inFlight, false);
+                }];
+                [command commit]; submitted = YES;
+                [command waitUntilScheduled];
+                if (command.status == MTLCommandBufferStatusError) {
+                    hideView(p); return failure(p, @"The current Metal frame could not be scheduled", ARC_PRESENT_FAILED);
+                }
+                [drawable present];
+                return ARC_PRESENT_OK;
+            } @finally { [CATransaction commit]; [CATransaction flush]; }
+        } @catch (NSException *exception) {
+            if (!submitted) atomic_store(&p.state->inFlight, false);
+            hideView(p); return failure(p, exception.reason, ARC_PRESENT_FAILED);
+        }
     }
 }
 
@@ -368,6 +376,7 @@ uint64_t arc_present_query(void *value, int key) {
             case ARC_PRESENT_PARENT_ATTACHED: return parent && p.view.superview == parent;
             case ARC_PRESENT_WINDOW_VISIBLE: return p.window.isVisible;
             case ARC_PRESENT_WINDOW_OCCLUSION_VISIBLE: return (p.window.occlusionState & NSWindowOcclusionStateVisible) != 0;
+            case ARC_PRESENT_WITH_TRANSACTION: return layer.presentsWithTransaction;
             default: return 0;
         }
         memcpy(&bits, &number, sizeof(bits)); return bits;

@@ -34,6 +34,7 @@ import org.lwjgl.opengl.*;
 public final class CeraAdmission072Qa {
     private static final Identifier GLOW = new Identifier("arcadium_qa", "textures/entity/glow.png"), ORDINARY = new Identifier("arcadium_qa", "textures/entity/ordinary.png"), SECOND = new Identifier("arcadium_qa", "textures/entity/ordinary_two.png");
     private static final String PACK = "Arcadium-Cera-Admission-QA.zip";
+    private static final boolean SHARED_PALETTE = Boolean.getBoolean("arcadium.ceraAdmission072.sharedPalette");
     private static final String RESIDENT_MODE = System.getProperty("arcadium.ceraAdmission072.residentBodyMode", "off");
     private static final long[][][] residentActors = new long[3][3][2];
     private static final long[] residentBefore = new long[2];
@@ -58,6 +59,7 @@ public final class CeraAdmission072Qa {
     private static volatile String nameEscape;
     private static boolean nameProbeComplete;
     public static String residentBodyMode(){return RESIDENT_MODE;}
+    public static boolean residentSharedPalette(){return SHARED_PALETTE;}
     public static boolean residentBodyEnabled(){return !RESIDENT_MODE.equals("off");}
     public static boolean observingResidentBody(){return residentBodyEnabled()&&RESIDENT_MODE.equals("active")&&enabled()&&!done&&!BASELINE&&phase==2&&mode==2;}
     private static long[] residentQueued(){return new long[]{metric("GpuResidentBodies","actorsQueued"),metric("GpuResidentBodies","partsQueued")};}
@@ -75,7 +77,8 @@ public final class CeraAdmission072Qa {
                 if(residentBodyEnabled()){
                     require(!BASELINE&&List.of("control","active").contains(RESIDENT_MODE),"Resident Cera mode is restricted to the owned current fake fixture");
                     require(!Boolean.getBoolean("arcadium.modernGlint072.experimental")&&RESIDENT_MODE.equals(System.getProperty("arcadium.residentBodies072.mode")),"Resident mode/property mismatch or Modern experimental was enabled");
-                    report.put("privateResidentBodyMode",RESIDENT_MODE);
+                    require(SHARED_PALETTE==Boolean.getBoolean("arcadium.residentBodies072.sharedPalette"),"Shared palette property mismatch");
+                    report.put("privateResidentBodyMode",RESIDENT_MODE);report.put("privateSharedPalette",SHARED_PALETTE);
                 }
                 io.github.arcadiumclient.runtime.client.ClientPreferences.setSetupComplete(true);
                 mc.options.pauseOnUnfocus=false;mc.options.vsync=false;mc.options.fpsLimit=120;mc.options.viewDistance=3;
@@ -204,6 +207,8 @@ public final class CeraAdmission072Qa {
                     require(residentActors[2][0][0]==0&&residentActors[2][1][0]==1&&residentActors[2][2][0]==1,"Emissive actor entered resident bodies or an ordinary actor did not use exactlyone record");
                     require(((Number)body.get("actorsQueued")).longValue()==2&&((Number)body.get("partsQueued")).longValue()>2&&((Number)body.get("actualDraws")).intValue()>0&&((Number)body.get("actualInstances")).intValue()>=2,"Resident whole-body record/actual288vertex draw never executed");
                     require(((Number)body.get("poseDispatches")).longValue()>0&&((Number)body.get("restorations")).intValue()>0,"Resident bone dispatch/state restore was not exercised");
+                    if(SHARED_PALETTE)require(((Number)body.get("sharedPoseDispatches")).longValue()>0&&((Number)body.get("sharedPoseReuses")).longValue()>0&&((Number)body.get("sharedPoseFallbacks")).longValue()==0&&((Number)body.get("lateBodyCaptures")).longValue()==0&&((Number)body.get("actualMode2Draws")).intValue()>0,"Shared palette dispatch/reuse/mode2/fallback gate failed");
+
                 }else require(((Number)body.get("actorsQueued")).longValue()==0&&((Number)body.get("actualDraws")).intValue()==0,"Control source unexpectedly enabled resident bodies");
             }
             require(GL11.glGetError()==0,"OpenGL error after Cera comparison");

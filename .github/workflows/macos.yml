@@ -274,7 +274,7 @@ jobs:
           for name in ('METAL_CLIENT_SHA256','METAL_CLIENT_QA_SHA256','METAL_CLIENT_DEFAULTS_SHA256'):
               assert re.fullmatch(r'[a-f0-9]{64}', os.environ[name]), 'Missing exact private input checksum'
           PY
-          gh release download "$METAL_CLIENT_TAG" --repo "$GITHUB_REPOSITORY" --dir "$RUNNER_TEMP/metal-client" --pattern ArcadiumMetalClientPublicInputs-072.zip --pattern ArcadiumMetalClientQa-072.jar --pattern ArcadiumMetalClientDefaults-072.json
+          gh release download "$METAL_CLIENT_TAG" --repo "$GITHUB_REPOSITORY" --dir "$RUNNER_TEMP/metal-client" --pattern ArcadiumMetalClientPublicInputs-072.zip --pattern "ArcadiumMetalClientQa-$METAL_CLIENT_QA_SHA256.jar" --pattern ArcadiumMetalClientDefaults-072.json
       - name: Test actual Minecraft Skiko composition through the private Metal surface
         if: inputs.metal_client_tag != ''
         env:
@@ -300,7 +300,7 @@ jobs:
           fixture=output/'ArcadiumMetalClient072-CI'
           command=[sys.executable,'scripts/run_metal_client_probe.py',
               '--inputs',str(inputs/'ArcadiumMetalClientPublicInputs-072.zip'),'--inputs-sha256',os.environ['METAL_CLIENT_SHA256'],
-              '--qa',str(inputs/'ArcadiumMetalClientQa-072.jar'),'--qa-sha256',os.environ['METAL_CLIENT_QA_SHA256'],
+              '--qa',str(inputs/('ArcadiumMetalClientQa-'+os.environ['METAL_CLIENT_QA_SHA256']+'.jar')),'--qa-sha256',os.environ['METAL_CLIENT_QA_SHA256'],
               '--defaults-proof',str(inputs/'ArcadiumMetalClientDefaults-072.json'),'--defaults-sha256',os.environ['METAL_CLIENT_DEFAULTS_SHA256'],
               '--source-commit',os.environ['GITHUB_SHA'],'--fixture',str(fixture),'--java',str(pathlib.Path(os.environ['JAVA_HOME'])/'bin/java'),
               '--native-library',str(native),'--native-sha256',sha(native),'--shader',str(shader),'--shader-sha256',sha(shader),

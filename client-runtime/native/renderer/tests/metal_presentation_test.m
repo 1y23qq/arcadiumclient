@@ -98,6 +98,7 @@ int main(void) {
             CHECK(draw0==GL_COLOR_ATTACHMENT0_EXT&&draw1==GL_COLOR_ATTACHMENT1_EXT);
             glBindFramebufferEXT(GL_FRAMEBUFFER_EXT,0);glGetIntegerv(GL_READ_BUFFER,&readTarget);CHECK(readTarget==GL_FRONT);
             CHECK(arc_present_publish(out,frame)==ARC_PRESENT_OK);
+            CHECK(arc_present_query(out,ARC_PRESENT_WITH_TRANSACTION)==1);
             presentationState(p,frame,"submitted");
             CHECK(((CAMetalLayer *)p.view.layer).displaySyncEnabled==(interval!=0));
             NSDate *limit=[NSDate dateWithTimeIntervalSinceNow:5];

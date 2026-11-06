@@ -34,7 +34,7 @@ public final class MetalClientComposition072Qa {
     private static MetalCompositeSurface metal;
     private static Surface original,outer;
     private static Screen title;
-    private static boolean initialized,stopping,destroyed,explicitFallback,failed,control,defaultsChecked;
+    private static boolean initialized,stopping,destroyed,explicitFallback,failed,control,defaultsChecked,resizeRequested;
     private static int phase,ticks,phaseFrames,frames,skikoFlushes,skikoStart,composeSubmits,composeStart;
     private static long submittedStart;
     private static String capture;
@@ -98,7 +98,7 @@ public final class MetalClientComposition072Qa {
             else if(phase==3&&mc.screen!=null&&"OneConfigUIScreen".equals(mc.screen.getClass().getSimpleName())&&ready()) {capture="options";next(4);}
             else if(phase==4&&doneCapture("options")) {mc.openScreen(title);next(5);}
             else if(phase==5&&mc.screen==title&&ready()) {
-                MainThread.run(()->{require(SDL_SetWindowSize(original.window,1152,720),"SDL resize rejected");require(SDL_SyncWindow(original.window),"SDL resize did not finalize");});next(6);
+                resizeRequested=true;
             } else if(phase==6&&DisplaySdl.instance().getWindowWidth()==1152&&DisplaySdl.instance().getWindowHeight()==720&&ready()) {capture="title-resized";next(7);}
             else if(phase==7&&doneCapture("title-resized")) {
                 if(backend!=null)backend.close();explicitFallback=true;next(8);
@@ -151,6 +151,15 @@ public final class MetalClientComposition072Qa {
         catch(Exception error){throw new IllegalStateException("Could not save owned QA phase",error);}
     }
     private static boolean doneCapture(String name){return captures.stream().anyMatch(row->name.equals(row.get("name")));}
+    private static void afterSwap() {
+        if(!resizeRequested||failed||stopping)return;
+        try {
+            require(phase==5,"Unexpected resize boundary");
+            require(control||metal!=null&&metal.fallbackFrames()==0,"Resize preceded a successful Metal swap");
+            MainThread.run(()->{require(SDL_SetWindowSize(original.window,1152,720),"SDL resize rejected");require(SDL_SyncWindow(original.window),"SDL resize did not finalize");});
+            resizeRequested=false;report.put("resizeRequestedAfterSuccessfulSwap",true);next(6);
+        } catch(Throwable error){fail(error);}
+    }
     private static void beforeSwap() {
         if(capture==null||failed)return;
         try {
@@ -188,7 +197,7 @@ public final class MetalClientComposition072Qa {
         @Override public void makeCurrent(){delegate.makeCurrent();}
         @Override public void releaseCurrent(){delegate.releaseCurrent();}
         @Override public void setVSyncEnabled(boolean enabled){delegate.setVSyncEnabled(enabled);}
-        @Override public void swapBuffers(){if(outer)beforeSwap();else{require(metal==null||metal.nativeCounter(6)==0||metal.nativeCounter(7)==1,"GL swapped before hiding the old Metal layer");swaps++;}delegate.swapBuffers();}
+        @Override public void swapBuffers(){if(outer)beforeSwap();else{require(metal==null||metal.nativeCounter(6)==0||metal.nativeCounter(7)==1,"GL swapped before hiding the old Metal layer");swaps++;}delegate.swapBuffers();if(outer)afterSwap();}
         @Override public void destroy(){
             if(!outer)require(metal==null||metal.nativeCounter(6)==0,"Original window destruction preceded child detachment");
             delegate.destroy();destroys++;
