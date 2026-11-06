@@ -92,6 +92,7 @@ public final class GpuPlayerPipeline {
         if(!supportedLayers(renderAccess.arcadium$layers())){rejectedLayers++;return false;}
         boolean extraLayers=hasLayers(player);
         PlayerModel model=renderer.getModel();if(model.getClass()!=PlayerModel.class){state="Unsupported model: "+model.getClass().getName();rejectedModel++;return false;}
+        if(NativePlayerLayerRoot.enabled()&&!NativePlayerLayerRoot.valid(x,y,z,player.lastBodyYaw,player.bodyYaw,player.height))return rejectState("Unknown native layer root snapshot; using original");
         int job=-1;boolean committed=false;
         Object instances0=null,instances1=null;int oldSize0=0,oldCount0=0,oldSize1=0,oldCount1=0;
         try{
@@ -122,8 +123,8 @@ public final class GpuPlayerPipeline {
             float body=angle(player.lastBodyYaw,player.bodyYaw,delta),head=angle(player.lastHeadYaw,player.headYaw,delta)-body,pitch=player.lastPitch+(player.pitch-player.lastPitch)*delta;
             float walk=player.walkAnimationProgress-player.walkAnimationSpeed*(1-delta),speed=Math.min(1,player.lastWalkAnimationSpeed+(player.walkAnimationSpeed-player.lastWalkAnimationSpeed)*delta),age=player.ticks+delta;
             root.identity().translate((float)x,(float)y,(float)z).rotateY((float)Math.toRadians(180-body));
-            if(PlayerPoseOptions.upsideDown(player.getName(),player.isModelPartVisible(PlayerModelPart.CAPE)))
-                root.translate(0,player.height+.1f,0).rotateZ((float)Math.PI);
+            boolean upsideDown=PlayerPoseOptions.upsideDown(player.getName(),player.isModelPartVisible(PlayerModelPart.CAPE));float height=player.height;
+            if(upsideDown)root.translate(0,height+.1f,0).rotateZ((float)Math.PI);
             root.scale(-1,-1,1).scale(.9375f).translate(0,-1.5078125f,0);
             job=GpuPlayerPackets.addActor(player,root,walk,speed,age,head,pitch,player.getAttackAnimationProgress(delta),model.itemInLeftHand,model.itemInRightHand,model.sneaking,false,model.aimingBow,profile.template);
             if(job<0)return false;
@@ -145,7 +146,7 @@ public final class GpuPlayerPipeline {
             }
             if(!residentBody){api.batchCount.set(batch,(int)api.batchCount.get(batch)+added);api.backendCount.set(backend,(int)api.backendCount.get(backend)+added);}
             committed=true;
-            boolean counted=extraLayers&&renderLayers(renderAccess,model,profile.parts,skinMask,nativeLayers,job,profile.template,player,actor,skin,light,walk,speed,delta,age,head,pitch);
+            boolean counted=extraLayers&&renderLayers(renderAccess,model,profile.parts,skinMask,nativeLayers,job,profile.template,player,actor,skin,light,walk,speed,delta,age,head,pitch,x,y,z,body,upsideDown,height);
             if(!counted){api.entityCount.set(actor,(int)api.entityCount.get(actor)+1);api.playerCount.set(actor,(int)api.playerCount.get(actor)+1);}
             api.nameAdd.invoke(api.nameTags.get(actor),renderer,player,x,y,z,light);
             playersDrawn++;partsQueued+=added;state="Compact poses active";return true;
@@ -160,13 +161,14 @@ public final class GpuPlayerPipeline {
     }
     private static boolean rejectState(String reason){state=reason;rejectedState++;return false;}
     private static boolean renderLayers(LivingPipelineAccess renderer,PlayerModel model,ModelPart[] parts,int skinMask,boolean nativeLayers,int job,int template,ClientPlayerEntity player,Object actor,Identifier skin,int light,
-                                        float walk,float speed,float delta,float age,float yaw,float pitch)throws Throwable{
+                                        float walk,float speed,float delta,float age,float yaw,float pitch,double x,double y,double z,float bodyYaw,boolean upsideDown,float height)throws Throwable{
         Object capture=api.beginCapture.invoke(actor,model,skin,true,true,light,age,0f,0f,0f,0f);
         if(capture==null)throw new IllegalStateException("Player layer capture was unavailable");
         boolean counted=false;int nativeSkinMask=skinMask;GL11.glPushMatrix();
         try{
             ((Matrix4fStack)api.captureMatrices.get(capture)).set(root);api.firstPass.invoke(capture);
-            glRoot.clear();root.get(glRoot);GL11.glMultMatrixf(glRoot);
+            if(NativePlayerLayerRoot.enabled())NativePlayerLayerRoot.apply(x,y,z,bodyYaw,upsideDown,height);
+            else{glRoot.clear();root.get(glRoot);GL11.glMultMatrixf(glRoot);}
             GlStateManager.disableCull();GlStateManager.enableRescaleNormal();GlStateManager.enableAlphaTest();
             if(GpuVoxelSkinPipeline.enabled&&skinMask!=0)Minecraft.getInstance().getTextureManager().bind(skin);
             nativeSkinMask&=~GpuVoxelSkinPipeline.queueAnalytic(parts,skinMask,skin,job,template,light,age);

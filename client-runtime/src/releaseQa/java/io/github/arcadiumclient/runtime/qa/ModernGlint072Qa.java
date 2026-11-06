@@ -117,6 +117,7 @@ public final class ModernGlint072Qa {
                 report.put("purpose", "Same-frame native/modern GPU pixel and GL state correctness; not FPS data");
                 report.put("experimentalModernArmorRoute", Boolean.getBoolean("arcadium.modernGlint072.experimental"));
                 report.put("privateMvpMode", ModernArmorGlintPipeline.mvpMode());
+                report.put("nativeLayerRootRequested",Boolean.getBoolean("arcadium.nativeLayerRoot072.replay"));
                 report.put("fixtureVariant", Map.of("pose", POSE, "bodyPipeline", BODY, "camera", CAMERA, "fov", mc.options.fov));
                 report.put("settings", Map.of("fpsLimit", 120, "renderDistance", 3, "minimumPlayers", 1, "gpuPlayerPipeline", BODY,
                         "gpuModelTransforms", false, "gpuNameTags", false, "gpuParticles", false, "worldRenderScale", false,
@@ -472,6 +473,8 @@ public final class ModernGlint072Qa {
                 require(Boolean.TRUE.equals(mvpProof.get("balancedClientScopes")), "Private MVP client scopes are unbalanced");
                 if (ModernArmorGlintPipeline.mvpMode() == 1) require(((Number)mvpProof.get("actualNativeMvpRawBitChecks")).longValue() > 0 && ((Number)mvpProof.get("actualOwnedMvpInstances")).longValue() > 0, "Private MVP vertex path never executed");
                 else require(((Number)mvpProof.get("mode0ControlInstances")).longValue() > 0, "Private mode0 control vertex path never executed");
+                var nativeRootProof=nativeLayerRootProof();report.put("nativeLayerRoot",nativeRootProof);
+                if(Boolean.getBoolean("arcadium.nativeLayerRoot072.replay"))require(Boolean.TRUE.equals(nativeRootProof.get("enabled"))&&((Number)nativeRootProof.get("actualReplays")).longValue()>0,"Requested native physical layer-root path did not actually execute");
                 require(pixelFailures.isEmpty(), "Modern glint full RGBA quality failed: " + pixelFailures);
                 require(zeroRangeChecks >= 20 && zeroMaterialDrawChecks > 0 && ModernArmorGlintPipeline.dummyProgramBinds > 0,
                         "No proof of valid no-material draws with an originally unbound SSBO7");
@@ -479,6 +482,15 @@ public final class ModernGlint072Qa {
                 report.put("nonzeroSsbo7RangeChecks", guardedDraws); report.put("glintOrderingChecks", orderChecks); finish(null);
             } catch (Throwable error) { finish(error); }
         }
+    }
+
+    private static Map<String,Object> nativeLayerRootProof(){
+        boolean requested=Boolean.getBoolean("arcadium.nativeLayerRoot072.replay");
+        if(!requested)return Map.of("requested",false,"enabled",false,"actualReplays",0);
+        try{
+            Class<?> type=Class.forName("io.github.arcadiumclient.runtime.client.optimizations.NativePlayerLayerRoot");var enabled=type.getDeclaredMethod("enabled");enabled.setAccessible(true);var replays=type.getDeclaredField("replays");replays.setAccessible(true);
+            return Map.of("requested",true,"enabled",enabled.invoke(null),"actualReplays",replays.getLong(null));
+        }catch(ReflectiveOperationException error){return Map.of("requested",true,"enabled",false,"actualReplays",0,"missingApiClass",error.getClass().getName());}
     }
 
     private static BufferedImage capture(Minecraft mc) {
@@ -503,6 +515,7 @@ public final class ModernGlint072Qa {
         report.put("fullRgbaPixelFailures", pixelFailures);
         report.put("fixedFunctionAndInstancedGlintPixelTrace", ModernGlintPixelTrace072Qa.report());
         report.put("privateMvpState", io.github.arcadiumclient.runtime.client.optimizations.ModernArmorMvp072Qa.report());
+        report.put("nativeLayerRoot",nativeLayerRootProof());
         report.put("originallyUnboundSsbo7WorldChecks", zeroRangeChecks); report.put("zeroMaterialNativeDrawChecks", zeroMaterialDrawChecks);
         report.put("baseWholeStoreBindingChecks",wholeStoreChecks);report.put("minimumNoMaterialDatastoreBytes",minimumNoMaterialStore==Long.MAX_VALUE?0:minimumNoMaterialStore);
         report.put("dummyProgramBinds", ModernArmorGlintPipeline.dummyProgramBinds); report.put("materialProgramBinds", ModernArmorGlintPipeline.materialProgramBinds);

@@ -77,6 +77,7 @@ static const uint64_t image_limit = UINT64_C(128) * 1024 * 1024;
 @public pthread_t renderThread;
 @public CVMetalTextureCacheRef cache;
 @public uint64_t publishedLayer, publishedSuperlayer, publishedDrawableLayer, publishedView, publishedContentView, publishedDrawable;
+@public uint64_t publishedTexture[7];
 }
 @property(nonatomic, weak) NSWindow *window;
 @property(nonatomic, strong) NSView *view;
@@ -324,6 +325,10 @@ int arc_present_publish(void *value, uint64_t frame) {
                 layer.contentsScale = sy; layer.drawableSize = CGSizeMake(p.image.width, p.image.height);
                 p.view.hidden = NO; p.hidden = NO;
                 id<CAMetalDrawable> drawable = [layer nextDrawable];
+                id<MTLTexture> target = drawable.texture;
+                const uint64_t textureFacts[7] = {frame, target.width, target.height, target.arrayLength,
+                    target.textureType, target.sampleCount, target.pixelFormat};
+                memcpy(p->publishedTexture, textureFacts, sizeof(textureFacts));
                 if (!drawable || drawable.texture.width != p.image.width || drawable.texture.height != p.image.height) {
                     hideView(p); return failure(p, @"No correctly sized current Metal drawable", ARC_PRESENT_UNAVAILABLE);
                 }
@@ -404,6 +409,8 @@ uint64_t arc_present_query(void *value, int key) {
     if (!p) return 0;
     if (key >= ARC_PRESENT_PARENT_WIDTH_FP64) {
         if (!mainThread()) return 0;
+        if (key >= ARC_PRESENT_PUBLISHED_TEXTURE_BASE && key < ARC_PRESENT_PUBLISHED_TEXTURE_END)
+            return p->publishedTexture[key - ARC_PRESENT_PUBLISHED_TEXTURE_BASE];
         NSView *parent = p.window.contentView; CAMetalLayer *layer = (CAMetalLayer *)p.view.layer;
         if (key >= ARC_PRESENT_LAYER_CHAIN_BASE && key < ARC_PRESENT_LAYER_CHAIN_END) {
             CALayer *ancestor = layer;

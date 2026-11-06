@@ -19,6 +19,10 @@ static void presentationState(ArcPresentation *p, uint64_t frame, const char *st
         (window.occlusionState&NSWindowOcclusionStateVisible)!=0,NSApp.isActive,NSApp.isHidden,window.isKeyWindow,
         p.hidden,p.view.isHiddenOrHasHiddenAncestor,p.attached,layer.hidden,
         layer.drawableSize.width,layer.drawableSize.height,layer.contentsScale,(unsigned long long)atomic_load(&p.state->liveBytes));
+    fprintf(stderr,"acquiredTexture frame=%llu width=%llu height=%llu arrayLength=%llu textureType=%llu sampleCount=%llu pixelFormat=%llu\n",
+        (unsigned long long)p->publishedTexture[0],(unsigned long long)p->publishedTexture[1],
+        (unsigned long long)p->publishedTexture[2],(unsigned long long)p->publishedTexture[3],
+        (unsigned long long)p->publishedTexture[4],(unsigned long long)p->publishedTexture[5],(unsigned long long)p->publishedTexture[6]);
 }
 static void pattern(int width, int height, int frame) {
     const float colors[4][3] = {{1,0,0},{0,1,0},{0,0,1},{1,1,0}};

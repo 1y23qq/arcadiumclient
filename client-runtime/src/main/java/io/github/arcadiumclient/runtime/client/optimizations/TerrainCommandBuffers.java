@@ -78,6 +78,7 @@ final class TerrainCommandBuffers implements AutoCloseable {
             GL30.glBindBufferBase(GL43.GL_SHADER_STORAGE_BUFFER, 1, order.handle());
             GL30.glBindBufferBase(GL43.GL_SHADER_STORAGE_BUFFER, 2, commands.handle());
             GL30.glBindBufferBase(GL43.GL_SHADER_STORAGE_BUFFER, 3, count.handle());
+            GL42.glMemoryBarrier(GL42.GL_BUFFER_UPDATE_BARRIER_BIT | GL43.GL_SHADER_STORAGE_BARRIER_BIT);
             GL43.glDispatchCompute(1, 1, 1);
             GL42.glMemoryBarrier(GL43.GL_SHADER_STORAGE_BARRIER_BIT | GL42.GL_COMMAND_BARRIER_BIT);
             cameraKey = key; lastCull = cull; initialized = true;

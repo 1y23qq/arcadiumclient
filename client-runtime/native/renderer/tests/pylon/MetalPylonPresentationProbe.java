@@ -174,6 +174,10 @@ public final class MetalPylonPresentationProbe {
         state.put("displayed",original.owner.nativeCounter(DISPLAYED));state.put("status",original.owner.status());
         state.put("sdlVisible",display.isVisible());state.put("sdlFlags",SDL_GetWindowFlags(original.window));frames.add(state);
         state.put("geometry",geometry(original));
+        Map<String,Object> texture=new LinkedHashMap<>();
+        String[] textureNames={"frame","width","height","arrayLength","textureType","sampleCount","pixelFormat"};
+        for(int i=0;i<textureNames.length;i++)texture.put(textureNames[i],original.owner.nativeCounter(73+i));
+        state.put("publishedTextureBeforePresent",texture);
         if(!displayed) {
             try {state.put("layerAuditAfterFailedDecision",layerState(original));}
             catch(Throwable error){state.put("layerAuditFailure",error.getClass().getName());}
