@@ -44,7 +44,17 @@ public final class ModernGlintShaderPatch {
     static boolean supportedHashes(String vertex, String fragment) { return VERTEX_SHA.equals(vertex) && FRAGMENT_SHA.equals(fragment); }
 
     static String vertex(String source) {
-        source = replaceOnce(source, "#version 130", "#version 430 compatibility\n#define " + TAG);
+        return vertex(source, false);
+    }
+
+    static String residentVertex(String source) {
+        return vertex(source, true);
+    }
+
+    private static String vertex(String source, boolean resident) {
+        source = resident
+                ? replaceOnce(source, "#define " + GpuResidentBodyShaders.TAG, "#define " + GpuResidentBodyShaders.TAG + "\n#define " + TAG)
+                : replaceOnce(source, "#version 130", "#version 430 compatibility\n#define " + TAG);
         source = replaceOnce(source, "out vec2 vGlintCoord;", "out vec2 vGlintCoord;\nflat out int arcadiumModernGlint;\n" +
                 "layout(std430,binding=7) readonly buffer ArcadiumModernGlintMatrices { mat4 arcadiumGlintMatrices[]; };\n" +
                 "uniform int uArcadiumModernGlintCount;\nuniform int uArcadiumModernArmorMvp;\n" +

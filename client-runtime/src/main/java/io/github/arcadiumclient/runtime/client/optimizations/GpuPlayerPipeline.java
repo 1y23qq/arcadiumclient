@@ -120,16 +120,21 @@ public final class GpuPlayerPipeline {
                     nativeSkinCallbacks++;state="Native outer skins retain original callbacks and GPU body capture";return false;
                 }
             }
-            float body=angle(player.lastBodyYaw,player.bodyYaw,delta),head=angle(player.lastHeadYaw,player.headYaw,delta)-body,pitch=player.lastPitch+(player.pitch-player.lastPitch)*delta;
-            float walk=player.walkAnimationProgress-player.walkAnimationSpeed*(1-delta),speed=Math.min(1,player.lastWalkAnimationSpeed+(player.walkAnimationSpeed-player.lastWalkAnimationSpeed)*delta),age=player.ticks+delta;
+            if(GpuPlayerPackets.actorSceneEnabled())GpuPlayerPackets.observeActor(player,player.ticks,delta,player.lastBodyYaw,player.bodyYaw,player.lastHeadYaw,player.headYaw,player.lastPitch,player.pitch,player.walkAnimationProgress,player.walkAnimationSpeed,player.lastWalkAnimationSpeed,player.lastAttackAnimationProgress,player.attackAnimationProgress);
+            boolean sceneOnly=!extraLayers&&GpuPlayerPackets.actorSceneCanCapture(player)&&Double.isFinite(x)&&Double.isFinite(y)&&Double.isFinite(z)&&Math.abs(x)<=Float.MAX_VALUE&&Math.abs(y)<=Float.MAX_VALUE&&Math.abs(z)<=Float.MAX_VALUE;
+            float body=angle(player.lastBodyYaw,player.bodyYaw,delta),head=0,pitch=0,walk=0,speed=0,age=player.ticks+delta;
+            if(!sceneOnly){head=angle(player.lastHeadYaw,player.headYaw,delta)-body;pitch=player.lastPitch+(player.pitch-player.lastPitch)*delta;walk=player.walkAnimationProgress-player.walkAnimationSpeed*(1-delta);speed=Math.min(1,player.lastWalkAnimationSpeed+(player.walkAnimationSpeed-player.lastWalkAnimationSpeed)*delta);}
             root.identity().translate((float)x,(float)y,(float)z).rotateY((float)Math.toRadians(180-body));
             boolean upsideDown=PlayerPoseOptions.upsideDown(player.getName(),player.isModelPartVisible(PlayerModelPart.CAPE));float height=player.height;
             if(upsideDown)root.translate(0,height+.1f,0).rotateZ((float)Math.PI);
             root.scale(-1,-1,1).scale(.9375f).translate(0,-1.5078125f,0);
-            job=GpuPlayerPackets.addActor(player,root,walk,speed,age,head,pitch,player.getAttackAnimationProgress(delta),model.itemInLeftHand,model.itemInRightHand,model.sneaking,false,model.aimingBow,profile.template);
+            float nativeSwing=player.getAttackAnimationProgress(delta);
+            job=sceneOnly?GpuPlayerPackets.addActorScene(player,root,nativeSwing,model.itemInLeftHand,model.itemInRightHand,model.sneaking,false,model.aimingBow,profile.template)
+                    :GpuPlayerPackets.addActor(player,root,walk,speed,age,head,pitch,nativeSwing,model.itemInLeftHand,model.itemInRightHand,model.sneaking,false,model.aimingBow,profile.template);
             if(job<0)return false;
             if(batch==null)batch=api.select.invoke(backend,skin,api.translucent);
             int light=player.getLightLevel(delta),layer=(int)api.selectedLayer.get(backend),lightWord=(light&255)|((light>>>16&255)<<8)|(layer&255)<<16;
+            if(GpuPlayerPackets.actorSceneEnabled())GpuPlayerPackets.observeMaterial(job,backend,batch,skin,layer);
             boolean residentBody=GpuResidentBodies.queue(backend,profile,job,mask,batch,skin,light,age,root);
             int added=residentBody?Integer.bitCount(mask):0;
             if(!residentBody)for(int mirror=0;mirror<2;mirror++){

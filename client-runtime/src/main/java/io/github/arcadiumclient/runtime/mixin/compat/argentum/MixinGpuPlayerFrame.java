@@ -23,7 +23,7 @@ public abstract class MixinGpuPlayerFrame {
         ModernArmorGlintPipeline.beginFrame();
         Minecraft mc=Minecraft.getInstance();
         GpuPlayerPackets.prepareActors(mc.world,mc.world==null?List.of():mc.world.players,
-                BetaOptimizationsConfig.getGpuPlayerPipeline()&&GpuResidentPlayerState.canRetainActors()&&!GpuPlayerPipeline.hasForgeHooks());
+                BetaOptimizationsConfig.getGpuPlayerPipeline()&&(GpuResidentPlayerState.canRetainActors()||GpuPlayerPackets.actorSceneReady())&&!GpuPlayerPipeline.hasForgeHooks());
         if(Minecraft.getInstance().world==null)GpuModelTransforms.clearFrameBudget();
         else GpuModelTransforms.beginFrame();
     }

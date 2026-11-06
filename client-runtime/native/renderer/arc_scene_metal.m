@@ -608,6 +608,7 @@ int arc_scene_reset(void *pointer) {
 @property(nonatomic) int kind;
 @property(nonatomic) uint64_t frame, generation;
 @property(nonatomic) BOOL released;
+@property(nonatomic) BOOL claimed, retirementScheduled;
 @end
 @implementation ArcMetalLease
 @end
@@ -654,7 +655,7 @@ int arc_scene_metal_lease_info(void *pointer, arc_scene_metal_info *out) {
     if (!out) return ARC_INVALID;
     memset(out, 0, sizeof(*out));
     ArcMetalLease *lease = (__bridge ArcMetalLease *)pointer;
-    if (!lease || lease.released || lease.scene.externallyClosed
+    if (!lease || lease.released || lease.claimed || lease.scene.externallyClosed
         || !pthread_equal(lease.scene->ownerThread, pthread_self())) return ARC_INVALID;
     if (lease.kind == ARC_METAL_TARGET_LEASE && (lease.frame != lease.scene.submitted
         || lease.generation != lease.scene.targetGeneration || lease.texture != lease.scene.color)) return ARC_INVALID;
@@ -664,22 +665,69 @@ int arc_scene_metal_lease_info(void *pointer, arc_scene_metal_info *out) {
     return ARC_OK;
 }
 
-int arc_scene_metal_lease_release(void *pointer) {
-    @autoreleasepool {
-    ArcMetalLease *lease = (__bridge ArcMetalLease *)pointer;
-    if (!lease || lease.released || !pthread_equal(lease.scene->ownerThread, pthread_self())) return ARC_INVALID;
+static int arc_retire_metal_lease(ArcMetalLease *lease) {
+    if (lease.retirementScheduled) return ARC_OK;
     id<MTLCommandBuffer> fence = [lease.queue commandBuffer];
     if (!fence) return ARC_FAILED;
     ArcResidentScene *scene = lease.scene;
     atomic_int *flag = lease.kind == ARC_METAL_DEVICE_LEASE ? &scene->deviceLease : &scene->targetLease;
     if (lease.kind == ARC_METAL_DEVICE_LEASE) dispatch_group_enter(scene.externalWork);
-    lease.released = YES; atomic_store(flag, 2);
+    lease.retirementScheduled = YES; atomic_store(flag, 2);
     [fence addCompletedHandler:^(id<MTLCommandBuffer> completed) {
         if (completed.status == MTLCommandBufferStatusError) scene.commandFailed = YES;
         atomic_store(lease.kind == ARC_METAL_DEVICE_LEASE ? &scene->deviceLease : &scene->targetLease, 0);
         dispatch_group_leave(scene.externalWork);
     }];
-    [fence commit]; (void)CFBridgingRelease(pointer);
-    return ARC_OK;
+    @try { [fence commit]; }
+    @catch (NSException *exception) {
+        if (fence.status < MTLCommandBufferStatusCommitted) {
+            lease.retirementScheduled = NO; atomic_store(flag, 1);
+            if (lease.kind == ARC_METAL_DEVICE_LEASE) dispatch_group_leave(scene.externalWork);
+        }
+        return arc_fail(scene, exception.reason, ARC_FAILED);
     }
+    return ARC_OK;
+}
+
+int arc_scene_metal_lease_release(void *pointer) {
+    @autoreleasepool {
+    ArcMetalLease *lease = (__bridge ArcMetalLease *)pointer;
+    if (!lease || lease.released || !pthread_equal(lease.scene->ownerThread, pthread_self())) return ARC_INVALID;
+    int result = lease.claimed ? ARC_OK : arc_retire_metal_lease(lease);
+    if (result != ARC_OK) return result;
+    lease.released = YES; (void)CFBridgingRelease(pointer); return ARC_OK;
+    }
+}
+
+int arc_scene_metal_target_snapshot(void *pointer, void *expected_scene, arc_scene_metal_info *out, id<MTLTexture> __strong *texture) {
+    if (texture) *texture = nil;
+    if (out) memset(out, 0, sizeof(*out));
+    ArcMetalLease *lease = (__bridge ArcMetalLease *)pointer;
+    if (!texture || !out || !lease || lease.kind != ARC_METAL_TARGET_LEASE
+        || (__bridge void *)lease.scene != expected_scene || lease.scene.commandFailed
+        || arc_scene_metal_lease_info(pointer, out) != ARC_OK) return ARC_INVALID;
+    if (lease.texture.pixelFormat != MTLPixelFormatBGRA8Unorm || lease.texture.textureType != MTLTextureType2D
+        || lease.texture.sampleCount != 1 || lease.texture.arrayLength != 1
+        || !(lease.texture.usage & MTLTextureUsageShaderRead)) { memset(out, 0, sizeof(*out)); return ARC_INVALID; }
+    *texture = lease.texture; return ARC_OK;
+}
+
+int arc_scene_metal_target_claim(void *pointer, void *scene, uint64_t frame, uint64_t generation, id __strong *claim) {
+    if (!claim) return ARC_INVALID;
+    *claim = nil; arc_scene_metal_info info; id<MTLTexture> texture = nil;
+    if (arc_scene_metal_target_snapshot(pointer, scene, &info, &texture) != ARC_OK
+        || info.frame_id != frame || info.generation != generation) return ARC_INVALID;
+    ArcMetalLease *lease = (__bridge ArcMetalLease *)pointer; lease.claimed = YES; *claim = lease; return ARC_OK;
+}
+
+int arc_scene_metal_target_retire(id value) {
+    @autoreleasepool {
+    ArcMetalLease *lease = value;
+    if (![lease isKindOfClass:ArcMetalLease.class] || lease.kind != ARC_METAL_TARGET_LEASE || !lease.claimed) return ARC_INVALID;
+    return lease.retirementScheduled ? ARC_OK : arc_retire_metal_lease(lease);
+    }
+}
+int arc_scene_metal_target_failed(id value) {
+    ArcMetalLease *lease = value;
+    return ![lease isKindOfClass:ArcMetalLease.class] || lease.scene.commandFailed;
 }

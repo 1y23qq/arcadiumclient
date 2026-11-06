@@ -299,48 +299,55 @@ public final class ModernArmorGlintPipeline {
         int record = programIndex(program);
         if (record < 0 || drawDepth == draws.length || GL11.glGetInteger(GL20.GL_CURRENT_PROGRAM) != program) return 0;
         int location = countLocations[record];
-        DrawState draw = draws[drawDepth++];
+        DrawState draw = draws[drawDepth];
         draw.program = program; draw.location = location; draw.uniform = GL20.glGetUniformi(program, location);
         draw.mvpLocation = mvpLocations[record]; draw.mvpUniform = draw.mvpLocation < 0 ? 0 : GL20.glGetUniformi(program, draw.mvpLocation);
-        if (draw.mvpLocation >= 0) GL41.glProgramUniform1i(program, draw.mvpLocation, useGeometryMvp() && ModernArmorAuxiliary.ownsProgram(program) ? 1 : 0);
         draw.generic = GL11.glGetInteger(GL43.GL_SHADER_STORAGE_BUFFER_BINDING);
         draw.indexed = GL30.glGetIntegeri(GL43.GL_SHADER_STORAGE_BUFFER_BINDING, 7);
         draw.offset = draw.indexed == 0 ? 0 : GL32.glGetInteger64i(GL43.GL_SHADER_STORAGE_BUFFER_START, 7);
         draw.size = draw.indexed == 0 ? 0 : GL32.glGetInteger64i(GL43.GL_SHADER_STORAGE_BUFFER_SIZE, 7);
-        if (matrices.count() == 0 || !verifiedPrograms[record]) {
-            if (dummyStorage == 0) {
-                dummyStorage = GL15.glGenBuffers(); GL15.glBindBuffer(GL43.GL_SHADER_STORAGE_BUFFER, dummyStorage);
-                GL15.glBufferData(GL43.GL_SHADER_STORAGE_BUFFER, BufferUtils.createFloatBuffer(16), GL15.GL_STATIC_DRAW);
+        int token = ++drawDepth;
+        try {
+            if (draw.mvpLocation >= 0) GL41.glProgramUniform1i(program, draw.mvpLocation, useGeometryMvp() && ModernArmorAuxiliary.ownsProgram(program) ? 1 : 0);
+            if (matrices.count() == 0 || !verifiedPrograms[record]) {
+                if (dummyStorage == 0) {
+                    dummyStorage = GL15.glGenBuffers(); GL15.glBindBuffer(GL43.GL_SHADER_STORAGE_BUFFER, dummyStorage);
+                    GL15.glBufferData(GL43.GL_SHADER_STORAGE_BUFFER, BufferUtils.createFloatBuffer(16), GL15.GL_STATIC_DRAW);
+                }
+                GL30.glBindBufferBase(GL43.GL_SHADER_STORAGE_BUFFER, 7, dummyStorage);
+                GL41.glProgramUniform1i(program, location, 0); dummyProgramBinds++; return token;
             }
-            GL30.glBindBufferBase(GL43.GL_SHADER_STORAGE_BUFFER, 7, dummyStorage);
-            GL41.glProgramUniform1i(program, location, 0); dummyProgramBinds++; return drawDepth;
+            if (storage == 0) storage = GL15.glGenBuffers();
+            GL15.glBindBuffer(GL43.GL_SHADER_STORAGE_BUFFER, storage);
+            int words = matrices.count() * 16;
+            if (uploadedFrame != matrices.generation() || words > storageCapacity) {
+                if (words > storageCapacity) storageCapacity = Math.max(words, Math.max(128 * 16, storageCapacity * 2));
+                GL15.glBufferData(GL43.GL_SHADER_STORAGE_BUFFER, (long)storageCapacity * 4, GL15.GL_STREAM_DRAW);
+                uploadedFrame = matrices.generation(); uploadedMatrices = 0;
+            }
+            if (uploadedMatrices != matrices.count()) {
+                int start = uploadedMatrices * 16, length = words - start;
+                if (upload.capacity() < length) upload = BufferUtils.createFloatBuffer(Integer.highestOneBit(length - 1) * 2);
+                upload.clear(); upload.put(matrices.values(), start, length).flip();
+                GL15.glBufferSubData(GL43.GL_SHADER_STORAGE_BUFFER, (long)start * 4, upload); uploadedMatrices = matrices.count();
+            }
+            GL30.glBindBufferBase(GL43.GL_SHADER_STORAGE_BUFFER, 7, storage);
+            GL41.glProgramUniform1i(program, location, matrices.count());
+            materialProgramBinds++;
+            return token;
+        } catch (RuntimeException | Error failure) {
+            try { endDraw(token); } catch (RuntimeException | Error cleanup) { failure.addSuppressed(cleanup); }
+            throw failure;
         }
-        if (storage == 0) storage = GL15.glGenBuffers();
-        GL15.glBindBuffer(GL43.GL_SHADER_STORAGE_BUFFER, storage);
-        int words = matrices.count() * 16;
-        if (uploadedFrame != matrices.generation() || words > storageCapacity) {
-            if (words > storageCapacity) storageCapacity = Math.max(words, Math.max(128 * 16, storageCapacity * 2));
-            GL15.glBufferData(GL43.GL_SHADER_STORAGE_BUFFER, (long)storageCapacity * 4, GL15.GL_STREAM_DRAW);
-            uploadedFrame = matrices.generation(); uploadedMatrices = 0;
-        }
-        if (uploadedMatrices != matrices.count()) {
-            int start = uploadedMatrices * 16, length = words - start;
-            if (upload.capacity() < length) upload = BufferUtils.createFloatBuffer(Integer.highestOneBit(length - 1) * 2);
-            upload.clear(); upload.put(matrices.values(), start, length).flip();
-            GL15.glBufferSubData(GL43.GL_SHADER_STORAGE_BUFFER, (long)start * 4, upload); uploadedMatrices = matrices.count();
-        }
-        GL30.glBindBufferBase(GL43.GL_SHADER_STORAGE_BUFFER, 7, storage);
-        GL41.glProgramUniform1i(program, location, matrices.count());
-        materialProgramBinds++;
-        return drawDepth;
     }
 
     public static void endDraw(int token) {
         if (token == 0) return;
-        DrawState draw = draws[token - 1];
+        if (token != drawDepth || token < 1) throw new IllegalStateException("Unbalanced modern armor shader scope");
+        DrawState draw = draws[--drawDepth];
         if (draw.indexed != 0 && draw.size > 0) GL30.glBindBufferRange(GL43.GL_SHADER_STORAGE_BUFFER, 7, draw.indexed, draw.offset, draw.size);
         else GL30.glBindBufferBase(GL43.GL_SHADER_STORAGE_BUFFER, 7, draw.indexed);
-        GL15.glBindBuffer(GL43.GL_SHADER_STORAGE_BUFFER, draw.generic); GL41.glProgramUniform1i(draw.program, draw.location, draw.uniform); if (draw.mvpLocation >= 0) GL41.glProgramUniform1i(draw.program, draw.mvpLocation, draw.mvpUniform); drawDepth--;
+        GL15.glBindBuffer(GL43.GL_SHADER_STORAGE_BUFFER, draw.generic); GL41.glProgramUniform1i(draw.program, draw.location, draw.uniform); if (draw.mvpLocation >= 0) GL41.glProgramUniform1i(draw.program, draw.mvpLocation, draw.mvpUniform);
     }
 
     private static boolean nativeLayer(String reason) { nativeLayers++; state = reason; return false; }
@@ -349,6 +356,7 @@ public final class ModernArmorGlintPipeline {
         LogManager.getLogger("Arcadium/Modern Armor Glint").warn("Modern armor glint adapter disabled", error);
     }
     public static void close() {
+        if (drawDepth != 0) throw new IllegalStateException("Modern armor shader scopes are still active");
         ModernArmorAuxiliary.close();
         matrices.beginFrame(); selection.clear(); if (geometryMvp != null) geometryMvp.clear();
         if (storage != 0) GL15.glDeleteBuffers(storage); storage = storageCapacity = uploadedMatrices = 0; uploadedFrame = -1;

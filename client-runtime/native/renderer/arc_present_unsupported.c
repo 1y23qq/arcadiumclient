@@ -1,9 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0-only
 #include "arc_present.h"
+#include "arc_present_scene.h"
 #include <string.h>
 
 static const char unavailable[] = "Current-frame Metal presentation is unavailable; keep OpenGL";
 int arc_present_abi(void) { return 1; }
+int arc_present_scene_abi(void) { return 1; }
+int arc_present_prepare_scene(void *bridge, void *lease, const arc_present_frame *frame) {
+    (void)bridge; (void)lease; (void)frame; return ARC_PRESENT_UNAVAILABLE;
+}
 int arc_present_error(void *bridge, char *out, uint64_t capacity) {
     (void)bridge;
     if (!out || capacity == 0) return ARC_PRESENT_INVALID;

@@ -56,10 +56,12 @@ final class DenseActorSlots {
     int index(Object owner){Entry entry=active.get(owner);return entry==null?-1:entry.index;}
     long handle(Object owner){Entry entry=active.get(owner);return entry==null?0:entry.handle;}
     boolean current(Object owner,long handle){return handle!=0&&handle(owner)==handle;}
+    boolean canClaim(Object owner,long batch){Entry entry=active.get(owner);return entry!=null&&entry.claimed!=batch;}
     int claim(Object owner,long batch){
         Entry entry=active.get(owner);if(entry==null||entry.claimed==batch)return -1;
         entry.claimed=batch;return entry.index;
     }
+    long handleAt(int index){if(index<0||index>=size)throw new IndexOutOfBoundsException(index);return dense[index].handle;}
     Object owner(int index){if(index<0||index>=size)throw new IndexOutOfBoundsException(index);return dense[index].owner;}
     int size(){return size;}
     int moves(){return moves;}

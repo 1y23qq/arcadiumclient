@@ -1,0 +1,13 @@
+# Private scene-texture presentation handoff
+
+The optional scene-presentation ABI is version 1. Existing presentation ABI 1 and `arc_present_frame` stay unchanged at 32 bytes. `arc_present_prepare_scene` interprets source-framebuffer/read-buffer fields as zero; legacy `arc_present_prepare` keeps its default-backbuffer contract.
+
+On the render owner with the original CGL context current, the caller submits all world/UI commands to the leased queue, closes Surface/BRT children, and prepares the exact target/frame. Admission checks scene identity, device, queue, current frame, target generation, size, initialized linear BGRA8 color, and a single-sample 2D texture. No backbuffer blit, CPU pixel copy, GPU wait or readback occurs in scene preparation. A distinct top-left sampling pipeline preserves native Metal/Skiko orientation. Opaque-window presentation retains the existing RGB/alpha-one output policy.
+
+Successful preparation gives the presentation bridge a strong claim on the target. It does not consume the original lease handle. Releasing that original claimed handle only drops its reference, so an uncertain FFI acknowledgement can still clean up without dereferencing a consumed handle. Ordinary scene mutation stays blocked by the bridge's claim.
+
+Publish encodes the leased texture into the current drawable on the same queue. A retirement marker follows that copy. It holds the texture/scene until completion, then releases the target mutation barrier. Hiding/destroying a prepared bridge schedules cancellation behind prior work; failed retirement keeps ownership for retry. Publication failures leave the layer hidden and require explicit hide/destroy cleanup. Existing GL release still requires its original context/thread, with no context migration.
+
+The private Java ticket owner reserves its existing bridge exclusively. It executes external submission at most once, closes child resources in reverse order, validates native preparation, and drops the original handle before main-thread publish. A rejected or uncertain operation cannot silently become another submission. Cancel/hide must succeed before fallback. Failed cleanup keeps both ownership and descriptor memory reachable.
+
+Queries 80/81/82/83 identify a scene source, its frame/generation and a pending claim; query 84 reports failed GPU work. Completion and actual display are separate observations. These APIs do not create a window, select a renderer, replay Minecraft UI, or solve ARM presentation. Actual client composition still needs resource preflight and same-frame GL replay after a late rejection, plus native presentation and image proofs.

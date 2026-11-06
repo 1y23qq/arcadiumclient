@@ -57,7 +57,11 @@ public final class GpuResidentBodyShaders {
     private GpuResidentBodyShaders() { }
     static String vertex(String nativeSource)throws Exception {
         String hash=HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(nativeSource.getBytes(StandardCharsets.UTF_8)));
-        if(!hash.equals(ORIGINAL)||!nativeSource.startsWith("#version 130\n"))throw new IllegalArgumentException("Unknown native body shader; keep original rendering");
+        if(!hash.equals(ORIGINAL))throw new IllegalArgumentException("Unknown native body shader; keep original rendering");
+        return verifiedVertex(nativeSource);
+    }
+    static String verifiedVertex(String nativeSource) {
+        if(!nativeSource.startsWith("#version 130\n"))throw new IllegalArgumentException("Unknown native body shader version");
         int main=nativeSource.indexOf("void main() {");
         if(main<0||nativeSource.indexOf(MODEL,main)<0||nativeSource.indexOf(MODEL,nativeSource.indexOf(MODEL)+1)>=0)
             throw new IllegalArgumentException("Unknown native body shader structure");

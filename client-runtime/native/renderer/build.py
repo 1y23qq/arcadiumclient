@@ -137,7 +137,7 @@ def main() -> None:
         raise RuntimeError(f"Expected exactly one native library, found {libraries}")
     library = libraries[0]
     java_source = root / "client-runtime/src/main/java/io/github/arcadiumclient/runtime/client/optimizations/backend"
-    java_files = [java_source / name for name in ("ResidentSceneBackend.java", "PassSceneBackend.java", "ScenePasses.java", "MetalDeviceLease.java", "SceneBufferChecks.java", "MetalResidentSceneBackend.java",
+    java_files = [java_source / name for name in ("ResidentSceneBackend.java", "PassSceneBackend.java", "ScenePasses.java", "MetalDeviceLease.java", "MetalSceneTicket.java", "SceneBufferChecks.java", "MetalResidentSceneBackend.java",
                                                "MetalPresentationCalls.java", "MetalPresentFrame.java")]
     java_files += sorted((source / "tests").glob("*.java"))
     java_output = output / "java"
@@ -179,7 +179,7 @@ def main() -> None:
     pylon_status = "not-requested"
     if pylon is not None:
         pylon_output = output / "pylon-java"
-        pylon_sources = [java_source / name for name in ("ResidentSceneBackend.java", "PassSceneBackend.java", "ScenePasses.java", "MetalDeviceLease.java", "SceneBufferChecks.java",
+        pylon_sources = [java_source / name for name in ("ResidentSceneBackend.java", "PassSceneBackend.java", "ScenePasses.java", "MetalDeviceLease.java", "MetalSceneTicket.java", "SceneBufferChecks.java",
                          "MetalResidentSceneBackend.java", "MetalPresentationCalls.java", "MetalPresentFrame.java", "MetalCompositeSurface.java")]
         pylon_sources.append(source / "tests/pylon/MetalPylonPresentationProbe.java")
         run([javac, "-cp", pylon["path"], "-d", str(pylon_output), *map(str, pylon_sources)], "java-pylon-compile.log")

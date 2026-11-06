@@ -3,6 +3,7 @@ package io.github.arcadiumclient.runtime.client.optimizations.backend;
 
 import java.util.ArrayList;
 import java.util.Objects;
+import java.util.function.LongToIntFunction;
 
 public final class MetalDeviceLease implements AutoCloseable {
     @FunctionalInterface public interface DeviceFactory<T extends AutoCloseable> { T create(long device,long queue); }
@@ -68,6 +69,8 @@ public final class MetalDeviceLease implements AutoCloseable {
         private long token;
         private Info snapshot;
         private boolean closed,creating,closing,retiring;
+        private Object handoffRecipient;
+        private boolean submitAttempted,submissionSucceeded,nativeClaimed;
         private Target(long frame){this.frame=frame;}
         private void open() {
             Acquisition acquired=calls.acquire(2,frame);token=acquired.handle();accepted(acquired.status(),token!=0,"acquire frame target");
@@ -88,6 +91,28 @@ public final class MetalDeviceLease implements AutoCloseable {
             try{return own(resources,Objects.requireNonNull(factory).create(snapshot.texture(),snapshot.width(),snapshot.height()));}
             finally{creating=false;}
         }
+        int handoff(Object recipient,Runnable submit,LongToIntFunction prepare) {
+            live();Objects.requireNonNull(recipient);Objects.requireNonNull(submit);Objects.requireNonNull(prepare);
+            if(creating||closing||MetalDeviceLease.this.creating||MetalDeviceLease.this.closing||MetalDeviceLease.this.retiring)
+                throw new IllegalStateException("Reentrant target handoff");
+            if(handoffRecipient!=null&&handoffRecipient!=recipient)throw new IllegalStateException("The target is sealed for another presenter");
+            handoffRecipient=recipient;retiring=true;
+            if(!submitAttempted) {
+                submitAttempted=true;creating=true;
+                try{submit.run();submissionSucceeded=true;}finally{creating=false;}
+            }
+            if(!submissionSucceeded)throw new IllegalStateException("A failed external submission cannot be replayed implicitly");
+            closing=true;
+            try {
+                resources.close();
+                if(!nativeClaimed) {
+                    int result=prepare.applyAsInt(token);if(result!=0)return result;nativeClaimed=true;
+                }
+                accepted(calls.release(token),true,"drop the handed-off target handle");
+                token=0;closed=true;if(target==this)target=null;return 0;
+            } finally{closing=false;}
+        }
+        boolean handedOffTo(Object recipient){owner();return closed&&nativeClaimed&&handoffRecipient==recipient;}
         @Override public void close() {
             owner();if(closed)return;ownerLive();if(creating||closing)throw new IllegalStateException("Reentrant target close");
             closing=true;retiring=true;

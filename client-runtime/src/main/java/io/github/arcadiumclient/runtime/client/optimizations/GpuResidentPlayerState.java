@@ -23,6 +23,7 @@ public final class GpuResidentPlayerState {
     private GpuResidentPlayerState() {}
 
     public static void beginBatch() { batch++; active = bound = -1; }
+    static void externalActors() { bound = -1; }
 
     public static boolean canRetainActors() { return enabled && !failed && available(); }
 
@@ -135,8 +136,9 @@ public final class GpuResidentPlayerState {
 
     public static long residentBytes() { return allocatedBytes; }
     public static String status() {
-        return enabled ? "Resident player buffers: " + state + " | Written/reused words: " + wordsWritten + "/" + wordsReused
+        String result=enabled ? "Resident player buffers: " + state + " | Written/reused words: " + wordsWritten + "/" + wordsReused
                 + " | Busy fallback: " + busyFallbacks + " | GPU bytes: " + allocatedBytes + "/" + MAX_BYTES : "Resident player buffers: Off";
+        return GpuPlayerPackets.actorSceneEnabled()?result+" | "+GpuPlayerPackets.actorSceneStatus():result;
     }
 
     private static final class Slot {

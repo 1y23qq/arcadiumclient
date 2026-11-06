@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 #define GL_SILENCE_DEPRECATION
 #include "arc_present.h"
+#include "arc_present_scene.h"
 #include "arc_scene_metal_objects.h"
 #import <Cocoa/Cocoa.h>
 #import <CoreVideo/CoreVideo.h>
@@ -45,6 +46,9 @@ static const uint64_t image_limit = UINT64_C(128) * 1024 * 1024;
 @property(nonatomic, strong) ArcPresentationState *state;
 @property(nonatomic) uint64_t bytes;
 @property(nonatomic) uint32_t width, height;
+@property(nonatomic) BOOL fromScene;
+@property(nonatomic) uint64_t sceneFrame, sceneGeneration;
+@property(nonatomic, strong) id sourceClaim;
 @end
 @implementation ArcPresentationImage
 - (void)dealloc {
@@ -85,6 +89,8 @@ static const uint64_t image_limit = UINT64_C(128) * 1024 * 1024;
 @property(nonatomic, strong) id<MTLDevice> device;
 @property(nonatomic, strong) id<MTLCommandQueue> queue;
 @property(nonatomic, strong) id<MTLRenderPipelineState> pipeline;
+@property(nonatomic, strong) id<MTLRenderPipelineState> scenePipeline;
+@property(nonatomic, strong) id sceneOwner, sceneClaim;
 @property(nonatomic, strong) ArcPresentationImage *image;
 @property(nonatomic, strong) ArcPresentationState *state;
 @property(nonatomic, strong) NSLock *errorLock;
@@ -112,6 +118,12 @@ static int failure(ArcPresentation *p, NSString *message, int code) {
         [p.errorLock lock]; snprintf(p->error, sizeof(p->error), "%s", message.UTF8String ?: "Metal presentation failure"); [p.errorLock unlock];
     }
     return code;
+}
+static int retireSceneClaim(ArcPresentation *p) {
+    if (!p.sceneClaim) return ARC_PRESENT_OK;
+    if (arc_scene_metal_target_retire(p.sceneClaim) != ARC_OK)
+        return failure(p, @"The claimed scene target could not retire on its queue", ARC_PRESENT_FAILED);
+    p.sceneClaim = nil; return ARC_PRESENT_OK;
 }
 static BOOL mainThread(void) { return NSThread.isMainThread; }
 static void latest(atomic_uint_fast64_t *target, uint64_t value) {
@@ -150,6 +162,7 @@ int arc_present_create(void *scene, void *windowPointer, void **out) {
         id<MTLDevice> device = nil; id<MTLCommandQueue> queue = nil;
         if (arc_scene_metal_objects(scene, &device, &queue) != ARC_OK) return ARC_PRESENT_UNAVAILABLE;
         ArcPresentation *p = [ArcPresentation new]; p.device = device; p.queue = queue;
+        p.sceneOwner = (__bridge id)scene;
         p.state = [ArcPresentationState new]; p.errorLock = [NSLock new]; p.hidden = YES;
         p.configuredSwapInterval = -1; p.observedCglSwapInterval = -2;
         @try {
@@ -235,6 +248,7 @@ int arc_present_prepare(void *value, const arc_present_frame *frame) {
     ArcPresentation *p = bridge(value);
     if (!p || !arc_present_valid_frame(frame, &bytes)) return ARC_PRESENT_INVALID;
     (void)bytes;
+    if (p.sceneClaim) return failure(p, @"Cancel or publish the prepared scene ticket first", ARC_PRESENT_BUSY);
     if (p.glReleased || frame->frame_id <= p.prepared) return failure(p, @"Invalid presentation frame ownership", ARC_PRESENT_INVALID);
     if (frame->color_encoding != ARC_PRESENT_RGBA8_LINEAR) return failure(p, @"sRGB transport has not been qualified", ARC_PRESENT_UNAVAILABLE);
     if (atomic_load(&p.state->inFlight)) return ARC_PRESENT_BUSY;
@@ -270,7 +284,7 @@ int arc_present_prepare(void *value, const arc_present_frame *frame) {
         BOOL srgb = strstr(extensions, "GL_EXT_framebuffer_sRGB") && glIsEnabled(GL_FRAMEBUFFER_SRGB_EXT);
         if (samples != 0 || red != 8 || green != 8 || blue != 8 || (alpha != 0 && alpha != 8) || srgb)
             return failure(p, @"The default drawable format is not qualified", ARC_PRESENT_UNAVAILABLE);
-        if (p.image && (p.image.width != frame->width || p.image.height != frame->height)) { deleteImageGl(p.image); p.image = nil; CVMetalTextureCacheFlush(p->cache, 0); }
+        if (p.image && (p.image.fromScene || p.image.width != frame->width || p.image.height != frame->height)) { deleteImageGl(p.image); p.image = nil; CVMetalTextureCacheFlush(p->cache, 0); }
         if (!p.image) p.image = makeImage(p, frame->width, frame->height);
         if (!p.image) status = failure(p, @"Could not allocate a bounded GL/Metal shared image", ARC_PRESENT_UNAVAILABLE);
         else {
@@ -290,6 +304,55 @@ int arc_present_prepare(void *value, const arc_present_frame *frame) {
         glBindTexture(GL_TEXTURE_RECTANGLE_ARB, rectangle); glActiveTexture(active);
     }
     return status;
+}
+
+int arc_present_scene_abi(void) { return 1; }
+int arc_present_prepare_scene(void *value, void *target_lease, const arc_present_frame *frame) {
+    ArcPresentation *p = bridge(value);
+    if (!p || !frame || p.glReleased || !p.attached || p.ticket || p.sceneClaim
+        || atomic_load(&p.state->inFlight) || atomic_load(&p.state->failed)) return ARC_PRESENT_BUSY;
+    if (!p->context) {
+        CGLContextObj current = CGLGetCurrentContext();
+        if (!current) return failure(p, @"The original current CGL context is required for scene handoff", ARC_PRESENT_UNAVAILABLE);
+        p->context = CGLRetainContext(current); p->renderThread = pthread_self();
+    }
+    if (!renderContext(p)) return failure(p, @"Scene handoff changed the original context or render owner", ARC_PRESENT_INVALID);
+    arc_scene_metal_info info; id<MTLTexture> texture = nil; uint64_t bytes = 0;
+    if (arc_scene_metal_target_snapshot(target_lease, (__bridge void *)p.sceneOwner, &info, &texture) != ARC_OK
+        || !arc_present_valid_scene_frame(frame, &info, p.prepared, (uint64_t)(uintptr_t)(__bridge void *)p.device,
+            (uint64_t)(uintptr_t)(__bridge void *)p.queue, &bytes))
+        return failure(p, @"Scene handoff requires the exact current target and shared device/queue", ARC_PRESENT_INVALID);
+    if (p.configuredSwapInterval != 0 && p.configuredSwapInterval != 1) return ARC_PRESENT_UNAVAILABLE;
+    @autoreleasepool {
+        if (!p.scenePipeline) {
+            NSError *error = nil;
+            NSString *source = @"#include <metal_stdlib>\nusing namespace metal;\n"
+                "vertex float4 arc_scene_present_vertex(uint n [[vertex_id]]) { const float2 v[3]={float2(-1,-1),float2(3,-1),float2(-1,3)}; return float4(v[n],0,1); }\n"
+                "fragment float4 arc_scene_present_pixel(float4 p [[position]], texture2d<float,access::read> image [[texture(0)]]) { return float4(image.read(uint2(p.xy)).rgb,1); }\n";
+            id<MTLLibrary> library = [p.device newLibraryWithSource:source options:nil error:&error];
+            if (!library) return failure(p, error.localizedDescription ?: @"Scene presentation shader compilation failed", ARC_PRESENT_UNAVAILABLE);
+            MTLRenderPipelineDescriptor *descriptor = [MTLRenderPipelineDescriptor new];
+            descriptor.vertexFunction = [library newFunctionWithName:@"arc_scene_present_vertex"];
+            descriptor.fragmentFunction = [library newFunctionWithName:@"arc_scene_present_pixel"];
+            if (!descriptor.vertexFunction || !descriptor.fragmentFunction) return ARC_PRESENT_UNAVAILABLE;
+            descriptor.colorAttachments[0].pixelFormat = MTLPixelFormatBGRA8Unorm;
+            p.scenePipeline = [p.device newRenderPipelineStateWithDescriptor:descriptor error:&error];
+            if (!p.scenePipeline) return failure(p, error.localizedDescription ?: @"The scene presentation pipeline is unavailable", ARC_PRESENT_UNAVAILABLE);
+        }
+        if (atomic_load(&p.state->liveBytes) + bytes > image_limit * 2) return ARC_PRESENT_UNAVAILABLE;
+        ArcPresentationImage *image = [ArcPresentationImage new];
+        if (!image) return ARC_PRESENT_FAILED;
+        image.metal = texture; image.width = info.width; image.height = info.height; image.fromScene = YES;
+        image.sceneFrame = info.frame_id; image.sceneGeneration = info.generation;
+        image.state = p.state; image.bytes = bytes; atomic_fetch_add(&p.state->liveBytes, bytes);
+        id claim = nil;
+        if (arc_scene_metal_target_claim(target_lease, (__bridge void *)p.sceneOwner, info.frame_id, info.generation, &claim) != ARC_OK)
+            return failure(p, @"The target lease was no longer claimable", ARC_PRESENT_INVALID);
+        image.sourceClaim = claim; p.sceneClaim = claim;
+        if (p.image) deleteImageGl(p.image);
+        p.image = image; p.prepared = frame->frame_id; p.preparedSwapInterval = p.configuredSwapInterval; p.ticket = YES;
+        return ARC_PRESENT_OK;
+    }
 }
 
 int arc_present_publish(void *value, uint64_t frame) {
@@ -344,7 +407,7 @@ int arc_present_publish(void *value, uint64_t frame) {
                 id<MTLCommandBuffer> command = [p.queue commandBuffer];
                 id<MTLRenderCommandEncoder> encoder = [command renderCommandEncoderWithDescriptor:pass];
                 if (!command || !encoder) { hideView(p); return failure(p, @"Could not encode current Metal presentation", ARC_PRESENT_FAILED); }
-                [encoder setRenderPipelineState:p.pipeline]; [encoder setFragmentTexture:p.image.metal atIndex:0];
+                [encoder setRenderPipelineState:p.image.fromScene ? p.scenePipeline : p.pipeline]; [encoder setFragmentTexture:p.image.metal atIndex:0];
                 [encoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:3]; [encoder endEncoding];
 #if defined(ARC_PRESENT_TESTING)
                 NSUInteger stride = ((NSUInteger)p.image.width * 4 + 255) & ~(NSUInteger)255;
@@ -362,6 +425,7 @@ int arc_present_publish(void *value, uint64_t frame) {
                 [command addCompletedHandler:^(id<MTLCommandBuffer> finished) {
                     if (!ownedImage.metal || ownedImage.width == 0 || ownedImage.height == 0) atomic_store(&state->failed, true);
                     if (finished.status == MTLCommandBufferStatusError) atomic_store(&state->failed, true);
+                    if (ownedImage.sourceClaim && arc_scene_metal_target_failed(ownedImage.sourceClaim)) atomic_store(&state->failed, true);
                     latest(&state->completed, frame); atomic_store(&state->inFlight, false);
                 }];
                 [command commit]; submitted = YES;
@@ -369,6 +433,7 @@ int arc_present_publish(void *value, uint64_t frame) {
                 if (command.status == MTLCommandBufferStatusError) {
                     hideView(p); return failure(p, @"The current Metal frame could not be scheduled", ARC_PRESENT_FAILED);
                 }
+                if (retireSceneClaim(p) != ARC_PRESENT_OK) { hideView(p); return ARC_PRESENT_FAILED; }
                 [drawable present];
                 return ARC_PRESENT_OK;
             } @finally { [CATransaction commit]; [CATransaction flush]; }
@@ -382,7 +447,7 @@ int arc_present_publish(void *value, uint64_t frame) {
 int arc_present_hide(void *value) {
     if (!value) return ARC_PRESENT_OK;
     if (!mainThread()) return ARC_PRESENT_INVALID;
-    hideView(bridge(value)); [CATransaction flush]; return ARC_PRESENT_OK;
+    ArcPresentation *p = bridge(value); hideView(p); int status = retireSceneClaim(p); [CATransaction flush]; return status;
 }
 int arc_present_release_gl(void *value) {
     if (!value) return ARC_PRESENT_OK;
@@ -397,7 +462,8 @@ int arc_present_destroy(void *value) {
     if (!value) return ARC_PRESENT_OK;
     ArcPresentation *p = bridge(value);
     if (!mainThread() || !p.glReleased) return ARC_PRESENT_INVALID;
-    hideView(p); [p.view removeFromSuperview]; p.attached = NO; p.view = nil; p.ownedLayer = nil; p.window = nil;
+    hideView(p); if (retireSceneClaim(p) != ARC_PRESENT_OK) return ARC_PRESENT_FAILED;
+    [p.view removeFromSuperview]; p.attached = NO; p.view = nil; p.ownedLayer = nil; p.window = nil; p.sceneOwner = nil;
     [CATransaction flush];
     (void)CFBridgingRelease(value);
     return ARC_PRESENT_OK;
@@ -407,6 +473,11 @@ static uint64_t presentationObjectId(id value) { return (uint64_t)(uintptr_t)(__
 uint64_t arc_present_query(void *value, int key) {
     ArcPresentation *p = bridge(value);
     if (!p) return 0;
+    if (key == ARC_PRESENT_SOURCE_IS_SCENE) return p.image.fromScene;
+    if (key == ARC_PRESENT_SOURCE_SCENE_FRAME) return p.image.sceneFrame;
+    if (key == ARC_PRESENT_SOURCE_SCENE_GENERATION) return p.image.sceneGeneration;
+    if (key == ARC_PRESENT_SOURCE_CLAIM_PENDING) return p.sceneClaim != nil;
+    if (key == ARC_PRESENT_SCENE_COMMAND_FAILED) return atomic_load(&p.state->failed);
     if (key >= ARC_PRESENT_PARENT_WIDTH_FP64) {
         if (!mainThread()) return 0;
         if (key >= ARC_PRESENT_PUBLISHED_TEXTURE_BASE && key < ARC_PRESENT_PUBLISHED_TEXTURE_END)

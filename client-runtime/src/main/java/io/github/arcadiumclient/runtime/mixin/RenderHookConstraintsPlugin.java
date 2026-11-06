@@ -15,6 +15,11 @@ import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
 
 public final class RenderHookConstraintsPlugin extends ConstraintsMixinPlugin {
     private static final boolean RESIDENT_TERRAIN_BOOT=Boolean.getBoolean("arcadium.terrainResident072.enabled");
+    private static final boolean FORGE_PREPARED=Boolean.getBoolean("arcadium.forge.prepared");
+    private static final java.util.Set<String> FORGE_ITEM_MIXINS=java.util.Set.of(
+            "io.github.arcadiumclient.runtime.mixin.compat.argentum.MixinGpuModelBakedItemVertices",
+            "io.github.arcadiumclient.runtime.mixin.compat.argentum.MixinGpuModelBakedItemAdmission"
+    );
     private static final java.util.Set<String> RESIDENT_TERRAIN_MIXINS=java.util.Set.of(
             "io.github.arcadiumclient.runtime.mixin.compat.argentum.MixinTerrainResidentContext",
             "io.github.arcadiumclient.runtime.mixin.compat.argentum.MixinTerrainResidentIterator",
@@ -24,6 +29,7 @@ public final class RenderHookConstraintsPlugin extends ConstraintsMixinPlugin {
             "io.github.arcadiumclient.runtime.mixin.compat.argentum.MixinTerrainResidentShaderDelete"
     );
     @Override public boolean shouldApplyMixin(String targetClassName,String mixinClassName) {
+        if(!FORGE_PREPARED&&FORGE_ITEM_MIXINS.contains(mixinClassName))return false;
         if(!RESIDENT_TERRAIN_BOOT&&RESIDENT_TERRAIN_MIXINS.contains(mixinClassName))return false;
         return super.shouldApplyMixin(targetClassName,mixinClassName);
     }

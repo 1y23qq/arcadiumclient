@@ -69,9 +69,13 @@ final class TerrainResidentNativeAccess {
         if(value==null||value.getClass()!=org.embeddedt.embeddium.impl.gl.tessellation.GlVertexArrayTessellation.class)throw new IllegalArgumentException("Unknown native terrain tessellation binding");return value;
     }
     static boolean cameras(ChunkRenderMatrices matrices,CameraTransform face,CameraTransform render){
-        if(face==null||render==null||!face.equals(render))return false;
+        if(!camera(face)||!camera(render))return false;
         for(int column=0;column<4;column++)for(int row=0;row<4;row++)if(!Float.isFinite(matrices.projection().get(column,row))||!Float.isFinite(matrices.modelView().get(column,row)))return false;
         Matrix4fc projection=matrices.projection();return projection.m33()==0&&projection.m23()==-1&&projection.m00()>0&&projection.m11()>0;
+    }
+    private static boolean camera(CameraTransform value){
+        return value!=null&&TerrainResidentCameraContract.axis(value.x,value.intX,value.fracX)
+            &&TerrainResidentCameraContract.axis(value.y,value.intY,value.fracY)&&TerrainResidentCameraContract.axis(value.z,value.intZ,value.fracZ);
     }
     private static VarHandle field(Class<?> owner,String name)throws ReflectiveOperationException{return MethodHandles.privateLookupIn(owner,MethodHandles.lookup()).unreflectVarHandle(owner.getDeclaredField(name));}
     private static MethodHandle method(Class<?> owner,String name,Class<?>...args)throws ReflectiveOperationException{return MethodHandles.privateLookupIn(owner,MethodHandles.lookup()).unreflect(owner.getDeclaredMethod(name,args));}

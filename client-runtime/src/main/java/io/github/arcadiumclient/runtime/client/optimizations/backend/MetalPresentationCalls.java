@@ -17,11 +17,17 @@ interface CurrentFrameCalls {
     boolean attached();
     String error();
     long query(int key);
+    default boolean supportsSceneInput(){return false;}
+    default int prepareScene(long target,MemorySegment frame){return -2;}
+    default boolean reserveSceneOwner(Object owner){return false;}
+    default void releaseSceneOwner(Object owner){}
 }
 
 final class MetalPresentationCalls implements CurrentFrameCalls {
     private final MemorySegment scene;
     private final MethodHandle create,interval,prepare,publish,hide,release,destroy,error,query;
+    private MethodHandle prepareScene;
+    private Object sceneTicketOwner;
     private volatile MemorySegment bridge=MemorySegment.NULL;
 
     MetalPresentationCalls(SymbolLookup symbols,MemorySegment scene) {
@@ -40,6 +46,10 @@ final class MetalPresentationCalls implements CurrentFrameCalls {
             destroy=function(linker,symbols,"arc_present_destroy",FunctionDescriptor.of(JAVA_INT,ADDRESS));
             error=function(linker,symbols,"arc_present_error",FunctionDescriptor.of(JAVA_INT,ADDRESS,ADDRESS,JAVA_LONG));
             query=function(linker,symbols,"arc_present_query",FunctionDescriptor.of(JAVA_LONG,ADDRESS,JAVA_INT));
+            if(symbols.find("arc_present_scene_abi").isPresent()&&symbols.find("arc_present_prepare_scene").isPresent()) {
+                MethodHandle sceneAbi=function(linker,symbols,"arc_present_scene_abi",FunctionDescriptor.of(JAVA_INT));
+                if((int)sceneAbi.invokeExact()==1)prepareScene=function(linker,symbols,"arc_present_prepare_scene",FunctionDescriptor.of(JAVA_INT,ADDRESS,ADDRESS,ADDRESS));
+            }
         } catch(Throwable failure) { throw propagate(failure); }
     }
     @Override public boolean supportsSwapInterval() { return interval!=null; }
@@ -61,6 +71,18 @@ final class MetalPresentationCalls implements CurrentFrameCalls {
     }
     @Override public int prepare(MemorySegment frame) {
         try { return (int)prepare.invokeExact(bridge,frame); } catch(Throwable failure) { throw propagate(failure); }
+    }
+    @Override public boolean supportsSceneInput(){return prepareScene!=null;}
+    @Override public synchronized boolean reserveSceneOwner(Object owner) {
+        if(owner==null||sceneTicketOwner!=null&&sceneTicketOwner!=owner)return false;
+        sceneTicketOwner=owner;return true;
+    }
+    @Override public synchronized void releaseSceneOwner(Object owner) {
+        if(sceneTicketOwner!=owner)throw new IllegalStateException("A different scene ticket owns this bridge");sceneTicketOwner=null;
+    }
+    @Override public int prepareScene(long target,MemorySegment frame) {
+        if(prepareScene==null)return -2;
+        try{return (int)prepareScene.invokeExact(bridge,MemorySegment.ofAddress(target),frame);}catch(Throwable failure){throw propagate(failure);}
     }
     @Override public int publish(long identifier) {
         try { return (int)publish.invokeExact(bridge,identifier); } catch(Throwable failure) { throw propagate(failure); }

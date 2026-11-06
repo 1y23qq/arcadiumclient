@@ -20,4 +20,8 @@ final class MetalPresentFrame {
         frame.set(JAVA_INT,16,0);frame.set(JAVA_INT,20,0x0405);
         frame.set(JAVA_INT,24,encoding);frame.set(JAVA_INT,28,0);
     }
+    static void writeScene(MemorySegment frame,long identifier,int width,int height) {
+        if((long)width*height*4>64L*1024*1024)throw new IllegalArgumentException("Scene presentation exceeds its target budget");
+        write(frame,identifier,width,height,LINEAR);frame.set(JAVA_INT,20,0);
+    }
 }
