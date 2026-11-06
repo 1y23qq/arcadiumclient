@@ -87,6 +87,9 @@ def main() -> None:
         raise RuntimeError("CTest status disagrees with its failed native XML results")
     if ctest_code != 0 and failed_tests != ["metal_current_frame_presentation"]:
         raise RuntimeError("Native contract or scene tests failed; do not continue independent presentation probes")
+    pass_result = output / "native/metal-pass-result.json"
+    if pass_result.is_file():
+        shutil.copyfile(pass_result, output / "metal-pass-result.json")
     below_code = None
     if sys.platform == "darwin":
         below_code = run([str(output / "native/arcadium_metal_presentation_test"), "-1"], "native-surface-below.log", None)
@@ -107,7 +110,7 @@ def main() -> None:
         raise RuntimeError(f"Expected exactly one native library, found {libraries}")
     library = libraries[0]
     java_source = root / "client-runtime/src/main/java/io/github/arcadiumclient/runtime/client/optimizations/backend"
-    java_files = [java_source / name for name in ("ResidentSceneBackend.java", "SceneBufferChecks.java", "MetalResidentSceneBackend.java",
+    java_files = [java_source / name for name in ("ResidentSceneBackend.java", "PassSceneBackend.java", "ScenePasses.java", "SceneBufferChecks.java", "MetalResidentSceneBackend.java",
                                                "MetalPresentationCalls.java", "MetalPresentFrame.java")]
     java_files += sorted((source / "tests").glob("*.java"))
     java_output = output / "java"
@@ -125,7 +128,7 @@ def main() -> None:
     pylon_status = "not-requested"
     if pylon is not None:
         pylon_output = output / "pylon-java"
-        pylon_sources = [java_source / name for name in ("ResidentSceneBackend.java", "SceneBufferChecks.java",
+        pylon_sources = [java_source / name for name in ("ResidentSceneBackend.java", "PassSceneBackend.java", "ScenePasses.java", "SceneBufferChecks.java",
                          "MetalResidentSceneBackend.java", "MetalPresentationCalls.java", "MetalPresentFrame.java", "MetalCompositeSurface.java")]
         pylon_sources.append(source / "tests/pylon/MetalPylonPresentationProbe.java")
         run([javac, "-cp", pylon["path"], "-d", str(pylon_output), *map(str, pylon_sources)], "java-pylon-compile.log")
@@ -152,6 +155,7 @@ def main() -> None:
         else:
             pylon_status = "skipped-no-device" if sys.platform == "darwin" else "compiled-not-applicable"
     report = {"passed": ctest_code == 0 and below_code in (None, 0, 77), "platform": sys.platform, "architecture": arguments.arch,
+              "orderedPassNativeProof": json.loads(pass_result.read_text()) if pass_result.is_file() else None,
               "nativeCTestExitCode": ctest_code, "failedNativeTests": failed_tests,
               "hostedLayerExperiment": arguments.hosted_layer_experiment,
               "nativeSurfaceBelowProbe": below_code,

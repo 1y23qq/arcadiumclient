@@ -7,14 +7,16 @@ import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.util.Locale;
 import java.util.concurrent.ConcurrentHashMap;
+import java.nio.charset.StandardCharsets;
 import static java.lang.foreign.ValueLayout.*;
 
-public final class MetalResidentSceneBackend implements ResidentSceneBackend {
+public final class MetalResidentSceneBackend implements PassSceneBackend {
     private final Thread owner = Thread.currentThread();
     private static final ConcurrentHashMap<Path, SymbolLookup> LIBRARIES = new ConcurrentHashMap<>();
     private final Layout layout;
     private MethodHandle error, destroy, pipeline, mesh, material, removeMesh, removeMaterial,
             write, submit, await, read, query, reset;
+    private MethodHandle passPipeline,removePassPipeline,submitPasses,readDepth;
     private MemorySegment context;
     private SymbolLookup symbols;
     private Runnable releasePresentation;
@@ -48,6 +50,17 @@ public final class MetalResidentSceneBackend implements ResidentSceneBackend {
             read = function(linker, lookup, "arc_scene_read_rgba", FunctionDescriptor.of(JAVA_INT, ADDRESS, ADDRESS, JAVA_LONG));
             query = function(linker, lookup, "arc_scene_query", FunctionDescriptor.of(JAVA_LONG, ADDRESS, JAVA_INT));
             reset = function(linker, lookup, "arc_scene_reset", FunctionDescriptor.of(JAVA_INT, ADDRESS));
+            if(lookup.find("arc_scene_pass_abi").isPresent()&&lookup.find("arc_scene_pipeline_state_put").isPresent()
+                    &&lookup.find("arc_scene_pipeline_state_remove").isPresent()&&lookup.find("arc_scene_submit_passes").isPresent()
+                    &&lookup.find("arc_scene_read_depth").isPresent()) {
+                var passAbi=function(linker,lookup,"arc_scene_pass_abi",FunctionDescriptor.of(JAVA_INT));
+                if((int)passAbi.invokeExact()==1) {
+                    passPipeline=function(linker,lookup,"arc_scene_pipeline_state_put",FunctionDescriptor.of(JAVA_INT,ADDRESS,JAVA_INT,ADDRESS,ADDRESS,ADDRESS,ADDRESS));
+                    removePassPipeline=function(linker,lookup,"arc_scene_pipeline_state_remove",FunctionDescriptor.of(JAVA_INT,ADDRESS,JAVA_INT));
+                    submitPasses=function(linker,lookup,"arc_scene_submit_passes",FunctionDescriptor.of(JAVA_INT,ADDRESS,JAVA_INT,JAVA_INT,ADDRESS,JAVA_LONG,ADDRESS,JAVA_INT,ADDRESS,JAVA_INT));
+                    readDepth=function(linker,lookup,"arc_scene_read_depth",FunctionDescriptor.of(JAVA_INT,ADDRESS,ADDRESS,JAVA_LONG));
+                }
+            }
             var create = function(linker, lookup, "arc_scene_create", FunctionDescriptor.of(ADDRESS, JAVA_INT, JAVA_INT, JAVA_INT, JAVA_INT));
             context = (MemorySegment) create.invokeExact(layout.actorCapacity(), layout.actorStride(), layout.vertexStride(), layout.uniformBytes());
             if (context.address() == 0) throw new IllegalStateException(nativeError());
@@ -69,6 +82,8 @@ public final class MetalResidentSceneBackend implements ResidentSceneBackend {
 
     @Override public String name() { return "Metal resident scene (offscreen prototype)"; }
     @Override public Layout layout() { return layout; }
+    @Override public boolean supportsPasses() { ready();return submitPasses!=null; }
+    private void passReady() { ready();if(submitPasses==null)throw new UnsupportedOperationException("The native library has no compatible ordered-pass ABI"); }
 
     void presentationAvailable() { ready();if(releasePresentation!=null)throw new IllegalStateException("The scene already owns a presentation surface"); }
     void presentationReady() { ready(); }
@@ -156,6 +171,41 @@ public final class MetalResidentSceneBackend implements ResidentSceneBackend {
     }
     @Override public Statistics statistics() {
         ready(); return new Statistics(counter(0), counter(1), counter(2), counter(3), counter(4), counter(5), counter(6));
+    }
+    @Override public void putPipeline(int id,String source,String vertex,String fragment,ScenePasses.Pipeline state) {
+        passReady();if(id<1||id>ScenePasses.LIMIT)throw new IllegalArgumentException("Invalid pass pipeline ID");
+        java.util.Objects.requireNonNull(state);
+        passString(source,131072);passString(vertex,256);passString(fragment,256);
+        try(Arena memory=Arena.ofConfined()) {
+            MemorySegment descriptor=memory.allocate(ScenePasses.PIPELINE_BYTES,4);state.write(descriptor.asByteBuffer());
+            check((int)passPipeline.invokeExact(context,id,memory.allocateFrom(source),memory.allocateFrom(vertex),memory.allocateFrom(fragment),descriptor));
+        } catch(Throwable failure){throw propagate(failure);}
+    }
+    private static void passString(String value,int maximum) {
+        if(value==null||value.indexOf('\0')>=0||value.getBytes(StandardCharsets.UTF_8).length>maximum)
+            throw new IllegalArgumentException("Invalid bounded pass shader source or entry point");
+    }
+    @Override public void removePipeline(int id) {
+        passReady();if(id<1||id>ScenePasses.LIMIT)throw new IllegalArgumentException("Invalid pass pipeline ID");
+        try{check((int)removePassPipeline.invokeExact(context,id));}catch(Throwable failure){throw propagate(failure);}
+    }
+    @Override public boolean submitPasses(int width,int height,ByteBuffer uniforms,ByteBuffer passes,int passCount,ByteBuffer commands,int commandCount) {
+        passReady();SceneBufferChecks.direct(uniforms);SceneBufferChecks.commands(commands,commandCount,layout.actorCapacity());
+        if(commandCount>0)ScenePasses.aligned(commands);
+        if(uniforms.remaining()!=layout.uniformBytes())throw new IllegalArgumentException("Invalid frame uniform length");
+        ScenePasses.validate(passes,passCount,commandCount,width,height,uniforms.remaining(),this.width==width&&this.height==height?(int)counter(9):0);
+        try {
+            int result=(int)submitPasses.invokeExact(context,width,height,MemorySegment.ofBuffer(uniforms),(long)uniforms.remaining(),
+                    MemorySegment.ofBuffer(passes),passCount,MemorySegment.ofBuffer(commands),commandCount);
+            if(result==1)return false;check(result);this.width=width;this.height=height;return true;
+        } catch(Throwable failure){throw propagate(failure);}
+    }
+    @Override public void readDepth(ByteBuffer destination) {
+        passReady();SceneBufferChecks.direct(destination);
+        if(destination.isReadOnly()||width==0||destination.remaining()!=SceneBufferChecks.rgbaBytes(width,height))
+            throw new IllegalArgumentException("Depth readback must match the stored frame dimensions");
+        try{check((int)readDepth.invokeExact(context,MemorySegment.ofBuffer(destination),(long)destination.remaining()));}
+        catch(Throwable failure){throw propagate(failure);}
     }
     @Override public void reset() {
         ready();

@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 #include "arc_scene.h"
+#include "arc_scene_passes.h"
 
 static const char message[1024] = "Metal is unavailable on this operating system; keep the OpenGL backend";
 int arc_scene_abi(void) { return 1; }
@@ -19,3 +20,13 @@ int arc_scene_wait(void *c) { (void)c; return ARC_UNAVAILABLE; }
 int arc_scene_read_rgba(void *c, void *d, uint64_t n) { (void)c; (void)d; (void)n; return ARC_UNAVAILABLE; }
 uint64_t arc_scene_query(void *c, int key) { (void)c; (void)key; return 0; }
 int arc_scene_reset(void *c) { (void)c; return ARC_UNAVAILABLE; }
+int arc_scene_pass_abi(void) { return 1; }
+int arc_scene_pipeline_state_put(void *c, int id, const char *s, const char *v, const char *f, const arc_scene_pipeline_state *p) {
+    (void)c; (void)id; (void)s; (void)v; (void)f; (void)p; return ARC_UNAVAILABLE;
+}
+int arc_scene_pipeline_state_remove(void *c, int id) { (void)c; (void)id; return ARC_UNAVAILABLE; }
+int arc_scene_submit_passes(void *c, int w, int h, const void *u, uint64_t n, const arc_scene_pass *p, int pc,
+    const arc_scene_command *d, int dc) {
+    (void)c; (void)w; (void)h; (void)u; (void)n; (void)p; (void)pc; (void)d; (void)dc; return ARC_UNAVAILABLE;
+}
+int arc_scene_read_depth(void *c, void *d, uint64_t n) { (void)c; (void)d; (void)n; return ARC_UNAVAILABLE; }

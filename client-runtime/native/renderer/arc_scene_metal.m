@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 #include "arc_scene.h"
+#include "arc_scene_passes.h"
 #include "arc_scene_metal_objects.h"
 #import <Foundation/Foundation.h>
 #import <Metal/Metal.h>
@@ -10,6 +11,15 @@
 
 static _Thread_local char arc_global_error[1024];
 static const uint64_t arc_resident_limit = UINT64_C(512) * 1024 * 1024;
+
+@interface ArcResidentPipeline : NSObject {
+@public arc_scene_pipeline_state state;
+}
+@property(nonatomic, strong) id<MTLRenderPipelineState> pipeline;
+@property(nonatomic, strong) id<MTLDepthStencilState> depth;
+@end
+@implementation ArcResidentPipeline
+@end
 
 @interface ArcResidentScene : NSObject {
 @public char error[1024];
@@ -25,6 +35,7 @@ static const uint64_t arc_resident_limit = UINT64_C(512) * 1024 * 1024;
 @property(nonatomic, strong) id<MTLTexture> white;
 @property(nonatomic, strong) NSMutableDictionary<NSNumber *, id<MTLBuffer>> *meshes;
 @property(nonatomic, strong) NSMutableDictionary<NSNumber *, id<MTLTexture>> *materials;
+@property(nonatomic, strong) NSMutableDictionary<NSNumber *, ArcResidentPipeline *> *passPipelines;
 @property(nonatomic, strong) dispatch_semaphore_t permit;
 @property(nonatomic) NSUInteger actorCapacity;
 @property(nonatomic) NSUInteger vertexStride;
@@ -37,6 +48,8 @@ static const uint64_t arc_resident_limit = UINT64_C(512) * 1024 * 1024;
 @property(nonatomic) uint64_t uploaded;
 @property(atomic) uint64_t gpuNanoseconds;
 @property(atomic) BOOL commandFailed;
+@property(nonatomic) uint32_t storedAttachments;
+@property(atomic) uint64_t completedPasses;
 @end
 @implementation ArcResidentScene
 @end
@@ -87,6 +100,7 @@ void *arc_scene_create(int capacity, int actor_stride, int vertex_stride, int un
         scene.vertexStride = (NSUInteger) vertex_stride;
         scene.meshes = [NSMutableDictionary new];
         scene.materials = [NSMutableDictionary new];
+        scene.passPipelines = [NSMutableDictionary new];
         scene.permit = dispatch_semaphore_create(1);
         memset(scene.actors.contents, 0, scene.actors.length);
         MTLTextureDescriptor *white = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm width:1 height:1 mipmapped:NO];
@@ -230,7 +244,7 @@ static int arc_targets(ArcResidentScene *scene, int width, int height) {
     id<MTLTexture> color = [scene.device newTextureWithDescriptor:color_descriptor];
     id<MTLTexture> depth = [scene.device newTextureWithDescriptor:depth_descriptor];
     if (!color || !depth) return arc_fail(scene, @"Metal target allocation failed", ARC_FAILED);
-    scene.color = color; scene.depth = depth;
+    scene.color = color; scene.depth = depth; scene.storedAttachments = 0;
     return ARC_OK;
 }
 
@@ -281,6 +295,7 @@ int arc_scene_submit(void *pointer, int width, int height, const void *uniforms,
             draws++;
         }
         [encoder endEncoding];
+        scene.storedAttachments = ARC_ATTACH_COLOR;
         scene.submitted++;
         scene.commandFailed = NO;
         [command addCompletedHandler:^(id<MTLCommandBuffer> completed) {
@@ -308,6 +323,176 @@ int arc_scene_wait(void *pointer) {
     }
     BOOL failed = scene.commandFailed;
     arc_release(scene); return failed ? ARC_FAILED : ARC_OK;
+}
+
+int arc_scene_pass_abi(void) { return 1; }
+
+int arc_scene_pipeline_state_put(void *pointer, int identifier, const char *source,
+    const char *vertex_name, const char *fragment_name, const arc_scene_pipeline_state *state) {
+    @autoreleasepool {
+        ArcResidentScene *scene = arc_context(pointer);
+        if (!scene || identifier < 1 || identifier > ARC_PIPELINE_LIMIT || !source || !vertex_name || !fragment_name
+            || !arc_scene_valid_pipeline_state(state) || strnlen(source, 131073) > 131072
+            || strnlen(vertex_name, 257) > 256 || strnlen(fragment_name, 257) > 256) return ARC_INVALID;
+        if (!arc_acquire(scene)) return ARC_BUSY;
+        NSError *error = nil;
+        MTLCompileOptions *options = [MTLCompileOptions new]; options.languageVersion = MTLLanguageVersion2_3;
+        id<MTLLibrary> library = [scene.device newLibraryWithSource:[NSString stringWithUTF8String:source] options:options error:&error];
+        id<MTLFunction> vertex = [library newFunctionWithName:[NSString stringWithUTF8String:vertex_name]];
+        id<MTLFunction> fragment = [library newFunctionWithName:[NSString stringWithUTF8String:fragment_name]];
+        if (!library || !vertex || !fragment) {
+            arc_release(scene); return arc_fail(scene, error.localizedDescription ?: @"Pass shader entry point is missing", ARC_FAILED);
+        }
+        const MTLBlendFactor factors[] = {MTLBlendFactorZero, MTLBlendFactorOne, MTLBlendFactorSourceColor,
+            MTLBlendFactorOneMinusSourceColor, MTLBlendFactorDestinationColor, MTLBlendFactorOneMinusDestinationColor,
+            MTLBlendFactorSourceAlpha, MTLBlendFactorOneMinusSourceAlpha, MTLBlendFactorDestinationAlpha, MTLBlendFactorOneMinusDestinationAlpha};
+        const MTLBlendOperation operations[] = {MTLBlendOperationAdd, MTLBlendOperationSubtract,
+            MTLBlendOperationReverseSubtract, MTLBlendOperationMin, MTLBlendOperationMax};
+        const MTLCompareFunction comparisons[] = {MTLCompareFunctionNever, MTLCompareFunctionLess,
+            MTLCompareFunctionEqual, MTLCompareFunctionLessEqual, MTLCompareFunctionGreater,
+            MTLCompareFunctionNotEqual, MTLCompareFunctionGreaterEqual, MTLCompareFunctionAlways};
+        MTLRenderPipelineDescriptor *descriptor = [MTLRenderPipelineDescriptor new];
+        descriptor.vertexFunction = vertex; descriptor.fragmentFunction = fragment;
+        descriptor.depthAttachmentPixelFormat = MTLPixelFormatDepth32Float;
+        MTLRenderPipelineColorAttachmentDescriptor *color = descriptor.colorAttachments[0];
+        color.pixelFormat = MTLPixelFormatBGRA8Unorm;
+        color.blendingEnabled = (state->flags & ARC_PIPE_BLEND) != 0;
+        color.sourceRGBBlendFactor = factors[state->src_rgb]; color.destinationRGBBlendFactor = factors[state->dst_rgb];
+        color.sourceAlphaBlendFactor = factors[state->src_alpha]; color.destinationAlphaBlendFactor = factors[state->dst_alpha];
+        color.rgbBlendOperation = operations[state->rgb_operation]; color.alphaBlendOperation = operations[state->alpha_operation];
+        color.writeMask = ((state->color_mask & 1) ? MTLColorWriteMaskRed : 0)
+            | ((state->color_mask & 2) ? MTLColorWriteMaskGreen : 0) | ((state->color_mask & 4) ? MTLColorWriteMaskBlue : 0)
+            | ((state->color_mask & 8) ? MTLColorWriteMaskAlpha : 0);
+        ArcResidentPipeline *replacement = [ArcResidentPipeline new]; replacement->state = *state;
+        replacement.pipeline = [scene.device newRenderPipelineStateWithDescriptor:descriptor error:&error];
+        MTLDepthStencilDescriptor *depth = [MTLDepthStencilDescriptor new];
+        depth.depthCompareFunction = (state->flags & ARC_PIPE_DEPTH_TEST) ? comparisons[state->depth_compare] : MTLCompareFunctionAlways;
+        depth.depthWriteEnabled = (state->flags & ARC_PIPE_DEPTH_WRITE) != 0;
+        replacement.depth = [scene.device newDepthStencilStateWithDescriptor:depth];
+        if (!replacement.pipeline || !replacement.depth) {
+            arc_release(scene); return arc_fail(scene, error.localizedDescription ?: @"Metal pass pipeline creation failed", ARC_FAILED);
+        }
+        scene.passPipelines[@(identifier)] = replacement;
+        arc_release(scene); return ARC_OK;
+    }
+}
+
+int arc_scene_pipeline_state_remove(void *pointer, int identifier) {
+    ArcResidentScene *scene = arc_context(pointer);
+    if (!scene || identifier < 1 || identifier > ARC_PIPELINE_LIMIT) return ARC_INVALID;
+    if (!arc_acquire(scene)) return ARC_BUSY;
+    [scene.passPipelines removeObjectForKey:@(identifier)]; arc_release(scene); return ARC_OK;
+}
+
+int arc_scene_submit_passes(void *pointer, int width, int height, const void *uniforms, uint64_t uniform_length,
+    const arc_scene_pass *passes, int pass_count, const arc_scene_command *commands, int command_count) {
+    @autoreleasepool {
+        ArcResidentScene *scene = arc_context(pointer);
+        if (!scene || !uniforms || uniform_length != scene.uniforms.length || (command_count && !commands)
+            || (command_count > 0 && ((uintptr_t)commands & 3))) return ARC_INVALID;
+        if (!arc_acquire(scene)) { scene.busy++; return ARC_BUSY; }
+        uint32_t stored = 0;
+        uint32_t previous = scene.color.width == (NSUInteger)width && scene.color.height == (NSUInteger)height ? scene.storedAttachments : 0;
+        if (scene.commandFailed || !arc_scene_valid_passes(width, height, uniform_length, passes, pass_count, command_count, previous, &stored)) {
+            arc_release(scene); return scene.commandFailed ? ARC_FAILED : ARC_INVALID;
+        }
+        for (int i = 0; i < pass_count; i++) {
+            ArcResidentPipeline *pipeline = scene.passPipelines[@(passes[i].pipeline_id)];
+            if (!pipeline || ((pipeline->state.flags & ARC_PIPE_DEPTH_TEST) && ((passes[i].load_actions >> 2) & 3) == ARC_DISCARD)) {
+                arc_release(scene); return arc_fail(scene, @"Pass references a missing pipeline or undefined depth", ARC_INVALID);
+            }
+        }
+        for (int i = 0; i < command_count; i++) {
+            arc_scene_command draw = commands[i]; id<MTLBuffer> vertices = scene.meshes[@(draw.mesh_id)];
+            if (!arc_id((int)draw.mesh_id) || !vertices || (draw.material_id && !scene.materials[@(draw.material_id)])
+                || !arc_scene_valid_range(draw.first_vertex, draw.vertex_count, vertices.length / scene.vertexStride)
+                || !arc_scene_valid_range(draw.first_actor, draw.actor_count, scene.actorCapacity) || draw.vertex_count % 3) {
+                arc_release(scene); return arc_fail(scene, @"Pass draw references an invalid resource or range", ARC_INVALID);
+            }
+        }
+        int result = arc_targets(scene, width, height);
+        if (result != ARC_OK) { arc_release(scene); return result; }
+        memcpy(scene.uniforms.contents, uniforms, (size_t)uniform_length);
+        id<MTLCommandBuffer> command = [scene.queue commandBuffer];
+        if (!command) { arc_release(scene); return ARC_FAILED; }
+        uint64_t draws = 0;
+        const MTLLoadAction loads[] = {MTLLoadActionLoad, MTLLoadActionClear, MTLLoadActionDontCare};
+        const MTLCullMode culls[] = {MTLCullModeNone, MTLCullModeFront, MTLCullModeBack};
+        for (int i = 0; i < pass_count; i++) {
+            const arc_scene_pass *p = passes + i; ArcResidentPipeline *pipeline = scene.passPipelines[@(p->pipeline_id)];
+            MTLRenderPassDescriptor *pass = [MTLRenderPassDescriptor new];
+            pass.colorAttachments[0].texture = scene.color; pass.depthAttachment.texture = scene.depth;
+            pass.colorAttachments[0].loadAction = loads[p->load_actions & 3];
+            pass.depthAttachment.loadAction = loads[(p->load_actions >> 2) & 3];
+            pass.colorAttachments[0].storeAction = (p->store_actions & ARC_ATTACH_COLOR) ? MTLStoreActionStore : MTLStoreActionDontCare;
+            pass.depthAttachment.storeAction = (p->store_actions & ARC_ATTACH_DEPTH) ? MTLStoreActionStore : MTLStoreActionDontCare;
+            pass.colorAttachments[0].clearColor = MTLClearColorMake(p->clear_rgba[0], p->clear_rgba[1], p->clear_rgba[2], p->clear_rgba[3]);
+            pass.depthAttachment.clearDepth = p->clear_depth;
+            id<MTLRenderCommandEncoder> encoder = [command renderCommandEncoderWithDescriptor:pass];
+            if (!encoder) { arc_release(scene); return arc_fail(scene, @"Could not encode an ordered Metal pass", ARC_FAILED); }
+            [encoder setRenderPipelineState:pipeline.pipeline]; [encoder setDepthStencilState:pipeline.depth];
+            [encoder setCullMode:culls[pipeline->state.cull]];
+            [encoder setFrontFacingWinding:pipeline->state.winding == ARC_WIND_CCW ? MTLWindingCounterClockwise : MTLWindingClockwise];
+            [encoder setViewport:(MTLViewport){p->viewport_x, height - p->viewport_y - p->viewport_height,
+                p->viewport_width, p->viewport_height, p->min_depth, p->max_depth}];
+            MTLScissorRect scissor = {0, 0, (NSUInteger)width, (NSUInteger)height};
+            if (p->flags & ARC_PASS_SCISSOR) scissor = (MTLScissorRect){p->scissor_x, height - p->scissor_y - p->scissor_height, p->scissor_width, p->scissor_height};
+            [encoder setScissorRect:scissor];
+            [encoder setVertexBuffer:scene.actors offset:0 atIndex:1];
+            [encoder setVertexBuffer:scene.uniforms offset:p->uniform_offset atIndex:2];
+            [encoder setFragmentBuffer:scene.uniforms offset:p->uniform_offset atIndex:2];
+            for (uint32_t j = p->first_command; j < p->first_command + p->command_count; j++) {
+                arc_scene_command draw = commands[j]; if (!draw.vertex_count || !draw.actor_count) continue;
+                [encoder setVertexBuffer:scene.meshes[@(draw.mesh_id)] offset:0 atIndex:0];
+                [encoder setFragmentTexture:draw.material_id ? scene.materials[@(draw.material_id)] : scene.white atIndex:0];
+                [encoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:draw.first_vertex vertexCount:draw.vertex_count
+                    instanceCount:draw.actor_count baseInstance:draw.first_actor]; draws++;
+            }
+            [encoder endEncoding];
+        }
+        scene.submitted++; scene.storedAttachments = stored;
+        [command addCompletedHandler:^(id<MTLCommandBuffer> completed) {
+            scene.completed++; scene.drawCalls += draws; scene.completedPasses += (uint64_t)pass_count;
+            if (completed.status == MTLCommandBufferStatusError) {
+                scene.commandFailed = YES; arc_fail(scene, completed.error.localizedDescription ?: @"Ordered Metal pass failed", ARC_FAILED);
+            }
+            arc_release(scene);
+        }];
+        [command commit]; return ARC_OK;
+    }
+}
+
+int arc_scene_read_depth(void *pointer, void *destination, uint64_t length) {
+    @autoreleasepool {
+        ArcResidentScene *scene = arc_context(pointer);
+        if (!scene || !destination || !scene.depth || !(scene.storedAttachments & ARC_ATTACH_DEPTH)
+            || length != (uint64_t)scene.depth.width * scene.depth.height * 4) return ARC_INVALID;
+        int result = arc_scene_wait(pointer); if (result != ARC_OK) return result;
+        if (!arc_acquire(scene)) return ARC_BUSY;
+        NSUInteger stride = (scene.depth.width * 4 + 255) & ~(NSUInteger)255;
+        if (arc_resident_bytes(scene) + stride * scene.depth.height > arc_resident_limit) { arc_release(scene); return ARC_INVALID; }
+        id<MTLBuffer> bytes = [scene.device newBufferWithLength:stride * scene.depth.height options:MTLResourceStorageModeShared];
+        id<MTLCommandBuffer> command = [scene.queue commandBuffer];
+        id<MTLBlitCommandEncoder> blit = [command blitCommandEncoder];
+        if (!bytes || !command || !blit) { arc_release(scene); return ARC_FAILED; }
+        [blit copyFromTexture:scene.depth sourceSlice:0 sourceLevel:0 sourceOrigin:MTLOriginMake(0, 0, 0)
+            sourceSize:MTLSizeMake(scene.depth.width, scene.depth.height, 1) toBuffer:bytes destinationOffset:0
+            destinationBytesPerRow:stride destinationBytesPerImage:stride * scene.depth.height];
+        [blit endEncoding]; dispatch_semaphore_t finished = dispatch_semaphore_create(0);
+        [command addCompletedHandler:^(id<MTLCommandBuffer> completed) {
+            if (completed.status == MTLCommandBufferStatusError) scene.commandFailed = YES;
+            arc_release(scene); dispatch_semaphore_signal(finished);
+        }];
+        [command commit];
+        if (dispatch_semaphore_wait(finished, dispatch_time(DISPATCH_TIME_NOW, INT64_C(5000000000))) != 0) {
+            scene.commandFailed = YES; return arc_fail(scene, @"Depth readback timed out", ARC_FAILED);
+        }
+        if (!arc_acquire(scene)) return ARC_BUSY;
+        if (scene.commandFailed) { arc_release(scene); return ARC_FAILED; }
+        for (NSUInteger y = 0; y < scene.depth.height; y++)
+            memcpy((uint8_t *)destination + y * scene.depth.width * 4, (uint8_t *)bytes.contents + y * stride, scene.depth.width * 4);
+        arc_release(scene); return ARC_OK;
+    }
 }
 
 int arc_scene_read_rgba(void *pointer, void *destination, uint64_t length) {
@@ -361,6 +546,9 @@ uint64_t arc_scene_query(void *pointer, int key) {
         case 4: return scene.uploaded;
         case 5: return arc_resident_bytes(scene);
         case 6: return scene.gpuNanoseconds;
+        case 7: return scene.passPipelines.count;
+        case 8: return scene.completedPasses;
+        case 9: return scene.storedAttachments;
         default: return 0;
     }
 }
@@ -374,8 +562,9 @@ int arc_scene_reset(void *pointer) {
         if (!arc_acquire(scene)) return ARC_BUSY;
         [scene.meshes removeAllObjects];
         [scene.materials removeAllObjects];
+        [scene.passPipelines removeAllObjects];
         scene.meshBytes = scene.materialBytes = 0;
-        scene.color = nil; scene.depth = nil;
+        scene.color = nil; scene.depth = nil; scene.storedAttachments = 0;
         memset(scene.actors.contents, 0, scene.actors.length);
         memset(scene.uniforms.contents, 0, scene.uniforms.length);
         arc_release(scene); return ARC_OK;

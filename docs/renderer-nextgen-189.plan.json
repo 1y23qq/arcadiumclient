@@ -49,7 +49,7 @@
     {
       "id": "P3",
       "name": "Real client feature coverage",
-      "work": "Add explicit adapters for Arcadium animations, hurt/death, armor, held items, capes, 3D skin layers, glint, cosmetics and color-saturation passes. Preserve Forge rendering callbacks instead of globally bypassing them. Preserve the released 0.7.2 local Cape module and revision-aware Nick Hider when reusing actor/material/name-tag state.",
+      "work": "Add explicit adapters for Arcadium animations, hurt/death, armor, held items, capes, 3D skin layers, glint, cosmetics and color-saturation passes. Preserve Forge rendering callbacks instead of globally bypassing them. Preserve the released 0.7.2 local Cape module and revision-aware Nick Hider when reusing actor/material/name-tag state. Reproduce and repair the reported held-item rendering corruption with real Forge guests; compare first-person and both F5 directions, self and other players, with optimization enabled and disabled.",
       "gate": "Known supported effects render identically and callbacks run once with the expected state. Unknown hooks fall back per actor. A fast path that rejects most real players is not accepted as a completed optimization."
     },
     {
