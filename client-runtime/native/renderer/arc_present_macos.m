@@ -414,9 +414,12 @@ uint64_t arc_present_query(void *value, int key) {
             case ARC_PRESENT_VIEW_VISIBLE_HEIGHT_FP64: number = p.view.visibleRect.size.height; break;
             case ARC_PRESENT_LAYER_NEEDS_DISPLAY: return layer.needsDisplay;
             case ARC_PRESENT_VIEW_OPAQUE: return [p.view isOpaque];
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
             case ARC_PRESENT_CURRENT_GL_VIEW_LAYER_ID: return presentationObjectId([NSOpenGLContext currentContext].view.layer);
             case ARC_PRESENT_CURRENT_GL_VIEW_ID: return presentationObjectId([NSOpenGLContext currentContext].view);
             case ARC_PRESENT_CURRENT_GL_CONTEXT_MATCH: return p->context && CGLGetCurrentContext() == p->context;
+#pragma clang diagnostic pop
             default: return 0;
         }
         memcpy(&bits, &number, sizeof(bits)); return bits;
