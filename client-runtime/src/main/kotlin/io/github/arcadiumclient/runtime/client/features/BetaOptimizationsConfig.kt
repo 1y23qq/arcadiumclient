@@ -41,34 +41,34 @@ object BetaOptimizationsConfig : Config("arcadium-optimizations-beta.json", "Opt
     var batchedVanillaFont = true
 
     @JvmStatic @Switch(title = "GPU Name Tags", description = "Keep name tag shapes on the GPU and draw their text and backgrounds with compact per-label commands. Requires OpenGL 4.3.", category = "Hypixel")
-    var gpuNameTags = false
+    var gpuNameTags = true
 
     @JvmStatic @Switch(title = "Retained Name Tag Scenes", description = "Keep unchanged name tag draw plans and update their position and camera facing every frame. Requires GPU Name Tags. Unsupported labels keep their original preparation.", category = "Hypixel")
-    var retainedNameTagScenes = false
+    var retainedNameTagScenes = true
 
     @JvmStatic @Switch(title = "Compact Name Tag Preparation", description = "Reuse unchanged name tag material bindings, billboard orientation and draw commands. Every label position, light value and visible glyph still updates normally.", category = "Hypixel")
-    var compactNameTagPreparation = false
+    var compactNameTagPreparation = true
 
     @JvmStatic @Switch(title = "Invisible Hologram Fast Path", description = "Skip unused model preparation for invisible, unequipped vanilla armor stands. Their name tags keep the original renderer; visible stands, equipment and custom renderers use the original path.", category = "Hypixel")
-    var fastInvisibleHolograms = false
+    var fastInvisibleHolograms = true
 
     @JvmStatic @Switch(title = "Reduced Render Hook Allocations", description = "Reduce temporary allocations in supported model, particle and cosmetic render hooks. Custom hooks keep their original behavior.", category = "Hypixel")
-    var reduceRenderHookAllocations = false
+    var reduceRenderHookAllocations = true
 
     @JvmStatic @Switch(title = "Optimized Motion Blur", description = "Reuse private hybrid motion blur history buffers instead of copying unchanged pixels. Motion blur strength and appearance stay the same. Modified or unsupported shaders keep their original path.", category = "Hypixel")
-    var efficientMotionBlur = false
+    var efficientMotionBlur = true
 
     @JvmStatic @Switch(title = "Retained Scoreboard Preparation", description = "Share the current score ordering and point-visibility decision across sidebar rows. Score changes, live settings and every native draw still update immediately.", category = "Hypixel")
-    var retainedScoreboardPreparation = false
+    var retainedScoreboardPreparation = true
 
     @JvmStatic @Switch(title = "GPU Particle Batches", description = "Expand standard particle billboards on the GPU. Keeps particle counts, animation, custom size, fading and static colors. Mixed or unsupported batches use the original path. Requires OpenGL 3.3.", category = "Hypixel")
-    var gpuParticles = false
+    var gpuParticles = true
 
     @JvmStatic @Switch(title = "Retained Particle Recipes", description = "Reuse stable vanilla spell-particle appearance between game ticks. Positions and camera-facing geometry still update every frame; animated colors and custom particles use the original preparation.", category = "Hypixel")
-    var retainedParticleRecipes = false
+    var retainedParticleRecipes = true
 
     @JvmStatic @Switch(title = "Retained HUD Batches", description = "Keep unchanged Argentum HUD text batches in GPU memory instead of uploading them every frame. Animated text, chat fading and changed settings still update immediately.", category = "Hypixel")
-    var retainedHudBatches = false
+    var retainedHudBatches = true
 
     @JvmStatic @Slider(title = "Minimum Visible Labels", description = "Use the GPU path only for crowded views. All labels keep updating every frame.", min = 1f, max = 128f, step = 1f, category = "Hypixel")
     var minimumGpuLabels = 1
@@ -77,28 +77,28 @@ object BetaOptimizationsConfig : Config("arcadium-optimizations-beta.json", "Opt
     var minimumGpuParticles = 1
 
     @JvmStatic @Switch(title = "GPU Model Transforms", description = "Build and sort standard player part matrices on the GPU while keeping Argentum batching. Requires OpenGL 4.3. Custom parts use the original renderer.", category = "Players")
-    var gpuModelTransforms = false
+    var gpuModelTransforms = true
 
     @JvmStatic @Switch(title = "GPU Player Pipeline", description = "Build supported player poses on the GPU while preserving skin layers and animations. Mod callbacks can use evaluated-part GPU capture. Unsupported geometry keeps its original renderer. Requires OpenGL 4.3.", category = "Players")
-    var gpuPlayerPipeline = false
+    var gpuPlayerPipeline = true
 
     @JvmStatic @Switch(title = "Resident Player State", description = "Reuse compact player data and repeated instance uploads within a render batch. Enable GPU Player Pipeline or GPU Equipment Pipeline first. Busy or unsupported buffers use normal streaming without waiting.", category = "Players")
-    var residentPlayerState = false
+    var residentPlayerState = true
 
     @JvmStatic @Switch(title = "GPU Voxel Skin Layers", description = "Batch opaque 64x64 3D skin layers with default dimensions. Transparent, custom-sized or emissive skins keep their original layers. Enable 3D Skin and GPU Player Pipeline first. Requires OpenGL 4.3.", category = "Players")
-    var gpuVoxelSkinLayers = false
+    var gpuVoxelSkinLayers = true
 
     @JvmStatic @Switch(title = "GPU Equipment Pipeline", description = "Build standard player armor poses and submit armor parts in bulk on the GPU. Native texture selection, leather colors and enchantment effects are preserved. Requires OpenGL 4.3.", category = "Players")
-    var gpuEquipmentPipeline = false
+    var gpuEquipmentPipeline = true
 
     @JvmStatic @Slider(title = "Minimum Visible Players", description = "Use GPU transforms only when at least this many different players were rendered in the previous frame, to avoid dispatch overhead in small scenes.", min = 1f, max = 128f, step = 1f, category = "Players")
     var minimumPlayers = 1
 
     @JvmStatic @Switch(title = "Fast Frame Presentation", description = "Cache the final full-screen frame quad while keeping native colors, resolution and frame timing. Unsupported render states use the original path.", category = "Display")
-    var directFramebufferPresentation = false
+    var directFramebufferPresentation = true
 
     @JvmStatic @Switch(title = "GPU Terrain Commands", description = "Keep opaque terrain command data on the GPU while preserving native section visibility and full terrain detail. Requires OpenGL 4.3 and indirect-count support. Unsupported passes keep the original renderer.", category = "Display")
-    var gpuTerrainCommands = false
+    var gpuTerrainCommands = true
 
     @JvmStatic @Switch(title = "World Render Scale", description = "Render the world and held items at a lower resolution. HUD and menus stay at full resolution. This reduces image detail and helps GPU-limited scenes.", category = "Display")
     var worldRenderScale = false

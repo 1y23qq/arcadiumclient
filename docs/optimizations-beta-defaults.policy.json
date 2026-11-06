@@ -1,0 +1,13 @@
+{
+  "appliesFrom": "0.7.2",
+  "newExposedQualifiedBooleanDefault": true,
+  "booleanExceptions": {
+    "worldRenderScale": false
+  },
+  "preserveExistingSerializedChoices": true,
+  "preserveCapabilityAndUnsupportedMaterialFallbacks": true,
+  "privateUnexposedRendererPropertiesRemainOptIn": true,
+  "numericDefaultsUnchangedByBooleanPolicy": true,
+  "finalMeasurementsMustReportEveryEnabledAndNumericSetting": true,
+  "finalMeasurementsMustIncludeTheActualAllOnDefaultProfile": true
+}
