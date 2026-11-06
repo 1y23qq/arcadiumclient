@@ -28,9 +28,8 @@ public final class GpuPlayerPipeline {
     private static final Set<PlayerModel> unsupported=Collections.newSetFromMap(new WeakHashMap<>());
     private static final Matrix4f root=new Matrix4f();
     private static final java.nio.FloatBuffer glRoot=BufferUtils.createFloatBuffer(16);
-    private static boolean failed,forgeChecked,forgeActive;
+    private static boolean failed;
     private static boolean invalidatingBackend;
-    private static java.lang.reflect.Field forgeConfiguration;
     private static MethodHandle cosmeticModels;
     private static Object cosmetics;
     private static volatile String state="Waiting for a supported scene";
@@ -225,10 +224,7 @@ public final class GpuPlayerPipeline {
         return player.getStuckArrows()!=0||player.getCapeTextureLocation()!=null||player.getName().equals("deadmau5");
     }
     private static boolean forge(){
-        if(Boolean.getBoolean("arcadium.forge.prepared"))return true;
-        if(!forgeChecked){forgeChecked=true;try{var type=Class.forName("io.github.arcadiumclient.forgecompat.ForgeRuntimeContext");forgeConfiguration=type.getDeclaredField("configuration");forgeConfiguration.setAccessible(true);}catch(ClassNotFoundException ignored){}catch(Exception error){forgeActive=true;}}
-        try{return forgeActive||forgeConfiguration!=null&&forgeConfiguration.get(null)!=null;}
-        catch(IllegalAccessException error){return true;}
+        return ForgeRenderPresence.active();
     }
     public static boolean hasForgeHooks(){return forge();}
     public static void invalidateBackend(Object value){
