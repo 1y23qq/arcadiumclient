@@ -78,12 +78,17 @@ def main() -> None:
         configure += ["-G", "Visual Studio 17 2022", "-A", "x64"]
     run(configure, "configure.log")
     run(["cmake", "--build", str(output / "native"), "--config", "Release", "--parallel", "2"], "build.log")
-    run(["ctest", "--test-dir", str(output / "native"), "-C", "Release", "--output-on-failure", "--output-junit", str(output / "native-tests.xml")], "native-tests.log")
+    ctest_code = run(["ctest", "--test-dir", str(output / "native"), "-C", "Release", "--output-on-failure", "--output-junit", str(output / "native-tests.xml")], "native-tests.log", None)
     test_cases = ET.parse(output / "native-tests.xml").getroot().findall(".//testcase")
+    failed_tests = [case.get("name") for case in test_cases if case.find("failure") is not None or case.find("error") is not None]
+    if ctest_code == 0 and failed_tests:
+        raise RuntimeError("CTest status disagrees with its failed native XML results")
+    if ctest_code != 0 and failed_tests != ["metal_current_frame_presentation"]:
+        raise RuntimeError("Native contract or scene tests failed; do not continue independent presentation probes")
     metal = next((case for case in test_cases if case.get("name") == "metal_resident_scene"), None)
     metal_status = "not-applicable" if metal is None else "skipped-no-device" if metal.find("skipped") is not None else "passed"
     presentation = next((case for case in test_cases if case.get("name") == "metal_current_frame_presentation"), None)
-    presentation_status = "not-applicable" if presentation is None else "skipped-no-device-or-context" if presentation.find("skipped") is not None else "passed"
+    presentation_status = "not-applicable" if presentation is None else "failed" if presentation.get("name") in failed_tests else "skipped-no-device-or-context" if presentation.find("skipped") is not None else "passed"
     home = arguments.java_home
     java = str(home / "bin" / ("java.exe" if sys.platform == "win32" else "java")) if home else shutil.which("java")
     javac = str(home / "bin" / ("javac.exe" if sys.platform == "win32" else "javac")) if home else shutil.which("javac")
@@ -137,7 +142,8 @@ def main() -> None:
             pylon_status = "passed"
         else:
             pylon_status = "skipped-no-device" if sys.platform == "darwin" else "compiled-not-applicable"
-    report = {"passed": True, "platform": sys.platform, "architecture": arguments.arch,
+    report = {"passed": ctest_code == 0, "platform": sys.platform, "architecture": arguments.arch,
+              "nativeCTestExitCode": ctest_code, "failedNativeTests": failed_tests,
               "nativeCompiled": True, "metalDeviceTest": metal_status,
               "javaMetalDeviceTest": "skipped-no-device" if probe_code == 77 else "passed" if sys.platform == "darwin" else "not-applicable",
               "javaNativeAbiProbe": probe_code == 0, "presentationIntegrated": False,
@@ -148,6 +154,8 @@ def main() -> None:
               "nativeLibrary": str(library), "commands": commands}
     (output / "verification.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({key: value for key, value in report.items() if key not in {"commands", "nativeLibrary"}}, indent=2))
+    if ctest_code != 0:
+        raise RuntimeError("Native presentation DISPLAYED gate failed; independent probe results are preserved, not accepted as a suite pass")
 
 
 if __name__ == "__main__":
