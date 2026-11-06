@@ -316,10 +316,11 @@ def build_bootstrap(version: str) -> Path:
 
 def build_from_sources(java_home: Path) -> Path:
     from prepare_forge1710 import prepare_dependencies
-    from package_client import component_sources, inspect_component
+    from package_client import component_sources, inspect_component, source_artifact_version
     version = tomllib.loads((ROOT / "Cargo.toml").read_text(encoding="utf-8"))["workspace"]["package"]["version"]
     sources = component_sources(ROOT, version, "1.7.10")
-    sources["ArcadiumBrand-1.7.10.jar"] = (ROOT / f"game-branding/build/1.7.10/libs/ArcadiumBrand-{version}-1.7.10.jar", "arcadiumclient")
+    branding_version = source_artifact_version(ROOT, "game-branding", version, "1.7.10")
+    sources["ArcadiumBrand-1.7.10.jar"] = (ROOT / f"game-branding/build/1.7.10/libs/ArcadiumBrand-{branding_version}-1.7.10.jar", "arcadiumclient")
     dependencies = json.loads((ROOT / "distribution/forge-1.7.10.dependencies.json").read_text(encoding="utf-8"))
     prepare_dependencies(BUILD / "cache")
     calamus = verified_download(dependencies["mappings"], BUILD / "cache/mappings" / dependencies["mappings"]["file"])

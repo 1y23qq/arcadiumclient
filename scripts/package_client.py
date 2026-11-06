@@ -160,6 +160,21 @@ def inspect_component(raw: bytes, label: str, expected_id: str | None = None) ->
         return metadata
 
 
+def source_artifact_version(root: Path, project: str, fallback: str, minecraft_version: str = "1.8.9") -> str:
+    properties = root / project / "gradle.properties"
+    declared = read_properties(properties).get("modVersion") if properties.is_file() else None
+    build = root / project / "build.gradle.kts"
+    if declared is None and build.is_file():
+        text = build.read_text(encoding="utf-8")
+        split = re.search(r'version\s*=\s*if\s*\(minecraftVersion\s*==\s*"1\.7\.10"\)\s*"([^"]+)"\s*else\s*"([^"]+)"', text)
+        literal = re.search(r'^version\s*=\s*"([^"]+)"', text, re.MULTILINE)
+        declared = split.group(1 if minecraft_version == "1.7.10" else 2) if split else literal.group(1) if literal else None
+    result = declared or fallback
+    if not re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?", result):
+        raise ValueError("Invalid source artifact version: " + project)
+    return result
+
+
 def component_sources(root: Path, version: str, minecraft_version: str = "1.8.9") -> dict[str, tuple[Path, str]]:
     if minecraft_version in {"1.21.11", "26.2"}:
         from package_modern import component_sources as modern_sources
@@ -169,15 +184,17 @@ def component_sources(root: Path, version: str, minecraft_version: str = "1.8.9"
     compose = versions["compose"]
     if isinstance(compose, dict):
         compose = compose["version"]
-    runtime = (f"client-runtime/build/libs/ArcadiumRuntime-{version}.jar" if minecraft_version == "1.8.9"
-               else f"client-runtime/build/{minecraft_version}/libs/ArcadiumRuntime-{version}-{minecraft_version}.jar")
+    runtime_version = source_artifact_version(root, "client-runtime", version, minecraft_version)
+    runtime = (f"client-runtime/build/libs/ArcadiumRuntime-{runtime_version}.jar" if minecraft_version == "1.8.9"
+               else f"client-runtime/build/{minecraft_version}/libs/ArcadiumRuntime-{runtime_version}-{minecraft_version}.jar")
     result = {
         f"ArcadiumCore-{minecraft_version}.jar": (root / f"client-ui/bootstrap/versions/{minecraft_version}-ornithe/build/libs/OneConfig-{minecraft_version}-ornithe-{core}.jar", "oneconfig"),
         f"ArcadiumFeatures-{minecraft_version}.jar": (root / runtime, "arcadium_runtime"),
         f"ArcadiumRenderer-{minecraft_version}.jar": (root / f"client-ui/modules/compose-bundle/build/libs/compose-bundle-1.0.5+compose.{compose}.jar", "compose-multiplatform"),
     }
     if minecraft_version == "1.8.9":
-        result["ArcadiumForgeCompat-1.8.9.jar"] = (root / f"forge-compat/build/libs/ArcadiumForgeCompat-{version}.jar", "arcadium_forge_compat")
+        compat_version = source_artifact_version(root, "forge-compat", version)
+        result["ArcadiumForgeCompat-1.8.9.jar"] = (root / f"forge-compat/build/libs/ArcadiumForgeCompat-{compat_version}.jar", "arcadium_forge_compat")
         pylon = read_properties(root / "client-legacy-mods/pylon/gradle.properties")["version"].strip()
         result["ArcadiumPylon-1.8.9.jar"] = (root / f"client-legacy-mods/pylon/build/libs/pylon-{pylon}.jar", "pylon")
     else:
@@ -333,8 +350,9 @@ def package(root: Path = ROOT, minecraft_version: str = "1.8.9") -> list[dict]:
         return stage(output)
     version = tomllib.loads((root / "Cargo.toml").read_text(encoding="utf-8"))["workspace"]["package"]["version"]
     sources = component_sources(root, version, minecraft_version)
-    branding_source = root / (f"game-branding/build/libs/ArcadiumBrand-{version}.jar" if minecraft_version == "1.8.9"
-                              else f"game-branding/build/{minecraft_version}/libs/ArcadiumBrand-{version}-{minecraft_version}.jar")
+    branding_version = source_artifact_version(root, "game-branding", version, minecraft_version)
+    branding_source = root / (f"game-branding/build/libs/ArcadiumBrand-{branding_version}.jar" if minecraft_version == "1.8.9"
+                              else f"game-branding/build/{minecraft_version}/libs/ArcadiumBrand-{branding_version}-{minecraft_version}.jar")
     branding_name = f"ArcadiumBrand-{minecraft_version}.jar"
     all_sources = {**sources, branding_name: (branding_source, "arcadiumclient")}
     prepared = {}

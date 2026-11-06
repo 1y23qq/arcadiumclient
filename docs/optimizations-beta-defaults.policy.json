@@ -1,5 +1,5 @@
 {
-  "appliesFrom": "0.7.2",
+  "appliesFrom": "0.7.3",
   "newExposedQualifiedBooleanDefault": true,
   "booleanExceptions": {
     "worldRenderScale": false

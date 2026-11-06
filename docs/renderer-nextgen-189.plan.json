@@ -3,7 +3,7 @@
   "date": "2026-11-05",
   "minecraft": "1.8.9",
   "status": "implementation-in-progress",
-  "releaseContext": "0.7.1 shipped reconnect and launcher fixes. The 0.7.2 renderer prototypes are in development and verification; they have not been published or accepted as a completed backend.",
+  "releaseContext": "0.7.2 published Star Hider, Nick Hider replacements and local capes on the 0.7.1 renderer. Renderer research is retained for 0.7.3 and is not a completed or published backend.",
   "decision": "Build a persistent GPU scene with compact actor state, GPU visibility and indirect submission. Separate scene preparation from its OpenGL/Metal backend.",
   "reason": "Existing beta code already computes player poses and model transforms on the GPU. The larger opportunity is removing repeated Java traversal, instance preparation and driver submission around that computation, while increasing supported-model coverage.",
   "existingWork": [
@@ -49,7 +49,7 @@
     {
       "id": "P3",
       "name": "Real client feature coverage",
-      "work": "Add explicit adapters for Arcadium animations, hurt/death, armor, held items, capes, 3D skin layers, glint, cosmetics and color-saturation passes. Preserve Forge rendering callbacks instead of globally bypassing them.",
+      "work": "Add explicit adapters for Arcadium animations, hurt/death, armor, held items, capes, 3D skin layers, glint, cosmetics and color-saturation passes. Preserve Forge rendering callbacks instead of globally bypassing them. Preserve the released 0.7.2 local Cape module and revision-aware Nick Hider when reusing actor/material/name-tag state.",
       "gate": "Known supported effects render identically and callbacks run once with the expected state. Unknown hooks fall back per actor. A fast path that rejects most real players is not accepted as a completed optimization."
     },
     {
@@ -141,5 +141,6 @@
       "url": "https://wiki.libsdl.org/SDL3/SDL_Metal_CreateView",
       "use": "A possible window integration point for a Metal backend; it still needs engineering and native validation."
     }
-  ]
+  ],
+  "targetVersion": "0.7.3"
 }

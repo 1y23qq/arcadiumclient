@@ -21,6 +21,8 @@ class ArcadiumRuntime : ClientModInitializer {
             "Client preferences" to { ClientPreferences.preload(); MenuPreferences.preload() },
             "Beta optimizations" to { BetaOptimizationsConfig.initialize() },
             "Nick Hider" to { NickHider.initialize() },
+            "Star Hider" to { StarHider.preload() },
+            "Cape" to { CapeConfig.initialize() },
             "GUI Scale" to { GuiScaling.initialize() },
             "Tab Background" to { TabBackgroundConfig.preload() },
             "Light Level" to { LightLevelOverlay.initialize() },

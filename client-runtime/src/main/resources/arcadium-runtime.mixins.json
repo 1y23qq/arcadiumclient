@@ -5,6 +5,11 @@
   "plugin": "io.github.arcadiumclient.runtime.mixin.RenderHookConstraintsPlugin",
   "mixins": [],
   "client": [
+    "client.StarHiderMixin",
+    "client.LocalCapePlayerMixin",
+    "client.LocalCapePlayerInfoMixin",
+    "client.LocalCapeLayerMixin",
+    "client.LocalCapeResourcesMixin",
     "client.ReconnectConnectMixin",
     "client.ReconnectDisconnectedMixin",
     "client.FastEntityNameFormattingMixin",

@@ -1,8 +1,13 @@
+## 0.7.3 (in development)
+
+- Improved renderer resource invalidation and retained HUD preparation.
+- Continued persistent player and terrain rendering development.
+
 ## 0.7.2
 
-- Fixed GPU player rendering stopping after world changes and resource reloads.
-- Reused HUD buffers across changing text sizes and removed unnecessary name-formatting work.
-- Switched Argentum, Argentum Extras and Cera downloads to Modrinth.
+- Added Star Hider.
+- Added custom text replacements to Nick Hider.
+- Added client-side capes.
 
 ## 0.7.1
 
