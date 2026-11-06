@@ -23,7 +23,6 @@ import org.embeddedt.embeddium.impl.render.viewport.CameraTransform;
 import org.lwjgl.opengl.*;
 
 public final class TerrainCommandBackend {
-    private static final long MAX_GPU_BYTES = 64L * 1024 * 1024;
     private static final Set<Batch> LIVE = Collections.newSetFromMap(new IdentityHashMap<>());
     private static int program;
     static int cameraUniform, sectionsUniform, cullUniform, verticesUniform, elementsUniform;
@@ -47,14 +46,14 @@ public final class TerrainCommandBackend {
     }
 
     public static boolean wants(TerrainRenderPass pass) {
-        return GpuTerrainCommands.enabled && !failed && supportedPass(pass) && available();
+        return GpuTerrainCommands.enabled && !GpuTerrainCommands.residentRequested() && !failed && supportedPass(pass) && available();
     }
 
     public static boolean accept(CachedBatch cached, TerrainRenderPass pass) {
         if (cached == null) return true;
         if (cached.getBatch() instanceof Batch batch) return !batch.closed && wants(pass);
         if (cached.getBatch() == null || cached.getBatch().isEmpty()) return true;
-        return !wants(pass) || gpuBytes + TerrainCommandBuffers.BYTES > MAX_GPU_BYTES;
+        return !wants(pass) || !TerrainGpuBudget.fits(TerrainCommandBuffers.BYTES);
     }
 
     public static CachedBatch create(RenderRegion region, SectionRenderDataStorage storage, ChunkRenderList list,
@@ -66,7 +65,7 @@ public final class TerrainCommandBackend {
             if (storage.getSliceMask(list.getSectionsWithGeometry()[index] & 255) != 0) { visibleGeometry = true; break; }
         }
         if (!visibleGeometry) return null;
-        if (gpuBytes + TerrainCommandBuffers.BYTES > MAX_GPU_BYTES) {
+        if (!TerrainGpuBudget.fits(TerrainCommandBuffers.BYTES)) {
             state = "GPU region memory budget reached; additional regions use Argentum";
             return null;
         }
@@ -213,9 +212,15 @@ public final class TerrainCommandBackend {
 
         @Override public void upload(CommandList device) {
             if (buffers != null) return;
-            buffers = new TerrainCommandBuffers(device, mesh, verticesPerPrimitive, elementsPerPrimitive);
-            LIVE.add(this); gpuBytes += TerrainCommandBuffers.BYTES;
-            prepare(device);
+            if (!TerrainGpuBudget.reserve(this, TerrainCommandBuffers.BYTES)) throw new IllegalStateException("Shared terrain command budget is full");
+            try {
+                buffers = new TerrainCommandBuffers(device, mesh, verticesPerPrimitive, elementsPerPrimitive);
+                LIVE.add(this); gpuBytes += TerrainCommandBuffers.BYTES;
+                prepare(device);
+            } catch (Throwable failure) {
+                try { delete(); } catch (Throwable cleanup) { if(cleanup!=failure)failure.addSuppressed(cleanup); }
+                throw failure;
+            }
         }
 
         @Override public void execute(CommandList device, GlTessellation tessellation, GlPrimitiveType primitive) {
@@ -254,8 +259,8 @@ public final class TerrainCommandBackend {
         @Override public void delete() {
             if (closed) return;
             closed = true;
-            if (buffers != null) { buffers.close(); buffers = null; }
-            if (LIVE.remove(this)) gpuBytes -= TerrainCommandBuffers.BYTES;
+            try { if (buffers != null) { buffers.close(); buffers = null; } }
+            finally { if (LIVE.remove(this)) gpuBytes -= TerrainCommandBuffers.BYTES; TerrainGpuBudget.release(this); }
         }
         @Override public void appendDrawCommand(int base, int count, long pointer) { throw new UnsupportedOperationException("Resident terrain commands are generated on the GPU"); }
         @Override public void mergeIntoLastCommand(int count) { throw new UnsupportedOperationException("Resident terrain commands are generated on the GPU"); }

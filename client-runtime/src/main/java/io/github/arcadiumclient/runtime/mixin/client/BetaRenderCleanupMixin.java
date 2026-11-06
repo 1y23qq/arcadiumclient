@@ -29,7 +29,7 @@ public abstract class BetaRenderCleanupMixin {
     @Inject(method = "shutdown", at = @At("HEAD"))
     private void arcadium$releaseGpuBuffers(CallbackInfo callback) {
         RetainedHudBuffers.closeAll(); WorldRenderScale.release(); GpuModelTransforms.close(); GpuNameTags.closeAll(); GpuParticles.close();
-        GpuTerrainCommands.reset();
+        GpuTerrainCommands.shutdown();
         GpuVoxelSkinPipeline.reset();
         GpuVoxelSkinUploadFacts.shutdown();
         ModernArmorGlintPipeline.close();

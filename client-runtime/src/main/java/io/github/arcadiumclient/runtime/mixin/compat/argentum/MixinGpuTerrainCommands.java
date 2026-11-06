@@ -6,6 +6,8 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.moulberry.mixinconstraints.annotations.IfModLoaded;
 import io.github.arcadiumclient.runtime.client.optimizations.TerrainCommandBackend;
+import io.github.arcadiumclient.runtime.client.optimizations.TerrainResidentScene;
+import io.github.arcadiumclient.runtime.client.optimizations.GpuTerrainCommands;
 import org.embeddedt.embeddium.impl.gl.device.CommandList;
 import org.embeddedt.embeddium.impl.render.chunk.data.SectionRenderDataStorage;
 import org.embeddedt.embeddium.impl.render.chunk.lists.ChunkRenderList;
@@ -26,6 +28,8 @@ public abstract class MixinGpuTerrainCommands {
     private CachedBatch arcadium$selectBatch(SectionRenderDataStorage storage, SectionRenderDataStorage.BatchCacheParams params,
                                             Operation<CachedBatch> original, @Local(argsOnly = true) TerrainRenderPass pass) {
         CachedBatch cached = original.call(storage, params);
+        CachedBatch resident = GpuTerrainCommands.residentRequested()?TerrainResidentScene.select(storage, pass):null;
+        if (resident != null) return resident;
         return TerrainCommandBackend.accept(cached, pass) ? cached : null;
     }
 
