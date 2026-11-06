@@ -1,3 +1,9 @@
+## 0.7.2
+
+- Added Star Hider.
+- Added custom text replacements to Nick Hider.
+- Added client-side capes.
+
 ## 0.7.1
 
 - Added automatic server reconnection with a 3-second countdown on all game versions. Back stops retrying.

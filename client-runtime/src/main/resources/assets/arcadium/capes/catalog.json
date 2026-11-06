@@ -1,0 +1,392 @@
+{
+  "schema": 1,
+  "verified": "2026-11-06",
+  "entries": [
+    {
+      "id": "minecon-2011",
+      "title": "MINECON 2011",
+      "group": "Events",
+      "source": "https://textures.minecraft.net/texture/953cac8b779fe41383e675ee2b86071a71658f2180f56fbce8aa315ea70e2ed6",
+      "sha256": "953cac8b779fe41383e675ee2b86071a71658f2180f56fbce8aa315ea70e2ed6"
+    },
+    {
+      "id": "minecon-2012",
+      "title": "MINECON 2012",
+      "group": "Events",
+      "source": "https://textures.minecraft.net/texture/a2e8d97ec79100e90a75d369d1b3ba81273c4f82bc1b737e934eed4a854be1b6",
+      "sha256": "a2e8d97ec79100e90a75d369d1b3ba81273c4f82bc1b737e934eed4a854be1b6"
+    },
+    {
+      "id": "minecon-2013",
+      "title": "MINECON 2013",
+      "group": "Events",
+      "source": "https://textures.minecraft.net/texture/153b1a0dfcbae953cdeb6f2c2bf6bf79943239b1372780da44bcbb29273131da",
+      "sha256": "153b1a0dfcbae953cdeb6f2c2bf6bf79943239b1372780da44bcbb29273131da"
+    },
+    {
+      "id": "minecon-2015",
+      "title": "MINECON 2015",
+      "group": "Events",
+      "source": "https://textures.minecraft.net/texture/b0cc08840700447322d953a02b965f1d65a13a603bf64b17c803c21446fe1635",
+      "sha256": "b0cc08840700447322d953a02b965f1d65a13a603bf64b17c803c21446fe1635"
+    },
+    {
+      "id": "minecon-2016",
+      "title": "MINECON 2016",
+      "group": "Events",
+      "source": "https://textures.minecraft.net/texture/e7dfea16dc83c97df01a12fabbd1216359c0cd0ea42f9999b6e97c584963e980",
+      "sha256": "e7dfea16dc83c97df01a12fabbd1216359c0cd0ea42f9999b6e97c584963e980"
+    },
+    {
+      "id": "minecraft-experience",
+      "title": "Minecraft Experience",
+      "group": "Events",
+      "source": "https://textures.minecraft.net/texture/7658c5025c77cfac7574aab3af94a46a8886e3b7722a895255fbf22ab8652434",
+      "sha256": "7658c5025c77cfac7574aab3af94a46a8886e3b7722a895255fbf22ab8652434"
+    },
+    {
+      "id": "migrator",
+      "title": "Migrator Cape",
+      "group": "Events",
+      "source": "https://textures.minecraft.net/texture/2340c0e03dd24a11b15a8b33c2a7e9e32abb2051b2481d0ba7defd635ca7a933",
+      "sha256": "2340c0e03dd24a11b15a8b33c2a7e9e32abb2051b2481d0ba7defd635ca7a933"
+    },
+    {
+      "id": "vanilla",
+      "title": "One Vanilla Cape",
+      "group": "Events",
+      "source": "https://textures.minecraft.net/texture/f9a76537647989f9a0b6d001e320dac591c359e9e61a31f4ce11c88f207f0ad4",
+      "sha256": "f9a76537647989f9a0b6d001e320dac591c359e9e61a31f4ce11c88f207f0ad4"
+    },
+    {
+      "id": "founders",
+      "title": "Founder's Cape",
+      "group": "Events",
+      "source": "https://textures.minecraft.net/texture/99aba02ef05ec6aa4d42db8ee43796d6cd50e4b2954ab29f0caeb85f96bf52a1",
+      "sha256": "99aba02ef05ec6aa4d42db8ee43796d6cd50e4b2954ab29f0caeb85f96bf52a1"
+    },
+    {
+      "id": "pan",
+      "title": "Pan Cape",
+      "group": "Events",
+      "source": "https://textures.minecraft.net/texture/28de4a81688ad18b49e735a273e086c18f1e3966956123ccb574034c06f5d336",
+      "sha256": "28de4a81688ad18b49e735a273e086c18f1e3966956123ccb574034c06f5d336"
+    },
+    {
+      "id": "common",
+      "title": "Common Cape",
+      "group": "Events",
+      "source": "https://textures.minecraft.net/texture/5ec930cdd2629c8771655c60eebeb867b4b6559b0e6d3bc71c40c96347fa03f0",
+      "sha256": "5ec930cdd2629c8771655c60eebeb867b4b6559b0e6d3bc71c40c96347fa03f0"
+    },
+    {
+      "id": "15th-anniversary",
+      "title": "15th Anniversary",
+      "group": "Events",
+      "source": "https://textures.minecraft.net/texture/cd9d82ab17fd92022dbd4a86cde4c382a7540e117fae7b9a2853658505a80625",
+      "sha256": "0b4f4ee1bf094876a8454838b7cd07184dce86428b3cab4122b3bb7d67e530b6"
+    },
+    {
+      "id": "cherry-blossom",
+      "title": "Cherry Blossom",
+      "group": "Events",
+      "source": "https://textures.minecraft.net/texture/afd553b39358a24edfe3b8a9a939fa5fa4faa4d9a9c3d6af8eafb377fa05c2bb",
+      "sha256": "be05a2d92dd043034c9ae6d7c8415e8bc990080ba4dc4c70e9ea92cf9a89705c"
+    },
+    {
+      "id": "purple-heart",
+      "title": "Purple Heart",
+      "group": "Events",
+      "source": "https://textures.minecraft.net/texture/cb40a92e32b57fd732a00fc325e7afb00a7ca74936ad50d8e860152e482cfbde",
+      "sha256": "6836989ef37c72e84552410f178740a3d630ed4ecdce14029e6e9e155980d06c"
+    },
+    {
+      "id": "followers",
+      "title": "Follower's Cape",
+      "group": "Events",
+      "source": "https://textures.minecraft.net/texture/569b7f2a1d00d26f30efe3f9ab9ac817b1e6d35f4f3cfb0324ef2d328223d350",
+      "sha256": "77065df71efe39771d3af4832ed62803c551772cc2f78e744d52822ae949f6c6"
+    },
+    {
+      "id": "copper",
+      "title": "Copper Cape",
+      "group": "Events",
+      "source": "https://textures.minecraft.net/texture/5e6f3193e74cd16cdd6637d9bae5484e3a37ff2a14c2d157c659a07810b1bdca",
+      "sha256": "5e6f3193e74cd16cdd6637d9bae5484e3a37ff2a14c2d157c659a07810b1bdca"
+    },
+    {
+      "id": "mojang-office",
+      "title": "Mojang Office",
+      "group": "Events",
+      "source": "https://textures.minecraft.net/texture/5c29410057e32abec02d870ecb52ec25fb45ea81e785a7854ae8429d7236ca26",
+      "sha256": "5c29410057e32abec02d870ecb52ec25fb45ea81e785a7854ae8429d7236ca26"
+    },
+    {
+      "id": "mcc-15th-year",
+      "title": "MCC 15th Year",
+      "group": "Events",
+      "source": "https://textures.minecraft.net/texture/56c35628fe1c4d59dd52561a3d03bfa4e1a76d397c8b9c476c2f77cb6aebb1df",
+      "sha256": "56c35628fe1c4d59dd52561a3d03bfa4e1a76d397c8b9c476c2f77cb6aebb1df"
+    },
+    {
+      "id": "menace",
+      "title": "Menace Cape",
+      "group": "Events",
+      "source": "https://textures.minecraft.net/texture/dbc21e222528e30dc88445314f7be6ff12d3aeebc3c192054fba7e3b3f8c77b1",
+      "sha256": "ff0a0e197fda64b781c8fb80380057af1f8c917d74219762611fd5cf5fc59298"
+    },
+    {
+      "id": "home",
+      "title": "Home Cape",
+      "group": "Events",
+      "source": "https://textures.minecraft.net/texture/1de21419009db483900da6298a1e6cbf9f1bc1523a0dcdc16263fab150693edd",
+      "sha256": "25fec8a55e1ff6b57f13612b56c532bb70bcdebc689e5b683538fad918e664dc"
+    },
+    {
+      "id": "yearn",
+      "title": "Yearn Cape",
+      "group": "Events",
+      "source": "https://textures.minecraft.net/texture/308b32a9e303155a0b4262f9e5483ad4a22e3412e84fe8385a0bdd73dc41fa89",
+      "sha256": "2be4829b0f2949f58feec51e57d51610f1bae595f19d179d35c31ed9b00409a2"
+    },
+    {
+      "id": "crafter",
+      "title": "Crafter Cape",
+      "group": "Events",
+      "source": "https://textures.minecraft.net/texture/479eacefa3cdd7aca94207f36c0dd449653ddf259daf40544a5866baf05eee22",
+      "sha256": "d085c31aa7123d267b5f8984efd35292bbfe9056bd8f024524d67637c39634f0"
+    },
+    {
+      "id": "builder",
+      "title": "Builder Cape",
+      "group": "Events",
+      "source": "https://textures.minecraft.net/texture/2c579968c64c1719740fd8c2a451461879b238002574fce48f7d1a7c36a1c7d4",
+      "sha256": "762a585b73ae556214e4f7e1fb0c4e9b0ddf6ecf98dcfbd078816235e1756714"
+    },
+    {
+      "id": "moonlight-trail",
+      "title": "Moonlight Trail Cape",
+      "group": "Events",
+      "source": "https://textures.minecraft.net/texture/fe8a02dfe9e390e44ff33d69feef9d3943f76d3901015bbd50f0b67722d288bd",
+      "sha256": "fe8a02dfe9e390e44ff33d69feef9d3943f76d3901015bbd50f0b67722d288bd"
+    },
+    {
+      "id": "twisted",
+      "title": "Twisted Cape",
+      "group": "Events",
+      "source": "https://textures.minecraft.net/texture/24aafc451aa2cc34ddc7265211678585c0ef4da4d32edb75ecec1bd8b5408381",
+      "sha256": "e47990cfcf9009d4ad1356375134a4a42bc16188c1f392511856d62628f9c891"
+    },
+    {
+      "id": "hero",
+      "title": "Hero Cape",
+      "group": "Events",
+      "source": "https://textures.minecraft.net/texture/bb384a1079b9a6f2811520c7991b6e8150d02e5a96457e44509e30822f72f38e",
+      "sha256": "36c98d675068807a423e25444336ef118aae9d4983b57ff9de236b1737ef8d1e"
+    },
+    {
+      "id": "aurora",
+      "title": "Aurora Cape",
+      "group": "Events",
+      "source": "https://textures.minecraft.net/texture/7c418dfbd37412a55e9f1425c9807a591ad10cf71b1edb576a587be9114c277f",
+      "sha256": "a91edf44989b415a12dc0599e7fbb2e07295ad82d351ec601249bb63668709a3"
+    },
+    {
+      "id": "zombie-horse",
+      "title": "Zombie Horse",
+      "group": "Events",
+      "source": "https://textures.minecraft.net/texture/a3f6e4f14801f3ea55e3d95b9b4ef3b5e8802d947f669de93d6ec4b9354a436b",
+      "sha256": "6259c7c50e185461155432bfd712d149064acbdeeafa8e7f5e1a521d52987796"
+    },
+    {
+      "id": "mojang-classic",
+      "title": "Mojang Cape (Classic)",
+      "group": "Mojang",
+      "source": "https://textures.minecraft.net/texture/8f120319222a9f4a104e2f5cb97b2cda93199a2ee9e1585cb8d09d6f687cb761",
+      "sha256": "8f120319222a9f4a104e2f5cb97b2cda93199a2ee9e1585cb8d09d6f687cb761"
+    },
+    {
+      "id": "mojang",
+      "title": "Mojang Cape",
+      "group": "Mojang",
+      "source": "https://textures.minecraft.net/texture/9e507afc56359978a3eb3e32367042b853cddd0995d17d0da995662913fb00f7",
+      "sha256": "9e507afc56359978a3eb3e32367042b853cddd0995d17d0da995662913fb00f7"
+    },
+    {
+      "id": "mojang-studios",
+      "title": "Mojang Studios Cape",
+      "group": "Mojang",
+      "source": "https://textures.minecraft.net/texture/5786fe99be377dfb6858859f926c4dbc995751e91cee373468c5fbf4865e7151",
+      "sha256": "5786fe99be377dfb6858859f926c4dbc995751e91cee373468c5fbf4865e7151"
+    },
+    {
+      "id": "birthday",
+      "title": "Birthday Cape",
+      "group": "Mojang",
+      "source": "https://textures.minecraft.net/texture/2056f2eebd759cce93460907186ef44e9192954ae12b227d817eb4b55627a7fc",
+      "sha256": "2056f2eebd759cce93460907186ef44e9192954ae12b227d817eb4b55627a7fc"
+    },
+    {
+      "id": "mojira-moderator",
+      "title": "Moderator Cape",
+      "group": "Mojang",
+      "source": "https://textures.minecraft.net/texture/ae677f7d98ac70a533713518416df4452fe5700365c09cf45d0d156ea9396551",
+      "sha256": "ae677f7d98ac70a533713518416df4452fe5700365c09cf45d0d156ea9396551"
+    },
+    {
+      "id": "realms-mapmaker",
+      "title": "MapMaker Cape",
+      "group": "Community",
+      "source": "https://textures.minecraft.net/texture/17912790ff164b93196f08ba71d0e62129304776d0f347334f8a6eae509f8a56",
+      "sha256": "17912790ff164b93196f08ba71d0e62129304776d0f347334f8a6eae509f8a56"
+    },
+    {
+      "id": "translator",
+      "title": "Translator Cape",
+      "group": "Community",
+      "source": "https://textures.minecraft.net/texture/1bf91499701404e21bd46b0191d63239a4ef76ebde88d27e4d430ac211df681e",
+      "sha256": "1bf91499701404e21bd46b0191d63239a4ef76ebde88d27e4d430ac211df681e"
+    },
+    {
+      "id": "translator-chinese",
+      "title": "Translator (Chinese)",
+      "group": "Community",
+      "source": "https://textures.minecraft.net/texture/2262fb1d24912209490586ecae98aca8500df3eff91f2a07da37ee524e7e3cb6",
+      "sha256": "2262fb1d24912209490586ecae98aca8500df3eff91f2a07da37ee524e7e3cb6"
+    },
+    {
+      "id": "turtle",
+      "title": "Turtle Cape",
+      "group": "Community",
+      "source": "https://textures.minecraft.net/texture/5048ea61566353397247d2b7d946034de926b997d5e66c86483dfb1e031aee95",
+      "sha256": "5048ea61566353397247d2b7d946034de926b997d5e66c86483dfb1e031aee95"
+    },
+    {
+      "id": "prismarine",
+      "title": "Prismarine Cape",
+      "group": "Community",
+      "source": "https://textures.minecraft.net/texture/d8f8d13a1adf9636a16c31d47f3ecc9bb8d8533108aa5ad2a01b13b1a0c55eac",
+      "sha256": "d8f8d13a1adf9636a16c31d47f3ecc9bb8d8533108aa5ad2a01b13b1a0c55eac"
+    },
+    {
+      "id": "cobalt",
+      "title": "Cobalt Cape",
+      "group": "Community",
+      "source": "https://textures.minecraft.net/texture/ca35c56efe71ed290385f4ab5346a1826b546a54d519e6a3ff01efa01acce81",
+      "sha256": "0ca35c56efe71ed290385f4ab5346a1826b546a54d519e6a3ff01efa01acce81"
+    },
+    {
+      "id": "scrolls-champion",
+      "title": "Scrolls Champion Cape",
+      "group": "Community",
+      "source": "https://textures.minecraft.net/texture/3efadf6510961830f9fcc077f19b4daf286d502b5f5aafbd807c7bbffcaca245",
+      "sha256": "3efadf6510961830f9fcc077f19b4daf286d502b5f5aafbd807c7bbffcaca245"
+    },
+    {
+      "id": "valentine",
+      "title": "Valentine Cape",
+      "group": "Community",
+      "source": "https://textures.minecraft.net/texture/6a7cf0eb5cfe7e7c508b364e32916dfd28d164e7bf6d92c6ea7811b82451e760",
+      "sha256": "6a7cf0eb5cfe7e7c508b364e32916dfd28d164e7bf6d92c6ea7811b82451e760"
+    },
+    {
+      "id": "bacon",
+      "title": "Bacon Cape",
+      "group": "Community",
+      "source": "https://textures.minecraft.net/texture/fd14214cd8073059e93d9c626260f5df85e5a959181537119df56cadaf5002cc",
+      "sha256": "fd14214cd8073059e93d9c626260f5df85e5a959181537119df56cadaf5002cc"
+    },
+    {
+      "id": "db",
+      "title": "dB (dannyBstyle)",
+      "group": "Community",
+      "source": "https://textures.minecraft.net/texture/bcfbe84c6542a4a5c213c1cacf8979b5e913dcb4ad783a8b80e3c4a7d5c8bdac",
+      "sha256": "bcfbe84c6542a4a5c213c1cacf8979b5e913dcb4ad783a8b80e3c4a7d5c8bdac"
+    },
+    {
+      "id": "document",
+      "title": "Blueprint (Document)",
+      "group": "Community",
+      "source": "https://textures.minecraft.net/texture/23917a9b79ac95602bba0027c2d3b4a67f22ca537e8c984400c48f8056c904eb",
+      "sha256": "23917a9b79ac95602bba0027c2d3b4a67f22ca537e8c984400c48f8056c904eb"
+    },
+    {
+      "id": "oxeye",
+      "title": "Oxeye Cape",
+      "group": "Community",
+      "source": "https://textures.minecraft.net/texture/7706b5f5fc90329691e59277dcc66ba20572219fa8e5da472afd5235fad12cc8",
+      "sha256": "7706b5f5fc90329691e59277dcc66ba20572219fa8e5da472afd5235fad12cc8"
+    },
+    {
+      "id": "millionth-customer",
+      "title": "Millionth Sale Cape",
+      "group": "Community",
+      "source": "https://textures.minecraft.net/texture/70efffaf86fe5bc089608d3cb297d3e276b9eb7a8f9f2fe6659c23a2d8b18edf",
+      "sha256": "70efffaf86fe5bc089608d3cb297d3e276b9eb7a8f9f2fe6659c23a2d8b18edf"
+    },
+    {
+      "id": "julianclark",
+      "title": "Snowman (JulianClark)",
+      "group": "Community",
+      "source": "https://textures.minecraft.net/texture/23ec737f18bfe4b547c95935fc297dd767bb84ee55bfd855144d279ac9bfd9fe",
+      "sha256": "23ec737f18bfe4b547c95935fc297dd767bb84ee55bfd855144d279ac9bfd9fe"
+    },
+    {
+      "id": "cheapsh0t",
+      "title": "Japanese Translator (cheapsh0t)",
+      "group": "Community",
+      "source": "https://textures.minecraft.net/texture/ca29f5dd9e94fb1748203b92e36b66fda80750c87ebc18d6eafdb0e28cc1d05f",
+      "sha256": "ca29f5dd9e94fb1748203b92e36b66fda80750c87ebc18d6eafdb0e28cc1d05f"
+    },
+    {
+      "id": "mrmessiah",
+      "title": "Spade (MrMessiah)",
+      "group": "Community",
+      "source": "https://textures.minecraft.net/texture/2e002d5e1758e79ba51d08d92a0f3a95119f2f435ae7704916507b6c565a7da8",
+      "sha256": "2e002d5e1758e79ba51d08d92a0f3a95119f2f435ae7704916507b6c565a7da8"
+    },
+    {
+      "id": "microsoft-xbox",
+      "title": "Microsoft Xbox",
+      "group": "Legacy Console",
+      "source": "https://www.mc-craft.com/assets/img/capes/mojang/Xbox_texture.png",
+      "sha256": "9bd70657f5d4caf23ae88793e68b5b26ba33e3e4189488705036bde502d0e1aa"
+    },
+    {
+      "id": "4j-studios",
+      "title": "4J Studios",
+      "group": "Legacy Console",
+      "source": "https://www.mc-craft.com/assets/img/capes/mojang/4JStudios.png",
+      "sha256": "b769cc3dedfa11545fd1e90cda9e09a2a66821faee2c323da864d4aa3c0c418a"
+    },
+    {
+      "id": "christmas-2010",
+      "title": "Christmas 2010",
+      "group": "Historic",
+      "source": "https://www.mc-craft.com/assets/img/capes/temporary/Weihnachten_2010_texture.png",
+      "sha256": "5a6cf05f3398a4c850dcfbb5f7897aa9cf9c20a825d58344ca8d1749292e4d47"
+    },
+    {
+      "id": "new-year-2011",
+      "title": "New Year 2011",
+      "group": "Historic",
+      "source": "https://www.mc-craft.com/assets/img/capes/temporary/Neujahr_2011_texture.png",
+      "sha256": "cfd5aeb1bcf274d336e5abb99ffdcf7786f5dfad33d46f1296bbc4640d75e927"
+    },
+    {
+      "id": "xbox-first-birthday",
+      "title": "Xbox 1st Birthday",
+      "group": "Legacy Console",
+      "source": "https://www.mc-craft.com/assets/img/capes/temporary/Xbox_Geburtstag_texture.png",
+      "sha256": "338858c8018b77be10a3490b92f343cbfc9e08d1e76b20b6f9c53d3e3c3702af"
+    },
+    {
+      "id": "progress-pride",
+      "title": "Progress Pride",
+      "group": "Bedrock",
+      "source": "https://www.mc-craft.com/assets/img/capes/virtual_event/Pride_texture.png",
+      "sha256": "1334b00a82b0029b723d04c00c0bdbcfb6aba57561c05760d875ab62c343d494"
+    }
+  ],
+  "scope": "Released standalone Minecraft Java, Bedrock and Legacy Console cape designs known on 2026-11-06. Excludes unreleased/API-test designs, snapshot-only joke capes, licensed skin-pack attachments and Minecraft Dungeons-only cosmetics."
+}

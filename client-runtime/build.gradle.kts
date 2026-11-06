@@ -7,9 +7,9 @@ plugins {
 }
 
 group = "io.github.arcadiumclient"
-version = "0.7.1"
 base.archivesName = "ArcadiumRuntime"
 val minecraftVersion = providers.gradleProperty("minecraftVersion").getOrElse("1.8.9")
+version = if (minecraftVersion == "1.7.10") "0.7.1" else "0.7.2"
 require(minecraftVersion in setOf("1.7.10", "1.8.9")) { "Unsupported Minecraft version: $minecraftVersion" }
 if (minecraftVersion == "1.7.10") layout.buildDirectory.set(layout.projectDirectory.dir("build/1.7.10"))
 
@@ -131,7 +131,11 @@ if (minecraftVersion == "1.7.10") {
             exclude {
                 it.path.contains("/client/bedwars/") && it.file.name !in setOf("BedwarsData.java", "BedwarsStats.java", "OverlayHttp.java", "PlayerNameUtil.java", "HypixelDataService.java")
             }
-            exclude("**/features/NoHitDelayConfig.kt", "**/client/MixinNoHitDelay.java",
+            exclude("**/features/StarHider.kt", "**/client/StarHiderMixin.java",
+                "**/features/NickReplacementRules.kt", "**/gui/NickReplacementSettings.kt",
+                "**/features/CapeConfig.kt", "**/client/capes/**",
+                "**/gui/CapePresetSettings.kt", "**/client/LocalCape*.java",
+                "**/features/NoHitDelayConfig.kt", "**/client/MixinNoHitDelay.java",
                 "**/optimizations/**", "**/diagnostics/**", "**/features/BetaOptimizationsConfig.kt",
                 "**/RenderHookConstraintsPlugin.java", "**/ReducedRenderHookMarker.java",
                 "**/compat/argentum/TypedLayerOperationsMarker.java",
@@ -191,7 +195,7 @@ if (minecraftVersion == "1.7.10") {
         val patchFile = layout.projectDirectory.file("legacy-source-patches.json")
         inputs.file(patchFile)
         from("src/test") {
-            exclude("**/client/bedwars/**", "**/optimizations/**", "**/diagnostics/**", "**/CeraLightmapColorProbe.java", "**/BundledSkinMeshProbe.java", "**/SkinInstancingTest.java", "**/SkinDetailBudgetTest.java")
+            exclude("**/NickReplacementRulesTest.kt", "**/capes/**", "**/client/bedwars/**", "**/optimizations/**", "**/diagnostics/**", "**/CeraLightmapColorProbe.java", "**/BundledSkinMeshProbe.java", "**/SkinInstancingTest.java", "**/SkinDetailBudgetTest.java")
         }
         into(layout.buildDirectory.dir("generated/test"))
         doLast {

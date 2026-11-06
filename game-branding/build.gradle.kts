@@ -2,10 +2,10 @@ plugins {
  id("net.fabricmc.fabric-loom-remap") version "1.17.21"
  id("ploceus") version "1.17.7"
 }
-version = "0.7.1"
 group = "io.github.arcadiumclient"
 base.archivesName = "ArcadiumBrand"
 val minecraftVersion = providers.gradleProperty("minecraftVersion").getOrElse("1.8.9")
+version = if (minecraftVersion == "1.7.10") "0.7.1" else "0.7.2"
 require(minecraftVersion in setOf("1.7.10", "1.8.9")) { "Unsupported Minecraft version: $minecraftVersion" }
 if (minecraftVersion == "1.7.10") {
     layout.buildDirectory.set(layout.projectDirectory.dir("build/1.7.10"))

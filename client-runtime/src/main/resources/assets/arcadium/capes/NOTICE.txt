@@ -1,0 +1,9 @@
+Cape textures are Minecraft artwork by Mojang Studios, Microsoft and their original contributors. They are not covered by the source code GPL license.
+
+Catalog checked: 2026-11-06.
+
+49 unmodified Java-profile textures were obtained from textures.minecraft.net. The exact CDN URLs and SHA-256 hashes are in catalog.json. The discovery catalog was https://mcprofiles.me/capes/official .
+
+Six additional original-size PNG textures (Progress Pride, Christmas 2010, New Year 2011, Xbox 1st Birthday, Microsoft Xbox, and 4J Studios) were obtained from the texture archive at https://www.mc-craft.com/blog/en/minecraft-capes . Their exact asset URLs and hashes are in catalog.json. Historical/edition scope was cross-checked against https://minecraft.wiki/w/Cape and individual cape articles. Archive images were kept byte-for-byte; lossy wiki previews and modified image-host copies were not used.
+
+Scope: the 55 known released standalone cape designs in Minecraft Java, Bedrock and Legacy Console editions. This catalog excludes unreleased proposals/API tests, snapshot-only joke capes, capes attached to licensed skin-pack characters and Minecraft Dungeons-only equipment. It does not grant ownership or update a Minecraft account.
