@@ -63,6 +63,7 @@ public final class MetalPylonPresentationProbe {
         Path output=Path.of(args[2]);Map<String,Object> report=new LinkedHashMap<>();
         report.put("case",args[3]);
         report.put("minecraft",false);report.put("skikoOrCeraQualified",false);report.put("performanceClaim",false);
+        report.put("detailedObservationAfterDisplayDecisionOnly",true);
         Throwable failure=null;
         try {
             if(args[3].equals("transport")) {
@@ -111,9 +112,8 @@ public final class MetalPylonPresentationProbe {
                     require(display.getWindowWidth()==width&&display.getWindowHeight()==height,"SDL resize events did not settle");
                     original.owner.makeCurrent();
                 }
-                display.setVSyncEnabled((frame&1)==0);
                 Map<String,Object> before=geometry(original);before.put("frame",frame);before.put("stage","before-publish");frames.add(before);
-                draw(frame);original.owner.swapBuffers();
+                display.setVSyncEnabled((frame&1)==0);draw(frame);original.owner.swapBuffers();
                 awaitDisplayed(original,frame);original.sameWindow();
                 require(original.swaps==0&&original.owner.submittedFrames()==frame&&original.owner.fallbackFrames()==0,
                         "The current-frame Metal path unexpectedly used OpenGL fallback: "+original.owner.status());
@@ -124,6 +124,7 @@ public final class MetalPylonPresentationProbe {
                         "Shared image ownership is absent or over budget");
                 require(GL11.glGetError()==GL11.GL_NO_ERROR,"GL state error after Metal presentation");
             }
+            report.put("finalLayerAudit",layerState(original));
             stage="backend-close-with-live-sdl-window";
             original.owner.releaseCurrent();require(SDL_GL_GetCurrentContext()==0,"Original context release failed");
             backend.close();require(SDL_GL_GetCurrentContext()==0,"Backend cleanup did not restore the released context state");
@@ -160,14 +161,19 @@ public final class MetalPylonPresentationProbe {
         long limit=System.nanoTime()+5_000_000_000L;
         while((original.owner.nativeCounter(COMPLETED)!=frame||original.owner.nativeCounter(DISPLAYED)!=frame)
                 &&System.nanoTime()<limit)pump();
+        boolean displayed=original.owner.nativeCounter(COMPLETED)==frame&&original.owner.nativeCounter(DISPLAYED)==frame;
         Map<String,Object> state=new LinkedHashMap<>();state.put("frame",frame);state.put("width",display.getWidth());
         state.put("height",display.getHeight());state.put("prepared",original.owner.nativeCounter(PREPARED));
         state.put("submitted",original.owner.nativeCounter(SUBMITTED));state.put("completed",original.owner.nativeCounter(COMPLETED));
         state.put("displayed",original.owner.nativeCounter(DISPLAYED));state.put("status",original.owner.status());
         state.put("sdlVisible",display.isVisible());state.put("sdlFlags",SDL_GetWindowFlags(original.window));frames.add(state);
         state.put("geometry",geometry(original));
-        require(original.owner.nativeCounter(COMPLETED)==frame&&original.owner.nativeCounter(DISPLAYED)==frame,
-                "Actual SDL Metal presentation did not report its current displayed frame");
+        if(!displayed) {
+            try {state.put("layerAuditAfterFailedDecision",layerState(original));}
+            catch(Throwable error){state.put("layerAuditFailure",error.getClass().getName());}
+            state.put("displayedAfterObservation",original.owner.nativeCounter(DISPLAYED));
+        }
+        require(displayed,"Actual SDL Metal presentation did not report its current displayed frame");
     }
     private static Map<String,Object> geometry(OriginalSurface original) {
         Map<String,Object> value=new LinkedHashMap<>();
@@ -179,6 +185,13 @@ public final class MetalPylonPresentationProbe {
         value.put("parentAttached",original.owner.nativeCounter(21)==1);value.put("windowVisible",original.owner.nativeCounter(22)==1);
         value.put("windowOcclusionVisible",original.owner.nativeCounter(23)==1);
         value.put("transactionalPresentation",original.owner.nativeCounter(24)==1);
+        return value;
+    }
+    private static Map<String,Object> layerState(OriginalSurface original) {
+        Map<String,Object> value=geometry(original);
+        List<Long> before=new ArrayList<>();
+        for(int i=64;i<72;i++)before.add(original.owner.nativeCounter(i));
+        value.put("layerChainBeforeParentLayerRead",before);
         String[] names={"childWindowMatches","parentViewId","childSuperviewId","childWindowId","parentLayerId",
                 "childLayerId","childSuperlayerId","childLayerIndexPlusOne","parentLayerChildCount","hiddenAncestor",
                 "childLayerHidden","childLayerOpacity","parentLayerHidden","parentLayerOpacity","layerContentsPresent",

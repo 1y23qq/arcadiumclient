@@ -29,6 +29,10 @@ import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.*;
 
 public final class ModernGlint072Qa {
+    private static final String POSE = System.getProperty("arcadium.modernGlint072.pose", "moving");
+    private static final boolean BODY = Boolean.getBoolean("arcadium.modernGlint072.body");
+    private static final String CAMERA = System.getProperty("arcadium.modernGlint072.camera", "default");
+    private static final boolean ANGLED = CAMERA.equals("angled");
     private static final String[] STYLES = {"V1_19_4", "V1_15", "V1_19_4"};
     private static final String[] CASES = {"V1_19_4", "V1_15", "V1_19_4-hurt-fallback"};
     private static final Map<String, Object> report = new LinkedHashMap<>();
@@ -80,6 +84,7 @@ public final class ModernGlint072Qa {
             if (failure != null) throw new IllegalStateException(failure);
             if (phase == 0 && wait > 60 && mc.screen != null && mc.screen.getClass().getSimpleName().contains("MainMenu")) {
                 require("ArcadiumTest".equals(mc.getSession().getUsername()) && "0".equals(mc.getSession().getAccessToken()), "Modern glint QA requires the isolated fake account");
+                require(List.of("moving", "standing", "sneaking").contains(POSE) && List.of("default", "angled").contains(CAMERA), "Unknown owned Modern fixture variant");
                 require(!Boolean.getBoolean("arcadium.forge.prepared"), "Positive modern glint fixture must not fake or enable Forge");
                 io.github.arcadiumclient.runtime.client.ClientPreferences.setSetupComplete(true);
                 require(validDummyExtent(7,7,0,0,64,64)&&validDummyExtent(7,7,0,64,64,64),"Whole-store/range64 extent policy rejected a valid binding");
@@ -88,10 +93,11 @@ public final class ModernGlint072Qa {
                 report.put("specBufferExtentPolicyCases",10);
                 Skin3DConfig.INSTANCE.chooseEnabled(false);
                 BetaOptimizationsConfig.setGpuModelTransforms(false); BetaOptimizationsConfig.setGpuPlayerPipeline(false);
-                BetaOptimizationsConfig.setGpuEquipmentPipeline(true); BetaOptimizationsConfig.setMinimumPlayers(1);
+                setPaths(true); BetaOptimizationsConfig.setMinimumPlayers(1);
                 BetaOptimizationsConfig.setGpuNameTags(false); BetaOptimizationsConfig.setGpuParticles(false);
                 BetaOptimizationsConfig.setWorldRenderScale(false); BetaOptimizationsConfig.setRetainedHudBatches(false);
                 mc.options.pauseOnUnfocus = false; mc.options.vsync = false; mc.options.fpsLimit = 120; mc.options.viewDistance = 3;
+                if (ANGLED) mc.options.fov = 82;
                 mc.options.cloudRenderMode = 0; mc.options.perspective = 0; mc.options.viewBobbing = false; mc.options.hideGui = true;
                 org.polyfrost.oneconfig.internal.OneConfigConfig.limitUnfocusedFps = false;
                 Class<?> configType = Class.forName("org.polyfrost.overflowanimations.config.OverflowAnimationsConfig");
@@ -100,7 +106,8 @@ public final class ModernGlint072Qa {
                 report.put("purpose", "Same-frame native/modern GPU pixel and GL state correctness; not FPS data");
                 report.put("experimentalModernArmorRoute", Boolean.getBoolean("arcadium.modernGlint072.experimental"));
                 report.put("privateMvpMode", ModernArmorGlintPipeline.mvpMode());
-                report.put("settings", Map.of("fpsLimit", 120, "renderDistance", 3, "minimumPlayers", 1, "gpuPlayerPipeline", false,
+                report.put("fixtureVariant", Map.of("pose", POSE, "bodyPipeline", BODY, "camera", CAMERA, "fov", mc.options.fov));
+                report.put("settings", Map.of("fpsLimit", 120, "renderDistance", 3, "minimumPlayers", 1, "gpuPlayerPipeline", BODY,
                         "gpuModelTransforms", false, "gpuNameTags", false, "gpuParticles", false, "worldRenderScale", false,
                         "retainedHudBatches", false, "renderDelta", .5f));
                 mc.startGame("arcadium-modern-glint072", "Modern Glint QA", new WorldSettings(720721, WorldSettings.GameMode.CREATIVE, false, false, WorldGeneratorType.FLAT).enableCommands());
@@ -113,7 +120,7 @@ public final class ModernGlint072Qa {
                 });return;}
                 if(!environment.isDone()||mc.world.entities.stream().anyMatch(entity->!(entity instanceof net.minecraft.entity.living.player.PlayerEntity)))return;
                 report.put("removedInitialNonPlayers",environment.get());
-                if(!cameraPrepared){mc.openScreen(null);mc.player.abilities.flying=true;mc.player.updatePositionAndAngles(0,6,-10,0,5);cameraPrepared=true;return;}
+                if(!cameraPrepared){mc.openScreen(null);mc.player.abilities.flying=true;mc.player.updatePositionAndAngles(ANGLED?1.25:0,ANGLED?6.75:6,ANGLED?-11:-10,ANGLED?7:0,ANGLED?9:5);cameraPrepared=true;return;}
                 if(!CeraAdmission072Readiness.ready(mc,Path.of(System.getProperty("arcadium.modernGlint072.output"))))return;
                 actor = new Frozen(mc, new GameProfile(new UUID(0x7210000000000000L, 1), "ModernGlintQA"));
                 actor.updatePositionAndAngles(0, 4, 3, 190, 12);
@@ -129,6 +136,11 @@ public final class ModernGlint072Qa {
         } catch (Throwable error) { finish(error); }
     }
 
+    private static void setPaths(boolean equipment) {
+        BetaOptimizationsConfig.setGpuPlayerPipeline(BODY && equipment);
+        BetaOptimizationsConfig.setGpuEquipmentPipeline(equipment);
+    }
+
     private static void selectStyle() throws IllegalAccessException {
         boolean found = false;
         for (Object value : styleField.getType().getEnumConstants()) if (((Enum<?>)value).name().equals(STYLES[style])) { styleField.set(items, value); found = true; }
@@ -141,11 +153,12 @@ public final class ModernGlint072Qa {
         if (actor == null) return;
         actor.ticks = 160; actor.bodyYaw = actor.lastBodyYaw = 190; actor.headYaw = actor.lastHeadYaw = 205;
         actor.pitch = actor.lastPitch = 12; actor.yaw = actor.lastYaw = 190;
-        actor.walkAnimationProgress = 2.4f; actor.walkAnimationSpeed = actor.lastWalkAnimationSpeed = .6f;
-        actor.attackAnimationProgress = actor.lastAttackAnimationProgress = .35f;
+        actor.setSneaking(POSE.equals("sneaking"));
+        actor.walkAnimationProgress = POSE.equals("moving")?2.4f:0; actor.walkAnimationSpeed = actor.lastWalkAnimationSpeed = POSE.equals("moving")?.6f:0;
+        actor.attackAnimationProgress = actor.lastAttackAnimationProgress = POSE.equals("moving")?.35f:0;
         actor.damagedTimer = style == 2 ? 5 : 0;
         actor.lastX = actor.prevX = actor.x; actor.lastY = actor.prevY = actor.y; actor.lastZ = actor.prevZ = actor.z;
-        mc.player.yaw = mc.player.lastYaw = 0; mc.player.pitch = mc.player.lastPitch = 5;
+        mc.player.yaw = mc.player.lastYaw = ANGLED?7:0; mc.player.pitch = mc.player.lastPitch = ANGLED?9:5;
         mc.player.lastX = mc.player.prevX = mc.player.x; mc.player.lastY = mc.player.prevY = mc.player.y; mc.player.lastZ = mc.player.prevZ = mc.player.z;
         mc.world.setTimeOfDay(6000);
     }
@@ -153,7 +166,7 @@ public final class ModernGlint072Qa {
     public static void world(float delta, long deadline, Operation<Void> original) {
         if (!done && phase == 3 && !auxiliaryLifecycleDone) {
             try {
-                Minecraft mc = Minecraft.getInstance(); freeze(mc); BetaOptimizationsConfig.setGpuEquipmentPipeline(false);
+                Minecraft mc = Minecraft.getInstance(); freeze(mc); setPaths(false);
                 GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT); original.call(.5f, deadline);
                 BufferedImage before = capture(mc);
                 io.github.arcadiumclient.runtime.client.optimizations.ModernArmorAuxiliary072Qa.closeAndValidate();
@@ -180,10 +193,10 @@ public final class ModernGlint072Qa {
             Minecraft mc = Minecraft.getInstance(); freeze(mc); normalSeen = false;
             if (++warmFrames <= (style == 0 ? 80 : 60)) {
                 zeroBindingGuard = style == 0 && warmFrames <= 20;
-                BetaOptimizationsConfig.setGpuEquipmentPipeline(!zeroBindingGuard);
+                setPaths(!zeroBindingGuard);
                 guardBegin();
                 try { original.call(.5f, deadline); guardCheck(); }
-                finally { guardEnd(); zeroBindingGuard = false; BetaOptimizationsConfig.setGpuEquipmentPipeline(true); }
+                finally { guardEnd(); zeroBindingGuard = false; setPaths(true); }
                 return;
             }
             String effectiveStyle = ((Enum<?>)styleField.get(items)).name();
@@ -198,18 +211,23 @@ public final class ModernGlint072Qa {
             else require(ModernArmorGlintPipeline.layersSupported == styleLayers && ModernArmorGlintPipeline.glintParts == styleParts &&
                     ModernArmorGlintPipeline.nativeLayers > styleNativeLayers, "Unsupported hurt armor was not retained by the original scoped layer");
             if (style < 2) baseControl(mc, deadline, original);
-            BetaOptimizationsConfig.setGpuEquipmentPipeline(false); normalSeen = false;
+            setPaths(false); normalSeen = false;
             comparisonMode = 1; nativeTextureReady = false; nativeModelViews.clear();
             guardBegin();
             try { GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT); original.call(.5f, deadline); guardCheck(); }
             finally { guardEnd(); }
             BufferedImage nativeImage = capture(mc);
-            BetaOptimizationsConfig.setGpuEquipmentPipeline(true); normalSeen = false;
+            setPaths(true); normalSeen = false;
+            long bodyBefore = io.github.arcadiumclient.runtime.client.optimizations.GpuPlayerPipeline.playersDrawn;
             comparisonMode = 2;
             guardBegin();
             try { GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT); original.call(.5f, deadline); guardCheck(); }
             finally { guardEnd(); }
             BufferedImage optimized = capture(mc);
+            long actualBody = io.github.arcadiumclient.runtime.client.optimizations.GpuPlayerPipeline.playersDrawn-bodyBefore;
+            if (BODY && style<2) require(actualBody>0, "Requested body path did not actually execute: "+io.github.arcadiumclient.runtime.client.optimizations.GpuPlayerPipeline.status());
+            if (BODY && style==2) require(actualBody==0, "Unsupported hurt actor entered the direct body path");
+            report.put(CASES[style]+"-body", Map.of("requested", BODY, "actualPlayersDrawn", actualBody, "status", io.github.arcadiumclient.runtime.client.optimizations.GpuPlayerPipeline.status()));
             comparisonMode = 0;
             Path directory = Path.of(System.getProperty("arcadium.modernGlint072.output")).toAbsolutePath().getParent(); Files.createDirectories(directory);
             ImageIO.write(nativeImage, "png", directory.resolve(CASES[style] + "-native.png").toFile()); ImageIO.write(optimized, "png", directory.resolve(CASES[style] + "-gpu.png").toFile());
@@ -232,12 +250,12 @@ public final class ModernGlint072Qa {
     private static void baseControl(Minecraft mc, long deadline, Operation<Void> original) throws Exception {
         baseOnly = true;
         try {
-            BetaOptimizationsConfig.setGpuEquipmentPipeline(false); normalSeen = false; comparisonMode = 1; nativeModelViews.clear();
+            setPaths(false); normalSeen = false; comparisonMode = 1; nativeModelViews.clear();
             guardBegin();
             try { GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT); original.call(.5f, deadline); guardCheck(); }
             finally { guardEnd(); }
             BufferedImage nativeImage = capture(mc);
-            BetaOptimizationsConfig.setGpuEquipmentPipeline(true); normalSeen = false; comparisonMode = 2;
+            setPaths(true); normalSeen = false; comparisonMode = 2;
             guardBegin();
             try { GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT); original.call(.5f, deadline); guardCheck(); }
             finally { guardEnd(); }

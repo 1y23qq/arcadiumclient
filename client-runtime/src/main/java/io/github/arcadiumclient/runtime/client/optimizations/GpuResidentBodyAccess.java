@@ -2,6 +2,7 @@
 package io.github.arcadiumclient.runtime.client.optimizations;
 
 import java.lang.invoke.*;
+import java.lang.reflect.Modifier;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.Map;
@@ -14,10 +15,12 @@ import org.objectweb.asm.*;
 final class GpuResidentBodyAccess {
     private static final String ROOT="dev.rdh.argentum.impl.render.entity.instancing.";
     private static final String ADAPTER=ROOT+"ResidentBodyGeometryArcadium";
+    private static final boolean SELECTED=Boolean.getBoolean("arcadium.residentBodies072.selectedMaterial");
+    private final GpuVoxelSkinWeakIdentityMap<Boolean> poolFormats=new GpuVoxelSkinWeakIdentityMap<>(16);
     final PlayerBatchAccess capture=new PlayerBatchAccess();
     final MethodHandle geometry,nativeCube,program,storage,initialize,upload,delete,instanceUpload;
     final VarHandle instanceBuffer,tessellation,managedActive,profileMirrors,profileUv,profileTextureSize,profileSize,uploadBuffer,batchParts;
-    final VarHandle modelTextures,modelFrame,textureCache,cachedPool,poolKey,poolLayers,layerSource,layerSourceId,layerGeneration,layerFrame,layerIndex;
+    final VarHandle modelTextures,modelFrame,textureCache,cachedPool,poolKey,poolLayers,layerSource,layerSourceId,layerGeneration,layerFrame,layerIndex,batchPool;
     final MethodHandle poolWidth,poolHeight,poolMin,poolMag;
     final GlVertexFormat vertexFormat,instanceFormat;
     GpuResidentBodyAccess()throws ReflectiveOperationException {
@@ -41,10 +44,30 @@ final class GpuResidentBodyAccess {
         Class<?> model=Class.forName(ROOT+"ModelInstancer"),textures=Class.forName("dev.rdh.argentum.api.render.instancing.TextureArrayManager");
         modelTextures=field(model,"textureArrays");modelFrame=field(model,"frame");textureCache=field(textures,"textures");cachedPool=field(Class.forName(textures.getName()+"$CachedTexture"),"pool");
         Class<?> pool=Class.forName(textures.getName()+"$Pool"),key=Class.forName(textures.getName()+"$PoolKey"),layer=Class.forName(textures.getName()+"$Layer");
+        if(!Modifier.isFinal(pool.getModifiers())||!Modifier.isFinal(pool.getDeclaredField("key").getModifiers())||!key.isRecord()||!Modifier.isFinal(key.getModifiers()))throw new IllegalStateException("Unknown mutable native pool format");
+        batchPool=field(Class.forName(ROOT+"InstanceBatcher$TextureBatch"),"pool");
         poolKey=field(pool,"key");poolLayers=field(pool,"layers");layerSource=field(layer,"source");layerSourceId=field(layer,"sourceId");layerGeneration=field(layer,"generation");layerFrame=field(layer,"frame");layerIndex=field(layer,"index");
         poolWidth=method(key,"width");poolHeight=method(key,"height");poolMin=method(key,"minFilter");poolMag=method(key,"magFilter");
     }
-    GpuVoxelSkinUploadFacts.Fact material(Object main,Identifier texture)throws Throwable {
+    GpuVoxelSkinUploadFacts.Fact material(Object main,Object batch,Identifier texture)throws Throwable {
+        if(SELECTED){GpuResidentBodies.selectedMaterialChecks++;return selectedMaterial(main,batch,texture);}
+        GpuResidentBodies.liveMaterialChecks++;return liveMaterial(main,texture);
+    }
+    private GpuVoxelSkinUploadFacts.Fact selectedMaterial(Object main,Object batch,Identifier texture)throws Throwable {
+        if(main==null||batch==null||texture==null)return null;Object pool=batchPool.get(batch);if(pool==null||!poolFormat(pool))return null;
+        Object layer=((Map<?,?>)poolLayers.get(pool)).get(texture);int selected=(int)capture.selectedLayer.get(main);
+        if(layer==null||(int)layerFrame.get(layer)!=(int)modelFrame.get(main)||(int)layerIndex.get(layer)!=selected)return null;
+        Object source=layerSource.get(layer);int name=(int)layerSourceId.get(layer),generation=(int)layerGeneration.get(layer);
+        GpuVoxelSkinUploadFacts.Fact fact=GpuVoxelSkinUploadFacts.current(source,name,generation);
+        return fact!=null&&GpuVoxelSkinUploadFacts.matches(pool,selected,fact)?fact:null;
+    }
+    private boolean poolFormat(Object pool)throws Throwable {
+        Boolean known=poolFormats.get(pool);if(known!=null){GpuResidentBodies.materialPoolCacheHits++;return known;}GpuResidentBodies.materialPoolCacheMisses++;Object key=poolKey.get(pool);
+        boolean accepted=(int)poolWidth.invoke(key)==64&&(int)poolHeight.invoke(key)==64
+                &&(int)poolMin.invoke(key)==org.lwjgl.opengl.GL11.GL_NEAREST&&(int)poolMag.invoke(key)==org.lwjgl.opengl.GL11.GL_NEAREST;
+        poolFormats.put(pool,accepted);return accepted;
+    }
+    private GpuVoxelSkinUploadFacts.Fact liveMaterial(Object main,Identifier texture)throws Throwable {
         var source=Minecraft.getInstance().getTextureManager().get(texture);if(source==null)return null;
         int name=source.getGlId(),generation=GpuVoxelSkinUploadFacts.generation(source);
         GpuVoxelSkinUploadFacts.Fact fact=GpuVoxelSkinUploadFacts.current(source,name,generation);if(fact==null)return null;

@@ -331,6 +331,7 @@ public final class PlayerPipeline072Qa {
         result.put("nativeBodyControl", NATIVE_BODY_CONTROL);
         result.put("residentBodyMode",RESIDENT_BODY_MODE);
         result.put("residentBodySharedPalette",RESIDENT_BODY_SHARED);
+        result.put("residentBodySelectedMaterial",Boolean.getBoolean("arcadium.residentBodies072.selectedMaterial"));
         result.put("nativeVoxelRootControl",NATIVE_VOXEL_ROOT_CONTROL);
         return result;
     }
@@ -829,6 +830,7 @@ public final class PlayerPipeline072Qa {
         if (done) return;
         if (failure == null && NameReset072Qa.enabled()) try { report.put("nativeNameResetProof", NameReset072Qa.verify()); } catch (Throwable error) { failure = error; }
         if (failure == null && ActorPacket072Qa.enabled()) try { report.put("nativeActorPacketProof", ActorPacket072Qa.verify()); } catch (Throwable error) { failure = error; }
+        if(failure==null&&ResidentMaterial072Evidence.enabled())try{report.put("residentMaterialProof",ResidentMaterial072Evidence.verify());}catch(Throwable error){failure=error;}
         done = true; report.put("passed", failure == null); report.put("syntheticOffline", true); report.put("phase", phase);
         report.put("profiling", PROFILING); report.put("diagnosticOnly", PROFILING||NATIVE_VOXEL_ROOT_CONTROL||!RESIDENT_BODY_MODE.equals("off")||RESIDENT_BODY_PERFORMANCE); report.put("notFinalPerformance", PROFILING||NATIVE_VOXEL_ROOT_CONTROL||!RESIDENT_BODY_MODE.equals("off")||RESIDENT_BODY_PERFORMANCE);
         report.put("scope", NATIVE_VOXEL_ROOT_CONTROL ? "Correctness-only original-callback body root and GPU voxel diagnostic on the pinned pre-admission main. No FPS qualification."

@@ -23,6 +23,7 @@ public final class GpuResidentBodies {
     private static volatile String state="Private resident body renderer is off";
     public static long actorsQueued,partsQueued,actorsDrawn,drawCalls,poseDispatches,replayedParts,materialFallbacks,budgetFallbacks,errors;
     public static long sharedPoseDispatches,sharedPoseReuses,sharedPoseFallbacks,sharedInputWrites,sharedInputReuses,lateBodyCaptures;
+    public static long selectedMaterialChecks,liveMaterialChecks,materialPoolCacheHits,materialPoolCacheMisses;
     private GpuResidentBodies() { }
     private static boolean enabled(){return GpuResidentBodyShaders.active()&&!failed;}
     public static void beginBatch(Object main){if(GpuModelAuxiliaries.isAuxiliaryBackend(main))return;Owner owner=owners.get(main);if(owner!=null){budget.begin(main);if(owner.palette!=null)owner.palette.begin();}}
@@ -37,7 +38,7 @@ public final class GpuResidentBodies {
             if(api==null)api=new GpuResidentBodyAccess();
             GlProgram<?> program=(GlProgram<?>)api.program.invoke(main);
             if(!GpuResidentBodyShaderState.verifiedProgram(program.handle())||!GpuResidentBodyDraw.ready())return false;
-            GpuVoxelSkinUploadFacts.Fact fact=api.material(main,texture);
+            GpuVoxelSkinUploadFacts.Fact fact=api.material(main,batch,texture);
             if(fact==null||!binary(fact)){materialFallbacks++;state="Skin material keeps native per-part rendering";return false;}
             Owner owner=owners.get(main);
             if(owner==null){if(!budget.owner(main)){budgetFallbacks++;return false;}owner=new Owner(main);owners.put(main,owner);}
