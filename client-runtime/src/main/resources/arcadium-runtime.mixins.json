@@ -205,7 +205,8 @@
     "compat.colorsaturation.CategoryColorPostMixin",
     "client.FastFramePresentScopeMixin",
     "client.FastFrameGeometryMixin",
-    "client.access.FastFrameBuilderAccess"
+    "client.access.FastFrameBuilderAccess",
+    "client.optimizations.EntityNametagScopeMixin"
   ],
   "injectors": {
     "defaultRequire": 1

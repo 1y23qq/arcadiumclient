@@ -16,6 +16,8 @@ public final class NametagLayout {
         @Override protected boolean removeEldestEntry(Map.Entry<String,Prepared> entry){return size()>2048;}
     };
     public static boolean optimized;
+    private static final boolean REUSE_SCOPES=Boolean.parseBoolean(System.getProperty("arcadium.nameScope072.reuse","true"));
+    public static long scopesReused,scopesCreated;
     private static final class Holder { Scope current; }
     private static final ThreadLocal<Holder> CURRENT = ThreadLocal.withInitial(Holder::new);
     private NametagLayout() { }
@@ -27,11 +29,21 @@ public final class NametagLayout {
             if(previous!=null&&previous.owner==entity&&(label.equals(previous.label)||label.equals(previous.displayLabel)))return previous;
             String masked=NickHider.display(label);Prepared prepared=PREPARED.get(masked);
             if(prepared==null){String display=NametagText.withoutTrailingPadding(masked);prepared=new Prepared(display,NametagText.stripFormatting(display));PREPARED.put(masked,prepared);}
-            holder.current=new Scope(label,prepared.display,prepared.visible,PlayerBadgeRenderer.onNametag(entity,label),entity);return previous;
+            holder.current=retain(entity,label,prepared.display,prepared.visible,PlayerBadgeRenderer.onNametag(entity,label));return previous;
         }
         String display = NametagText.withoutTrailingPadding(NickHider.display(label));
         holder.current=new Scope(label, display, Formatting.strip(display), PlayerBadgeRenderer.onNametag(entity, label),entity);
         return previous;
+    }
+
+    static Scope retain(Entity entity,String label,String display,String visible,boolean badge) {
+        if(REUSE_SCOPES&&entity instanceof NametagScopeAccess access){
+            Scope cached=access.arcadium$nameScope();
+            if(cached!=null&&cached.owner==entity&&cached.badge==badge&&java.util.Objects.equals(cached.label,label)
+                    &&java.util.Objects.equals(cached.displayLabel,display)&&java.util.Objects.equals(cached.visibleLabel,visible)){scopesReused++;return cached;}
+            Scope created=new Scope(label,display,visible,badge,entity);access.arcadium$nameScope(created);scopesCreated++;return created;
+        }
+        scopesCreated++;return new Scope(label,display,visible,badge,entity);
     }
 
     public static void end(Scope previous) {

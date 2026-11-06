@@ -52,9 +52,14 @@ public final class ModernArmorMvp072Qa {
         float[] generated=java.util.Arrays.copyOfRange(table.values(),index*16,index*16+16);record.put("generatedMvp",generated);record.put("generatedMvpBits",bits(generated));
         record.put("pivot",new float[]{part.x,part.y,part.z});record.put("translation",new float[]{part.translateX,part.translateY,part.translateZ});record.put("anglesRadians",new float[]{part.rotationX,part.rotationY,part.rotationZ});
         try{
+            Field rootsField=ModernGlint072Qa.class.getDeclaredField("nativeModelRoots");rootsField.setAccessible(true);
+            Object nativeEntry=((IdentityHashMap<?,?>)rootsField.get(null)).get(part);require(nativeEntry instanceof Map,"No same-frame native part entry root");
+            var entry=(Map<?,?>)nativeEntry;record.put("actualNativePartEntry",entry);record.put("actualNativePartEntryRootBits",bits((float[])entry.get("modelView")));record.put("actualNativePartEntryProjectionBits",bits((float[])entry.get("projection")));
             Field helperField=ModernArmorGlintPipeline.class.getDeclaredField("geometryMvp");helperField.setAccessible(true);Object helper=helperField.get(null);
             float[] layerRoot=null;
             for(String name:new String[]{"root","projection","eye","mvp"}){Field field=ModernArmorMvp.class.getDeclaredField(name);field.setAccessible(true);float[] value=((float[])field.get(helper)).clone();record.put("helper_"+name,value);record.put("helper_"+name+"Bits",bits(value));if(name.equals("root"))layerRoot=value;}
+            record.put("nativeEntryProjectionMatchesCurrentRaw16",same((float[])entry.get("projection"),projection));
+            record.put("nativeEntryRootMatchesGpuPhysicalRootRaw16",same((float[])entry.get("modelView"),physicalRoot));
             Object model=((io.github.arcadiumclient.runtime.mixin.client.access.BetaModelPartAccess)part).arcadium$baseModel();
             require(model instanceof net.minecraft.client.render.model.entity.HumanoidModel,"Mismatch model is not native HumanoidModel");
             var humanoid=(net.minecraft.client.render.model.entity.HumanoidModel)model;

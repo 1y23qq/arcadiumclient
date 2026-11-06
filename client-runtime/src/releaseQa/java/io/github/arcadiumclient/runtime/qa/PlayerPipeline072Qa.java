@@ -381,17 +381,77 @@ public final class PlayerPipeline072Qa {
         }
         return values;
     }
+    private static Map<String,Object> nameScopeProof;
+    private static Map<String,Object> nameScopeEvidence() {
+        if(!Boolean.getBoolean("arcadium.nameScope072.proof"))return Map.of("enabled",false);
+        if(nameScopeProof!=null)return nameScopeProof;
+        var mc=Minecraft.getInstance();
+        if(mc.player==null||mc.world==null)return Map.of("enabled",true,"ready",false);
+        net.minecraft.entity.Entity first=mc.player,second=null;
+        for(var candidate:mc.world.entities)if(candidate!=first){second=candidate;break;}
+        if(second==null)return Map.of("enabled",true,"ready",false);
+        var type=io.github.arcadiumclient.runtime.client.branding.NametagLayout.class;
+        boolean oldOptimized=io.github.arcadiumclient.runtime.client.branding.NametagLayout.optimized;
+        Object savedFirst=null,savedSecond=null;java.lang.reflect.Method setter=null;
+        try{
+            var scope=io.github.arcadiumclient.runtime.client.branding.NametagLayout.Scope.class;
+            var getter=first.getClass().getMethod("arcadium$nameScope");
+            setter=first.getClass().getMethod("arcadium$nameScope",scope);
+            savedFirst=getter.invoke(first);savedSecond=getter.invoke(second);
+            var retain=type.getDeclaredMethod("retain",net.minecraft.entity.Entity.class,String.class,String.class,String.class,boolean.class);retain.setAccessible(true);
+            boolean reuse=Boolean.parseBoolean(System.getProperty("arcadium.nameScope072.reuse","true"));
+            var a=(io.github.arcadiumclient.runtime.client.branding.NametagLayout.Scope)retain.invoke(null,first,"Raw","Display","Visible",false);
+            var stable=retain.invoke(null,first,new String("Raw"),new String("Display"),new String("Visible"),false);
+            require(reuse?a==stable:a!=stable,"Name-scope reuse control did not take effect");
+            var label=(io.github.arcadiumclient.runtime.client.branding.NametagLayout.Scope)retain.invoke(null,first,"Changed","Display","Visible",false);
+            require(label!=a&&label.label().equals("Changed"),"Name-scope raw label was stale");
+            var display=(io.github.arcadiumclient.runtime.client.branding.NametagLayout.Scope)retain.invoke(null,first,"Changed","Masked","Visible",false);
+            require(display!=label&&display.displayLabel().equals("Masked"),"Name-scope mask was stale");
+            var visible=(io.github.arcadiumclient.runtime.client.branding.NametagLayout.Scope)retain.invoke(null,first,"Changed","Masked","Plain",false);
+            require(visible!=display&&visible.visibleLabel().equals("Plain"),"Name-scope visible label was stale");
+            var badge=(io.github.arcadiumclient.runtime.client.branding.NametagLayout.Scope)retain.invoke(null,first,"Changed","Masked","Plain",true);
+            require(badge!=visible&&badge.badge(),"Name-scope badge was stale");
+            setter.invoke(second,badge);
+            var owner=(io.github.arcadiumclient.runtime.client.branding.NametagLayout.Scope)retain.invoke(null,second,"Changed","Masked","Plain",true);
+            require(owner!=badge&&owner.owner()==second,"Name-scope reused another entity's record");
+            var nullable=retain.invoke(null,first,null,null,null,false);
+            var nullableAgain=retain.invoke(null,first,null,null,null,false);
+            require(reuse?nullable==nullableAgain:nullable!=nullableAgain,"Name-scope null-field reuse changed");
+            io.github.arcadiumclient.runtime.client.branding.NametagLayout.optimized=true;
+            var previous=io.github.arcadiumclient.runtime.client.branding.NametagLayout.begin(first,"Arcadium QA first");
+            try{
+                var nested=io.github.arcadiumclient.runtime.client.branding.NametagLayout.begin(second,"Arcadium QA second");
+                require(nested!=null&&nested.owner()==first,"Nested name-scope parent changed");
+                io.github.arcadiumclient.runtime.client.branding.NametagLayout.end(nested);
+                var same=io.github.arcadiumclient.runtime.client.branding.NametagLayout.begin(first,"Arcadium QA first");
+                require(same==nested,"Same-owner nested name-scope shortcut changed");
+                io.github.arcadiumclient.runtime.client.branding.NametagLayout.end(same);
+            }finally{io.github.arcadiumclient.runtime.client.branding.NametagLayout.end(previous);}
+            Object beforeDisabled=getter.invoke(first);
+            io.github.arcadiumclient.runtime.client.branding.NametagLayout.optimized=false;
+            previous=io.github.arcadiumclient.runtime.client.branding.NametagLayout.begin(first,"Arcadium QA disabled");
+            try{require(getter.invoke(first)==beforeDisabled,"Disabled name masking mutated the retained record");}
+            finally{io.github.arcadiumclient.runtime.client.branding.NametagLayout.end(previous);}
+            nameScopeProof=Map.of("enabled",true,"ready",true,"passed",true,"semanticCases",9,"reuse",reuse,"actualEntityMixin",true);
+            return nameScopeProof;
+        }catch(ReflectiveOperationException error){throw new IllegalStateException("Native name-scope semantic proof failed",error);}
+        finally{
+            io.github.arcadiumclient.runtime.client.branding.NametagLayout.optimized=oldOptimized;
+            if(setter!=null)try{setter.invoke(first,savedFirst);setter.invoke(second,savedSecond);}catch(ReflectiveOperationException error){throw new IllegalStateException("Name-scope proof did not restore owned records",error);}
+        }
+    }
     private static Map<String, Object> counters() {
         Map<String, Object> values = new TreeMap<>();
-        for (String name : List.of("GpuPlayerPipeline", "GpuSkinLayers", "GpuVoxelSkinPipeline", "NativePlayerPosePipeline", "GpuModelTransforms", "GpuPlayerPackets", "GpuResidentPlayerState", "GpuResolvedInstanceCache", "EntityNameFormatting", "RenderHookAllocationControl","GpuResidentBodies","GpuResidentBodyShaderState")) {
+        for (String name : List.of("GpuPlayerPipeline", "GpuSkinLayers", "GpuVoxelSkinPipeline", "NativePlayerPosePipeline", "GpuModelTransforms", "GpuPlayerPackets", "GpuResidentPlayerState", "GpuResolvedInstanceCache", "EntityNameFormatting", "RenderHookAllocationControl","GpuResidentBodies","GpuResidentBodyShaderState","GpuParticles","NametagLayout")) {
             Map<String, Object> data = new TreeMap<>();
             try {
-                Class<?> type = Class.forName("io.github.arcadiumclient.runtime.client.optimizations." + name); data.put("present", true);
+                Class<?> type = Class.forName("io.github.arcadiumclient.runtime.client."+(name.equals("NametagLayout")?"branding.":"optimizations.")+name); data.put("present", true);
                 for (Field field : type.getFields()) if (Modifier.isStatic(field.getModifiers()) && (field.getType() == long.class || field.getType() == int.class || field.getType() == boolean.class)) data.put(field.getName(), field.get(null));
                 try { data.put("status", type.getMethod("status").invoke(null)); } catch (NoSuchMethodException ignored) {}
             } catch (ReflectiveOperationException absent) { data.put("present", false); }
             values.put(name, data);
         }
+        values.put("nameScopeEvidence",nameScopeEvidence());
         values.put("nativeVoxelDraws", Features062Qa.voxelDraws); values.put("nativeVoxelCompiles", Features062Qa.meshCompiles);
         return values;
     }

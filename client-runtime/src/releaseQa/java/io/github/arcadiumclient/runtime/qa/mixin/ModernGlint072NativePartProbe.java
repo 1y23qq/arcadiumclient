@@ -11,6 +11,8 @@ import org.spongepowered.asm.mixin.injection.At;
 
 @Mixin(value = ModelPart.class, priority = 2000)
 public abstract class ModernGlint072NativePartProbe {
+    @org.spongepowered.asm.mixin.injection.Inject(method="render",at=@At("HEAD"))
+    private void modern$nativeEntry(float scale,org.spongepowered.asm.mixin.injection.callback.CallbackInfo callback){ModernGlint072Qa.nativeModelRoot((ModelPart)(Object)this);}
     @WrapOperation(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/platform/GlStateManager;callList(I)V"))
     private void modern$nativeMatrix(int list, Operation<Void> original) {
         ModelPart part = (ModelPart)(Object)this;

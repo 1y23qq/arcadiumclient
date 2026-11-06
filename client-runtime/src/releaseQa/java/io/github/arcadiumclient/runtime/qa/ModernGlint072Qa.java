@@ -58,6 +58,8 @@ public final class ModernGlint072Qa {
     private static boolean baseOnly;
     private static final IdentityHashMap<net.minecraft.client.render.model.ModelPart, float[]> nativeModelViews = new IdentityHashMap<>();
     private static final float[] cameraModelView = new float[16];
+    private static final IdentityHashMap<net.minecraft.client.render.model.ModelPart,Map<String,Object>> nativeModelRoots=new IdentityHashMap<>();
+    private static long nativeRootEntries;
     private static int modelViewChecks;
     private static double maximumModelViewError;
     private static double maximumRootModelViewError;
@@ -221,7 +223,7 @@ public final class ModernGlint072Qa {
                     ModernArmorGlintPipeline.nativeLayers > styleNativeLayers, "Unsupported hurt armor was not retained by the original scoped layer");
             if (style < 2) baseControl(mc, deadline, original);
             setPaths(false); normalSeen = false;
-            comparisonMode = 1; nativeTextureReady = false; nativeModelViews.clear();
+            comparisonMode = 1; nativeTextureReady = false; nativeModelViews.clear();nativeModelRoots.clear();
             guardBegin();
             try { GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT); original.call(.5f, deadline); guardCheck(); }
             finally { guardEnd(); }
@@ -259,7 +261,7 @@ public final class ModernGlint072Qa {
     private static void baseControl(Minecraft mc, long deadline, Operation<Void> original) throws Exception {
         baseOnly = true;
         try {
-            setPaths(false); normalSeen = false; comparisonMode = 1; nativeModelViews.clear();
+            setPaths(false); normalSeen = false; comparisonMode = 1; nativeModelViews.clear();nativeModelRoots.clear();
             guardBegin();
             try { GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT); original.call(.5f, deadline); guardCheck(); }
             finally { guardEnd(); }
@@ -313,6 +315,11 @@ public final class ModernGlint072Qa {
     public static void layerAttempt(Object layer,Object entity){if(enabled()&&!done&&phase==2&&entity==actor){nativeLayerAttempts++;nativeLayerType=layer==null?"null":layer.getClass().getName();}}
     public static void captureCamera() {
         if (needsModelViewReference()) GL11.glGetFloatv(GL11.GL_MODELVIEW_MATRIX, cameraModelView);
+    }
+    public static void nativeModelRoot(net.minecraft.client.render.model.ModelPart part){
+        if(!tracingNative()||((io.github.arcadiumclient.runtime.mixin.client.access.BetaModelPartAccess)part).arcadium$baseModel().getClass()!=net.minecraft.client.render.model.entity.HumanoidModel.class)return;
+        float[] root=new float[16],projection=new float[16];GL11.glGetFloatv(GL11.GL_MODELVIEW_MATRIX,root);GL11.glGetFloatv(GL11.GL_PROJECTION_MATRIX,projection);
+        nativeModelRoots.put(part,Map.of("modelView",root,"projection",projection,"matrixMode",GL11.glGetInteger(GL11.GL_MATRIX_MODE),"matrixDepth",GL11.glGetInteger(GL11.GL_MODELVIEW_STACK_DEPTH),"beforePartTransforms",true));nativeRootEntries++;
     }
     public static void nativeModelView(net.minecraft.client.render.model.ModelPart part) {
         if (!enabled() || done || phase != 2 || comparisonMode != 1 ||
@@ -490,6 +497,7 @@ public final class ModernGlint072Qa {
         report.put("verifiedProgramHandles", verifiedPrograms); report.put("vertexSourcePinMatched", ModernGlintShaderPatch.vertexPatched);
         report.put("fragmentSourcePinMatched", ModernGlintShaderPatch.fragmentPatched); report.put("nativeTextureMatrixChecks", textureChecks);
         report.put("maximumNativeTextureMatrixError", maximumTextureError); report.put("finalOpenGlError", GL11.glGetError());
+        report.put("actualNativeModelRootEntries",nativeRootEntries);
         report.put("actualFixedFunctionModelViewChecks", modelViewChecks); report.put("maximumFixedFunctionModelViewError", maximumModelViewError);
         report.put("maximumCurrentDriverRootModelViewError", maximumRootModelViewError);
         report.put("fullRgbaPixelFailures", pixelFailures);

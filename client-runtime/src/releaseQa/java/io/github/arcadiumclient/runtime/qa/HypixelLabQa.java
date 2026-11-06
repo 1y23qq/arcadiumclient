@@ -113,10 +113,10 @@ public final class HypixelLabQa {
             if(mc.player!=null)status.put("view",List.of(mc.player.x,mc.player.y,mc.player.z,mc.player.yaw,mc.player.pitch));
             status.put("diagnostics",List.of(GpuModelTransforms.status(),GpuPlayerPipeline.status(),GpuEquipmentPipeline.status(),GpuNameTags.status(),RetainedNameTags.status(),RetainedHudBuffers.status()));
             Map<String,Object> renderCounters=new LinkedHashMap<>();
-            for(String name:List.of("GpuPlayerPipeline","NativePlayerPosePipeline","GpuEquipmentPipeline","GpuVoxelSkinPipeline","GpuModelTransforms","GpuTerrainCommands","GpuResidentPlayerState","GpuResolvedInstanceCache","CeraEmissiveAdmission","RetainedHudBuffers","EntityNameFormatting")){
+            for(String name:List.of("GpuPlayerPipeline","NativePlayerPosePipeline","GpuEquipmentPipeline","GpuVoxelSkinPipeline","GpuModelTransforms","GpuTerrainCommands","GpuResidentPlayerState","GpuResolvedInstanceCache","CeraEmissiveAdmission","RetainedHudBuffers","EntityNameFormatting","GpuParticles","NametagLayout")){
                 Map<String,Object> values=new LinkedHashMap<>();
                 try{
-                    Class<?> type=Class.forName("io.github.arcadiumclient.runtime.client.optimizations."+name);
+                    Class<?> type=Class.forName("io.github.arcadiumclient.runtime.client."+(name.equals("NametagLayout")?"branding.":"optimizations.")+name);
                     for(var field:type.getFields())if(java.lang.reflect.Modifier.isStatic(field.getModifiers())&&!java.lang.reflect.Modifier.isFinal(field.getModifiers())){
                         Class<?> kind=field.getType();if(kind==long.class||kind==int.class||kind==boolean.class)values.put(field.getName(),field.get(null));
                     }
