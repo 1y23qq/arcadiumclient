@@ -24,6 +24,30 @@ public final class MetalPylonPresentationProbe {
     private static final DisplaySdl display=DisplaySdl.instance();
     private static final List<Map<String,Object>> frames=new ArrayList<>();
     private static String stage="start";
+    private static boolean serviceCocoaLoop;
+    private static final long[] runloopResults=new long[5];
+    private static long runloopCalls;
+    private static final class CocoaLoop {
+        static final Arena arena=Arena.ofAuto();
+        static final SymbolLookup symbols=SymbolLookup.libraryLookup("/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation",arena);
+        static final Linker linker=Linker.nativeLinker();
+        static final MethodHandle current=function("CFRunLoopGetCurrent",FunctionDescriptor.of(ValueLayout.ADDRESS));
+        static final MethodHandle main=function("CFRunLoopGetMain",FunctionDescriptor.of(ValueLayout.ADDRESS));
+        static final MethodHandle run=function("CFRunLoopRunInMode",FunctionDescriptor.of(ValueLayout.JAVA_INT,ValueLayout.ADDRESS,ValueLayout.JAVA_DOUBLE,ValueLayout.JAVA_BYTE));
+        static final MemorySegment mode=symbols.find("kCFRunLoopDefaultMode").orElseThrow()
+                .reinterpret(ValueLayout.ADDRESS.byteSize()).get(ValueLayout.ADDRESS,0);
+        static MethodHandle function(String name,FunctionDescriptor descriptor) {
+            return linker.downcallHandle(symbols.find(name).orElseThrow(()->new UnsupportedOperationException("Required test runloop symbol absent: "+name)),descriptor);
+        }
+        static int service() {
+            try {
+                MemorySegment here=(MemorySegment)current.invokeExact(),original=(MemorySegment)main.invokeExact();
+                require(here.address()!=0&&here.address()==original.address()&&mode.address()!=0,"Runloop service is not on the actual Cocoa main thread");
+                int result=(int)run.invokeExact(mode,0.002,(byte)0);require(result>=1&&result<=4,"Unknown native runloop result");
+                runloopCalls++;runloopResults[result]++;return result;
+            }catch(Throwable failure){throw new IllegalStateException("Bounded test Cocoa runloop service failed",failure);}
+        }
+    }
     private static final class Cgl {
         static final int SURFACE_ORDER=235;
         static final Arena libraryArena=Arena.ofAuto();
@@ -112,22 +136,27 @@ public final class MetalPylonPresentationProbe {
     }
 
     public static void main(String[] args) throws Exception {
-        if((args.length!=4&&args.length!=5)||!List.of("transport","transport-sync0","transport-sync1","fallback").contains(args[3])
+        if((args.length!=4&&args.length!=5)||!List.of("transport","transport-sync0","transport-sync1","fallback","transport-runloop","transport-sync0-runloop").contains(args[3])
                 ||args.length==5&&!List.of("0","-1").contains(args[4]))
             throw new IllegalArgumentException("Pass library, reference Metal shader, owned report path and transport[-sync0|-sync1]|fallback");
+        serviceCocoaLoop=args[3].endsWith("-runloop");
+        if(serviceCocoaLoop&&args.length==5&&!args[4].equals("0"))throw new IllegalArgumentException("The runloop comparison uses the unchanged original surface order");
         if(!System.getProperty("os.name").toLowerCase(Locale.ROOT).contains("mac")) {
             System.out.println("SKIP: Real SDL/Metal presentation requires macOS");System.exit(77);return;
         }
         require(!MainThread.DISPATCH,"Use -XstartOnFirstThread for this explicit main-thread SDL probe");
         Path output=Path.of(args[2]);Map<String,Object> report=new LinkedHashMap<>();
         report.put("case",args[3]);
+        report.put("pumpStyle",serviceCocoaLoop?"SDL-poll-plus-2ms-Cocoa-runloop":"SDL-poll-plus-2ms-sleep");
+        report.put("currentDisplayedTimeoutNanoseconds",5_000_000_000L);
         report.put("expectedHostedOwnership",Boolean.getBoolean("arcadium.present072.expectedHostedLayer"));
         report.put("minecraft",false);report.put("skikoOrCeraQualified",false);report.put("performanceClaim",false);
         report.put("detailedObservationAfterDisplayDecisionOnly",true);
         Throwable failure=null;
         try {
             if(args[3].startsWith("transport")) {
-                stage="current-frame-window";currentFrames(Path.of(args[0]),Path.of(args[1]),report,args[3],args.length==5?Integer.parseInt(args[4]):0);
+                String pacingCase=serviceCocoaLoop?args[3].substring(0,args[3].length()-"-runloop".length()):args[3];
+                stage="current-frame-window";currentFrames(Path.of(args[0]),Path.of(args[1]),report,pacingCase,args.length==5?Integer.parseInt(args[4]):0);
             } else {
                 stage="unsupported-color-fallback";fallback(Path.of(args[0]),Path.of(args[1]),report,args.length==5?Integer.parseInt(args[4]):0);
             }
@@ -137,6 +166,7 @@ public final class MetalPylonPresentationProbe {
             report.put("failure",String.valueOf(caught.getMessage()));
         } finally {
             report.put("stage",stage);report.put("frames",frames);report.put("mainDispatch",MainThread.DISPATCH);
+            report.put("cocoaRunloopServiceCalls",runloopCalls);report.put("cocoaRunloopResults",List.of(runloopResults[1],runloopResults[2],runloopResults[3],runloopResults[4]));
             Files.writeString(output,json(report)+"\n");
         }
         if(failure!=null)throw new AssertionError("Actual Pylon presentation probe failed at "+stage,failure);
@@ -317,7 +347,14 @@ public final class MetalPylonPresentationProbe {
         Map<String,Object> value=new LinkedHashMap<>();value.put("sdl",interval);value.put("configured",configured);
         value.put("prepared",prepared);value.put("layerDisplaySyncEnabled",enabled);return value;
     }
-    private static void pump() throws Exception { display.processMessages();Thread.sleep(2); }
+    private static void pump() throws Exception {
+        display.processMessages();
+        if(!serviceCocoaLoop){Thread.sleep(2);return;}
+        long window=SDL_GL_GetCurrentWindow(),context=SDL_GL_GetCurrentContext();
+        int outcome=MainThread.call(CocoaLoop::service);
+        require(SDL_GL_GetCurrentWindow()==window&&SDL_GL_GetCurrentContext()==context,"Test servicing changed the original current window/context");
+        if(outcome==1||outcome==2)Thread.sleep(2);
+    }
     private static void draw(int frame) {
         int width=display.getWidth(),height=display.getHeight();require(width>0&&height>0,"Invalid real framebuffer size");
         GL11.glViewport(0,0,width,height);GL11.glDisable(GL11.GL_BLEND);GL11.glDisable(GL11.GL_DEPTH_TEST);

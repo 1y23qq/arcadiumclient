@@ -169,7 +169,9 @@ def main() -> None:
         run([javac, "-cp", pylon["path"], "-d", str(pylon_output), *map(str, pylon_sources)], "java-pylon-compile.log")
         if sys.platform == "darwin" and probe_code == 0:
             outcomes = []
-            for case, order in ((case, order) for order in (0, -1) for case in ("transport", "transport-sync0", "transport-sync1", "fallback")):
+            cases = [(case, order) for order in (0, -1) for case in ("transport", "transport-sync0", "transport-sync1", "fallback")]
+            cases += [("transport-runloop", 0), ("transport-sync0-runloop", 0)]
+            for case, order in cases:
                 label = case + ("-surface-below" if order == -1 else "")
                 result_path = output / f"java-pylon-{label}-result.json"
                 code = run([java, "-XstartOnFirstThread", "--enable-native-access=ALL-UNNAMED",
@@ -180,7 +182,7 @@ def main() -> None:
                     f"java-pylon-{label}.log", None)
                 result = json.loads(result_path.read_text(encoding="utf-8")) if result_path.is_file() else {}
                 outcomes.append({"case": label, "surfaceOrder": order, "exitCode": code, "passed": code == 0 and result.get("passed", False),
-                                 "resultPresent": result_path.is_file()})
+                                 "resultPresent": result_path.is_file(), "pumpStyle": result.get("pumpStyle")})
             suite = {"passed": all(result["passed"] for result in outcomes), "freshJvmPerCase": True,
                      "currentDisplayedGateUnchanged": True, "cases": outcomes}
             (output / "java-pylon-suite-result.json").write_text(json.dumps(suite, indent=2) + "\n", encoding="utf-8")
