@@ -85,6 +85,7 @@ int main(void) {
             }
             source=realloc(source,(size_t)width*height*4);CHECK(source);
             interval=frame==2?1:0;[gl.openGLContext setValues:&interval forParameter:NSOpenGLCPSwapInterval];
+            CHECK(arc_present_set_swap_interval(out,interval)==ARC_PRESENT_OK);
             pattern(width,height,(int)frame);glReadBuffer(GL_BACK);glPixelStorei(GL_PACK_ALIGNMENT,1);glReadPixels(0,0,width,height,GL_RGBA,GL_UNSIGNED_BYTE,source);
             glReadBuffer(GL_FRONT);glBindFramebufferEXT(GL_FRAMEBUFFER_EXT,sentinelFbo);
             arc_present_frame descriptor={frame,(uint32_t)width,(uint32_t)height,0,0x0405,ARC_PRESENT_RGBA8_LINEAR,0};
@@ -101,6 +102,8 @@ int main(void) {
             CHECK(arc_present_query(out,ARC_PRESENT_WITH_TRANSACTION)==1);
             presentationState(p,frame,"submitted");
             CHECK(((CAMetalLayer *)p.view.layer).displaySyncEnabled==(interval!=0));
+            CHECK(arc_present_query(out,ARC_PRESENT_CONFIGURED_SWAP_INTERVAL)==(uint64_t)interval);
+            CHECK(arc_present_query(out,ARC_PRESENT_PREPARED_SWAP_INTERVAL)==(uint64_t)interval);
             NSDate *limit=[NSDate dateWithTimeIntervalSinceNow:5];
             while((arc_present_query(out,ARC_PRESENT_LAST_COMPLETED)!=frame||arc_present_query(out,ARC_PRESENT_LAST_DISPLAYED)!=frame)&&limit.timeIntervalSinceNow>0)pump();
             presentationState(p,frame,"wait-ended");
@@ -110,15 +113,18 @@ int main(void) {
             CHECK(glGetError()==GL_NO_ERROR);
         }
         CHECK(arc_present_publish(out,2)==ARC_PRESENT_BUSY&&arc_present_query(out,ARC_PRESENT_HIDDEN)==1);
-        __block int offMain=ARC_PRESENT_OK;
+        CHECK(arc_present_set_swap_interval(out,-1)==ARC_PRESENT_INVALID);
+        CHECK(arc_present_set_swap_interval(out,2)==ARC_PRESENT_INVALID);
+        __block int offMain=ARC_PRESENT_OK,offMainPacing=ARC_PRESENT_OK;
         __block BOOL workerWasMain=YES;
         dispatch_semaphore_t workerDone=dispatch_semaphore_create(0);
         NSThread *worker=[[NSThread alloc]initWithBlock:^{
-            workerWasMain=NSThread.isMainThread;offMain=arc_present_hide(out);dispatch_semaphore_signal(workerDone);
+            workerWasMain=NSThread.isMainThread;offMain=arc_present_hide(out);offMainPacing=arc_present_set_swap_interval(out,1);dispatch_semaphore_signal(workerDone);
         }];
         [worker start];
         CHECK(dispatch_semaphore_wait(workerDone,dispatch_time(DISPATCH_TIME_NOW,INT64_C(5000000000)))==0);
         CHECK(!workerWasMain&&offMain==ARC_PRESENT_INVALID);
+        CHECK(offMainPacing==ARC_PRESENT_INVALID);
         CHECK(arc_present_hide(out)==ARC_PRESENT_OK&&arc_present_query(out,ARC_PRESENT_HIDDEN)==1);
         CHECK(arc_present_release_gl(out)==ARC_PRESENT_OK&&arc_present_query(out,ARC_PRESENT_GL_RELEASED)==1);
         NSDate *retired=[NSDate dateWithTimeIntervalSinceNow:1];

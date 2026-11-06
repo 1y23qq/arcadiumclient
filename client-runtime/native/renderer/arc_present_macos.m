@@ -80,6 +80,8 @@ static const uint64_t image_limit = UINT64_C(128) * 1024 * 1024;
 @property(atomic) BOOL hidden, attached, glReleased;
 @property(nonatomic) BOOL ticket;
 @property(nonatomic) GLint preparedSwapInterval;
+@property(atomic) GLint configuredSwapInterval;
+@property(nonatomic) GLint observedCglSwapInterval;
 #if defined(ARC_PRESENT_TESTING)
 @property(nonatomic, strong) id<MTLBuffer> testingPixels;
 @property(nonatomic) NSUInteger testingStride;
@@ -136,6 +138,7 @@ int arc_present_create(void *scene, void *windowPointer, void **out) {
         if (arc_scene_metal_objects(scene, &device, &queue) != ARC_OK) return ARC_PRESENT_UNAVAILABLE;
         ArcPresentation *p = [ArcPresentation new]; p.device = device; p.queue = queue;
         p.state = [ArcPresentationState new]; p.errorLock = [NSLock new]; p.hidden = YES;
+        p.configuredSwapInterval = -1; p.observedCglSwapInterval = -2;
         @try {
             NSError *error = nil;
             NSString *source = @"#include <metal_stdlib>\nusing namespace metal;\n"
@@ -198,6 +201,14 @@ static ArcPresentationImage *makeImage(ArcPresentation *p, uint32_t width, uint3
     return image;
 }
 
+int arc_present_set_swap_interval(void *value, int interval) {
+    ArcPresentation *p = bridge(value);
+    if (!p || !mainThread() || (interval != 0 && interval != 1) || p.glReleased || !p.attached || !p.window)
+        return ARC_PRESENT_INVALID;
+    p.configuredSwapInterval = interval;
+    return ARC_PRESENT_OK;
+}
+
 int arc_present_prepare(void *value, const arc_present_frame *frame) {
     uint64_t bytes;
     ArcPresentation *p = bridge(value);
@@ -214,9 +225,12 @@ int arc_present_prepare(void *value, const arc_present_frame *frame) {
         p->context = CGLRetainContext(current); p->renderThread = pthread_self();
     }
     if (!renderContext(p)) return failure(p, @"Presentation called with a different GL context or thread", ARC_PRESENT_INVALID);
-    GLint swapInterval = 0;
-    if (CGLGetParameter(p->context, kCGLCPSwapInterval, &swapInterval) != kCGLNoError || (swapInterval != 0 && swapInterval != 1))
-        return failure(p, @"The original GL swap interval is not qualified", ARC_PRESENT_UNAVAILABLE);
+    GLint swapInterval = p.configuredSwapInterval;
+    if (swapInterval != 0 && swapInterval != 1)
+        return failure(p, @"The caller has not configured supported presentation pacing", ARC_PRESENT_UNAVAILABLE);
+    GLint observedInterval = -2;
+    if (CGLGetParameter(p->context, kCGLCPSwapInterval, &observedInterval) != kCGLNoError) observedInterval = -2;
+    p.observedCglSwapInterval = observedInterval;
     const char *extensions = (const char *)glGetString(GL_EXTENSIONS);
     if (!extensions || !strstr(extensions, "GL_EXT_framebuffer_blit") || !strstr(extensions, "GL_EXT_framebuffer_object"))
         return failure(p, @"Compatible GL framebuffer blit is unavailable", ARC_PRESENT_UNAVAILABLE);
@@ -408,7 +422,9 @@ uint64_t arc_present_query(void *value, int key) {
             case ARC_PRESENT_VIEW_NEEDS_DISPLAY: return p.view.needsDisplay;
             case ARC_PRESENT_LAYER_DELEGATE_ID: return presentationObjectId(layer.delegate);
             case ARC_PRESENT_PRESENTATION_LAYER_ID: return presentationObjectId(layer.presentationLayer);
-            case ARC_PRESENT_PREPARED_CGL_SWAP_INTERVAL: return (uint64_t)p.preparedSwapInterval;
+            case ARC_PRESENT_PREPARED_CGL_SWAP_INTERVAL: return (uint64_t)p.observedCglSwapInterval;
+            case ARC_PRESENT_CONFIGURED_SWAP_INTERVAL: return (uint64_t)p.configuredSwapInterval;
+            case ARC_PRESENT_PREPARED_SWAP_INTERVAL: return (uint64_t)p.preparedSwapInterval;
             case ARC_PRESENT_LAYER_DISPLAY_SYNC_ENABLED: return layer.displaySyncEnabled;
             case ARC_PRESENT_VIEW_VISIBLE_WIDTH_FP64: number = p.view.visibleRect.size.width; break;
             case ARC_PRESENT_VIEW_VISIBLE_HEIGHT_FP64: number = p.view.visibleRect.size.height; break;

@@ -18,6 +18,10 @@ int arc_present_create(void *scene, void *window, void **out) {
     *out = NULL;
     return ARC_PRESENT_UNAVAILABLE;
 }
+int arc_present_set_swap_interval(void *bridge, int interval) {
+    (void)bridge;
+    return interval == 0 || interval == 1 ? ARC_PRESENT_UNAVAILABLE : ARC_PRESENT_INVALID;
+}
 int arc_present_prepare(void *bridge, const arc_present_frame *frame) {
     uint64_t bytes;
     (void)bridge;

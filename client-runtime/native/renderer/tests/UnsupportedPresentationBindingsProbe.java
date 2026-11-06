@@ -11,6 +11,12 @@ public final class UnsupportedPresentationBindingsProbe {
         if(arguments.length!=1)throw new IllegalArgumentException("Pass the unsupported-platform presentation library");
         SymbolLookup symbols=SymbolLookup.libraryLookup(Path.of(arguments[0]),Arena.global());
         MetalPresentationCalls calls=new MetalPresentationCalls(symbols,MemorySegment.NULL);
+        require(calls.supportsSwapInterval(),"The new native interval setter is absent");
+        require(calls.setSwapInterval(0)==-2&&calls.setSwapInterval(1)==-2,"Unsupported normal pacing was accepted");
+        require(calls.setSwapInterval(-1)==-1&&calls.setSwapInterval(2)==-1,"Invalid native pacing was accepted");
+        SymbolLookup oldSymbols=name->name.equals("arc_present_set_swap_interval")?java.util.Optional.empty():symbols.find(name);
+        MetalPresentationCalls oldCalls=new MetalPresentationCalls(oldSymbols,MemorySegment.NULL);
+        require(!oldCalls.supportsSwapInterval()&&oldCalls.setSwapInterval(1)==-2,"A missing new symbol did not remain unavailable");
         require(calls.create(0)==-2&&!calls.attached(),"Unsupported create did not leave a null bridge");
         require(calls.error().contains("unavailable"),"The bounded native error was not copied through FFM");
         int checked=0;
@@ -29,7 +35,7 @@ public final class UnsupportedPresentationBindingsProbe {
         }
         require(calls.hide()==0&&calls.releaseGl()==0&&calls.destroy()==0&&!calls.attached(),"Null-bridge cleanup is not idempotent");
         require(calls.publish(1)==-2&&calls.query(9)==0,"An unsupported bridge claimed presentation");
-        System.out.printf("{\"passed\":true,\"nativeFrameChecks\":%d,\"actualFfmCalls\":true,\"windowPresentation\":false}%n",checked);
+        System.out.printf("{\"passed\":true,\"nativeFrameChecks\":%d,\"nativePacingChecks\":4,\"missingPacingSymbolSafe\":true,\"actualFfmCalls\":true,\"windowPresentation\":false}%n",checked);
     }
     private static void prepare(MetalPresentationCalls calls,MemorySegment frame,int expected) {
         byte[] before=frame.toArray(JAVA_BYTE);

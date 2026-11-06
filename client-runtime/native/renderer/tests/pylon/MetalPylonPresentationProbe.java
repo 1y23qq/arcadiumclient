@@ -115,6 +115,8 @@ public final class MetalPylonPresentationProbe {
                 Map<String,Object> before=geometry(original);before.put("frame",frame);before.put("stage","before-publish");frames.add(before);
                 display.setVSyncEnabled((frame&1)==0);draw(frame);original.owner.swapBuffers();
                 awaitDisplayed(original,frame);original.sameWindow();
+                Map<String,Object> pacing=pacing(original);pacing.put("frame",frame);
+                report.put("pacing"+frame,pacing);
                 require(original.swaps==0&&original.owner.submittedFrames()==frame&&original.owner.fallbackFrames()==0,
                         "The current-frame Metal path unexpectedly used OpenGL fallback: "+original.owner.status());
                 require(original.owner.nativeCounter(PREPARED)==frame&&original.owner.nativeCounter(SUBMITTED)==frame,
@@ -214,6 +216,18 @@ public final class MetalPylonPresentationProbe {
             value.put("sdlSwapInterval",interval.get(0));
         }
         return value;
+    }
+    private static Map<String,Object> pacing(OriginalSurface original) {
+        int interval;
+        try(var stack=org.lwjgl.system.MemoryStack.stackPush()) {
+            var value=stack.mallocInt(1);require(SDL_GL_GetSwapInterval(value),"Current SDL pacing is unavailable");interval=value.get(0);
+        }
+        require(interval==0||interval==1,"Unsupported logical SDL interval");
+        long configured=original.owner.nativeCounter(53),prepared=original.owner.nativeCounter(54);
+        boolean enabled=original.owner.nativeCounter(45)!=0;
+        require(configured==interval&&prepared==interval&&enabled==(interval!=0),"SDL pacing was not mirrored to the actual current Metal layer");
+        Map<String,Object> value=new LinkedHashMap<>();value.put("sdl",interval);value.put("configured",configured);
+        value.put("prepared",prepared);value.put("layerDisplaySyncEnabled",enabled);return value;
     }
     private static void pump() throws Exception { display.processMessages();Thread.sleep(2); }
     private static void draw(int frame) {

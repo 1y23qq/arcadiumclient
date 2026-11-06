@@ -10,6 +10,10 @@ int main(void) {
     CHECK(arc_present_create((void *)(uintptr_t)1, (void *)(uintptr_t)2, &value) == ARC_PRESENT_UNAVAILABLE);
     CHECK(value == NULL);
     CHECK(arc_present_create(NULL, NULL, NULL) == ARC_PRESENT_INVALID);
+    CHECK(arc_present_set_swap_interval(NULL, 0) == ARC_PRESENT_UNAVAILABLE);
+    CHECK(arc_present_set_swap_interval(NULL, 1) == ARC_PRESENT_UNAVAILABLE);
+    CHECK(arc_present_set_swap_interval(NULL, -1) == ARC_PRESENT_INVALID);
+    CHECK(arc_present_set_swap_interval(NULL, 2) == ARC_PRESENT_INVALID);
     char message[8]; memset(message, 0x7f, sizeof(message));
     CHECK(arc_present_error(NULL, message, 4) == ARC_PRESENT_OK);
     CHECK(message[3] == 0 && message[4] == 0x7f);

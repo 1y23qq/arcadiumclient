@@ -6,7 +6,9 @@ import java.lang.invoke.MethodHandle;
 import static java.lang.foreign.ValueLayout.*;
 
 interface CurrentFrameCalls {
+    boolean supportsSwapInterval();
     int create(long cocoaWindow);
+    int setSwapInterval(int interval);
     int prepare(MemorySegment frame);
     int publish(long identifier);
     int hide();
@@ -19,7 +21,7 @@ interface CurrentFrameCalls {
 
 final class MetalPresentationCalls implements CurrentFrameCalls {
     private final MemorySegment scene;
-    private final MethodHandle create,prepare,publish,hide,release,destroy,error,query;
+    private final MethodHandle create,interval,prepare,publish,hide,release,destroy,error,query;
     private volatile MemorySegment bridge=MemorySegment.NULL;
 
     MetalPresentationCalls(SymbolLookup symbols,MemorySegment scene) {
@@ -29,6 +31,8 @@ final class MetalPresentationCalls implements CurrentFrameCalls {
             MethodHandle abi=function(linker,symbols,"arc_present_abi",FunctionDescriptor.of(JAVA_INT));
             if((int)abi.invokeExact()!=1)throw new UnsupportedOperationException("Incompatible Metal presentation ABI");
             create=function(linker,symbols,"arc_present_create",FunctionDescriptor.of(JAVA_INT,ADDRESS,ADDRESS,ADDRESS));
+            interval=symbols.find("arc_present_set_swap_interval").map(address->linker.downcallHandle(address,
+                    FunctionDescriptor.of(JAVA_INT,ADDRESS,JAVA_INT))).orElse(null);
             prepare=function(linker,symbols,"arc_present_prepare",FunctionDescriptor.of(JAVA_INT,ADDRESS,ADDRESS));
             publish=function(linker,symbols,"arc_present_publish",FunctionDescriptor.of(JAVA_INT,ADDRESS,JAVA_LONG));
             hide=function(linker,symbols,"arc_present_hide",FunctionDescriptor.of(JAVA_INT,ADDRESS));
@@ -37,6 +41,11 @@ final class MetalPresentationCalls implements CurrentFrameCalls {
             error=function(linker,symbols,"arc_present_error",FunctionDescriptor.of(JAVA_INT,ADDRESS,ADDRESS,JAVA_LONG));
             query=function(linker,symbols,"arc_present_query",FunctionDescriptor.of(JAVA_LONG,ADDRESS,JAVA_INT));
         } catch(Throwable failure) { throw propagate(failure); }
+    }
+    @Override public boolean supportsSwapInterval() { return interval!=null; }
+    @Override public int setSwapInterval(int value) {
+        if(interval==null)return -2;
+        try { return (int)interval.invokeExact(bridge,value); } catch(Throwable failure) { throw propagate(failure); }
     }
     private static MethodHandle function(Linker linker,SymbolLookup symbols,String name,FunctionDescriptor descriptor) {
         return linker.downcallHandle(symbols.find(name).orElseThrow(()->new UnsupportedOperationException("Metal presentation symbol is unavailable: "+name)),descriptor);

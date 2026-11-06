@@ -37,6 +37,7 @@ enum { ARC_PRESENT_LAST_PREPARED = 1, ARC_PRESENT_LAST_SUBMITTED = 2,
        ARC_PRESENT_VIEW_VISIBLE_HEIGHT_FP64 = 47, ARC_PRESENT_LAYER_NEEDS_DISPLAY = 48,
        ARC_PRESENT_VIEW_OPAQUE = 49, ARC_PRESENT_CURRENT_GL_VIEW_LAYER_ID = 50,
        ARC_PRESENT_CURRENT_GL_VIEW_ID = 51, ARC_PRESENT_CURRENT_GL_CONTEXT_MATCH = 52,
+       ARC_PRESENT_CONFIGURED_SWAP_INTERVAL = 53, ARC_PRESENT_PREPARED_SWAP_INTERVAL = 54,
        ARC_PRESENT_LAYER_CHAIN_BASE = 64, ARC_PRESENT_LAYER_CHAIN_END = 72 };
 
 typedef struct {
@@ -51,6 +52,8 @@ ARC_API int arc_present_error(void *bridge, char *utf8, uint64_t capacity);
 // Failure leaves out NULL, no child view and no retained borrowed window.
 // Main thread; scene is alive; Cocoa window is borrowed, never SDL_Window*.
 ARC_API int arc_present_create(void *scene, void *cocoa_window, void **bridge_out);
+// Main thread; configures subsequently prepared frames. Only intervals 0 and 1 are supported.
+ARC_API int arc_present_set_swap_interval(void *bridge, int interval);
 // Render thread with the original CGL context current. Current final backbuffer only.
 ARC_API int arc_present_prepare(void *bridge, const arc_present_frame *frame);
 // Main thread; publishes the exact prepared frame ID; failures leave the layer hidden.
@@ -61,7 +64,7 @@ ARC_API int arc_present_hide(void *bridge);
 ARC_API int arc_present_release_gl(void *bridge);
 // Main thread, after successful release_gl, before parent SDL destruction/backend close.
 ARC_API int arc_present_destroy(void *bridge);
-// View queries11..52 and64..71 require the Cocoa main thread; IDs are process-local.
+// View queries11..54 and64..71 require the Cocoa main thread; IDs are process-local.
 ARC_API uint64_t arc_present_query(void *bridge, int key);
 
 int arc_present_valid_frame(const arc_present_frame *frame, uint64_t *rgba_bytes);

@@ -43,6 +43,7 @@ public final class PlayerPipeline072Qa {
     private static final String RESIDENT_BODY_MODE=System.getProperty("arcadium.residentBodies072.mode","off");
     private static final boolean RESIDENT_BODY_PERFORMANCE=Boolean.getBoolean("arcadium.residentBodies072.performanceQualified");
     private static final boolean RESIDENT_BODY_SHARED=Boolean.getBoolean("arcadium.residentBodies072.sharedPalette");
+    private static final boolean ALL_ON_BETA=Boolean.getBoolean("arcadium.playerPipeline072.allOnBetaProfile");
     private static final boolean NATIVE_BODY_CONTROL = Boolean.getBoolean("arcadium.playerPipeline072.nativeBodyControl");
     private static final boolean NATIVE_VOXEL_ROOT_CONTROL=Boolean.getBoolean("arcadium.playerPipeline072.nativeVoxelRootControl");
     private static final int PLAYERS = Integer.getInteger("arcadium.playerPipeline072.players", 20);
@@ -210,7 +211,14 @@ public final class PlayerPipeline072Qa {
             for (var entry : ((Map<?, ?>) beta).entrySet()) defaults.put(entry.getKey().toString(), entry.getValue());
             if (supplied.get("skin") instanceof Map<?, ?> skin) setTree(Skin3DConfig.INSTANCE.getTree(), skin);
         }
-        require(Boolean.FALSE.equals(defaults.get("gpuTerrainCommands")), "Terrain commands require a separate terrain comparison");
+        if(ALL_ON_BETA){
+            require(!BASELINE&&file!=null,"The all-on profile requires explicit optimized settings");int booleanCount=0;
+            for(var entry:BetaOptimizationsConfig.INSTANCE.getTree().map.entrySet())if(entry.getValue() instanceof Property<?> property&&property.get() instanceof Boolean){
+                booleanCount++;require(Boolean.valueOf(!entry.getKey().equals("worldRenderScale")).equals(defaults.get(entry.getKey())),"The combined profile must use actual boolean defaults: "+entry.getKey());
+            }
+            require(booleanCount==21,"The all-on profile schema changed; audit its settings");
+            for(String key:List.of("minimumPlayers","minimumGpuLabels","minimumGpuParticles","worldResolution"))require(defaults.get(key) instanceof Number number&&number.doubleValue()==(key.equals("worldResolution")?75:1),"The combined profile changed a numeric default: "+key);
+        }else require(Boolean.FALSE.equals(defaults.get("gpuTerrainCommands")), "Terrain commands require a separate terrain comparison");
         require(Boolean.FALSE.equals(defaults.get("worldRenderScale")), "Actor comparisons must use full world resolution");
         String dataset = System.getProperty("arcadium.playerPipeline072.dataset");
         if (dataset != null) canonicalDataset = new Gson().fromJson(Files.readString(Path.of(dataset)), Map.class);
@@ -332,6 +340,7 @@ public final class PlayerPipeline072Qa {
         result.put("residentBodyMode",RESIDENT_BODY_MODE);
         result.put("residentBodySharedPalette",RESIDENT_BODY_SHARED);
         result.put("residentBodySelectedMaterial",Boolean.getBoolean("arcadium.residentBodies072.selectedMaterial"));
+        result.put("allOnBetaProfile",ALL_ON_BETA);
         result.put("nativeVoxelRootControl",NATIVE_VOXEL_ROOT_CONTROL);
         return result;
     }
