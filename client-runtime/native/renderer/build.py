@@ -60,11 +60,11 @@ def main() -> None:
     output.mkdir(parents=True, exist_ok=True)
     commands: list[list[str]] = []
 
-    def run(command: list[str], name: str, allowed: tuple[int, ...] = (0,)) -> int:
+    def run(command: list[str], name: str, allowed: tuple[int, ...] | None = (0,)) -> int:
         commands.append(command)
         with (output / name).open("w", encoding="utf-8") as log:
             result = subprocess.run(command, cwd=root, stdout=log, stderr=subprocess.STDOUT)
-        if result.returncode not in allowed:
+        if allowed is not None and result.returncode not in allowed:
             raise RuntimeError(f"{name} failed with exit code {result.returncode}; inspect {output / name}")
         return result.returncode
 
@@ -118,16 +118,22 @@ def main() -> None:
         pylon_sources.append(source / "tests/pylon/MetalPylonPresentationProbe.java")
         run([javac, "-cp", pylon["path"], "-d", str(pylon_output), *map(str, pylon_sources)], "java-pylon-compile.log")
         if sys.platform == "darwin" and probe_code == 0:
-            for case in ("transport", "fallback"):
+            outcomes = []
+            for case in ("transport", "transport-sync0", "transport-sync1", "fallback"):
                 result_path = output / f"java-pylon-{case}-result.json"
-                run([java, "-XstartOnFirstThread", "--enable-native-access=ALL-UNNAMED", "-cp",
+                code = run([java, "-XstartOnFirstThread", "--enable-native-access=ALL-UNNAMED", "-cp",
                      os.pathsep.join((str(pylon_output), pylon["path"])),
                      "io.github.arcadiumclient.runtime.client.optimizations.backend.MetalPylonPresentationProbe",
                      str(library), str(source / "tests/reference_scene.metal"), str(result_path), case],
-                    f"java-pylon-{case}.log")
-                result = json.loads(result_path.read_text(encoding="utf-8"))
-                if not result.get("passed"):
-                    raise RuntimeError("The actual Pylon SDL/Metal surface probe did not pass: " + case)
+                    f"java-pylon-{case}.log", None)
+                result = json.loads(result_path.read_text(encoding="utf-8")) if result_path.is_file() else {}
+                outcomes.append({"case": case, "exitCode": code, "passed": code == 0 and result.get("passed", False),
+                                 "resultPresent": result_path.is_file()})
+            suite = {"passed": all(result["passed"] for result in outcomes), "freshJvmPerCase": True,
+                     "currentDisplayedGateUnchanged": True, "cases": outcomes}
+            (output / "java-pylon-suite-result.json").write_text(json.dumps(suite, indent=2) + "\n", encoding="utf-8")
+            if not suite["passed"]:
+                raise RuntimeError("The actual Pylon SDL/Metal surface suite did not pass; all independent case results were preserved")
             pylon_status = "passed"
         else:
             pylon_status = "skipped-no-device" if sys.platform == "darwin" else "compiled-not-applicable"

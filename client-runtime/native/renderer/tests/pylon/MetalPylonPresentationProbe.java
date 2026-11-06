@@ -54,8 +54,8 @@ public final class MetalPylonPresentationProbe {
     }
 
     public static void main(String[] args) throws Exception {
-        if(args.length!=4||!List.of("transport","fallback").contains(args[3]))
-            throw new IllegalArgumentException("Pass library, reference Metal shader, owned report path and transport|fallback");
+        if(args.length!=4||!List.of("transport","transport-sync0","transport-sync1","fallback").contains(args[3]))
+            throw new IllegalArgumentException("Pass library, reference Metal shader, owned report path and transport[-sync0|-sync1]|fallback");
         if(!System.getProperty("os.name").toLowerCase(Locale.ROOT).contains("mac")) {
             System.out.println("SKIP: Real SDL/Metal presentation requires macOS");System.exit(77);return;
         }
@@ -66,8 +66,8 @@ public final class MetalPylonPresentationProbe {
         report.put("detailedObservationAfterDisplayDecisionOnly",true);
         Throwable failure=null;
         try {
-            if(args[3].equals("transport")) {
-                stage="current-frame-window";currentFrames(Path.of(args[0]),Path.of(args[1]),report);
+            if(args[3].startsWith("transport")) {
+                stage="current-frame-window";currentFrames(Path.of(args[0]),Path.of(args[1]),report,args[3]);
             } else {
                 stage="unsupported-color-fallback";fallback(Path.of(args[0]),Path.of(args[1]),report);
             }
@@ -94,7 +94,7 @@ public final class MetalPylonPresentationProbe {
         original.owner=MetalCompositeSurface.prototype(backend,original,encoding);
         display.setSurface(original.owner);display.create(original);original.sameWindow();
     }
-    private static void currentFrames(Path library,Path shader,Map<String,Object> report) throws Exception {
+    private static void currentFrames(Path library,Path shader,Map<String,Object> report,String pacingCase) throws Exception {
         MetalResidentSceneBackend backend=scene(library,shader);OriginalSurface original=new OriginalSurface();
         try {
             create(backend,original,MetalCompositeSurface.RGBA8_LINEAR);
@@ -113,7 +113,8 @@ public final class MetalPylonPresentationProbe {
                     original.owner.makeCurrent();
                 }
                 Map<String,Object> before=geometry(original);before.put("frame",frame);before.put("stage","before-publish");frames.add(before);
-                display.setVSyncEnabled((frame&1)==0);draw(frame);original.owner.swapBuffers();
+                boolean synced=pacingCase.equals("transport-sync1")||pacingCase.equals("transport")&&(frame&1)==0;
+                display.setVSyncEnabled(synced);draw(frame);original.owner.swapBuffers();
                 awaitDisplayed(original,frame);original.sameWindow();
                 Map<String,Object> pacing=pacing(original);pacing.put("frame",frame);
                 report.put("pacing"+frame,pacing);
