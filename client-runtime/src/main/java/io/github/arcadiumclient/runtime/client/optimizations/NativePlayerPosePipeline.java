@@ -201,6 +201,11 @@ public final class NativePlayerPosePipeline {
                     budgetFallbacks++; return fallback("Owned modern armor retained-capacity budget reached");
                 }
             }
+            int geometryMvp = -1;
+            if (profile.originalVertices && ModernArmorGlintPipeline.useGeometryMvp()) {
+                geometryMvp = ModernArmorGlintPipeline.geometryMvp(capture, part);
+                if (geometryMvp < 0) { stateFallbacks++; return fallback("Native armor MVP was not preflighted"); }
+            }
             if (kind.equals("GLINT")) {
                 glint = (Set<ModelPart>)api.captureGlint.get(capture);
                 if (!glint.add(part)) { glintDuplicates++; return true; }
@@ -238,7 +243,7 @@ public final class NativePlayerPosePipeline {
             data[oldSize] = Float.floatToRawIntBits(-(job * 16 + shape.index + 1)); data[oldSize + 1] = MAGIC_1; data[oldSize + 2] = MAGIC_2;
             data[oldSize + 12] = Float.floatToRawIntBits(ModernArmorGlintPipeline.effectTime(capture,(float)api.captureTime.get(capture))); data[oldSize + 13] = lightWord;
             data[oldSize + 14] = pack((Vector4fc)api.captureColor.get(capture)); data[oldSize + 15] = pack((Vector4fc)api.captureOverlay.get(capture));
-            data[oldSize + 16] = shape.uv; data[oldSize + 17] = shape.dimensions; data[oldSize + 18] = shape.size;
+            data[oldSize + 16] = geometryMvp >= 0 ? geometryMvp + 1 : shape.uv; data[oldSize + 17] = shape.dimensions; data[oldSize + 18] = shape.size;
             api.size.set(instances, oldSize + 19); api.count.set(instances, oldCount + 1);
             api.batchCount.set(batch, oldBatchCount + 1); api.backendCount.set(device, oldDeviceCount + 1); api.captureRecorded.set(capture, true);
             if (profile.originalVertices) ModernArmorAuxiliary.queued(selectedGeometry, instances, oldCount + 1);

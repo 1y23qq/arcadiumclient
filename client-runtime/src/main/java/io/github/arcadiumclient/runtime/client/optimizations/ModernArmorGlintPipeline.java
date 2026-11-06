@@ -27,8 +27,11 @@ import org.lwjgl.opengl.*;
 public final class ModernArmorGlintPipeline {
     private static final boolean QUALIFIED = false;
     private static final boolean EXPERIMENTAL = Boolean.getBoolean("arcadium.modernGlint072.experimental");
+    private static final int MVP_MODE = Integer.getInteger("arcadium.modernGlint072.mvpMode", 0);
     private static final ModernGlintMatrices matrices = new ModernGlintMatrices();
-    private static final int[] programHandles = new int[256], countLocations = new int[256];
+    private static final ModernArmorProjectiveMatrices projectives = MVP_MODE == 1 ? new ModernArmorProjectiveMatrices(matrices) : null;
+    private static final ModernArmorMvp geometryMvp = MVP_MODE == 1 ? new ModernArmorMvp() : null;
+    private static final int[] programHandles = new int[256], countLocations = new int[256], mvpLocations = new int[256];
     private static final boolean[] verifiedPrograms = new boolean[256];
     private static int programCount;
     private static final Scope[] scopes = new Scope[16];
@@ -55,11 +58,14 @@ public final class ModernArmorGlintPipeline {
         Identifier texture;
     }
     private static final class DrawState {
-        int indexed, generic, program, location, uniform;
+        int indexed, generic, program, location, uniform, mvpLocation, mvpUniform;
         long offset, size;
     }
     static { for (int i = 0; i < scopes.length; i++) scopes[i] = new Scope(); for (int i = 0; i < draws.length; i++) draws[i] = new DrawState(); }
     private ModernArmorGlintPipeline() {}
+    public static int mvpMode() { return MVP_MODE; }
+    static boolean useGeometryMvp() { return MVP_MODE == 1; }
+    static int geometryMvp(Object capture, ModelPart part) { return geometryMvp == null ? -1 : geometryMvp.index(capture, part, matrices.generation(), projectives); }
     public static boolean shaderAdapterEnabled() { return ModernGlintShaderPatch.qualificationEnabled(QUALIFIED, EXPERIMENTAL); }
 
     private static void initialize() throws Throwable {
@@ -79,9 +85,9 @@ public final class ModernArmorGlintPipeline {
     }
 
     public static void beginFrame() {
-        matrices.beginFrame(); selection.clear();
+        matrices.beginFrame(); selection.clear(); if (geometryMvp != null) geometryMvp.clear();
     }
-    public static void beginCapture() { selection.clear(); }
+    public static void beginCapture() { selection.clear(); if (geometryMvp != null) geometryMvp.clear(); }
 
     public static boolean canCapture(Object layer, Object candidate) {
         selection.clear();
@@ -112,6 +118,9 @@ public final class ModernArmorGlintPipeline {
             boolean geometryReady = NativePlayerPosePipeline.prepareOriginalArmor((HumanoidModel)armor.getModel(1), (HumanoidModel)armor.getModel(2), device);
             boolean texturesReady = ModernArmorAuxiliary.prepareTextures(device, textures);
             if (!geometryReady || !texturesReady) return nativeLayer("Preparing owned modern armor stores; retaining the original layer");
+            if (MVP_MODE != 0 && MVP_MODE != 1) return nativeLayer("Unsupported private armor MVP mode");
+            if (geometryMvp != null && !geometryMvp.begin(capture, armor.getModel(1), armor.getModel(2), matrices.generation()))
+                return nativeLayer("Physical native armor matrices unavailable; retaining the original layer");
             selection.select(capture, layer, candidate, armor.getModel(1), armor.getModel(2), matrices.generation());
             layersSupported++; state = "Captured modern texture matrices with native GLINT ordering"; return true;
         } catch (Throwable error) { disable(error); return false; }
@@ -231,7 +240,9 @@ public final class ModernArmorGlintPipeline {
             if (!GL.getCapabilities().OpenGL43 || GL20.glGetProgrami(program, GL20.GL_LINK_STATUS) == 0) return;
             int block = GL43.glGetProgramResourceIndex(program, GL43.GL_SHADER_STORAGE_BLOCK, "ArcadiumModernGlintMatrices");
             int countLocation = GL20.glGetUniformLocation(program, "uArcadiumModernGlintCount");
+            int mvpLocation = GL20.glGetUniformLocation(program, "uArcadiumModernArmorMvp");
             if (block == GL43.GL_INVALID_INDEX || countLocation < 0) return;
+            if (MVP_MODE == 1 && mvpLocation < 0) return;
             int[] layout = new int[2];
             GL43.glGetProgramResourceiv(program, GL43.GL_SHADER_STORAGE_BLOCK, block,
                     new int[]{GL43.GL_BUFFER_BINDING, GL43.GL_BUFFER_DATA_SIZE}, (int[])null, layout);
@@ -239,7 +250,7 @@ public final class ModernArmorGlintPipeline {
             int record = programIndex(program);
             if (record < 0) {
                 if (programCount == programHandles.length) return;
-                record = programCount++; programHandles[record] = program; countLocations[record] = countLocation; verifiedPrograms[record] = false;
+                record = programCount++; programHandles[record] = program; countLocations[record] = countLocation; mvpLocations[record] = mvpLocation; verifiedPrograms[record] = false;
             }
             int count = GL20.glGetProgrami(program, GL20.GL_ATTACHED_SHADERS); if (count < 2) return;
             IntBuffer shaders = BufferUtils.createIntBuffer(count); GL20.glGetAttachedShaders(program, (IntBuffer)null, shaders);
@@ -262,7 +273,7 @@ public final class ModernArmorGlintPipeline {
     static boolean verifiedProgram(int program) { return verifiedProgramLocation(program) >= 0; }
     public static void programDeleted(int program) {
         for (int i = 0; i < programCount; i++) if (programHandles[i] == program) {
-            programCount--; programHandles[i] = programHandles[programCount]; countLocations[i] = countLocations[programCount]; verifiedPrograms[i] = verifiedPrograms[programCount]; return;
+            programCount--; programHandles[i] = programHandles[programCount]; countLocations[i] = countLocations[programCount]; mvpLocations[i] = mvpLocations[programCount]; verifiedPrograms[i] = verifiedPrograms[programCount]; return;
         }
     }
 
@@ -277,6 +288,8 @@ public final class ModernArmorGlintPipeline {
         int location = countLocations[record];
         DrawState draw = draws[drawDepth++];
         draw.program = program; draw.location = location; draw.uniform = GL20.glGetUniformi(program, location);
+        draw.mvpLocation = mvpLocations[record]; draw.mvpUniform = draw.mvpLocation < 0 ? 0 : GL20.glGetUniformi(program, draw.mvpLocation);
+        if (draw.mvpLocation >= 0) GL41.glProgramUniform1i(program, draw.mvpLocation, useGeometryMvp() && ModernArmorAuxiliary.ownsProgram(program) ? 1 : 0);
         draw.generic = GL11.glGetInteger(GL43.GL_SHADER_STORAGE_BUFFER_BINDING);
         draw.indexed = GL30.glGetIntegeri(GL43.GL_SHADER_STORAGE_BUFFER_BINDING, 7);
         draw.offset = draw.indexed == 0 ? 0 : GL32.glGetInteger64i(GL43.GL_SHADER_STORAGE_BUFFER_START, 7);
@@ -314,7 +327,7 @@ public final class ModernArmorGlintPipeline {
         DrawState draw = draws[token - 1];
         if (draw.indexed != 0 && draw.size > 0) GL30.glBindBufferRange(GL43.GL_SHADER_STORAGE_BUFFER, 7, draw.indexed, draw.offset, draw.size);
         else GL30.glBindBufferBase(GL43.GL_SHADER_STORAGE_BUFFER, 7, draw.indexed);
-        GL15.glBindBuffer(GL43.GL_SHADER_STORAGE_BUFFER, draw.generic); GL41.glProgramUniform1i(draw.program, draw.location, draw.uniform); drawDepth--;
+        GL15.glBindBuffer(GL43.GL_SHADER_STORAGE_BUFFER, draw.generic); GL41.glProgramUniform1i(draw.program, draw.location, draw.uniform); if (draw.mvpLocation >= 0) GL41.glProgramUniform1i(draw.program, draw.mvpLocation, draw.mvpUniform); drawDepth--;
     }
 
     private static boolean nativeLayer(String reason) { nativeLayers++; state = reason; return false; }
@@ -324,7 +337,7 @@ public final class ModernArmorGlintPipeline {
     }
     public static void close() {
         ModernArmorAuxiliary.close();
-        matrices.beginFrame(); selection.clear();
+        matrices.beginFrame(); selection.clear(); if (geometryMvp != null) geometryMvp.clear();
         if (storage != 0) GL15.glDeleteBuffers(storage); storage = storageCapacity = uploadedMatrices = 0; uploadedFrame = -1;
         if (dummyStorage != 0) GL15.glDeleteBuffers(dummyStorage); dummyStorage = 0;
     }

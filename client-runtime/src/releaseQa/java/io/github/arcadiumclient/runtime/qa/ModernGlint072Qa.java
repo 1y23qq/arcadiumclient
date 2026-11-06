@@ -99,6 +99,7 @@ public final class ModernGlint072Qa {
                 styleField = items.getClass().getField("armorGlint"); originalStyle = styleField.get(items); selectStyle();
                 report.put("purpose", "Same-frame native/modern GPU pixel and GL state correctness; not FPS data");
                 report.put("experimentalModernArmorRoute", Boolean.getBoolean("arcadium.modernGlint072.experimental"));
+                report.put("privateMvpMode", ModernArmorGlintPipeline.mvpMode());
                 report.put("settings", Map.of("fpsLimit", 120, "renderDistance", 3, "minimumPlayers", 1, "gpuPlayerPipeline", false,
                         "gpuModelTransforms", false, "gpuNameTags", false, "gpuParticles", false, "worldRenderScale", false,
                         "retainedHudBatches", false, "renderDelta", .5f));
@@ -433,6 +434,10 @@ public final class ModernGlint072Qa {
             if (!auxiliaryLifecycleDone) return;
             try {
                 require(translationChecks>0&&nativePlayerEntries>0&&matrixBufferChecks==translationChecks*16,"Missing actual native height-shift matrix equivalence");
+                var mvpProof = io.github.arcadiumclient.runtime.client.optimizations.ModernArmorMvp072Qa.report();
+                require(Boolean.TRUE.equals(mvpProof.get("balancedClientScopes")), "Private MVP client scopes are unbalanced");
+                if (ModernArmorGlintPipeline.mvpMode() == 1) require(((Number)mvpProof.get("actualNativeMvpRawBitChecks")).longValue() > 0 && ((Number)mvpProof.get("actualOwnedMvpInstances")).longValue() > 0, "Private MVP vertex path never executed");
+                else require(((Number)mvpProof.get("mode0ControlInstances")).longValue() > 0, "Private mode0 control vertex path never executed");
                 require(pixelFailures.isEmpty(), "Modern glint full RGBA quality failed: " + pixelFailures);
                 require(zeroRangeChecks >= 20 && zeroMaterialDrawChecks > 0 && ModernArmorGlintPipeline.dummyProgramBinds > 0,
                         "No proof of valid no-material draws with an originally unbound SSBO7");
@@ -462,6 +467,7 @@ public final class ModernGlint072Qa {
         report.put("maximumCurrentDriverRootModelViewError", maximumRootModelViewError);
         report.put("fullRgbaPixelFailures", pixelFailures);
         report.put("fixedFunctionAndInstancedGlintPixelTrace", ModernGlintPixelTrace072Qa.report());
+        report.put("privateMvpState", io.github.arcadiumclient.runtime.client.optimizations.ModernArmorMvp072Qa.report());
         report.put("originallyUnboundSsbo7WorldChecks", zeroRangeChecks); report.put("zeroMaterialNativeDrawChecks", zeroMaterialDrawChecks);
         report.put("baseWholeStoreBindingChecks",wholeStoreChecks);report.put("minimumNoMaterialDatastoreBytes",minimumNoMaterialStore==Long.MAX_VALUE?0:minimumNoMaterialStore);
         report.put("dummyProgramBinds", ModernArmorGlintPipeline.dummyProgramBinds); report.put("materialProgramBinds", ModernArmorGlintPipeline.materialProgramBinds);

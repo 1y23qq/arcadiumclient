@@ -47,7 +47,19 @@ public final class ModernGlintShaderPatch {
         source = replaceOnce(source, "#version 130", "#version 430 compatibility\n#define " + TAG);
         source = replaceOnce(source, "out vec2 vGlintCoord;", "out vec2 vGlintCoord;\nflat out int arcadiumModernGlint;\n" +
                 "layout(std430,binding=7) readonly buffer ArcadiumModernGlintMatrices { mat4 arcadiumGlintMatrices[]; };\n" +
-                "uniform int uArcadiumModernGlintCount;");
+                "uniform int uArcadiumModernGlintCount;\nuniform int uArcadiumModernArmorMvp;\n" +
+                "vec4 arcadiumProject(mat4 m, vec4 p) {\n" +
+                "    precise vec4 result = vec4(0.0);\n" +
+                "    result = fma(m[0], vec4(p.x), result);\n" +
+                "    result = fma(m[1], vec4(p.y), result);\n" +
+                "    result = fma(m[2], vec4(p.z), result);\n" +
+                "    result = fma(m[3], vec4(p.w), result);\n" +
+                "    return result;\n" +
+                "}");
+        source = replaceOnce(source, "gl_Position = gl_ProjectionMatrix * eyePosition;",
+                "int arcadiumMvp = int(aBoxTexture.x) - 1;\n" +
+                "    bool arcadiumMvpValid = uArcadiumModernArmorMvp != 0 && arcadiumMvp >= 0 && arcadiumMvp < uArcadiumModernGlintCount;\n" +
+                "    gl_Position = arcadiumMvpValid ? arcadiumProject(arcadiumGlintMatrices[arcadiumMvp], vec4(aPosition, 1.0)) : gl_ProjectionMatrix * eyePosition;");
         source = replaceOnce(source, "if (uGlintPass >= 0) {", "int arcadiumMatrix = int(-aEffectTime - 1.0);\n" +
                 "    bool arcadiumModern = uGlintPass >= 0 && aEffectTime <= -1.0 && arcadiumMatrix >= 0 && arcadiumMatrix < uArcadiumModernGlintCount;\n" +
                 "    arcadiumModernGlint = arcadiumModern ? 1 : 0;\n" +

@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 final class ModernGlintShaderPatchTest {
-    private static final String VERTEX = "#version 130\nout vec2 vGlintCoord;\nvoid main(){if (uGlintPass >= 0) {originalVanilla();}}";
+    private static final String VERTEX = "#version 130\nout vec2 vGlintCoord;\nvoid main(){gl_Position = gl_ProjectionMatrix * eyePosition;if (uGlintPass >= 0) {originalVanilla();}}";
     private static final String FRAGMENT = "#version 130\nin vec2 vGlintCoord;\nvoid main(){vec4 color=tinted(vTexCoord);if (uGlintPass >= 0 || uItemGlintPass == 1) {originalVanilla();}}";
 
     @Test void vertexKeepsTheNativeNonnegativeBranchAndUsesCapturedModernMatrix() {
@@ -16,6 +16,17 @@ final class ModernGlintShaderPatchTest {
         assertTrue(patched.contains("arcadiumMatrix < uArcadiumModernGlintCount"));
         assertTrue(patched.contains("arcadiumGlintMatrices[arcadiumMatrix] * vec4(baseTexCoord, 0.0, 1.0)"));
         assertTrue(patched.contains("else if (uGlintPass >= 0) {originalVanilla();}"));
+    }
+
+    @Test void privateMvpModePreservesTheNativePositionControlAndUsesOrderedFma() {
+        String patched = ModernGlintShaderPatch.vertex(VERTEX);
+        assertTrue(patched.contains("uArcadiumModernArmorMvp != 0"));
+        assertTrue(patched.contains(": gl_ProjectionMatrix * eyePosition"));
+        assertTrue(patched.contains("int arcadiumMvp = int(aBoxTexture.x) - 1"));
+        assertTrue(patched.indexOf("fma(m[0]") < patched.indexOf("fma(m[1]"));
+        assertTrue(patched.indexOf("fma(m[1]") < patched.indexOf("fma(m[2]"));
+        assertTrue(patched.indexOf("fma(m[2]") < patched.indexOf("fma(m[3]"));
+        assertThrows(IllegalArgumentException.class, () -> ModernGlintShaderPatch.vertex(VERTEX.replace("gl_Position = gl_ProjectionMatrix * eyePosition;", "")));
     }
 
     @Test void fragmentPreservesNativePathsAndUsesOneModernSample() {

@@ -111,8 +111,9 @@ public final class MetalPylonPresentationProbe {
                     require(display.getWindowWidth()==width&&display.getWindowHeight()==height,"SDL resize events did not settle");
                     original.owner.makeCurrent();
                 }
+                display.setVSyncEnabled((frame&1)==0);
                 Map<String,Object> before=geometry(original);before.put("frame",frame);before.put("stage","before-publish");frames.add(before);
-                display.setVSyncEnabled((frame&1)==0);draw(frame);original.owner.swapBuffers();
+                draw(frame);original.owner.swapBuffers();
                 awaitDisplayed(original,frame);original.sameWindow();
                 require(original.swaps==0&&original.owner.submittedFrames()==frame&&original.owner.fallbackFrames()==0,
                         "The current-frame Metal path unexpectedly used OpenGL fallback: "+original.owner.status());
@@ -177,7 +178,29 @@ public final class MetalPylonPresentationProbe {
         value.put("windowBackingScale",Double.longBitsToDouble(original.owner.nativeCounter(20)));
         value.put("parentAttached",original.owner.nativeCounter(21)==1);value.put("windowVisible",original.owner.nativeCounter(22)==1);
         value.put("windowOcclusionVisible",original.owner.nativeCounter(23)==1);
-        value.put("transactionalPresentation",original.owner.nativeCounter(24)==1);return value;
+        value.put("transactionalPresentation",original.owner.nativeCounter(24)==1);
+        String[] names={"childWindowMatches","parentViewId","childSuperviewId","childWindowId","parentLayerId",
+                "childLayerId","childSuperlayerId","childLayerIndexPlusOne","parentLayerChildCount","hiddenAncestor",
+                "childLayerHidden","childLayerOpacity","parentLayerHidden","parentLayerOpacity","layerContentsPresent",
+                "viewWantsUpdateLayer","viewNeedsDisplay","layerDelegateId","presentationLayerId","preparedCglSwapInterval",
+                "layerDisplaySyncEnabled","visibleWidth","visibleHeight","layerNeedsDisplay","viewOpaque",
+                "currentGlViewLayerId","currentGlViewId","currentGlContextMatches"};
+        for(int i=0;i<names.length;i++) {
+            long raw=original.owner.nativeCounter(25+i);
+            switch(i) {
+                case 0,9,10,12,14,15,16,20,23,24,27 -> value.put(names[i],raw!=0);
+                case 11,13,21,22 -> value.put(names[i],Double.longBitsToDouble(raw));
+                default -> value.put(names[i],raw);
+            }
+        }
+        List<Long> ancestors=new ArrayList<>();
+        for(int i=64;i<72;i++)ancestors.add(original.owner.nativeCounter(i));
+        value.put("layerChain",ancestors);
+        try(var stack=org.lwjgl.system.MemoryStack.stackPush()) {
+            var interval=stack.mallocInt(1);require(SDL_GL_GetSwapInterval(interval),"SDL swap interval observation failed");
+            value.put("sdlSwapInterval",interval.get(0));
+        }
+        return value;
     }
     private static void pump() throws Exception { display.processMessages();Thread.sleep(2); }
     private static void draw(int frame) {

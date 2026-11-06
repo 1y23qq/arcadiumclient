@@ -39,6 +39,23 @@ final class ModernGlintMatrices {
         slots[slot] = id; stamps[slot] = epoch; return id;
     }
 
+    int internProjective(float[] matrix) {
+        if (matrix == null || matrix.length != 16) return -1;
+        int hash = 1;
+        for (float value : matrix) { if (!Float.isFinite(value)) return -1; hash = hash * 31 + Float.floatToRawIntBits(value); }
+        int slot = (hash ^ hash >>> 16) & (slots.length - 1);
+        while (stamps[slot] == epoch) {
+            int id = slots[slot], at = id * 16; boolean same = true;
+            for (int i = 0; i < 16; i++) same &= Float.floatToRawIntBits(values[at + i]) == Float.floatToRawIntBits(matrix[i]);
+            if (same) return id;
+            slot = slot + 1 & (slots.length - 1);
+        }
+        if (count == LIMIT) return -1;
+        int id = count++, at = id * 16;
+        if (at + 16 > values.length) values = Arrays.copyOf(values, Math.min(LIMIT * 16, values.length * 2));
+        System.arraycopy(matrix, 0, values, at, 16); slots[slot] = id; stamps[slot] = epoch; return id;
+    }
+
     static float marker(int id) {
         if (id < 0 || id >= LIMIT) throw new IllegalArgumentException("Invalid modern glint matrix");
         return -(id + 1f);

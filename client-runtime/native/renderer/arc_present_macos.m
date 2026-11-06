@@ -355,12 +355,19 @@ int arc_present_destroy(void *value) {
     (void)CFBridgingRelease(value);
     return ARC_PRESENT_OK;
 }
+static uint64_t presentationObjectId(id value) { return (uint64_t)(uintptr_t)(__bridge void *)value; }
+
 uint64_t arc_present_query(void *value, int key) {
     ArcPresentation *p = bridge(value);
     if (!p) return 0;
     if (key >= ARC_PRESENT_PARENT_WIDTH_FP64) {
         if (!mainThread()) return 0;
         NSView *parent = p.window.contentView; CAMetalLayer *layer = (CAMetalLayer *)p.view.layer;
+        if (key >= ARC_PRESENT_LAYER_CHAIN_BASE && key < ARC_PRESENT_LAYER_CHAIN_END) {
+            CALayer *ancestor = layer;
+            for (int i = ARC_PRESENT_LAYER_CHAIN_BASE; ancestor && i < key; i++) ancestor = ancestor.superlayer;
+            return presentationObjectId(ancestor);
+        }
         double number = 0; uint64_t bits;
         switch (key) {
             case ARC_PRESENT_PARENT_WIDTH_FP64: number = parent.bounds.size.width; break;
@@ -377,6 +384,39 @@ uint64_t arc_present_query(void *value, int key) {
             case ARC_PRESENT_WINDOW_VISIBLE: return p.window.isVisible;
             case ARC_PRESENT_WINDOW_OCCLUSION_VISIBLE: return (p.window.occlusionState & NSWindowOcclusionStateVisible) != 0;
             case ARC_PRESENT_WITH_TRANSACTION: return layer.presentsWithTransaction;
+            case ARC_PRESENT_CHILD_WINDOW_MATCH: return p.window && p.view.window == p.window;
+            case ARC_PRESENT_PARENT_VIEW_ID: return presentationObjectId(parent);
+            case ARC_PRESENT_CHILD_SUPERVIEW_ID: return presentationObjectId(p.view.superview);
+            case ARC_PRESENT_CHILD_WINDOW_ID: return presentationObjectId(p.view.window);
+            case ARC_PRESENT_PARENT_LAYER_ID: return presentationObjectId(parent.layer);
+            case ARC_PRESENT_CHILD_LAYER_ID: return presentationObjectId(layer);
+            case ARC_PRESENT_CHILD_SUPERLAYER_ID: return presentationObjectId(layer.superlayer);
+            case ARC_PRESENT_CHILD_LAYER_INDEX: {
+                NSArray<CALayer *> *siblings = parent.layer.sublayers;
+                if (!siblings) return 0;
+                NSUInteger index = [siblings indexOfObjectIdenticalTo:layer];
+                return index == NSNotFound ? 0 : (uint64_t)index + 1;
+            }
+            case ARC_PRESENT_PARENT_LAYER_CHILDREN: return parent.layer.sublayers.count;
+            case ARC_PRESENT_HIDDEN_ANCESTOR: return [p.view isHiddenOrHasHiddenAncestor];
+            case ARC_PRESENT_CHILD_LAYER_HIDDEN: return layer.hidden;
+            case ARC_PRESENT_CHILD_LAYER_OPACITY_FP64: number = layer.opacity; break;
+            case ARC_PRESENT_PARENT_LAYER_HIDDEN: return parent.layer.hidden;
+            case ARC_PRESENT_PARENT_LAYER_OPACITY_FP64: number = parent.layer.opacity; break;
+            case ARC_PRESENT_LAYER_CONTENTS_PRESENT: return layer.contents != nil;
+            case ARC_PRESENT_VIEW_WANTS_UPDATE_LAYER: return p.view.wantsUpdateLayer;
+            case ARC_PRESENT_VIEW_NEEDS_DISPLAY: return p.view.needsDisplay;
+            case ARC_PRESENT_LAYER_DELEGATE_ID: return presentationObjectId(layer.delegate);
+            case ARC_PRESENT_PRESENTATION_LAYER_ID: return presentationObjectId(layer.presentationLayer);
+            case ARC_PRESENT_PREPARED_CGL_SWAP_INTERVAL: return (uint64_t)p.preparedSwapInterval;
+            case ARC_PRESENT_LAYER_DISPLAY_SYNC_ENABLED: return layer.displaySyncEnabled;
+            case ARC_PRESENT_VIEW_VISIBLE_WIDTH_FP64: number = p.view.visibleRect.size.width; break;
+            case ARC_PRESENT_VIEW_VISIBLE_HEIGHT_FP64: number = p.view.visibleRect.size.height; break;
+            case ARC_PRESENT_LAYER_NEEDS_DISPLAY: return layer.needsDisplay;
+            case ARC_PRESENT_VIEW_OPAQUE: return [p.view isOpaque];
+            case ARC_PRESENT_CURRENT_GL_VIEW_LAYER_ID: return presentationObjectId([NSOpenGLContext currentContext].view.layer);
+            case ARC_PRESENT_CURRENT_GL_VIEW_ID: return presentationObjectId([NSOpenGLContext currentContext].view);
+            case ARC_PRESENT_CURRENT_GL_CONTEXT_MATCH: return p->context && CGLGetCurrentContext() == p->context;
             default: return 0;
         }
         memcpy(&bits, &number, sizeof(bits)); return bits;

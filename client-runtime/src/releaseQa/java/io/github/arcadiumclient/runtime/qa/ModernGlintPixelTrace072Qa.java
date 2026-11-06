@@ -211,6 +211,7 @@ public final class ModernGlintPixelTrace072Qa {
         ByteBuffer bytes=readBuffer(buffer,instances*76);List<Object> result=new ArrayList<>();
         for(int instance=0;instance<instances;instance++){
             int[] words=new int[19];for(int i=0;i<words.length;i++)words[i]=bytes.getInt(instance*76+i*4);
+            io.github.arcadiumclient.runtime.client.optimizations.ModernArmorMvp072Qa.actualInstance(program,words);
             float[] matrix=new float[16];matrix[15]=1;for(int col=0;col<4;col++)for(int row=0;row<3;row++)matrix[col*4+row]=Float.intBitsToFloat(words[col*3+row]);
             int glint=GL20.glGetUniformi(program,GL20.glGetUniformLocation(program,"uGlintPass"));
             Map<String,Object> item=new LinkedHashMap<>();item.put("words",words);item.put("modelMatrix",matrix);item.put("nearestCapturedArmor",nearestCapture(matrix,glint>=0));result.add(item);

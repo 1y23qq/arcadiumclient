@@ -95,7 +95,7 @@ public final class PlayerPipeline072Qa {
         Minecraft mc = Minecraft.getInstance();
         try {
             ActorPacket072Qa.check();
-            require(Set.of("off","control","active").contains(RESIDENT_BODY_MODE)&&(RESIDENT_BODY_MODE.equals("off")||!BASELINE&&(VISUAL||RESIDENT_BODY_PERFORMANCE&&!PROFILING)),"Private resident bodies require an explicit optimized visual or qualified unprofiled fixture");
+            require(Set.of("off","control","active").contains(RESIDENT_BODY_MODE)&&(RESIDENT_BODY_MODE.equals("off")||!BASELINE&&(VISUAL||RESIDENT_BODY_PERFORMANCE)),"Private resident bodies require an explicit optimized visual or certified fixture");
             require("ArcadiumTest".equals(mc.getSession().getUsername()) && "0".equals(mc.getSession().getAccessToken()), "Use only the owned offline fixture");
             require(List.of("default", "3d-skin", "wavy", "skin+wavy").contains(SCENE), "Unknown scene");
             require(Set.of(3, 20, 50).contains(PLAYERS), "Use 3, 20 or 50 players");

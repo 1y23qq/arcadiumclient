@@ -147,6 +147,12 @@ public final class ModernArmorAuxiliary {
         geometry.owner.pending++;queuedParts++;
         status="Original armor queued in its owned auxiliary";
     }
+    static boolean ownsProgram(int program) {
+        if (api == null) return false;
+        for (State state : owners.values()) for (Object value : ((Map<?,?>)api.programs.get(state.auxiliary)).values())
+            if (((GlProgram<?>)value).handle() == program) return true;
+        return false;
+    }
     public static boolean isAuxiliaryBackend(Object value){return auxiliaries.containsKey(value);}
     public static void beforeShadows(Object commandList){
         if(owners.isEmpty())return;
