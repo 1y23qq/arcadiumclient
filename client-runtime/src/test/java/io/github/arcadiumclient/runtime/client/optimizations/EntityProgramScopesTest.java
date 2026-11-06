@@ -50,7 +50,7 @@ final class EntityProgramScopesTest {
 
     @Test void boundedNestingAndStaleTokensCannotModifyActiveState() {
         List<String> events = new ArrayList<>();
-        var scopes = new EntityProgramScopes.Stack(adapter("body", events, 0), adapter("modern", events, 0));
+        var scopes = new EntityProgramScopes.Stack(adapter("body", events, 1), adapter("modern", events, 2));
         long[] tokens = new long[16];
         for (int i = 0; i < tokens.length; i++) tokens[i] = scopes.begin(i);
         assertThrows(IllegalStateException.class, () -> scopes.begin(16));
@@ -60,5 +60,29 @@ final class EntityProgramScopesTest {
         assertNotEquals(tokens[0], fresh);
         assertThrows(IllegalStateException.class, () -> scopes.end(tokens[0], 0));
         scopes.end(fresh, 0); scopes.end(0, 0);
+    }
+
+    @Test void unsupportedProgramsDoNotConsumeScopeCapacityOrRestoreUnownedState() {
+        int[] begins = {0}, ends = {0};
+        var unused = new EntityProgramScopes.Adapter() {
+            public int begin(int program) { begins[0]++; return 0; }
+            public void end(int token) { ends[0]++; }
+        };
+        var scopes = new EntityProgramScopes.Stack(unused, unused);
+        for (int i = 0; i < 1024; i++) { assertEquals(0, scopes.begin(i)); scopes.end(0, i); }
+        assertEquals(2048, begins[0]); assertEquals(0, ends[0]);
+    }
+
+    @Test void reentrantAdapterChangesAreRejectedAndTheOuterScopeCanStillRestore() {
+        var holder = new EntityProgramScopes.Stack[1];
+        int[] ended = {0};
+        var body = new EntityProgramScopes.Adapter() {
+            public int begin(int program) { assertThrows(IllegalStateException.class, () -> holder[0].begin(program)); return 1; }
+            public void end(int token) { assertThrows(IllegalStateException.class, () -> holder[0].begin(3)); ended[0]++; }
+        };
+        holder[0] = new EntityProgramScopes.Stack(body, adapter("modern", new ArrayList<>(), 2));
+        long first = holder[0].begin(5); holder[0].end(first, 5);
+        long second = holder[0].begin(6); holder[0].end(second, 6);
+        assertEquals(2, ended[0]);
     }
 }

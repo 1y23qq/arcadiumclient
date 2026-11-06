@@ -376,6 +376,7 @@ jobs:
             build/resident-renderer/${{ matrix.arch }}/*.json
             build/resident-renderer/${{ matrix.arch }}/*.log
             build/resident-renderer/${{ matrix.arch }}/*.xml
+            build/resident-renderer/${{ matrix.arch }}/*.png
             build/resident-renderer/${{ matrix.arch }}-hosted/*.json
             build/resident-renderer/${{ matrix.arch }}-hosted/*.log
             build/resident-renderer/${{ matrix.arch }}-hosted/*.xml

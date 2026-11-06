@@ -59,6 +59,15 @@ def pylon_case_plan() -> list[dict]:
     return [{"ordinal": i + 1, **case} for i, case in enumerate(cases)]
 
 
+def scene_handoff_plan() -> list[dict]:
+    return [{"cohort": cohort, "libraryRole": role, "freshJvm": True,
+             "sceneSizes": [[192, 128], [224, 160], [208, 144]], "resizeCount": 2,
+             "legacyGlSourceControl": True, "actualDisplayedDeadlineNanoseconds": 5_000_000_000,
+             "actualDrawableReadback": cohort == "pixels", "readbackIsDisplayedEvidence": False,
+             "pacing": 1, "pumpStyle": "sdl-poll-sleep2", "performanceClaim": False}
+            for cohort, role in (("ticket", "production"), ("pixels", "instrumented-test-only"))]
+
+
 def main() -> None:
     source = Path(__file__).resolve().parent
     root = source.parents[2]
@@ -93,8 +102,10 @@ def main() -> None:
             raise RuntimeError(f"{name} failed with exit code {result.returncode}; inspect {output / name}")
         return result.returncode
 
+    presentation_testing = sys.platform == "darwin" and pylon is not None and skiko is not None
     configure = ["cmake", "-S", str(source), "-B", str(output / "native"),
-                 "-DARC_PRESENT_HOSTED_EXPERIMENT=" + ("ON" if arguments.hosted_layer_experiment else "OFF")]
+                 "-DARC_PRESENT_HOSTED_EXPERIMENT=" + ("ON" if arguments.hosted_layer_experiment else "OFF"),
+                 "-DARC_BUILD_PRESENTATION_TESTING=" + ("ON" if presentation_testing else "OFF")]
     if sys.platform == "darwin":
         configure += ["-DCMAKE_BUILD_TYPE=Release", "-DCMAKE_OSX_ARCHITECTURES=" + ("arm64" if arguments.arch == "arm64" else "x86_64"),
                       "-DCMAKE_OSX_DEPLOYMENT_TARGET=" + ("13.0" if arguments.arch == "arm64" else "12.0")]
@@ -177,12 +188,51 @@ def main() -> None:
             result = json.loads(result_path.read_text()) if result_path.exists() else {}
             skiko_status = "passed" if process["passed"] and result.get("passed") is True and result.get("actualMetalDirectContext") is True else "failed"
     pylon_status = "not-requested"
+    handoff_status = "not-requested"
     if pylon is not None:
         pylon_output = output / "pylon-java"
         pylon_sources = [java_source / name for name in ("ResidentSceneBackend.java", "PassSceneBackend.java", "ScenePasses.java", "MetalDeviceLease.java", "MetalSceneTicket.java", "SceneBufferChecks.java",
                          "MetalResidentSceneBackend.java", "MetalPresentationCalls.java", "MetalPresentFrame.java", "MetalCompositeSurface.java")]
         pylon_sources.append(source / "tests/pylon/MetalPylonPresentationProbe.java")
         run([javac, "-cp", pylon["path"], "-d", str(pylon_output), *map(str, pylon_sources)], "java-pylon-compile.log")
+        if skiko is not None:
+            handoff_classes = output / "scene-handoff-java"
+            handoff_cp = os.pathsep.join([str(pylon_output), pylon["path"], *map(str, sorted(skiko_directory.glob("*.jar")))])
+            run([javac, "-cp", handoff_cp, "-d", str(handoff_classes), str(source / "tests/skiko/MetalSceneHandoffProbe.java")], "java-scene-handoff-compile.log")
+            handoff_status = "compiled-not-applicable"
+            if sys.platform == "darwin" and probe_code == 0:
+                readback_libraries = list((output / "native").rglob("*arcadium_renderer_metal_readback_qa" + suffix))
+                if len(readback_libraries) != 1:
+                    raise RuntimeError("Expected exactly one separate instrumented presentation library")
+                plan = scene_handoff_plan()
+                (output / "java-scene-handoff-plan.json").write_text(json.dumps({"cohorts": plan,
+                    "oldPylonControlsRetained": len(pylon_case_plan()), "freshJvmPerDylib": True,
+                    "crossDylibHandlesPermitted": False, "minecraftWorldOrCeraQualified": False}, indent=2) + "\n")
+                outcomes = []
+                for planned in plan:
+                    cohort = planned["cohort"]
+                    selected_library = library if cohort == "ticket" else readback_libraries[0]
+                    fixture = output / ("scene-handoff-" + cohort)
+                    result_path = output / f"java-scene-handoff-{cohort}-result.json"
+                    properties = {"user.home": str(fixture / "home"), "java.io.tmpdir": str(fixture / "tmp"), "java.awt.headless": "true",
+                        "skiko.gc.auto": "false", "skiko.rendering.useScreenMenuBar": "false", "skiko.rendering.laf.global": "false",
+                        "http.proxyHost": "127.0.0.1", "http.proxyPort": "9", "https.proxyHost": "127.0.0.1", "https.proxyPort": "9",
+                        "socksProxyHost": "127.0.0.1", "socksProxyPort": "9"}
+                    command = [java, "-XstartOnFirstThread", "--enable-native-access=ALL-UNNAMED", *["-D" + k + "=" + v for k, v in properties.items()],
+                        "-cp", os.pathsep.join([str(handoff_classes), handoff_cp]),
+                        "io.github.arcadiumclient.runtime.client.optimizations.backend.MetalSceneHandoffProbe",
+                        str(selected_library), hashlib.sha256(selected_library.read_bytes()).hexdigest(), str(source / "tests/reference_passes.metal"),
+                        str(skiko_directory / "Poppins-Regular.ttf"), str(result_path), cohort]
+                    process = run_owned(command, fixture, output / f"java-scene-handoff-{cohort}.log", output / f"java-scene-handoff-{cohort}-process.json")
+                    result = json.loads(result_path.read_text()) if result_path.is_file() else {}
+                    outcomes.append({**planned, "passed": process["passed"] and result.get("passed") is True,
+                        "nativeLibrarySha256": hashlib.sha256(selected_library.read_bytes()).hexdigest(),
+                        "processPassed": process["passed"], "resultPresent": result_path.is_file(),
+                        "actualDisplayedFailures": result.get("displayFailures"), "resultFailure": result.get("failure")})
+                handoff_status = "passed" if all(case["passed"] for case in outcomes) else "failed"
+                (output / "java-scene-handoff-suite-result.json").write_text(json.dumps({"passed": handoff_status == "passed",
+                    "cohorts": outcomes, "freshJvmPerDylib": True, "displayedNeverSubstitutedByPixelsOrCompleted": True,
+                    "minecraftWorldOrCeraQualified": False, "clientUiSelected": False, "performanceClaim": False}, indent=2) + "\n")
         if sys.platform == "darwin" and probe_code == 0:
             outcomes = []
             cases = pylon_case_plan()
@@ -202,12 +252,10 @@ def main() -> None:
             suite = {"passed": all(result["passed"] for result in outcomes), "freshJvmPerCase": True,
                      "currentDisplayedGateUnchanged": True, "cases": outcomes}
             (output / "java-pylon-suite-result.json").write_text(json.dumps(suite, indent=2) + "\n", encoding="utf-8")
-            if not suite["passed"]:
-                raise RuntimeError("The actual Pylon SDL/Metal surface suite did not pass; all independent case results were preserved")
-            pylon_status = "passed"
+            pylon_status = "passed" if suite["passed"] else "failed"
         else:
             pylon_status = "skipped-no-device" if sys.platform == "darwin" else "compiled-not-applicable"
-    report = {"passed": ctest_code == 0 and below_code in (None, 0, 77) and skiko_status != "failed", "platform": sys.platform, "architecture": arguments.arch,
+    report = {"passed": ctest_code == 0 and below_code in (None, 0, 77) and skiko_status != "failed" and pylon_status != "failed" and handoff_status != "failed", "platform": sys.platform, "architecture": arguments.arch,
               "orderedPassNativeProof": json.loads(pass_result.read_text()) if pass_result.is_file() else None,
               "metalLifetimeNativeProof": json.loads(lease_result.read_text()) if lease_result.is_file() else None,
               "actualSkikoMetalLeaseSmoke": skiko_status, "skikoInputSha256": skiko["sha256"] if skiko else None,
@@ -220,6 +268,8 @@ def main() -> None:
               "nativeWindowPresentation": presentation_status, "presentationPixelReadbackVariant": presentation is not None,
               "unsupportedPresentationFfiProbe": presentation_probe,
               "pylonInput": pylon, "javaSdlMetalSurface": pylon_status,
+              "actualSceneTextureHandoff": handoff_status,
+              "presentationTestingLibraryRequested": presentation_testing,
               "minecraftOrSkikoOrCeraIntegrated": False,
               "nativeLibrary": str(library), "commands": commands}
     (output / "verification.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
@@ -228,6 +278,8 @@ def main() -> None:
         raise RuntimeError("Native presentation DISPLAYED gate failed; independent probe results are preserved, not accepted as a suite pass")
     if skiko_status == "failed":
         raise RuntimeError("The actual pinned Skiko Metal lease smoke failed; preserve the owned terminal receipt")
+    if pylon_status == "failed" or handoff_status == "failed":
+        raise RuntimeError("Actual current-ticket presentation failed; all independent cohorts and original controls were preserved")
 
 
 if __name__ == "__main__":

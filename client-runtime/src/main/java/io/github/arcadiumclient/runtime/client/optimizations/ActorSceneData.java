@@ -6,11 +6,17 @@ import java.util.Arrays;
 import org.joml.Matrix4fc;
 
 final class ActorSceneData {
-    static final int TICK_WORDS=16,FRAME_WORDS=27,MAX_GPU_ID=0xffffff,MAX_ROWS=8192;
+    static final int TICK_WORDS=16,FRAME_WORDS=28,MAX_FRAME_WORDS=33,MAX_GPU_ID=0xffffff,MAX_ROWS=8192;
+    private static final float SCALAR_RISK=0x1p-102f,YAW_RISK=0x1p-78f,RARE_DELTA=0x1p-24f;
     static final class Tick {
         final long handle,tick,revision;
+        final int arithmeticMask,constantSpeedBits;
+        final boolean constantSpeed;
         private final float[] words;
-        Tick(long handle,long tick,long revision,float[] source){this.handle=handle;this.tick=tick;this.revision=revision;words=source.clone();}
+        Tick(long handle,long tick,long revision,float[] source){
+            this.handle=handle;this.tick=tick;this.revision=revision;words=source.clone();arithmeticMask=riskMask(words);
+            constantSpeed=words[8]>0&&Float.floatToRawIntBits(words[7])==Float.floatToRawIntBits(words[8]);constantSpeedBits=Float.floatToRawIntBits(Math.min(1,words[8]));
+        }
         float word(int index){return words[index];}
         void copy(FloatBuffer target){target.put(words);}
         boolean same(float[] source){for(int i=0;i<TICK_WORDS;i++)if(Float.floatToRawIntBits(words[i])!=Float.floatToRawIntBits(source[i]))return false;return true;}
@@ -23,7 +29,7 @@ final class ActorSceneData {
         Tick tick(int job){check();return source.rowTicks[job];}
         int slot(int job){check();return source.rowSlots[job];}
         long batch(){check();return source.batch;}
-        void input(int job,FloatBuffer target){check();source.input(job,target);}
+        int input(int job,FloatBuffer target,int payloadOffset){check();return source.input(job,target,payloadOffset);}
         void cpu(int job,FloatBuffer target,int offset){check();source.cpu(job,target,offset);}
     }
     private final Thread owner=Thread.currentThread();
@@ -36,7 +42,8 @@ final class ActorSceneData {
     private long revision,batch,epoch,generation;
     private int used;
     private Batch sealed;
-    long tickWrites,tickReuses,frameCaptures,poseMismatches,materialChanges,gpuOnlyCaptures,cpuInterpolationRows,captureValidationRows,sealedViews;
+    long tickWrites,tickReuses,frameCaptures,poseMismatches,materialChanges,gpuOnlyCaptures,cpuInterpolationRows,captureValidationRows,sealedViews,
+            overrideRows,overrideWords,constantOverrideWords,reusedOverrideWords,overrideInterpolationWords;
     static final int PER_ACTOR_FRAME_ARRAY_ALLOCATIONS=0,PER_ACTOR_FRAME_OBJECT_ALLOCATIONS=0;
     ActorSceneData(int capacity){
         if(capacity<1||capacity>8192)throw new IllegalArgumentException("Invalid actor scene capacity");
@@ -87,6 +94,17 @@ final class ActorSceneData {
     private static float yaw(Tick t,float d){return angle(t.word(2),t.word(3),d)-angle(t.word(0),t.word(1),d);}
     private static float pitch(Tick t,float d){return t.word(4)+(t.word(5)-t.word(4))*d;}
     private static boolean same(float a,float b){return Float.floatToRawIntBits(a)==Float.floatToRawIntBits(b);}
+    private static boolean risk(float value,float threshold){return !Float.isFinite(value)||Float.floatToRawIntBits(value)==0x80000000||(value!=0&&Math.abs(value)<threshold);}
+    private static int riskMask(float[] t){
+        int mask=0;float walkEnd=t[6]-t[7],speedDifference=t[7]-t[8],pitchDifference=t[5]-t[4];
+        if(risk(t[6],SCALAR_RISK)||risk(t[7],SCALAR_RISK)||risk(walkEnd,SCALAR_RISK))mask|=1;
+        if(Math.abs(t[6])>=Float.MIN_NORMAL&&same(walkEnd,t[6]))mask&=~1;
+        if(risk(t[7],SCALAR_RISK)||risk(t[8],SCALAR_RISK)||risk(speedDifference,SCALAR_RISK))mask|=2;
+        if(risk(t[9],SCALAR_RISK))mask|=4;
+        if(risk(t[0],YAW_RISK)||risk(t[1],YAW_RISK)||risk(t[2],YAW_RISK)||risk(t[3],YAW_RISK)||risk(t[1]-t[0],YAW_RISK)||risk(t[3]-t[2],YAW_RISK)||risk(t[2]-t[0],YAW_RISK)||risk(t[3]-t[1],YAW_RISK))mask|=8;
+        if(risk(t[4],SCALAR_RISK)||risk(t[5],SCALAR_RISK)||risk(pitchDifference,SCALAR_RISK))mask|=16;
+        return mask;
+    }
     boolean present(int job){return job>=0&&job<used&&present[job];}
     boolean active(int job){return present(job)&&!discarded[job];}
     boolean gpuReady(int job){return active(job)&&materials[job]>0;}
@@ -100,11 +118,25 @@ final class ActorSceneData {
         if(!present(job))throw new IllegalArgumentException("Missing actor arena row");for(int i=0;i<32;i++)target.put(offset+i,words[job*32+i]);
         if(!exact[job]){Tick tick=rowTicks[job];float delta=rowPartial[job];target.put(offset+16,walk(tick,delta)).put(offset+17,speed(tick,delta)).put(offset+18,age(tick,delta)).put(offset+19,yaw(tick,delta)).put(offset+20,pitch(tick,delta));cpuInterpolationRows++;}
     }
-    private void input(int job,FloatBuffer target){
-        if(!present(job))throw new IllegalArgumentException("Missing actor arena input");int offset=job*32;
+    private int input(int job,FloatBuffer target,int payloadOffset){
+        if(!present(job))throw new IllegalArgumentException("Missing actor arena input");int offset=job*32;Tick tick=rowTicks[job];float delta=rowPartial[job];int mask=tick.arithmeticMask;
+        if(Float.floatToRawIntBits(delta)==0x80000000)mask|=31;else if(delta>0&&delta<RARE_DELTA)mask|=30;
+        int count=Integer.bitCount(mask);
+        if(payloadOffset<target.position()+FRAME_WORDS||payloadOffset>MAX_ROWS*MAX_FRAME_WORDS||payloadOffset>target.limit()-count)throw new IllegalArgumentException("Actor override payload exceeds the sealed frame arena");
         target.put(words,offset,16).put(rowPartial[job]).put(rowSlots[job]).put(job).put(materials[job]).put(words[offset+27]);
         int flags=(words[offset+22]!=0?1:0)|(words[offset+23]!=0?2:0)|(words[offset+26]!=0?4:0)|((int)words[offset+28]<<3);
-        target.put(flags).put((int)words[offset+24]|((int)words[offset+25]<<8)).put((float)rowHandles[job]).put(words[offset+30]).put(words[offset+31]).put(words[offset+21]);
+        target.put(flags).put((int)words[offset+24]|((int)words[offset+25]<<8)).put((float)rowHandles[job]).put(words[offset+30]).put(words[offset+31]).put(words[offset+21]).put(Float.intBitsToFloat(mask==0?0:(payloadOffset<<5)|mask));
+        if(mask!=0){
+            overrideRows++;overrideWords+=count;
+            for(int word=0;word<5;word++)if((mask&(1<<word))!=0){
+                float value;
+                if(exact[job]){value=words[offset+16+word];reusedOverrideWords++;}
+                else if(word==1&&tick.constantSpeed){value=Float.intBitsToFloat(tick.constantSpeedBits);constantOverrideWords++;}
+                else{value=switch(word){case 0->walk(tick,delta);case 1->speed(tick,delta);case 2->age(tick,delta);case 3->yaw(tick,delta);default->pitch(tick,delta);};overrideInterpolationWords++;}
+                target.put(payloadOffset++,value);
+            }
+        }
+        return payloadOffset;
     }
     boolean material(int job,int id){if(!active(job)||id<0)return false;if(materials[job]==id)return true;if(sealed!=null)return false;materials[job]=id;materialChanges++;return true;}
     boolean variant(int source,int target,int template){

@@ -12,7 +12,7 @@ class ActorSceneDataTest {
     @Test void sealedNativeEndpointsFeedExactFramePacketAndSeparateGpuInput(){
         var data=new ActorSceneData(4);data.begin(1);observe(data,20);assertTrue(capture(data,0));assertFalse(data.gpuReady(0));assertTrue(data.material(0,9));var batch=data.seal();
         var words=FloatBuffer.allocate(32);batch.cpu(0,words,0);assertEquals(3,words.get(12));assertEquals(6,words.get(16));assertEquals(-360,words.get(19));assertEquals(-1,words.get(29));assertEquals(0,words.get(30));
-        var input=FloatBuffer.allocate(27);batch.input(0,input);assertEquals(27,input.position());assertEquals(.5f,input.get(16));assertEquals(0,input.get(17));assertEquals(0,input.get(18));assertEquals(9,input.get(19));assertEquals(192,input.get(20));assertEquals(1|2|5<<3,input.get(21));assertEquals(1|(3<<8),input.get(22));
+        var input=FloatBuffer.allocate(ActorSceneData.MAX_FRAME_WORDS);batch.input(0,input,ActorSceneData.FRAME_WORDS);assertEquals(28,input.position());assertEquals(.5f,input.get(16));assertEquals(0,input.get(17));assertEquals(0,input.get(18));assertEquals(9,input.get(19));assertEquals(192,input.get(20));assertEquals(1|2|5<<3,input.get(21));assertEquals(1|(3<<8),input.get(22));
     }
     @Test void tickReuseAndSameTickMutationPublishImmutableHistoryOnlyWhenNecessary(){
         var data=new ActorSceneData(2);data.begin(4);observe(data,20);var first=data.current(0);observe(data,20);assertSame(first,data.current(0));
@@ -20,7 +20,7 @@ class ActorSceneDataTest {
     }
     @Test void gpuOnlyCapturePerformsNoCpuPoseInterpolationUntilExactRecoveryIsRequested(){
         var data=new ActorSceneData(2);data.begin(1);observe(data,20);assertTrue(data.captureGpuOnly(0,7,0,new Matrix4f().translation(3,4,5),.1234f,1,3,true,false,true,192,5,-0.0f,1.25f));assertTrue(data.material(0,1));var batch=data.seal();
-        var input=FloatBuffer.allocate(27);batch.input(0,input);assertEquals(.1234f,input.get(26));assertEquals(0,data.captureValidationRows);assertEquals(0,data.cpuInterpolationRows);
+        var input=FloatBuffer.allocate(ActorSceneData.MAX_FRAME_WORDS);batch.input(0,input,ActorSceneData.FRAME_WORDS);assertEquals(.1234f,input.get(26));assertEquals(0,data.captureValidationRows);assertEquals(0,data.cpuInterpolationRows);
         var exact=FloatBuffer.allocate(32);batch.cpu(0,exact,0);assertEquals(1,data.cpuInterpolationRows);assertEquals(6,exact.get(16));assertEquals(1,exact.get(17));assertEquals(20.5f,exact.get(18));assertEquals(-360,exact.get(19));assertEquals(20,exact.get(20));assertEquals(.1234f,exact.get(21));
         assertEquals(Float.floatToRawIntBits(-0.0f),Float.floatToRawIntBits(exact.get(30)));assertEquals(1.25f,exact.get(31));
     }
@@ -44,10 +44,10 @@ class ActorSceneDataTest {
     }
     @Test void sealedContentsCannotBeChangedByLateCaptureMaterialOrVariant(){
         var data=new ActorSceneData(2);data.begin(1);observe(data,20);capture(data,0);data.material(0,8);var batch=data.seal();assertFalse(capture(data,0));assertFalse(data.material(0,0));assertFalse(data.variant(0,1,384));
-        data.discard(0);assertFalse(data.active(0));var input=FloatBuffer.allocate(27);batch.input(0,input);assertEquals(8,input.get(19));
+        data.discard(0);assertFalse(data.active(0));var input=FloatBuffer.allocate(ActorSceneData.MAX_FRAME_WORDS);batch.input(0,input,ActorSceneData.FRAME_WORDS);assertEquals(8,input.get(19));
     }
     @Test void expiredBatchViewsRefuseToReadReusedArenaMemory(){
-        var data=new ActorSceneData(2);data.begin(1);observe(data,20);capture(data,0);var batch=data.seal();data.begin(2);assertThrows(IllegalStateException.class,()->batch.cpu(0,FloatBuffer.allocate(32),0));assertThrows(IllegalStateException.class,()->batch.input(0,FloatBuffer.allocate(27)));
+        var data=new ActorSceneData(2);data.begin(1);observe(data,20);capture(data,0);var batch=data.seal();data.begin(2);assertThrows(IllegalStateException.class,()->batch.cpu(0,FloatBuffer.allocate(32),0));assertThrows(IllegalStateException.class,()->batch.input(0,FloatBuffer.allocate(ActorSceneData.MAX_FRAME_WORDS),ActorSceneData.FRAME_WORDS));
     }
     @Test void reservedWordsAndSignedZeroKeepTheNativeAbi(){
         var data=new ActorSceneData(2);data.begin(1);assertTrue(data.observe(0,1,2,.5f,0,0,0,0,0,0,-0.0f,0,0,0,0));assertTrue(data.capture(0,1,0,new Matrix4f(),-0.0f,0,2.5f,0,0,0,0,0,false,false,false,0,0,-0.0f,1.25f));
@@ -60,5 +60,41 @@ class ActorSceneDataTest {
         int actors=128,batches=100;var data=new ActorSceneData(actors);var root=new Matrix4f();
         for(int batch=1;batch<=batches;batch++){data.begin(batch);for(int actor=0;actor<actors;actor++){assertTrue(data.observe(actor,actor+1,20,.5f,0,0,0,0,0,0,0,0,0,0,0));assertTrue(data.captureGpuOnly(actor,actor+1,actor,root,0,0,0,false,false,false,0,0,0,0));assertTrue(data.material(actor,1));}var view=data.seal();assertSame(view,data.seal());}
         assertEquals(actors*batches,data.gpuOnlyCaptures);assertEquals(actors,data.tickWrites);assertEquals(0,data.cpuInterpolationRows);assertEquals(0,data.captureValidationRows);assertEquals(batches,data.sealedViews);assertEquals(0,ActorSceneData.PER_ACTOR_FRAME_ARRAY_ALLOCATIONS);assertEquals(0,ActorSceneData.PER_ACTOR_FRAME_OBJECT_ALLOCATIONS);
+    }
+    private static ActorSceneData sparse(float partial,float oldPitch,float pitch,float walk,float speed,float oldSpeed){
+        var data=new ActorSceneData(1);data.begin(1);assertTrue(data.observe(0,1,100,partial,10,20,30,40,oldPitch,pitch,walk,speed,oldSpeed,0,0));assertTrue(data.captureGpuOnly(0,1,0,new Matrix4f().m01(-0f).m30(Float.MIN_VALUE),.25f,0,0,false,false,false,0,0,-0f,1));assertTrue(data.material(0,1));return data;
+    }
+    private static int descriptor(FloatBuffer input){return Float.floatToRawIntBits(input.get(27));}
+    @Test void ordinaryFramesHaveOneDescriptorAndNoCpuInterpolationOrSparseTail(){
+        var data=sparse(.5f,10,20,10,.25f,.2f);var input=FloatBuffer.allocate(33);int end=data.seal().input(0,input,28);
+        assertEquals(28,end);assertEquals(28,input.position());assertEquals(0,descriptor(input));assertEquals(0,data.overrideRows);assertEquals(0,data.overrideInterpolationWords);assertEquals(0,data.cpuInterpolationRows);assertEquals(0x80000000,Float.floatToRawIntBits(input.get(1)));assertEquals(1,Float.floatToRawIntBits(input.get(12)));
+    }
+    @Test void actualFtzPitchFailureGetsAnExactRawWordWithoutFullPoseRecovery(){
+        var data=sparse(Float.MIN_VALUE,-0f,57,10,.25f,.2f);var input=FloatBuffer.allocate(33);int end=data.seal().input(0,input,28);int header=descriptor(input),mask=header&31;
+        assertEquals(30,mask);assertEquals(28,header>>>5);assertEquals(32,end);assertEquals(0x39,Float.floatToRawIntBits(input.get(end-1)));assertEquals(4,data.overrideWords);assertEquals(4,data.overrideInterpolationWords);assertEquals(0,data.cpuInterpolationRows);assertTrue(data.gpuReady(0));
+    }
+    @Test void idleMinimumLimbSpeedUsesOneTickCachedWordAndKeepsTheActorGpuEligible(){
+        var data=sparse(.5f,10,20,10,Float.MIN_VALUE,Float.MIN_VALUE);var input=FloatBuffer.allocate(33);int end=data.seal().input(0,input,28);
+        assertEquals(2,descriptor(input)&31);assertEquals(29,end);assertEquals(1,Float.floatToRawIntBits(input.get(28)));assertEquals(1,data.constantOverrideWords);assertEquals(0,data.overrideInterpolationWords);assertEquals(0,data.cpuInterpolationRows);assertTrue(data.gpuReady(0));
+    }
+    @Test void zeroWalkAndMinimumSpeedOnlyInterpolateTheAffectedWalkWord(){
+        var data=sparse(.25f,10,20,0,Float.MIN_VALUE,Float.MIN_VALUE);var input=FloatBuffer.allocate(33);int end=data.seal().input(0,input,28);
+        assertEquals(3,descriptor(input)&31);assertEquals(30,end);assertEquals(0x80000001,Float.floatToRawIntBits(input.get(28)));assertEquals(1,Float.floatToRawIntBits(input.get(29)));assertEquals(1,data.constantOverrideWords);assertEquals(1,data.overrideInterpolationWords);assertEquals(0,data.cpuInterpolationRows);
+    }
+    @Test void negativeZeroPartialRetainsExactSignedResultsThroughRawOverrides(){
+        var data=sparse(-0f,-0f,57,0,0,0);var input=FloatBuffer.allocate(33);var batch=data.seal();assertEquals(33,batch.input(0,input,28));assertEquals(31,descriptor(input)&31);var expected=FloatBuffer.allocate(32);batch.cpu(0,expected,0);
+        for(int word=0;word<5;word++)assertEquals(Float.floatToRawIntBits(expected.get(16+word)),Float.floatToRawIntBits(input.get(28+word)));
+    }
+    @Test void sparsePayloadBoundsAreCheckedBeforeWritingTheFrame(){
+        var data=sparse(.5f,10,20,10,Float.MIN_VALUE,Float.MIN_VALUE);var batch=data.seal();var shortInput=FloatBuffer.allocate(28);assertThrows(IllegalArgumentException.class,()->batch.input(0,shortInput,28));assertEquals(0,shortInput.position());assertEquals(0,data.overrideWords);
+        var overlap=FloatBuffer.allocate(33);assertThrows(IllegalArgumentException.class,()->batch.input(0,overlap,27));assertEquals(0,overlap.position());
+    }
+    @Test void largestSparseOffsetKeepsItsRawDescriptorAndStaysInsideTheFixedBudget(){
+        var data=sparse(-0f,10,20,10,.25f,.2f);int end=ActorSceneData.MAX_ROWS*ActorSceneData.MAX_FRAME_WORDS;var input=FloatBuffer.allocate(end);int actual=data.seal().input(0,input,end-5);
+        assertEquals(end,actual);assertEquals(((end-5)<<5)|31,descriptor(input));assertEquals(5_865_472,ActorSceneGpu.MAX_BYTES);
+    }
+    @Test void nativePreparedPoseWordsAreReusedInsteadOfBeingComputedAgainForOverrides(){
+        var data=new ActorSceneData(1);data.begin(1);assertTrue(data.observe(0,1,100,Float.MIN_VALUE,0,0,0,0,-0f,57,10,.25f,.2f,0,0));float pitch=-0f+57*Float.MIN_VALUE;assertTrue(data.capture(0,1,0,new Matrix4f(),9.75f,.2f,100,0,pitch,.25f,0,0,false,false,false,0,0));var input=FloatBuffer.allocate(33);data.seal().input(0,input,28);
+        assertEquals(0,data.overrideInterpolationWords);assertEquals(4,data.reusedOverrideWords);assertEquals(0x39,Float.floatToRawIntBits(input.get(31)));
     }
 }

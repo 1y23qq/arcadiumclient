@@ -41,7 +41,7 @@ public final class GpuPlayerPackets {
     }
     public static boolean actorSceneEnabled(){return ACTOR_SCENE;}
     public static boolean actorSceneReady(){return ACTOR_SCENE&&ActorSceneGpu.supported();}
-    public static String actorSceneStatus(){return !ACTOR_SCENE?"Actor tick/frame scene: Private prototype off":"Actor tick/frame scene: Resolved/streamed "+ActorSceneGpu.resolvedActorRows+"/"+(ActorSceneGpu.streamRows+actorSceneStreamRows)+" | Tick uploads "+ActorSceneGpu.tickUploads+" | GPU-only/lazyCPU "+scene.gpuOnlyCaptures+"/"+scene.cpuInterpolationRows+" | Pose/material fallback "+scene.poseMismatches+"/"+materials.fallbacks+" | Resolver failures "+ActorSceneGpu.failures+" | Context epoch/refusal "+ActorSceneGpu.contextEpoch()+"/"+ActorSceneGpu.contextRefusals+" | GPU bytes "+ActorSceneGpu.bytes();}
+    public static String actorSceneStatus(){return !ACTOR_SCENE?"Actor tick/frame scene: Private prototype off":"Actor tick/frame scene: Resolved/streamed "+ActorSceneGpu.resolvedActorRows+"/"+(ActorSceneGpu.streamRows+actorSceneStreamRows)+" | Tick uploads "+ActorSceneGpu.tickUploads+" | GPU-only/lazyCPU "+scene.gpuOnlyCaptures+"/"+scene.cpuInterpolationRows+" | Sparse words/cached/interpolated "+scene.overrideWords+"/"+scene.constantOverrideWords+"/"+scene.overrideInterpolationWords+" | Pose/material fallback "+scene.poseMismatches+"/"+materials.fallbacks+" | Resolver failures "+ActorSceneGpu.failures+" | Context epoch/refusal "+ActorSceneGpu.contextEpoch()+"/"+ActorSceneGpu.contextRefusals+" | GPU bytes "+ActorSceneGpu.bytes();}
     public static int count(){return playerCount;}
     public static long playerRevision(){return playerRevision;}
     public static long poseRevision(){return poseRevision;}

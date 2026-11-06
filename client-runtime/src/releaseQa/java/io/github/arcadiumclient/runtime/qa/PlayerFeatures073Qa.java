@@ -32,6 +32,9 @@ public final class PlayerFeatures073Qa {
     private static final String VARIANT=System.getProperty("arcadium.playerFeatures073.variant","core");
     private static final boolean HELD=VARIANT.equals("held");
     private static final String HELD_PROFILE=System.getProperty("arcadium.playerFeatures073.heldProfile","vanilla");
+    private static final String ANIMATION_CONTROLS=System.getProperty("arcadium.playerFeatures073.animationControls","default");
+    private static final boolean RAVEN=Boolean.getBoolean("arcadium.playerFeatures073.raven");
+    private static final boolean LEGACY_TOGGLE=Boolean.getBoolean("arcadium.playerFeatures073.legacyPositionToggle");
     private static final boolean STONE=Boolean.getBoolean("arcadium.playerFeatures073.stone");
     private static final Identifier SELF_SKIN=new Identifier("arcadium_qa","textures/entity/p3_self.png"),OTHER_SKIN=new Identifier("arcadium_qa","textures/entity/p3_other.png");
     private static final String[] COUNTERS={"GpuPlayerPipeline.playersDrawn","NativePlayerPosePipeline.bodyPartsQueued","NativePlayerPosePipeline.armorPartsQueued","GpuEquipmentPipeline.partsQueued","GpuVoxelSkinPipeline.analyticParts","GpuVoxelSkinPipeline.nativeParts","GpuModelTransforms.dispatches","GpuModelTransforms.offloadedParts","GpuResidentBodies.actorsDrawn","ModernArmorGlintPipeline.layersSupported","ModernArmorGlintPipeline.glintParts","NametagLayout.scopesReused"};
@@ -58,8 +61,13 @@ public final class PlayerFeatures073Qa {
     private static boolean oldWavy,oldBlocking,oldNick,oldCape,oldSkin,oldAnimations;
     private static int oldAnimationMode;
     private static String oldNickname,oldRules,oldPreset;
+    private static final Map<String,Object> originalItemControls=new LinkedHashMap<>();
+    private static final List<String> ITEM_CONTROLS=List.of("itemPositions","itemPositionsInThirdPerson","lunarItemPositions","lunarBlockHitPosition","applyCustomizationToBlockItems","itemOffsetX","itemOffsetY","itemOffsetZ","itemScaleX","itemScaleY","itemScaleZ","itemRotationX","itemRotationY","itemRotationZ");
+    private static float oldBadlionScaleX,oldBadlionScaleY,oldBadlionScaleZ;
     private static BufferedImage firstCape,firstNames;
     private static long currentLayerCalls;
+    private static final FovConvergence fovConvergence=new FovConvergence();
+    private static Map<?,?> referenceReport;
     private PlayerFeatures073Qa(){}
     public static boolean enabled(){return System.getProperty("arcadium.playerFeatures073.output")!=null;}
     private static String[] cases(){return HELD?(STONE?HELD_WITH_STONE:HELD_CASES):FORGE?FORGE_CASES:VARIANT.equals("modern")?MODERN:CORE;}
@@ -72,12 +80,16 @@ public final class PlayerFeatures073Qa {
             if(phase==0&&wait>60&&mc.screen!=null&&mc.screen.getClass().getSimpleName().contains("MainMenu")){
                 require("ArcadiumTest".equals(mc.getSession().getUsername())&&"0".equals(mc.getSession().getAccessToken())&&mc.getCurrentServerEntry()==null,"Use only the owned offline fake account");
                 require(List.of("core","modern","held").contains(VARIANT)&&List.of("vanilla","animations","all").contains(HELD_PROFILE),"Unknown player feature variant/profile");
+                require(List.of("default","overflow-custom","badlion-custom").contains(ANIMATION_CONTROLS)&&(ANIMATION_CONTROLS.equals("default")||HELD&&!HELD_PROFILE.equals("vanilla")),"Nondefault controls require an explicit enabled held-animation profile");
+                require(!RAVEN||FORGE&&HELD,"Raven is restricted to the owned actual Forge held fixture");
+                require(!LEGACY_TOGGLE||HELD&&ANIMATION_CONTROLS.equals("overflow-custom"),"Legacy position toggle requires explicit fake held Overflow controls");
                 require(List.of("off","readonly","pack").contains(PlayerFeatures073QuadEvidence.mode()),"Unknown quad observation mode");
                 require(!CONTROL||REFERENCE==null,"A public control cannot consume another reference");
-                if(!CONTROL){require(REFERENCE!=null,"Candidate requires the matching successful public072 reference");var baseline=read(Path.of(REFERENCE).resolve("result.json"));var run=read(Path.of(REFERENCE).resolve("run.json"));require(Boolean.TRUE.equals(baseline.get("passed"))&&Boolean.TRUE.equals(baseline.get("public072Control"))&&Boolean.TRUE.equals(run.get("passed"))&&Boolean.TRUE.equals(run.get("naturalExit"))&&!Boolean.TRUE.equals(run.get("forcedTermination")),"Public072 reference is not a natural complete pass");}
+                if(!CONTROL){require(REFERENCE!=null,"Candidate requires the matching successful public072 reference");var baseline=read(Path.of(REFERENCE).resolve("result.json"));referenceReport=baseline;var run=read(Path.of(REFERENCE).resolve("run.json"));require(Boolean.TRUE.equals(baseline.get("passed"))&&Boolean.TRUE.equals(baseline.get("public072Control"))&&Boolean.TRUE.equals(run.get("passed"))&&Boolean.TRUE.equals(run.get("naturalExit"))&&!Boolean.TRUE.equals(run.get("forcedTermination")),"Public072 reference is not a natural complete pass");}
                 if(FORGE){
                     require(Boolean.getBoolean("arcadium.forge.prepared"),"Forge was not prepared by the real launch path");
                     Class<?> loader=Class.forName("net.minecraftforge.fml.common.Loader");Object instance=loader.getMethod("instance").invoke(null);Map<?,?> mods=(Map<?,?>)loader.getMethod("getIndexedModList").invoke(instance);Object container=mods.get("arcadiumrenderprobe");require(container!=null,"Real Forge callback probe is absent");probe=container.getClass().getMethod("getMod").invoke(container).getClass();require(probe.getField("registered").getBoolean(null),"Real Forge observer was not registered");
+                    if(RAVEN){Object raven=mods.get("keystrokes");require(raven!=null,"Pinned Raven was not loaded by real FML");Object mod=raven.getClass().getMethod("getMod").invoke(raven);require(mod!=null&&mod.getClass().getName().equals("keystrokesmod.Raven"),"Unexpected Raven container instance");report.put("actualRaven",Map.of("fmlModId","keystrokes","modClass",mod.getClass().getName(),"loaded",true));}
                 }else require(!Boolean.getBoolean("arcadium.forge.prepared"),"Non-Forge fixture unexpectedly uses Forge");
                 saveAndConfigure();io.github.arcadiumclient.runtime.client.ClientPreferences.setSetupComplete(true);
                 mc.options.pauseOnUnfocus=false;mc.options.vsync=false;mc.options.fpsLimit=120;mc.options.viewDistance=3;mc.options.fov=70;mc.options.cloudRenderMode=0;mc.options.perspective=0;mc.options.viewBobbing=false;mc.options.hideGui=false;
@@ -86,6 +98,7 @@ public final class PlayerFeatures073Qa {
                 report.put("purpose","Public072 native pixels versus merged073 player feature compatibility; not FPS data");report.put("public072Control",CONTROL);report.put("forgePrepared",FORGE);report.put("variant",VARIANT);report.put("heldProfile",HELD_PROFILE);report.put("cases",List.of(cases()));report.put("reference",REFERENCE==null?"none":REFERENCE);report.put("counterOrder",List.of(COUNTERS));
                 report.put("heldCaseMeaning","sword idle, sword blocking and bow; explicit stone suffixes are true stone cubes");report.put("quadMode",PlayerFeatures073QuadEvidence.mode());
                 report.put("tracedSubjectOrder",List.of("self-avatar","ordinary-neighbor","actual-local-player"));report.put("productionQuadCompatibilityAtStart",productionQuadMetrics());
+                report.put("animationControls",animationControls());report.put("ravenRequested",RAVEN);
                 report.put("settings",Map.of("width",mc.width,"height",mc.height,"fov",70,"viewDistance",3,"fpsLimit",120,"renderDelta",.5,"worldRenderScale",false,"minimumPlayers",1,"full3DSkin",Skin3DConfig.getEnabled()));
                 mc.startGame("arcadium-player-features073","Player Features QA",new WorldSettings(730721,WorldSettings.GameMode.CREATIVE,false,false,WorldGeneratorType.FLAT).enableCommands());phase=1;wait=0;
             }else if(phase==1&&mc.world!=null&&mc.player!=null&&wait>100){
@@ -107,19 +120,40 @@ public final class PlayerFeatures073Qa {
     private static void saveAndConfigure()throws Exception{
         oldNick=NickHiderConfig.getEnabled();oldNickname=NickHiderConfig.getNickname();oldRules=NickHiderConfig.getReplacementRulesJson();oldCape=CapeConfig.getEnabled();oldPreset=CapeConfig.getPreset();oldSkin=Skin3DConfig.getEnabled();oldAnimations=AnimationsConfig.getEnabled();oldAnimationMode=AnimationsConfig.getMode();
         Class<?> type=Class.forName("org.polyfrost.overflowanimations.config.OverflowAnimationsConfig");Object config=type.getMethod("instance").invoke(null);animationItems=type.getField("items").get(config);animationMovement=type.getField("movement").get(config);animationOther=type.getField("other").get(config);
-        glintField=animationItems.getClass().getField("armorGlint");oldGlint=glintField.get(animationItems);sneakField=animationMovement.getClass().getField("sneakAnimation");oldSneak=sneakField.get(animationMovement);wavyField=animationMovement.getClass().getField("wavyArms");oldWavy=wavyField.getBoolean(animationMovement);blockingField=animationOther.getClass().getField("thirdPersonSwordBlockingPosition");oldBlocking=blockingField.getBoolean(animationOther);saved=true;
+        glintField=animationItems.getClass().getField("armorGlint");oldGlint=glintField.get(animationItems);sneakField=animationMovement.getClass().getField("sneakAnimation");oldSneak=sneakField.get(animationMovement);wavyField=animationMovement.getClass().getField("wavyArms");oldWavy=wavyField.getBoolean(animationMovement);blockingField=animationOther.getClass().getField("thirdPersonSwordBlockingPosition");oldBlocking=blockingField.getBoolean(animationOther);
+        if(!ANIMATION_CONTROLS.equals("default")){for(String name:ITEM_CONTROLS)originalItemControls.put(name,animationItems.getClass().getField(name).get(animationItems));oldBadlionScaleX=AnimationsConfig.getItemScaleX();oldBadlionScaleY=AnimationsConfig.getItemScaleY();oldBadlionScaleZ=AnimationsConfig.getItemScaleZ();}
+        saved=true;
         AnimationsConfig.setEnabled(!HELD||!HELD_PROFILE.equals("vanilla"));AnimationsConfig.setMode(0);wavyField.setBoolean(animationMovement,HELD?oldWavy:true);blockingField.setBoolean(animationOther,HELD?oldBlocking:true);Skin3DConfig.INSTANCE.chooseEnabled(!HELD||HELD_PROFILE.equals("all"));NickHiderConfig.setEnabled(!HELD);NickHiderConfig.setNickname("Hidden");CapeConfig.setEnabled(!HELD);LocalCape.changed();
+        if(!ANIMATION_CONTROLS.equals("default")){animationProperty("enabled",true);animationProperty("mode",ANIMATION_CONTROLS.equals("badlion-custom")?1:0);refreshAnimationCategories();applyControlNumerics(true);}
     }
+    private static void animationProperty(String name,Object value){org.polyfrost.oneconfig.api.config.v1.Config config=AnimationsConfig.INSTANCE;var tree=config.getTree();require(tree!=null,"Actual Animations settings tree is absent");var property=tree.getProp(name);require(property!=null,"Actual Animations public property is absent: "+name);property.setAs(value);}
+    private static void refreshAnimationCategories()throws Exception{Class<?> type=Class.forName("org.polyfrost.overflowanimations.config.OverflowAnimationsConfig");Object config=type.getMethod("instance").invoke(null);animationItems=type.getField("items").get(config);animationMovement=type.getField("movement").get(config);animationOther=type.getField("other").get(config);}
+    private static void itemControl(String name,Object value)throws Exception{animationItems.getClass().getField(name).set(animationItems,value);}
+    private static void applyControlNumerics(boolean custom)throws Exception{
+        if(ANIMATION_CONTROLS.equals("badlion-custom")){
+            animationProperty("itemScaleX",custom?.8f:1f);animationProperty("itemScaleY",custom?1.2f:1f);animationProperty("itemScaleZ",custom?.9f:1f);refreshAnimationCategories();
+            require(AnimationsConfig.getEnabled()&&AnimationsConfig.getMode()==1&&AnimationsConfig.badlion()!=null,"Actual Badlion public callbacks did not install their runtime state");
+        }else if(ANIMATION_CONTROLS.equals("overflow-custom")){
+            require(AnimationsConfig.getEnabled()&&AnimationsConfig.getMode()==0&&AnimationsConfig.badlion()==null,"Overflow controls are not active on the actual public mode");
+            itemControl("itemPositions",true);itemControl("itemPositionsInThirdPerson",true);itemControl("applyCustomizationToBlockItems",true);
+            if(LEGACY_TOGGLE){itemControl("lunarItemPositions",false);itemControl("lunarBlockHitPosition",false);}
+            itemControl("itemOffsetX",custom?1f:0f);itemControl("itemOffsetY",custom?-.75f:0f);itemControl("itemOffsetZ",custom?.5f:0f);
+            itemControl("itemScaleX",custom?.8f:1f);itemControl("itemScaleY",custom?1.2f:1f);itemControl("itemScaleZ",custom?.9f:1f);
+            itemControl("itemRotationX",0f);itemControl("itemRotationY",custom?12f:0f);itemControl("itemRotationZ",custom?-8f:0f);
+        }
+    }
+    private static Map<String,Object> animationControls()throws Exception{refreshAnimationCategories();Map<String,Object> state=new LinkedHashMap<>();state.put("requested",ANIMATION_CONTROLS);state.put("moduleEnabled",AnimationsConfig.getEnabled());state.put("publicMode",AnimationsConfig.getMode());state.put("badlionRuntimeActive",AnimationsConfig.badlion()!=null);for(String name:ITEM_CONTROLS)state.put(name,animationItems.getClass().getField(name).get(animationItems));return state;}
     private static void enumValue(Field field,Object target,String value)throws Exception{for(Object choice:field.getType().getEnumConstants())if(((Enum<?>)choice).name().equals(value)){field.set(target,choice);return;}throw new IllegalStateException("Native public enum is absent: "+value);}
     private static NickReplacementRule rule(String source,String target){return new NickReplacementRule(UUID.nameUUIDFromBytes((source+":"+target).getBytes(java.nio.charset.StandardCharsets.UTF_8)).toString(),source,target,true,true);}
     private static void selectCase()throws Exception{
-        String name=current();enumValue(glintField,animationItems,name.equals("modern19")?"V1_19_4":name.equals("modern15")?"V1_15":"VANILLA");enumValue(sneakField,animationMovement,name.equals("old-sneak")?"V1_7":"VANILLA");
+        fovConvergence.reset();caseSelectedTick=ticks;
+        String name=current();if(!ANIMATION_CONTROLS.equals("badlion-custom")){enumValue(glintField,animationItems,name.equals("modern19")?"V1_19_4":name.equals("modern15")?"V1_15":"VANILLA");enumValue(sneakField,animationMovement,name.equals("old-sneak")?"V1_7":"VANILLA");}
         if(HELD){
             Minecraft mc=Minecraft.getInstance();mc.options.perspective=name.startsWith("back-")?1:name.startsWith("front-")?2:0;
             Item item=name.endsWith("stone")?new ItemStack(net.minecraft.block.Blocks.STONE).getItem():name.endsWith("bow")?Items.BOW:Items.DIAMOND_SWORD;boolean using=usesItemCase(name);
             for(Actor actor:actors){ItemStack held=new ItemStack(item);actor.setEquipment(0,held);if(using)actor.setItemInUse(held,71980);else actor.clearItemInUse();for(int slot=1;slot<=4;slot++)actor.setEquipment(slot,null);}
             ItemStack local=name.startsWith("other-")?null:new ItemStack(item);mc.player.inventory.setItem(mc.player.inventory.selectedSlot,local);if(using&&local!=null)mc.player.setItemInUse(local,71980);else mc.player.clearItemInUse();
-            if(FORGE)probe.getField("mode").set(null,"observe");caseSelectedTick=ticks;report.put("assigned-"+name,handState(mc));warm=0;configured=false;progress("case-selected-"+name);return;
+            if(FORGE){probe.getField("mode").set(null,"observe");Object observed=mc.options.perspective==0?actors[0]:mc.player;probe.getField("target").set(null,observed);require(probe.getField("target").get(null)==observed,"Actual FML observer target was not installed");}caseSelectedTick=ticks;report.put("assigned-"+name,handState(mc));warm=0;configured=false;progress("case-selected-"+name);return;
         }
         String preset=scenario>=2&&!FORGE&&!VARIANT.equals("modern")?"cherry-blossom":"migrator";CapeConfig.INSTANCE.select(preset);LocalCape.changed();
         String alias=scenario>=3&&!FORGE&&!VARIANT.equals("modern")?"DD":"BB";NickHiderConfig.INSTANCE.storeRules(List.of(rule("ArcadiumTest",alias),rule("BB","CCCC")));
@@ -156,13 +190,62 @@ public final class PlayerFeatures073Qa {
     private static long metric(String key){int dot=key.indexOf('.');String type=key.substring(0,dot),field=key.substring(dot+1);String prefix=type.equals("NametagLayout")?"io.github.arcadiumclient.runtime.client.branding.":"io.github.arcadiumclient.runtime.client.optimizations.";try{return Class.forName(prefix+type).getField(field).getLong(null);}catch(ReflectiveOperationException absent){if(CONTROL)return 0;throw new IllegalStateException(key,absent);}}
     private static long[] metrics(){long[] values=new long[COUNTERS.length];for(int i=0;i<values.length;i++)values[i]=metric(COUNTERS[i]);return values;}
     private static Map<String,Object> callbacks()throws Exception{if(!FORGE)return Map.of();require(probe.getField("failure").get(null)==null,"Forge probe failed");require((boolean)probe.getMethod("restored").invoke(null),"Forge pose mutation was not restored");Map<String,Object> values=new LinkedHashMap<>();for(String name:List.of("playerPre","livingPre","livingPost","playerPost","canceled","mutations"))values.put(name,probe.getField(name).getLong(null));values.put("sequence",probe.getField("sequence").get(null).toString());return values;}
+    private static Map<String,Object> localFirstPersonSample(){return itemSamples[1].stream().filter(sample->"local-player".equals(sample.get("owner"))&&"FIRST_PERSON".equals(sample.get("transform"))).findFirst().orElseThrow(()->new IllegalStateException("Actual local first-person draw was absent from the toggle proof"));}
+    private static void controlsEffect(Minecraft mc,String key,Map<String,Object> result,BufferedImage custom,long deadline,Operation<Void> original)throws Exception{
+        if(ANIMATION_CONTROLS.equals("default")||!current().equals("fp-sword")&&!current().equals("fp-stone"))return;
+        BufferedImage neutral;
+        try{
+            applyControlNumerics(false);result.put("neutralPublicAnimationControls",animationControls());
+            if(LEGACY_TOGGLE&&current().equals("fp-sword")&&FORGE)probe.getMethod("reset").invoke(null);
+            neutral=render(mc,1,false,deadline,original);ImageIO.write(neutral,"png",output().getParent().resolve(key+"-neutral-controls.png").toFile());
+            if(LEGACY_TOGGLE&&current().equals("fp-sword")){
+                Map<String,Object> enabledSample=localFirstPersonSample(),enabledCallbacks=callbacks();
+                itemControl("itemPositions",false);Map<String,Object> disabledSettings=animationControls();
+                if(FORGE)probe.getMethod("reset").invoke(null);
+                BufferedImage disabled=render(mc,1,false,deadline,original);Map<String,Object> disabledSample=localFirstPersonSample(),disabledCallbacks=callbacks(),pixels=compare(neutral,disabled,0);
+                Map<String,Object> toggle=new LinkedHashMap<>();result.put("legacyPositionToggle",toggle);toggle.put("enabledPublicSettings",result.get("neutralPublicAnimationControls"));toggle.put("disabledPublicSettings",disabledSettings);toggle.put("enabledActualDraw",enabledSample);toggle.put("disabledActualDraw",disabledSample);toggle.put("enabledCallbacks",enabledCallbacks);toggle.put("disabledCallbacks",disabledCallbacks);toggle.put("pixels",pixels);Map<?,?> enabledSettings=(Map<?,?>)result.get("neutralPublicAnimationControls");List<String> changedSettings=new ArrayList<>();for(Object name:enabledSettings.keySet())if(!Objects.equals(enabledSettings.get(name),disabledSettings.get(name)))changedSettings.add(name.toString());toggle.put("changedPublicSettings",changedSettings);require(changedSettings.equals(List.of("itemPositions")),"The legacy toggle changed another public setting");Map<?,?> enabledProjection=(Map<?,?>)enabledSample.get("projectionAtDraw"),disabledProjection=(Map<?,?>)disabledSample.get("projectionAtDraw");boolean sameProjection=Objects.equals(enabledProjection.get("rawBits"),disabledProjection.get("rawBits"));toggle.put("projectionRawBitsEqual",sameProjection);require(sameProjection,"The actual native projection changed during the public position toggle");
+                Path file=output().getParent().resolve(key+"-legacy-position-disabled.png");ImageIO.write(disabled,"png",file.toFile());
+                require(enabledCallbacks.equals(disabledCallbacks),"Actual Forge callbacks changed across the public position toggle");
+                int enabledCalls=((Number)enabledSample.get("legacyFirstPersonCalls")).intValue(),enabledApplied=((Number)enabledSample.get("legacyFirstPersonApplied")).intValue(),disabledCalls=((Number)disabledSample.get("legacyFirstPersonCalls")).intValue(),disabledApplied=((Number)disabledSample.get("legacyFirstPersonApplied")).intValue();
+                boolean effective=enabledCalls>0&&enabledApplied>0&&disabledCalls>0&&disabledApplied==0&&((Number)pixels.get("changedPixels")).intValue()>0;toggle.put("actualLegacySettingEffective",effective);
+                require(effective,"Actual public legacy position toggle bypassed its native helper or did not affect any scene pixel");
+                if(REFERENCE!=null)recordPixels(result,"public072DisabledLegacyPositionPixels",ImageIO.read(Path.of(REFERENCE).resolve(file.getFileName()).toFile()),disabled,0);
+            }
+        }finally{applyControlNumerics(true);result.put("restoredCustomAnimationControls",animationControls());}
+        Map<String,Object> pixels=compare(neutral,custom,0);result.put("customControlVisibleEffect",pixels);require(((Number)pixels.get("changedPixels")).intValue()>0,"Selected nondefault public item controls did not change a scene pixel");
+        Path file=output().getParent().resolve(key+"-neutral-controls.png");ImageIO.write(neutral,"png",file.toFile());
+        if(REFERENCE!=null)recordPixels(result,"public072NeutralControlPixels",ImageIO.read(Path.of(REFERENCE).resolve(file.getFileName()).toFile()),neutral,0);
+    }
 
+    private static void verifyHeldForgeCallbacks(Map<String,Object> result,Map<String,Object> nativeCallbacks,Map<String,Object> gpuCallbacks){
+        if(!FORGE||!HELD)return;int subject=Minecraft.getInstance().options.perspective==0?0:2;long nativeEntries=traces[1][subject][COUNTERS.length],gpuEntries=traces[2][subject][COUNTERS.length];
+        result.put("actualFmlTarget",Map.of("subject",subject,"kind",subject==2?"actual-local-player":"visible-self-avatar","nativeRendererEntries",nativeEntries,"gpuRendererEntries",gpuEntries));
+        require(nativeEntries>0&&nativeEntries==gpuEntries,"The actual FML observer target was not rendered equally in both modes");
+        for(String key:List.of("playerPre","livingPre","livingPost","playerPost")){require(((Number)nativeCallbacks.get(key)).longValue()==nativeEntries,"Native FML event count does not match actual renderer invocations: "+key);require(((Number)gpuCallbacks.get(key)).longValue()==gpuEntries,"GPU FML event count does not match actual renderer invocations: "+key);}
+        String once="playerPre,livingPre,livingPost,playerPost";String expected=String.join(",",Collections.nCopies(Math.toIntExact(nativeEntries),once));require(expected.equals(nativeCallbacks.get("sequence"))&&expected.equals(gpuCallbacks.get("sequence")),"Actual FML event order changed or an event was duplicated");
+    }
+    static final class FovConvergence {
+        private int tick=-1,bits,stable;
+        void reset(){tick=-1;bits=stable=0;}
+        int observe(int actualTick,float current,float previous){
+            if(!Float.isFinite(current)||!Float.isFinite(previous)||current<=0||previous<=0)throw new IllegalStateException("Actual native FOV state is invalid");
+            int currentBits=Float.floatToRawIntBits(current),previousBits=Float.floatToRawIntBits(previous);
+            if(tick!=actualTick){boolean consecutive=tick>=0&&actualTick==tick+1;stable=currentBits==previousBits?(consecutive&&currentBits==bits?stable+1:1):0;tick=actualTick;}
+            else if(currentBits!=previousBits||currentBits!=bits)stable=0;
+            bits=currentBits;return stable;
+        }
+    }
+    private static Map<String,Object> nativeFovState(Minecraft mc)throws Exception{
+        float current=(float)pinnedField(net.minecraft.client.render.GameRenderer.class,mc.gameRenderer,"fov","f_94566859"),previous=(float)pinnedField(net.minecraft.client.render.GameRenderer.class,mc.gameRenderer,"lastFov","f_40701228");
+        int stable=fovConvergence.observe(ticks,current,previous);return Map.of("current",current,"previous",previous,"currentRawBits",Float.floatToRawIntBits(current),"previousRawBits",Float.floatToRawIntBits(previous),"realTick",ticks,"stableConsecutiveNativeTicks",stable,"privateFieldsWritten",false,"readinessInvokesFovModifier",false);
+    }
     public static void world(float delta,long deadline,Operation<Void> original){
         if(!enabled()||done||phase!=2){original.call(delta,deadline);return;}
         try{
-            Minecraft mc=Minecraft.getInstance();freeze(mc);
+            Minecraft mc=Minecraft.getInstance();freeze(mc);Map<String,Object> nativeFov=nativeFovState(mc);
             if(++warm<=80){configure(!CONTROL);original.call(.5f,deadline);return;}
             if(HELD){Map<String,Object> state=handState(mc);report.put("settled-"+current(),state);boolean needsCache=current().startsWith("fp-")||current().startsWith("other-");if(ticks-caseSelectedTick<10||needsCache&&(!Boolean.TRUE.equals(state.get("nativeCacheMatchesSelected"))||!Boolean.TRUE.equals(state.get("nativeProgressSettled")))){require(ticks-caseSelectedTick<=100,"Native held-item cache did not settle after public hotbar selection");configure(!CONTROL);original.call(.5f,deadline);return;}require(Boolean.TRUE.equals(state.get("cameraIsActualLocalPlayer")),"Held fixture camera is not the actual local player");require(mc.player.hasItemInUse()==(usesItemCase(current())&&!current().startsWith("other-")),"Actual local use state does not match the selected item case");}
+            report.put("nativeFov-"+current(),nativeFov);if(((Number)nativeFov.get("stableConsecutiveNativeTicks")).intValue()<2){require(ticks-caseSelectedTick<=100,"Native FOV did not converge across consecutive real ticks");configure(!CONTROL);original.call(.5f,deadline);return;}
             var membership=CeraAdmission072Readiness.actors(mc,List.of(actors));require(Boolean.TRUE.equals(membership.get("allRegistered")),"Actor is absent from its authoritative mature native section");
             if(!HELD){require(LocalCape.textureFor(actors[0].getUuid())!=null&&LocalCape.textureFor(actors[1].getUuid())==null,"Local cape did not remain self-only");require(actors[0].getCapeTextureLocation().equals(LocalCape.textureFor(actors[0].getUuid())),"Actual self cape getter did not return the public preset");}
             require(NickHider.display(new String("BB")).equals(HELD?"BB":"CCCC"),"Raw neighbor name did not preserve its selected policy");
@@ -173,11 +256,12 @@ public final class PlayerFeatures073Qa {
             long[] before=metrics();BufferedImage gpuImage=render(mc,2,!CONTROL,deadline,original);long[] after=metrics();Map<String,Object> gpuCallbacks=callbacks();
             Path directory=output().getParent();Files.createDirectories(directory);String key=String.format(Locale.ROOT,"%02d-%s",scenario,current());ImageIO.write(nativeImage,"png",directory.resolve(key+"-native.png").toFile());ImageIO.write(gpuImage,"png",directory.resolve(key+"-gpu.png").toFile());
             Map<String,Object> result=new LinkedHashMap<>();report.put(key,result);result.put("membership",membership);result.put("nativeCallbacks",nativeCallbacks);result.put("gpuCallbacks",gpuCallbacks);result.put("nativeTraces",traceSnapshot(1));result.put("gpuTraces",traceSnapshot(2));result.put("nativeStates",traceStates[1].clone());result.put("gpuStates",traceStates[2].clone());result.put("nativeItemSamples",new ArrayList<>(itemSamples[1]));result.put("gpuItemSamples",new ArrayList<>(itemSamples[2]));result.put("actualCape",Map.of("enabled",CapeConfig.getEnabled(),"preset",CapeConfig.getPreset(),"selfTextureSelected",!HELD,"remoteUnchanged",true));result.put("actualNick",Map.of("enabled",NickHiderConfig.getEnabled(),"own",expected,"rawBB",HELD?"BB":"CCCC","sourceOwnName",actors[0].getGameProfile().getName(),"sessionUnchanged",mc.getSession().getUsername().equals("ArcadiumTest")&&mc.getSession().getAccessToken().equals("0")));result.put("style",((Enum<?>)glintField.get(animationItems)).name());result.put("sneak",((Enum<?>)sneakField.get(animationMovement)).name());result.put("perspective",mc.options.perspective);result.put("actualAnimations",Map.of("enabled",AnimationsConfig.getEnabled(),"mode",AnimationsConfig.getMode(),"full3DSkin",Skin3DConfig.getEnabled()));result.put("actualHeldInputs",List.of(Map.of("item",actors[0].getItemInHand().getItem().getClass().getSimpleName(),"hasItemInUse",actors[0].hasItemInUse(),"itemUseTimer",actors[0].getItemUseTimer()),Map.of("item",actors[1].getItemInHand().getItem().getClass().getSimpleName(),"hasItemInUse",actors[1].hasItemInUse(),"itemUseTimer",actors[1].getItemUseTimer())));if(HELD)result.put("actualLocalHandState",handState(mc));
-            require(nativeCallbacks.equals(gpuCallbacks),"Real Forge callback sequence/cancel/mutation changed");recordPixels(result,"pixels",nativeImage,gpuImage,2);
+            require(nativeCallbacks.equals(gpuCallbacks),"Real Forge callback sequence/cancel/mutation changed");verifyHeldForgeCallbacks(result,nativeCallbacks,gpuCallbacks);recordPixels(result,"pixels",nativeImage,gpuImage,2);
             long[] deltaCounts=new long[before.length];for(int i=0;i<before.length;i++)deltaCounts[i]=after[i]-before[i];result.put("counterDeltas",deltaCounts);
-            if(REFERENCE!=null){BufferedImage released=ImageIO.read(Path.of(REFERENCE).resolve(key+"-native.png").toFile());recordPixels(result,"public072NativePixels",released,nativeImage,0);recordPixels(result,"public072GpuPixels",released,gpuImage,2);}
+            if(REFERENCE!=null){Map<?,?> baselineCase=(Map<?,?>)referenceReport.get(key);Map<?,?> baselineFov=(Map<?,?>)baselineCase.get("nativeFov");require(baselineFov!=null&&((Number)baselineFov.get("currentRawBits")).longValue()==((Number)nativeFov.get("currentRawBits")).longValue()&&((Number)baselineFov.get("previousRawBits")).longValue()==((Number)nativeFov.get("previousRawBits")).longValue(),"Reference native FOV does not match the converged actual camera");BufferedImage released=ImageIO.read(Path.of(REFERENCE).resolve(key+"-native.png").toFile());recordPixels(result,"public072NativePixels",released,nativeImage,0);recordPixels(result,"public072GpuPixels",released,gpuImage,2);}
             if(HELD){require(!itemSamples[1].isEmpty()&&!itemSamples[2].isEmpty(),"Actual held-item draw entry was not observed");if(current().startsWith("fp-"))require(itemSamples[1].stream().anyMatch(sample->"FIRST_PERSON".equals(sample.get("transform"))),"Actual first-person item route was not observed");}
-            result.put("productionQuadCompatibility",productionQuadMetrics());
+            result.put("productionQuadCompatibility",productionQuadMetrics());result.put("nativeFov",nativeFov);
+            result.put("publicAnimationControls",animationControls());
             if(!CONTROL){
                 List<Map<String,Object>> coverage=new ArrayList<>();result.put("visibleSubjectGpuCoverage",coverage);int visible=0;
                 for(int subject=0;subject<traces[1].length;subject++){
@@ -192,6 +276,7 @@ public final class PlayerFeatures073Qa {
                 require(visible>0,"No uncanceled native player subject was actually rendered");
                 require(deltaCounts[6]>0&&deltaCounts[7]>0,"No actual GPU model expansion dispatch was observed");require(HELD||current().startsWith("forge-cancel")?traces[2][0][COUNTERS.length+1]==0:traces[2][0][COUNTERS.length+1]>0,"Actual self Cape callback did not preserve the current mode");if(VARIANT.equals("modern")&&!FORGE&&!current().equals("hurt"))require(deltaCounts[9]>0&&deltaCounts[10]>0,"Modern style retained its original layer without exercising the requested private adapter");
             }
+            controlsEffect(mc,key,result,nativeImage,deadline,original);
             if(current().equals("bow")){firstCape=nativeImage;firstNames=nativeImage;}
             if(current().equals("cape-change")){result.put("presetChangedVisiblePixels",compare(firstCape,nativeImage,255).get("changedPixels"));require(((Number)result.get("presetChangedVisiblePixels")).intValue()>0,"Selected cape did not affect any actual scene pixel");firstNames=nativeImage;}
             if(current().equals("nick-change")){result.put("nickChangedVisiblePixels",compare(firstNames,nativeImage,255).get("changedPixels"));require(((Number)result.get("nickChangedVisiblePixels")).intValue()>0,"Changed Nick rule did not affect any actual scene pixel");}
@@ -266,7 +351,14 @@ public final class PlayerFeatures073Qa {
     private static Map<?,?> read(Path path)throws Exception{return new com.google.gson.Gson().fromJson(Files.readString(path),Map.class);}
     private static void progress(String stage)throws Exception{report.put("stage",stage);Files.createDirectories(output().getParent());Files.writeString(output().resolveSibling("progress.json"),new GsonBuilder().setPrettyPrinting().create().toJson(report));}
     private static void fail(Throwable error){if(failure==null){failure=error.toString();error.printStackTrace();}try{progress("failed");}catch(Exception ignored){}Minecraft mc=Minecraft.getInstance();if(mc.world!=null)phase=3;else finish();}
-    private static void finish(){if(done)return;done=true;try{if(saved){NickHiderConfig.setEnabled(oldNick);NickHiderConfig.setNickname(oldNickname);NickHiderConfig.setReplacementRulesJson(oldRules);NickHider.settingsChanged();CapeConfig.setEnabled(oldCape);CapeConfig.setPreset(oldPreset);LocalCape.changed();Skin3DConfig.INSTANCE.chooseEnabled(oldSkin);AnimationsConfig.setEnabled(oldAnimations);AnimationsConfig.setMode(oldAnimationMode);glintField.set(animationItems,oldGlint);sneakField.set(animationMovement,oldSneak);wavyField.setBoolean(animationMovement,oldWavy);blockingField.setBoolean(animationOther,oldBlocking);}if(probe!=null){probe.getMethod("reset").invoke(null);probe.getField("target").set(null,null);}report.put("publicSettingsRestored",true);}catch(Throwable error){if(failure==null)failure=error.toString();}report.put("passed",failure==null);if(failure!=null)report.put("error",failure);try{Files.createDirectories(output().getParent());Files.writeString(output(),new GsonBuilder().setPrettyPrinting().create().toJson(report));}catch(Exception error){error.printStackTrace();}Minecraft.getInstance().stop();}
+    private static void restoreAnimationControls()throws Exception{
+        if(!ANIMATION_CONTROLS.equals("default")){animationProperty("itemScaleX",oldBadlionScaleX);animationProperty("itemScaleY",oldBadlionScaleY);animationProperty("itemScaleZ",oldBadlionScaleZ);animationProperty("mode",oldAnimationMode);animationProperty("enabled",oldAnimations);refreshAnimationCategories();for(var entry:originalItemControls.entrySet())itemControl(entry.getKey(),entry.getValue());}
+        else{AnimationsConfig.setEnabled(oldAnimations);AnimationsConfig.setMode(oldAnimationMode);}
+        glintField.set(animationItems,oldGlint);sneakField.set(animationMovement,oldSneak);wavyField.setBoolean(animationMovement,oldWavy);blockingField.setBoolean(animationOther,oldBlocking);
+        require(AnimationsConfig.getEnabled()==oldAnimations&&AnimationsConfig.getMode()==oldAnimationMode,"Public Animations mode was not restored");
+        if(!ANIMATION_CONTROLS.equals("default")){require(AnimationsConfig.getItemScaleX()==oldBadlionScaleX&&AnimationsConfig.getItemScaleY()==oldBadlionScaleY&&AnimationsConfig.getItemScaleZ()==oldBadlionScaleZ,"Public Badlion scales were not restored");for(var entry:originalItemControls.entrySet())require(Objects.equals(animationItems.getClass().getField(entry.getKey()).get(animationItems),entry.getValue()),"Public Overflow field was not restored: "+entry.getKey());}
+    }
+    private static void finish(){if(done)return;done=true;try{if(saved){NickHiderConfig.setEnabled(oldNick);NickHiderConfig.setNickname(oldNickname);NickHiderConfig.setReplacementRulesJson(oldRules);NickHider.settingsChanged();CapeConfig.setEnabled(oldCape);CapeConfig.setPreset(oldPreset);LocalCape.changed();Skin3DConfig.INSTANCE.chooseEnabled(oldSkin);restoreAnimationControls();}if(probe!=null){probe.getMethod("reset").invoke(null);probe.getField("target").set(null,null);}report.put("publicSettingsRestored",true);}catch(Throwable error){if(failure==null)failure=error.toString();}report.put("passed",failure==null);if(failure!=null)report.put("error",failure);try{Files.createDirectories(output().getParent());Files.writeString(output(),new GsonBuilder().setPrettyPrinting().create().toJson(report));}catch(Exception error){error.printStackTrace();}Minecraft.getInstance().stop();}
     private static void require(boolean value,String reason){if(!value)throw new IllegalStateException(reason);}
     private static final class Actor extends RemoteClientPlayerEntity{
         final int index;Actor(Minecraft mc,GameProfile profile,int index){super(mc.world,profile);this.index=index;}

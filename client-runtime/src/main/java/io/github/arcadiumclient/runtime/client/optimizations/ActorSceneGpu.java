@@ -9,18 +9,19 @@ import org.lwjgl.opengl.*;
 
 final class ActorSceneGpu {
     private static final int MAX=8192,SLOTS=3;
+    static final long MAX_BYTES=(long)SLOTS*MAX*(ActorSceneData.TICK_WORDS+ActorSceneData.MAX_FRAME_WORDS)*4+(long)MAX*32*4;
     private static final ActorSceneContext context=new ActorSceneContext();
     private static final Slot[] slots=new Slot[SLOTS];
     private static final int[] oldBindings=new int[3];
     private static final long[] oldStarts=new long[3],oldSizes=new long[3];
     private static final int[] indices={0,1,3};
-    private static FloatBuffer staging=BufferUtils.createFloatBuffer(256*ActorSceneData.FRAME_WORDS);
+    private static FloatBuffer staging=BufferUtils.createFloatBuffer(256*ActorSceneData.MAX_FRAME_WORDS);
     private static final FloatBuffer tickUpload=BufferUtils.createFloatBuffer(ActorSceneData.TICK_WORDS);
     private static final boolean[] selected=new boolean[MAX];
     private static final ActorSceneData.Tick[] frameTicks=new ActorSceneData.Tick[MAX];
     private static int program,uniform,output,cursor;
     private static long resolvedBatch=Long.MIN_VALUE,resolvedRevision=Long.MIN_VALUE,resolvedEpoch=Long.MIN_VALUE,resolvedContextEpoch=Long.MIN_VALUE;
-    private static int resolvedRows;
+    private static int resolvedRows,outputRows;
     static long dispatches,reuses,tickUploads,tickUploadWords,frameUploadWords,streamRows,busyFallbacks,resolvedActorRows;
     private static boolean failed,validOutput;
     static long failures,contextRefusals;
@@ -49,8 +50,8 @@ final class ActorSceneGpu {
         boolean accepted=false,dispatched=false,fenced=false;Slot slot=null;
         try{
             validOutput=false;ready();slot=slots[chosen];if(slot==null){slot=new Slot();slots[chosen]=slot;}slot.allocate();
-            if(staging.capacity()<count*ActorSceneData.FRAME_WORDS)staging=BufferUtils.createFloatBuffer(Math.min(MAX*ActorSceneData.FRAME_WORDS,Integer.highestOneBit(count*ActorSceneData.FRAME_WORDS-1)<<1));
-            staging.clear();for(int job=0;job<rows;job++)if(selected[job])snapshot.input(job,staging);staging.flip();
+            if(staging.capacity()<count*ActorSceneData.MAX_FRAME_WORDS)staging=BufferUtils.createFloatBuffer(Math.min(MAX*ActorSceneData.MAX_FRAME_WORDS,Integer.highestOneBit(count*ActorSceneData.MAX_FRAME_WORDS-1)<<1));
+            staging.clear();int payload=count*ActorSceneData.FRAME_WORDS;for(int job=0;job<rows;job++)if(selected[job])payload=snapshot.input(job,staging,payload);staging.position(payload).flip();
             GL15.glBindBuffer(GL43.GL_SHADER_STORAGE_BUFFER,slot.frames);GL15.glBufferSubData(GL43.GL_SHADER_STORAGE_BUFFER,0,staging);frameUploadWords+=staging.remaining();
             GL15.glBindBuffer(GL43.GL_SHADER_STORAGE_BUFFER,slot.ticks);
             for(int index=0;index<frameTicks.length;index++){
@@ -58,7 +59,7 @@ final class ActorSceneGpu {
                 tickUpload.clear();tick.copy(tickUpload);tickUpload.flip();GL15.glBufferSubData(GL43.GL_SHADER_STORAGE_BUFFER,(long)index*ActorSceneData.TICK_WORDS*4,tickUpload);
                 slot.revisions[index]=tick.revision;tickUploads++;tickUploadWords+=ActorSceneData.TICK_WORDS;
             }
-            if(output==0)output=GL15.glGenBuffers();if(output==0)throw new IllegalStateException("Actor scene output allocation failed");GL15.glBindBuffer(GL43.GL_SHADER_STORAGE_BUFFER,output);GL15.glBufferData(GL43.GL_SHADER_STORAGE_BUFFER,(long)rows*32*4,GL15.GL_STREAM_DRAW);
+            if(output==0)output=GL15.glGenBuffers();if(output==0)throw new IllegalStateException("Actor scene output allocation failed");GL15.glBindBuffer(GL43.GL_SHADER_STORAGE_BUFFER,output);GL15.glBufferData(GL43.GL_SHADER_STORAGE_BUFFER,(long)rows*32*4,GL15.GL_STREAM_DRAW);outputRows=rows;
             for(int start=0;start<rows;){
                 if(selected[start]){start++;continue;}int end=start+1;while(end<rows&&!selected[end])end++;
                 FloatBuffer source=legacy.duplicate().position(start*32).limit(end*32);GL15.glBufferSubData(GL43.GL_SHADER_STORAGE_BUFFER,(long)start*32*4,source);streamRows+=end-start;start=end;
@@ -82,21 +83,21 @@ final class ActorSceneGpu {
             GL20.glAttachShader(candidate,shader);GL20.glLinkProgram(candidate);if(GL20.glGetProgrami(candidate,GL20.GL_LINK_STATUS)==0)throw new IllegalStateException(GL20.glGetProgramInfoLog(candidate));uniform=GL20.glGetUniformLocation(candidate,"sceneRows");if(uniform<0)throw new IllegalStateException("Actor scene row uniform missing");program=candidate;
         }catch(Throwable failure){GL20.glDeleteProgram(candidate);throw failure;}finally{GL20.glDeleteShader(shader);}
     }
-    static long bytes(){long total=output==0?0:(long)resolvedRows*32*4;for(Slot slot:slots)if(slot!=null&&slot.ticks!=0)total+=(long)MAX*(ActorSceneData.TICK_WORDS+ActorSceneData.FRAME_WORDS)*4;return total;}
+    static long bytes(){long total=output==0?0:(long)outputRows*32*4;for(Slot slot:slots)if(slot!=null&&slot.ticks!=0)total+=(long)MAX*(ActorSceneData.TICK_WORDS+ActorSceneData.MAX_FRAME_WORDS)*4;return total;}
     static void close(){
         if(!ownsCurrent()){contextRefusals++;return;}Object owner=context.attached()?GL.getCapabilities():null;
         Throwable failure=null;
         for(int i=0;i<SLOTS;i++){try{if(slots[i]!=null)slots[i].close();}catch(Throwable error){if(failure==null)failure=error;else if(failure!=error)failure.addSuppressed(error);}finally{slots[i]=null;}}
         try{if(output!=0)GL15.glDeleteBuffers(output);}catch(Throwable error){if(failure==null)failure=error;else if(failure!=error)failure.addSuppressed(error);}
         try{if(program!=0)GL20.glDeleteProgram(program);}catch(Throwable error){if(failure==null)failure=error;else if(failure!=error)failure.addSuppressed(error);}
-        output=program=cursor=resolvedRows=0;resolvedContextEpoch=resolvedEpoch=resolvedBatch=resolvedRevision=Long.MIN_VALUE;failed=validOutput=false;Arrays.fill(frameTicks,null);if(failure==null)context.release(owner);else fail(failure);
+        output=program=cursor=resolvedRows=outputRows=0;resolvedContextEpoch=resolvedEpoch=resolvedBatch=resolvedRevision=Long.MIN_VALUE;failed=validOutput=false;Arrays.fill(frameTicks,null);if(failure==null)context.release(owner);else fail(failure);
     }
     private static final class Slot {
         int ticks,frames;long fence;
         final long[] revisions=new long[MAX];
         void allocate(){
             if(ticks!=0&&frames!=0)return;
-            try{ticks=GL15.glGenBuffers();if(ticks==0)throw new IllegalStateException("Actor tick allocation failed");GL15.glBindBuffer(GL43.GL_SHADER_STORAGE_BUFFER,ticks);GL15.glBufferData(GL43.GL_SHADER_STORAGE_BUFFER,(long)MAX*ActorSceneData.TICK_WORDS*4,GL15.GL_DYNAMIC_DRAW);frames=GL15.glGenBuffers();if(frames==0)throw new IllegalStateException("Actor frame allocation failed");GL15.glBindBuffer(GL43.GL_SHADER_STORAGE_BUFFER,frames);GL15.glBufferData(GL43.GL_SHADER_STORAGE_BUFFER,(long)MAX*ActorSceneData.FRAME_WORDS*4,GL15.GL_DYNAMIC_DRAW);}
+            try{ticks=GL15.glGenBuffers();if(ticks==0)throw new IllegalStateException("Actor tick allocation failed");GL15.glBindBuffer(GL43.GL_SHADER_STORAGE_BUFFER,ticks);GL15.glBufferData(GL43.GL_SHADER_STORAGE_BUFFER,(long)MAX*ActorSceneData.TICK_WORDS*4,GL15.GL_DYNAMIC_DRAW);frames=GL15.glGenBuffers();if(frames==0)throw new IllegalStateException("Actor frame allocation failed");GL15.glBindBuffer(GL43.GL_SHADER_STORAGE_BUFFER,frames);GL15.glBufferData(GL43.GL_SHADER_STORAGE_BUFFER,(long)MAX*ActorSceneData.MAX_FRAME_WORDS*4,GL15.GL_DYNAMIC_DRAW);}
             catch(Throwable failure){close();throw failure;}
         }
         void fenceInputs(){long next=GL32.glFenceSync(GL32.GL_SYNC_GPU_COMMANDS_COMPLETE,0);if(next==0)throw new IllegalStateException("Actor scene input fence creation failed");if(fence!=0)GL32.glDeleteSync(fence);fence=next;}
