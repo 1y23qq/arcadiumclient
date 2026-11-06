@@ -211,6 +211,20 @@ public final class MetalPylonPresentationProbe {
         List<Long> ancestors=new ArrayList<>();
         for(int i=64;i<72;i++)ancestors.add(original.owner.nativeCounter(i));
         value.put("layerChain",ancestors);
+        value.put("originalGlSurfaceOrder",original.owner.nativeCounter(55));
+        value.put("parentLayerZ",Double.longBitsToDouble(original.owner.nativeCounter(56)));
+        value.put("childLayerZ",Double.longBitsToDouble(original.owner.nativeCounter(57)));
+        List<Map<String,Object>> siblings=new ArrayList<>();
+        for(int i=0;i<4;i++) {
+            int key=128+i*12;long id=original.owner.nativeCounter(key);if(id==0)break;
+            Map<String,Object> entry=new LinkedHashMap<>();entry.put("index",i);entry.put("id",id);
+            entry.put("kindFlags",original.owner.nativeCounter(key+1));entry.put("z",Double.longBitsToDouble(original.owner.nativeCounter(key+2)));
+            entry.put("hidden",original.owner.nativeCounter(key+3)!=0);entry.put("opacity",Double.longBitsToDouble(original.owner.nativeCounter(key+4)));
+            entry.put("contentsPresent",original.owner.nativeCounter(key+5)!=0);
+            for(int j=6;j<=9;j++)entry.put(new String[]{"boundsWidth","boundsHeight","frameWidth","frameHeight"}[j-6],Double.longBitsToDouble(original.owner.nativeCounter(key+j)));
+            entry.put("superlayerId",original.owner.nativeCounter(key+10));entry.put("delegateId",original.owner.nativeCounter(key+11));siblings.add(entry);
+        }
+        value.put("siblings",siblings);
         try(var stack=org.lwjgl.system.MemoryStack.stackPush()) {
             var interval=stack.mallocInt(1);require(SDL_GL_GetSwapInterval(interval),"SDL swap interval observation failed");
             value.put("sdlSwapInterval",interval.get(0));

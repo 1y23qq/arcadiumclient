@@ -2,6 +2,7 @@
 package io.github.arcadiumclient.runtime.qa;
 
 import com.google.gson.GsonBuilder;
+import io.github.arcadiumclient.runtime.client.optimizations.GpuVoxelSkinMvpMath;
 import java.lang.reflect.Field;
 import java.nio.*;
 import java.nio.file.*;
@@ -24,13 +25,13 @@ public final class GpuVoxelSkin072EyePositionEvidence {
     private static final List<Map<String,Object>> samples=new ArrayList<>();
     private static final List<String> failures=new ArrayList<>();
     private static int count,current=-1,peakBytes;
-    private static long epoch,captured,submitted,timeAssignments,drawCalls,instances,restores,zeroModeRestores,closingDrawCalls,closingRestores;
+    private static long epoch,captured,submitted,timeAssignments,drawCalls,instances,restores,zeroModeRestores,closingDrawCalls,closingRestores,cpuMvpConstructions;
     private static int activeScopes;
     private static boolean pinned,hooked,stopped,coreCompleted;
     private GpuVoxelSkin072EyePositionEvidence(){}
     public static boolean enabled(){return System.getProperty("arcadium.voxelQuality072.eyePosition")!=null;}
     public static int mode(){return switch(System.getProperty("arcadium.voxelQuality072.eyePosition","")){
-        case "control"->0;case "plain"->1;case "precise"->2;case "mvp-fma"->3;default->throw new IllegalStateException("Unknown eye-position correctness mode");};}
+        case "control"->0;case "plain"->1;case "precise"->2;case "mvp-fma"->3;case "cpu-mvp-fma"->4;default->throw new IllegalStateException("Unknown eye-position correctness mode");};}
     private static void context(){
         if(!enabled()||!Boolean.getBoolean("arcadium.playerPipeline072.nativeVoxelRootControl")||!PlayerPipeline072Qa.enabled()
                 ||!System.getProperty("arcadium.playerPipeline072.mode","").equals("visual")
@@ -69,7 +70,8 @@ public final class GpuVoxelSkin072EyePositionEvidence {
             for(int i=0;i<16;i++){float v=query.get(i);if(!Float.isFinite(v))throw new IllegalStateException("Non-finite native modelview");matrices[index*16+i]=v;}
             if(matrices[index*16+3]!=0||matrices[index*16+7]!=0||matrices[index*16+11]!=0||matrices[index*16+15]!=1)throw new IllegalStateException("The physical modelview is not affine");
             float[] eye=Arrays.copyOfRange(matrices,index*16,index*16+16),projection=new float[16];query.clear();GL11.glGetFloatv(GL11.GL_PROJECTION_MATRIX,query);query.get(projection);
-            System.arraycopy(GpuVoxelSkin072DriverMvp.capture(eye,projection),0,driverMatrices,index*16,16);
+            if(mode()==4){float[] combined=new float[16];GpuVoxelSkinMvpMath.multiply(projection,eye,combined);System.arraycopy(combined,0,driverMatrices,index*16,16);cpuMvpConstructions++;}
+            else System.arraycopy(GpuVoxelSkin072DriverMvp.capture(eye,projection),0,driverMatrices,index*16,16);
             Capture token=new Capture(current,index);current=index;captured++;return token;
         }catch(Throwable failure){throw failed(failure);}
     }
@@ -112,7 +114,7 @@ public final class GpuVoxelSkin072EyePositionEvidence {
             activeScopes++;
             try{
                 if(token.oldMode!=0||token.oldCount!=0)throw new IllegalStateException("The native eye override was already active outside its owned draw");
-                upload.clear();upload.put(mode()==3?driverMatrices:matrices,0,count*16).flip();GL20.glUniformMatrix4fv(matrixLocation,false,upload);
+                upload.clear();upload.put(mode()>=3?driverMatrices:matrices,0,count*16).flip();GL20.glUniformMatrix4fv(matrixLocation,false,upload);
                 GL20.glUniform1i(countLocation,count);GL20.glUniform1i(modeLocation,mode());peakBytes=Math.max(peakBytes,count*64);
                 if(GL20.glGetUniformi(program,modeLocation)!=mode()||GL20.glGetUniformi(program,countLocation)!=count)throw new IllegalStateException("Native eye override uniform assignment failed");
                 return token;
@@ -196,7 +198,7 @@ public final class GpuVoxelSkin072EyePositionEvidence {
     }
     public static void drew(Draw token){
         if(token==null)return;if(token.closing){closingDrawCalls++;return;}drawCalls++;instances+=token.instances;
-        if(samples.size()<16){Map<String,Object> record=new LinkedHashMap<>();record.put("epoch",token.epoch);record.put("actualProgram",token.program);record.put("mode",mode());record.put("matrices",token.matrices);record.put("instances",token.instances);record.put("vertexUniformComponents",vertexComponents.get(token.program));record.put("firstPhysicalModelView",Arrays.copyOf(matrices,16));record.put("firstActualDriverMvp",Arrays.copyOf(driverMatrices,16));record.put("uniformMatrixKind",mode()==3?"actual-driver-builtin-MVP":"physical-modelview");samples.add(record);}
+        if(samples.size()<16){Map<String,Object> record=new LinkedHashMap<>();record.put("epoch",token.epoch);record.put("actualProgram",token.program);record.put("mode",mode());record.put("matrices",token.matrices);record.put("instances",token.instances);record.put("vertexUniformComponents",vertexComponents.get(token.program));record.put("firstPhysicalModelView",Arrays.copyOf(matrices,16));record.put(mode()==4?"firstCpuMvp":"firstActualDriverMvp",Arrays.copyOf(driverMatrices,16));record.put("uniformMatrixKind",mode()==4?"CPU-balanced-actual-physical-MVP":mode()==3?"actual-driver-builtin-MVP":"physical-modelview");samples.add(record);}
     }
     public static void restore(Draw token){
         if(token==null)return;
@@ -236,8 +238,8 @@ public final class GpuVoxelSkin072EyePositionEvidence {
         if(hooked)return;hooked=true;Runtime.getRuntime().addShutdownHook(new Thread(()->{
             try{
                 Map<String,Object> report=new LinkedHashMap<>();report.put("correctnessOnly",true);report.put("notPerformanceEvidence",true);report.put("mode",System.getProperty("arcadium.voxelQuality072.eyePosition"));report.put("pinnedPreAdmissionMain",pinned);report.put("shaderSources",shaderSources);
-                report.put("capturedMatrices",captured);report.put("submittedCaptures",submitted);report.put("negativeTimeAssignments",timeAssignments);report.put("drawCalls",drawCalls);report.put("actualInstances",instances);report.put("restoredDrawScopes",restores);report.put("zeroModeRestores",zeroModeRestores);report.put("activeDrawScopes",activeScopes);report.put("closingOrdinaryDrawCalls",closingDrawCalls);report.put("closingOrdinaryScopesVerified",closingRestores);report.put("currentCaptureIndex",current);report.put("peakUniformBytes",peakBytes);report.put("boundedUniformBytes",CAPACITY*64);report.put("noNewGpuBuffers",false);report.put("boundedTfReadoutBytes",64);report.put("driverMvp",GpuVoxelSkin072DriverMvp.report());report.put("gpuReadbacksCorrectnessOnly",true);report.put("observedClientStop",stopped);report.put("ownedCoreCompleted",coreCompleted);report.put("vertexUniformComponents",vertexComponents);report.put("actualEffectTimeAttributeDescriptors",attributeDescriptors);report.put("samples",samples);report.put("failures",failures);
-                report.put("passed",pinned&&shaderSources.size()==2&&submitted>0&&timeAssignments>=submitted&&drawCalls>0&&restores==drawCalls&&zeroModeRestores==restores&&activeScopes==0&&closingRestores==closingDrawCalls&&current==-1&&stopped&&coreCompleted&&Boolean.TRUE.equals(GpuVoxelSkin072DriverMvp.report().get("passed"))&&failures.isEmpty());
+                report.put("capturedMatrices",captured);report.put("submittedCaptures",submitted);report.put("negativeTimeAssignments",timeAssignments);report.put("drawCalls",drawCalls);report.put("actualInstances",instances);report.put("restoredDrawScopes",restores);report.put("zeroModeRestores",zeroModeRestores);report.put("activeDrawScopes",activeScopes);report.put("closingOrdinaryDrawCalls",closingDrawCalls);report.put("closingOrdinaryScopesVerified",closingRestores);report.put("currentCaptureIndex",current);report.put("peakUniformBytes",peakBytes);report.put("boundedUniformBytes",CAPACITY*64);report.put("noNewGpuBuffers",mode()==4);report.put("boundedTfReadoutBytes",mode()==4?0:64);report.put("driverMvp",GpuVoxelSkin072DriverMvp.report());report.put("cpuMvpConstructions",cpuMvpConstructions);report.put("mvpConstructionBackend",mode()==4?"CPU-balanced-actual-physical-state":"bounded-driver-TF");report.put("mvpConstructionGpuReadbacks",GpuVoxelSkin072DriverMvp.report().get("gpuReadbacks"));report.put("gpuReadbacksCorrectnessOnly",true);report.put("observedClientStop",stopped);report.put("ownedCoreCompleted",coreCompleted);report.put("vertexUniformComponents",vertexComponents);report.put("actualEffectTimeAttributeDescriptors",attributeDescriptors);report.put("samples",samples);report.put("failures",failures);
+                report.put("passed",pinned&&shaderSources.size()==2&&submitted>0&&timeAssignments>=submitted&&drawCalls>0&&restores==drawCalls&&zeroModeRestores==restores&&activeScopes==0&&closingRestores==closingDrawCalls&&current==-1&&stopped&&coreCompleted&&(mode()==4?cpuMvpConstructions==captured&&((Number)GpuVoxelSkin072DriverMvp.report().get("gpuReadbacks")).longValue()==0&&Boolean.TRUE.equals(GpuVoxelSkin072DriverMvp.report().get("allOwnGlObjectsDeleted")):Boolean.TRUE.equals(GpuVoxelSkin072DriverMvp.report().get("passed")))&&failures.isEmpty());
                 Path output=Path.of(System.getProperty("arcadium.playerPipeline072.output")).resolveSibling("voxel-eye-position.json");Files.writeString(output,new GsonBuilder().setPrettyPrinting().create().toJson(report));
             }catch(Throwable failure){failure.printStackTrace();}
         },"Arcadium voxel eye-position correctness"));

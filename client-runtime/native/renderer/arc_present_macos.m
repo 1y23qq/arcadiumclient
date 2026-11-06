@@ -382,6 +382,31 @@ uint64_t arc_present_query(void *value, int key) {
             for (int i = ARC_PRESENT_LAYER_CHAIN_BASE; ancestor && i < key; i++) ancestor = ancestor.superlayer;
             return presentationObjectId(ancestor);
         }
+        if (key >= ARC_PRESENT_SIBLING_BASE && key < ARC_PRESENT_SIBLING_END) {
+            NSArray<CALayer *> *siblings = parent.layer.sublayers;
+            NSUInteger index = (NSUInteger)(key - ARC_PRESENT_SIBLING_BASE) / ARC_PRESENT_SIBLING_STRIDE;
+            if (index >= siblings.count) return 0;
+            CALayer *entry = siblings[index]; double number = 0; uint64_t bits;
+            switch ((key - ARC_PRESENT_SIBLING_BASE) % ARC_PRESENT_SIBLING_STRIDE) {
+                case 0: return presentationObjectId(entry);
+                case 1: {
+                    Class openGl = NSClassFromString(@"CAOpenGLLayer");
+                    return (entry == layer ? 1 : 0) | ([entry isKindOfClass:CAMetalLayer.class] ? 2 : 0)
+                        | (openGl && [entry isKindOfClass:openGl] ? 4 : 0);
+                }
+                case 2: number = entry.zPosition; break;
+                case 3: return entry.hidden;
+                case 4: number = entry.opacity; break;
+                case 5: return entry.contents != nil;
+                case 6: number = entry.bounds.size.width; break;
+                case 7: number = entry.bounds.size.height; break;
+                case 8: number = entry.frame.size.width; break;
+                case 9: number = entry.frame.size.height; break;
+                case 10: return presentationObjectId(entry.superlayer);
+                case 11: return presentationObjectId(entry.delegate);
+            }
+            memcpy(&bits, &number, sizeof(bits)); return bits;
+        }
         double number = 0; uint64_t bits;
         switch (key) {
             case ARC_PRESENT_PARENT_WIDTH_FP64: number = parent.bounds.size.width; break;
@@ -425,6 +450,14 @@ uint64_t arc_present_query(void *value, int key) {
             case ARC_PRESENT_PREPARED_CGL_SWAP_INTERVAL: return (uint64_t)p.observedCglSwapInterval;
             case ARC_PRESENT_CONFIGURED_SWAP_INTERVAL: return (uint64_t)p.configuredSwapInterval;
             case ARC_PRESENT_PREPARED_SWAP_INTERVAL: return (uint64_t)p.preparedSwapInterval;
+            case ARC_PRESENT_ORIGINAL_GL_SURFACE_ORDER: {
+                GLint order = INT32_MIN;
+                if (!p->context || CGLGetCurrentContext() != p->context || CGLGetParameter(p->context,kCGLCPSurfaceOrder,&order) != kCGLNoError)
+                    return (uint64_t)(int64_t)INT32_MIN;
+                return (uint64_t)(int64_t)order;
+            }
+            case ARC_PRESENT_PARENT_LAYER_Z_FP64: number = parent.layer.zPosition; break;
+            case ARC_PRESENT_CHILD_LAYER_Z_FP64: number = layer.zPosition; break;
             case ARC_PRESENT_LAYER_DISPLAY_SYNC_ENABLED: return layer.displaySyncEnabled;
             case ARC_PRESENT_VIEW_VISIBLE_WIDTH_FP64: number = p.view.visibleRect.size.width; break;
             case ARC_PRESENT_VIEW_VISIBLE_HEIGHT_FP64: number = p.view.visibleRect.size.height; break;

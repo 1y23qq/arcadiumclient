@@ -32,12 +32,14 @@ public final class ModernGlint072Qa {
     private static final String POSE = System.getProperty("arcadium.modernGlint072.pose", "moving");
     private static final boolean BODY = Boolean.getBoolean("arcadium.modernGlint072.body");
     private static final String CAMERA = System.getProperty("arcadium.modernGlint072.camera", "default");
+    private static final String SNEAK_ANIMATION=System.getProperty("arcadium.modernGlint072.sneakAnimation","configured");
     private static final boolean ANGLED = CAMERA.equals("angled");
     private static final String[] STYLES = {"V1_19_4", "V1_15", "V1_19_4"};
     private static final String[] CASES = {"V1_19_4", "V1_15", "V1_19_4-hurt-fallback"};
     private static final Map<String, Object> report = new LinkedHashMap<>();
     private static Field styleField;
-    private static Object items, originalStyle;
+    private static Object items, originalStyle, movement, originalSneakAnimation;
+    private static Field sneakAnimationField;
     private static Frozen actor;
     private static int ticks, wait, phase, style, warmFrames, guardedDraws, orderChecks;
     private static int guard, genericGuard, originalIndexed, originalGeneric, alignment;
@@ -101,7 +103,14 @@ public final class ModernGlint072Qa {
                 mc.options.cloudRenderMode = 0; mc.options.perspective = 0; mc.options.viewBobbing = false; mc.options.hideGui = true;
                 org.polyfrost.oneconfig.internal.OneConfigConfig.limitUnfocusedFps = false;
                 Class<?> configType = Class.forName("org.polyfrost.overflowanimations.config.OverflowAnimationsConfig");
-                Object config = configType.getMethod("instance").invoke(null); items = configType.getField("items").get(config);
+                Object config = configType.getMethod("instance").invoke(null);
+                require(List.of("configured","VANILLA","V1_7").contains(SNEAK_ANIMATION),"Unknown native sneak setting");
+                movement=configType.getField("movement").get(config);sneakAnimationField=movement.getClass().getField("sneakAnimation");originalSneakAnimation=sneakAnimationField.get(movement);
+                if(!SNEAK_ANIMATION.equals("configured")){boolean selected=false;for(Object setting:sneakAnimationField.getType().getEnumConstants())if(((Enum<?>)setting).name().equals(SNEAK_ANIMATION)){sneakAnimationField.set(movement,setting);selected=true;}require(selected,"Native requested sneak setting is absent");}
+                boolean actualOld=(boolean)Class.forName("org.polyfrost.overflowanimations.legacy.model.LegacyEyeHeight").getMethod("isOldSneakModel").invoke(null);
+                if(SNEAK_ANIMATION.equals("V1_7"))require(actualOld,"Native old sneak mode did not apply");if(SNEAK_ANIMATION.equals("VANILLA"))require(!actualOld,"Native modern sneak mode did not apply");
+                report.put("actualNativeSneakMode",Map.of("requested",SNEAK_ANIMATION,"setting",((Enum<?>)sneakAnimationField.get(movement)).name(),"isOldSneakModel",actualOld));
+                items = configType.getField("items").get(config);
                 styleField = items.getClass().getField("armorGlint"); originalStyle = styleField.get(items); selectStyle();
                 report.put("purpose", "Same-frame native/modern GPU pixel and GL state correctness; not FPS data");
                 report.put("experimentalModernArmorRoute", Boolean.getBoolean("arcadium.modernGlint072.experimental"));
@@ -493,6 +502,7 @@ public final class ModernGlint072Qa {
         if (error != null) { report.put("error", error.toString()); report.put("diagnostic", ModernArmorGlintPipeline.status()); error.printStackTrace(); }
         try {
             if (styleField != null) styleField.set(items, originalStyle);
+            if(sneakAnimationField!=null)sneakAnimationField.set(movement,originalSneakAnimation);
             Path output = Path.of(System.getProperty("arcadium.modernGlint072.output")); Files.createDirectories(output.toAbsolutePath().getParent());
             Files.writeString(output, new GsonBuilder().setPrettyPrinting().create().toJson(report));
             if (guard != 0) GL15.glDeleteBuffers(guard); if (genericGuard != 0) GL15.glDeleteBuffers(genericGuard);

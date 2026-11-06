@@ -39,7 +39,7 @@ public final class ModernArmorGlintPipeline {
     private static final Identifier ITEM = new Identifier("overflowanimations", "textures/misc/enchanted_glint_item.png");
     private static final Identifier ARMOR = new Identifier("overflowanimations", "textures/misc/enchanted_glint_armor.png");
     private static PlayerBatchAccess api;
-    private static MethodHandle getProgram, animationInstance, customEffects, customArmor, ceraGetter;
+    private static MethodHandle getProgram, animationInstance, customEffects, customArmor, ceraGetter, oldSneakModel;
     private static VarHandle textureMatrices;
     private static Object animationItems, ceraItems;
     private static java.lang.reflect.Field armorGlint, animationItemsField;
@@ -79,6 +79,11 @@ public final class ModernArmorGlintPipeline {
         animationInstance = MethodHandles.lookup().unreflect(animation.getMethod("instance"));
         Object config = animationInstance.invoke(); animationItemsField = animation.getField("items"); animationItems = animationItemsField.get(config);
         armorGlint = animationItems.getClass().getField("armorGlint");
+        if(MVP_MODE==1){
+            var method=Class.forName("org.polyfrost.overflowanimations.legacy.model.LegacyEyeHeight").getMethod("isOldSneakModel");
+            if(method.getReturnType()!=boolean.class||method.getParameterCount()!=0||!java.lang.reflect.Modifier.isStatic(method.getModifiers()))throw new IllegalStateException("Unknown native sneak model API");
+            oldSneakModel=MethodHandles.publicLookup().unreflect(method);
+        }
         Class<?> passes = Class.forName("dev.rdh.argentum.impl.render.entity.instancing.InstanceRenderPass");
         for (Object value : passes.getEnumConstants()) if (((Enum<?>)value).name().equals("GLINT")) glintPass = value;
         api = access;
@@ -100,6 +105,7 @@ public final class ModernArmorGlintPipeline {
             if (entity.damagedTimer > 0 || entity.deathTicks > 0) return nativeLayer("Hurt/death armor retains original modern glint");
             ArmorLayer armor = (ArmorLayer)layer;
             if (!standard(armor.getModel(1)) || !standard(armor.getModel(2))) return nativeLayer("Custom armor model retains original glint");
+            if(entity.isBaby()||armor.getModel(1).isBaby||armor.getModel(2).isBaby)return nativeLayer("Baby armor retains its native model prelude");
             if (matrices.remaining() < 64) return nativeLayer("Modern glint matrix budget reached");
             initialize();
             animationItems = animationItemsField.get(animationInstance.invoke());
@@ -115,10 +121,17 @@ public final class ModernArmorGlintPipeline {
             if (!NativePlayerPosePipeline.preflightModernLayer(capture)) return nativeLayer("Modern armor pose budget reached");
             List<Identifier> textures = armorTextures(entity, style);
             if (textures == null) return nativeLayer("Custom or emissive armor material retains the original modern layer");
+            int prelude=0;
+            if(geometryMvp!=null){
+                boolean known=oldSneakModel!=null,old=known&&(boolean)oldSneakModel.invokeExact();
+                prelude=ModernArmorMvp.selectPrelude(entity.isSneaking(),entity.isBaby(),armor.getModel(1).isBaby,armor.getModel(2).isBaby,known,old);
+                if(prelude<0)return nativeLayer("Unknown armor model prelude retains its native rendering");
+            }
             boolean geometryReady = NativePlayerPosePipeline.prepareOriginalArmor((HumanoidModel)armor.getModel(1), (HumanoidModel)armor.getModel(2), device);
             boolean texturesReady = ModernArmorAuxiliary.prepareTextures(device, textures);
             if (!geometryReady || !texturesReady) return nativeLayer("Preparing owned modern armor stores; retaining the original layer");
             if (MVP_MODE != 0 && MVP_MODE != 1) return nativeLayer("Unsupported private armor MVP mode");
+            if(geometryMvp!=null)geometryMvp.preparePrelude(prelude);
             if (geometryMvp != null && !geometryMvp.begin(capture, armor.getModel(1), armor.getModel(2), matrices.generation()))
                 return nativeLayer("Physical native armor matrices unavailable; retaining the original layer");
             selection.select(capture, layer, candidate, armor.getModel(1), armor.getModel(2), matrices.generation());

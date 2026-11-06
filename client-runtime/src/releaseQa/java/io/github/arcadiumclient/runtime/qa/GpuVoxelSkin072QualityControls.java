@@ -13,6 +13,8 @@ public final class GpuVoxelSkin072QualityControls {
     private static final String YAW = System.getProperty("arcadium.voxelQuality072.yaw");
     private static final String TIME = System.getProperty("arcadium.voxelQuality072.time");
     private static final String SHADOWS = System.getProperty("arcadium.voxelQuality072.entityShadows");
+    private static final String CAMERA_YAW=System.getProperty("arcadium.voxelQuality072.cameraYaw"),CAMERA_PITCH=System.getProperty("arcadium.voxelQuality072.cameraPitch"),FOV_DEGREES=System.getProperty("arcadium.voxelQuality072.fovDegrees");
+    private static List<Float> observedCamera=List.of();
     private static final float OFFSET = YAW == null ? 0 : Float.parseFloat(YAW);
     private static final long TIME_OF_DAY = TIME == null ? 6000 : Long.parseLong(TIME);
     private static boolean hooked;
@@ -29,7 +31,7 @@ public final class GpuVoxelSkin072QualityControls {
     private GpuVoxelSkin072QualityControls() {}
 
     private static boolean active() {
-        return (YAW != null || TIME != null || SHADOWS != null) && PlayerPipeline072Qa.enabled()
+        return (YAW != null || TIME != null || SHADOWS != null || CAMERA_YAW!=null || CAMERA_PITCH!=null || FOV_DEGREES!=null) && PlayerPipeline072Qa.enabled()
                 && System.getProperty("arcadium.playerPipeline072.mode", "visual").equals("visual");
     }
     public static boolean captureOnly() {
@@ -108,6 +110,13 @@ public final class GpuVoxelSkin072QualityControls {
     public static void world() {
         if (!active()) return;
         Minecraft mc = Minecraft.getInstance();
+        if(CAMERA_YAW!=null||CAMERA_PITCH!=null||FOV_DEGREES!=null){
+            if(!"ArcadiumTest".equals(mc.getSession().getUsername())||!"0".equals(mc.getSession().getAccessToken()))throw new IllegalStateException("Camera controls require the owned fake visual fixture");
+            float yaw=CAMERA_YAW==null?0:Float.parseFloat(CAMERA_YAW),pitch=CAMERA_PITCH==null?8:Float.parseFloat(CAMERA_PITCH),fov=FOV_DEGREES==null?75f:Float.parseFloat(FOV_DEGREES);
+            if(!Float.isFinite(yaw+pitch+fov)||Math.abs(yaw)>30||pitch< -20||pitch>30||fov<50||fov>110)throw new IllegalArgumentException("Invalid visual camera controls");
+            mc.options.fov=fov;
+            if(mc.player!=null){mc.player.yaw=mc.player.lastYaw=yaw;mc.player.pitch=mc.player.lastPitch=pitch;observedCamera=List.of(mc.player.yaw,mc.player.pitch,mc.options.fov);}
+        }
         if (SHADOWS != null) {
             if (!SHADOWS.equals("true") && !SHADOWS.equals("false")) throw new IllegalArgumentException("Invalid QA entityShadows option");
             mc.options.entityShadows = Boolean.parseBoolean(SHADOWS);
@@ -132,7 +141,7 @@ public final class GpuVoxelSkin072QualityControls {
                 result.put("captureOnly", Boolean.getBoolean("arcadium.voxelQuality072.captureOnly")); result.put("analyticCallsBypassed", captureBypasses);
                 result.put("nativeVoxelRootControl",Boolean.getBoolean("arcadium.playerPipeline072.nativeVoxelRootControl"));result.put("nativeVoxelRootBypasses",nativeVoxelRootBypasses);
                 result.put("actualOriginalVoxelDisplayLists",nativeRootListCalls);result.put("nativeRootActorScopeDepth",nativeRootActorDepth);result.put("nativeRootMeshScopeDepth",nativeRootMeshDepth);
-                result.put("observedVoxelScales", observedScales);
+                result.put("observedVoxelScales", observedScales);result.put("observedCameraYawPitchFov",observedCamera);
                 result.put("requestedEntityShadows", SHADOWS); result.put("observedEntityShadows", observedEntityShadows);
                 result.put("captureProofs", captureProofs);
                 Files.writeString(Path.of(file).resolveSibling("voxel-quality-controls.json"), new GsonBuilder().setPrettyPrinting().create().toJson(result));

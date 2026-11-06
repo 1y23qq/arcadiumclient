@@ -38,7 +38,10 @@ enum { ARC_PRESENT_LAST_PREPARED = 1, ARC_PRESENT_LAST_SUBMITTED = 2,
        ARC_PRESENT_VIEW_OPAQUE = 49, ARC_PRESENT_CURRENT_GL_VIEW_LAYER_ID = 50,
        ARC_PRESENT_CURRENT_GL_VIEW_ID = 51, ARC_PRESENT_CURRENT_GL_CONTEXT_MATCH = 52,
        ARC_PRESENT_CONFIGURED_SWAP_INTERVAL = 53, ARC_PRESENT_PREPARED_SWAP_INTERVAL = 54,
-       ARC_PRESENT_LAYER_CHAIN_BASE = 64, ARC_PRESENT_LAYER_CHAIN_END = 72 };
+       ARC_PRESENT_ORIGINAL_GL_SURFACE_ORDER = 55, ARC_PRESENT_PARENT_LAYER_Z_FP64 = 56,
+       ARC_PRESENT_CHILD_LAYER_Z_FP64 = 57,
+       ARC_PRESENT_LAYER_CHAIN_BASE = 64, ARC_PRESENT_LAYER_CHAIN_END = 72,
+       ARC_PRESENT_SIBLING_BASE = 128, ARC_PRESENT_SIBLING_STRIDE = 12, ARC_PRESENT_SIBLING_END = 176 };
 
 typedef struct {
     uint64_t frame_id;
@@ -64,7 +67,7 @@ ARC_API int arc_present_hide(void *bridge);
 ARC_API int arc_present_release_gl(void *bridge);
 // Main thread, after successful release_gl, before parent SDL destruction/backend close.
 ARC_API int arc_present_destroy(void *bridge);
-// View queries11..54 and64..71 require the Cocoa main thread; IDs are process-local.
+// View queries11..57,64..71,128..175 require the Cocoa main thread; IDs are process-local.
 ARC_API uint64_t arc_present_query(void *bridge, int key);
 
 int arc_present_valid_frame(const arc_present_frame *frame, uint64_t *rgba_bytes);

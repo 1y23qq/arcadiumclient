@@ -14,6 +14,7 @@ public final class ModernArmorMvp072Qa {
     private static int depth;
     private static long matrixRestores,nativeMvpChecks,uniformRestores,ownedDraws,controlDraws;
     private static Field nativeViews,arenaField;
+    private static Map<String,Object> firstMismatch;
     private static final class Snapshot{int mode,stack;final float[] model=new float[16],projection=new float[16];}
     static{for(int i=0;i<states.length;i++)states[i]=new Snapshot();}
     private ModernArmorMvp072Qa(){}
@@ -26,7 +27,7 @@ public final class ModernArmorMvp072Qa {
         if(index<0||!ModernGlint072Qa.needsModelViewReference())return;
         try{
             if(nativeViews==null){nativeViews=ModernGlint072Qa.class.getDeclaredField("nativeModelViews");nativeViews.setAccessible(true);arenaField=ModernArmorGlintPipeline.class.getDeclaredField("matrices");arenaField.setAccessible(true);}
-            float[] reference=((IdentityHashMap<ModelPart,float[]>)nativeViews.get(null)).get(part);require(reference!=null,"No actual native part matrix for MVP comparison");float[] expected=new float[16];ModernArmorMvpMath.multiply(projection,reference,expected);ModernGlintMatrices table=(ModernGlintMatrices)arenaField.get(null);require(index<table.count(),"MVP row outside actual shared arena");for(int i=0;i<16;i++)require(Float.floatToRawIntBits(expected[i])==Float.floatToRawIntBits(table.values()[index*16+i]),"Native/client MVP raw bits differ at"+i);nativeMvpChecks++;
+            float[] reference=((IdentityHashMap<ModelPart,float[]>)nativeViews.get(null)).get(part);require(reference!=null,"No actual native part matrix for MVP comparison");float[] expected=new float[16];ModernArmorMvpMath.multiply(projection,reference,expected);ModernGlintMatrices table=(ModernGlintMatrices)arenaField.get(null);require(index<table.count(),"MVP row outside actual shared arena");for(int i=0;i<16;i++)if(Float.floatToRawIntBits(expected[i])!=Float.floatToRawIntBits(table.values()[index*16+i])){captureMismatch(part,s.model,reference,projection,expected,table,index,i);var failure=new IllegalStateException("Native/client MVP raw bits differ at"+i);ModernGlint072Qa.referenceFailure(failure);throw failure;}nativeMvpChecks++;
         }catch(ReflectiveOperationException e){throw new IllegalStateException(e);}
     }
     public static int uniformLocation(int program){return program>0&&GL20.glIsProgram(program)?GL20.glGetUniformLocation(program,"uArcadiumModernArmorMvp"):-1;}
@@ -40,8 +41,52 @@ public final class ModernArmorMvp072Qa {
         }catch(ReflectiveOperationException e){throw new IllegalStateException(e);}
     }
     public static Map<String,Object> report(){
-        var result=new java.util.LinkedHashMap<String,Object>();result.put("mode",ModernArmorGlintPipeline.mvpMode());result.put("matrixStateRestores",matrixRestores);result.put("actualNativeMvpRawBitChecks",nativeMvpChecks);result.put("uniformScopeRestores",uniformRestores);result.put("actualOwnedMvpInstances",ownedDraws);result.put("mode0ControlInstances",controlDraws);result.put("balancedClientScopes",depth==0);result.put("productionMvpGpuReadbacks",0);result.put("layerRootCaptures",ModernArmorMvp.layerRoots);result.put("clientMatrixConstructions",ModernArmorMvp.clientMatrixConstructions);result.put("cachedPartMvpHits",ModernArmorMvp.cacheHits);return result;
+        var result=new java.util.LinkedHashMap<String,Object>();result.put("mode",ModernArmorGlintPipeline.mvpMode());result.put("matrixStateRestores",matrixRestores);result.put("actualNativeMvpRawBitChecks",nativeMvpChecks);result.put("uniformScopeRestores",uniformRestores);result.put("actualOwnedMvpInstances",ownedDraws);result.put("mode0ControlInstances",controlDraws);result.put("balancedClientScopes",depth==0);result.put("productionMvpGpuReadbacks",0);result.put("layerRootCaptures",ModernArmorMvp.layerRoots);result.put("clientMatrixConstructions",ModernArmorMvp.clientMatrixConstructions);result.put("cachedPartMvpHits",ModernArmorMvp.cacheHits);result.put("nativeSneakPreludeRoots",ModernArmorMvp.nativeSneakPreludeRoots);result.put("identityPreludeRoots",ModernArmorMvp.identityPreludeRoots);if(firstMismatch!=null)result.put("firstNativeMvpMismatch",firstMismatch);return result;
     }
+    private static void captureMismatch(ModelPart part,float[] physicalRoot,float[] nativePart,float[] projection,float[] expected,ModernGlintMatrices table,int index,int word){
+        if(firstMismatch!=null)return;
+        var record=new java.util.LinkedHashMap<String,Object>();firstMismatch=record;
+        record.put("firstDifferingWord",word);record.put("row",index);record.put("tableCount",table.count());
+        record.put("actualPhysicalModelRootAtEntry",physicalRoot.clone());record.put("actualNativePartModelView",nativePart.clone());
+        record.put("actualProjection",projection.clone());record.put("expectedNativeMvp",expected.clone());record.put("expectedNativeMvpBits",bits(expected));
+        float[] generated=java.util.Arrays.copyOfRange(table.values(),index*16,index*16+16);record.put("generatedMvp",generated);record.put("generatedMvpBits",bits(generated));
+        record.put("pivot",new float[]{part.x,part.y,part.z});record.put("translation",new float[]{part.translateX,part.translateY,part.translateZ});record.put("anglesRadians",new float[]{part.rotationX,part.rotationY,part.rotationZ});
+        try{
+            Field helperField=ModernArmorGlintPipeline.class.getDeclaredField("geometryMvp");helperField.setAccessible(true);Object helper=helperField.get(null);
+            float[] layerRoot=null;
+            for(String name:new String[]{"root","projection","eye","mvp"}){Field field=ModernArmorMvp.class.getDeclaredField(name);field.setAccessible(true);float[] value=((float[])field.get(helper)).clone();record.put("helper_"+name,value);record.put("helper_"+name+"Bits",bits(value));if(name.equals("root"))layerRoot=value;}
+            Object model=((io.github.arcadiumclient.runtime.mixin.client.access.BetaModelPartAccess)part).arcadium$baseModel();
+            require(model instanceof net.minecraft.client.render.model.entity.HumanoidModel,"Mismatch model is not native HumanoidModel");
+            var humanoid=(net.minecraft.client.render.model.entity.HumanoidModel)model;
+            record.put("actualModelClass",model.getClass().getName());record.put("modelSneaking",humanoid.sneaking);record.put("modelBaby",humanoid.isBaby);
+            Field actorField=ModernGlint072Qa.class.getDeclaredField("actor");actorField.setAccessible(true);Object value=actorField.get(null);
+            require(value instanceof net.minecraft.entity.living.LivingEntity,"Mismatch has no actual owned living actor");
+            var actor=(net.minecraft.entity.living.LivingEntity)value;
+            record.put("actualActorSneaking",actor.isSneaking());record.put("actualActorBaby",actor.isBaby());
+            if(actor.isSneaking()&&!actor.isBaby()&&!humanoid.isBaby)record.put("nativeAdultSneakPreludeOracle",prelude(layerRoot,part,physicalRoot,nativePart,projection,expected));
+        }catch(Throwable error){record.put("snapshotFailureClass",error.getClass().getName());}
+    }
+    private static Map<String,Object> prelude(float[] layerRoot,ModelPart part,float[] physicalRoot,float[] nativePart,float[] projection,float[] expected){
+        require(layerRoot!=null,"Missing observed helper layer root");int mode=GL11.glGetInteger(GL11.GL_MATRIX_MODE),stack=GL11.glGetInteger(GL11.GL_MODELVIEW_STACK_DEPTH);
+        require(stack<GL11.glGetInteger(GL11.GL_MAX_MODELVIEW_STACK_DEPTH),"No native oracle matrix stack capacity");
+        float[] before=new float[16],beforeProjection=new float[16],root=new float[16],eye=new float[16],after=new float[16],afterProjection=new float[16],mvp=new float[16];
+        GL11.glGetFloatv(GL11.GL_MODELVIEW_MATRIX,before);GL11.glGetFloatv(GL11.GL_PROJECTION_MATRIX,beforeProjection);
+        var buffer=org.lwjgl.BufferUtils.createFloatBuffer(16);boolean pushed=false;
+        try{
+            GL11.glMatrixMode(GL11.GL_MODELVIEW);GL11.glPushMatrix();pushed=true;buffer.put(layerRoot).flip();GL11.glLoadMatrixf(buffer);
+            GL11.glTranslatef(0,.2f,0);GL11.glGetFloatv(GL11.GL_MODELVIEW_MATRIX,root);
+            GL11.glTranslatef(part.translateX,part.translateY,part.translateZ);GL11.glTranslatef(part.x*.0625f,part.y*.0625f,part.z*.0625f);
+            if(part.rotationZ!=0)GL11.glRotatef(part.rotationZ*57.295776f,0,0,1);
+            if(part.rotationY!=0)GL11.glRotatef(part.rotationY*57.295776f,0,1,0);
+            if(part.rotationX!=0)GL11.glRotatef(part.rotationX*57.295776f,1,0,0);
+            GL11.glGetFloatv(GL11.GL_MODELVIEW_MATRIX,eye);
+        }finally{if(pushed)GL11.glPopMatrix();GL11.glMatrixMode(mode);}
+        GL11.glGetFloatv(GL11.GL_MODELVIEW_MATRIX,after);GL11.glGetFloatv(GL11.GL_PROJECTION_MATRIX,afterProjection);
+        boolean restored=GL11.glGetInteger(GL11.GL_MATRIX_MODE)==mode&&GL11.glGetInteger(GL11.GL_MODELVIEW_STACK_DEPTH)==stack&&same(before,after)&&same(beforeProjection,afterProjection);
+        require(restored,"Bounded native sneak oracle leaked matrix state");ModernArmorMvpMath.multiply(projection,eye,mvp);
+        var result=new java.util.LinkedHashMap<String,Object>();result.put("actualAdultSneakRequired",true);result.put("operation","native glTranslatef(0,0.2f,0) then actual current part operations");result.put("root",root);result.put("rootBits",bits(root));result.put("partEye",eye);result.put("partEyeBits",bits(eye));result.put("mvp",mvp);result.put("mvpBits",bits(mvp));result.put("rootMatchesActualPhysicalRootRaw16",same(root,physicalRoot));result.put("eyeMatchesActualNativePartRaw16",same(eye,nativePart));result.put("mvpMatchesExpectedNativeRaw16",same(mvp,expected));result.put("matrixModeBefore",mode);result.put("matrixDepthBefore",stack);result.put("exactStateRestored",restored);result.put("qaOnlyMetadataReadback",true);return result;
+    }
+    private static int[] bits(float[] values){int[] out=new int[values.length];for(int i=0;i<values.length;i++)out[i]=Float.floatToRawIntBits(values[i]);return out;}
     private static boolean same(float[]a,float[]b){for(int i=0;i<a.length;i++)if(Float.floatToRawIntBits(a[i])!=Float.floatToRawIntBits(b[i]))return false;return true;}
     private static void require(boolean value,String message){if(!value)throw new IllegalStateException(message);}
 }
