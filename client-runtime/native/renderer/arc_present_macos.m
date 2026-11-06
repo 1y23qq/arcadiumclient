@@ -67,6 +67,7 @@ static const uint64_t image_limit = UINT64_C(128) * 1024 * 1024;
 @public CGLContextObj context;
 @public pthread_t renderThread;
 @public CVMetalTextureCacheRef cache;
+@public uint64_t publishedLayer, publishedSuperlayer, publishedDrawableLayer, publishedView, publishedContentView, publishedDrawable;
 }
 @property(nonatomic, weak) NSWindow *window;
 @property(nonatomic, strong) ArcPresentationView *view;
@@ -305,6 +306,12 @@ int arc_present_publish(void *value, uint64_t frame) {
                 if (!drawable || drawable.texture.width != p.image.width || drawable.texture.height != p.image.height) {
                     hideView(p); return failure(p, @"No correctly sized current Metal drawable", ARC_PRESENT_UNAVAILABLE);
                 }
+                p->publishedLayer = (uint64_t)(uintptr_t)(__bridge void *)layer;
+                p->publishedSuperlayer = (uint64_t)(uintptr_t)(__bridge void *)layer.superlayer;
+                p->publishedDrawableLayer = (uint64_t)(uintptr_t)(__bridge void *)drawable.layer;
+                p->publishedView = (uint64_t)(uintptr_t)(__bridge void *)p.view;
+                p->publishedContentView = (uint64_t)(uintptr_t)(__bridge void *)parent;
+                p->publishedDrawable = drawable.drawableID;
                 MTLRenderPassDescriptor *pass = [MTLRenderPassDescriptor renderPassDescriptor];
                 pass.colorAttachments[0].texture = drawable.texture;
                 pass.colorAttachments[0].loadAction = MTLLoadActionDontCare; pass.colorAttachments[0].storeAction = MTLStoreActionStore;
@@ -458,6 +465,12 @@ uint64_t arc_present_query(void *value, int key) {
             }
             case ARC_PRESENT_PARENT_LAYER_Z_FP64: number = parent.layer.zPosition; break;
             case ARC_PRESENT_CHILD_LAYER_Z_FP64: number = layer.zPosition; break;
+            case ARC_PRESENT_PUBLISHED_LAYER_ID: return p->publishedLayer;
+            case ARC_PRESENT_PUBLISHED_SUPERLAYER_ID: return p->publishedSuperlayer;
+            case ARC_PRESENT_PUBLISHED_DRAWABLE_LAYER_ID: return p->publishedDrawableLayer;
+            case ARC_PRESENT_PUBLISHED_VIEW_ID: return p->publishedView;
+            case ARC_PRESENT_PUBLISHED_CONTENT_VIEW_ID: return p->publishedContentView;
+            case ARC_PRESENT_PUBLISHED_DRAWABLE_ID: return p->publishedDrawable;
             case ARC_PRESENT_LAYER_DISPLAY_SYNC_ENABLED: return layer.displaySyncEnabled;
             case ARC_PRESENT_VIEW_VISIBLE_WIDTH_FP64: number = p.view.visibleRect.size.width; break;
             case ARC_PRESENT_VIEW_VISIBLE_HEIGHT_FP64: number = p.view.visibleRect.size.height; break;

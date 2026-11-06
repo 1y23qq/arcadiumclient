@@ -214,6 +214,8 @@ public final class MetalPylonPresentationProbe {
         value.put("originalGlSurfaceOrder",original.owner.nativeCounter(55));
         value.put("parentLayerZ",Double.longBitsToDouble(original.owner.nativeCounter(56)));
         value.put("childLayerZ",Double.longBitsToDouble(original.owner.nativeCounter(57)));
+        String[] published={"publishedLayerId","publishedSuperlayerId","publishedDrawableLayerId","publishedViewId","publishedContentViewId","publishedDrawableId"};
+        for(int i=0;i<published.length;i++)value.put(published[i],original.owner.nativeCounter(58+i));
         List<Map<String,Object>> siblings=new ArrayList<>();
         for(int i=0;i<4;i++) {
             int key=128+i*12;long id=original.owner.nativeCounter(key);if(id==0)break;
