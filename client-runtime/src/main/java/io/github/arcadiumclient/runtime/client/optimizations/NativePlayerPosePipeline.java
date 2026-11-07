@@ -33,8 +33,8 @@ public final class NativePlayerPosePipeline {
     public static final class CaptureState {
         private final NativePoseGroups groups = new NativePoseGroups();
         private long epoch;
-        private boolean counted;
-        public void begin() { beginEpoch(); ModernArmorGlintPipeline.beginCapture(); }
+        private boolean counted;private long sequence;
+        public void begin() { if(PreparedPlayerMode073.ENABLED)sequence++;beginEpoch(); ModernArmorGlintPipeline.beginCapture(); }
         private void beginEpoch() { groups.clear(); counted = false; epoch = batchEpoch; }
     }
     public interface CaptureAccess { CaptureState arcadium$nativePoseState(); }
@@ -288,4 +288,88 @@ public final class NativePlayerPosePipeline {
         return "Native GPU player poses: " + state + " | Players: " + playersQueued + " | Body: " + bodyPartsQueued +
                 " | Armor: " + armorPartsQueued + " | Fallback: " + fallbacks;
     }
+    private static final PreparedPlayerEmission073.Adapter PREPARED=new PreparedAdapter();
+    private static boolean preparedFailed;private static GpuVoxelSkinSelector preparedSelector;
+    public static long preparedActors,preparedBodyBlocks,preparedOuterBlocks,preparedParts,preparedRefusals;
+    static PreparedPlayerEmission073.Adapter preparedAdapter(){return PREPARED;}
+    static boolean preparedSkinAllowed(){return !io.github.arcadiumclient.runtime.client.features.Skin3DConfig.getEnabled()||GpuVoxelSkinRenderer.preparedProjectionQualified();}
+    static boolean preparedEnabled(){return PreparedPlayerMode073.ENABLED&&!failed&&!preparedFailed&&BetaOptimizationsConfig.getGpuPlayerPipeline();}
+    private static final ClassValue<Boolean> PREPARED_EVIDENCE=new ClassValue<>(){protected Boolean computeValue(Class<?> type){if(type!=PlayerModel.class)return false;try{Object outer=type.getDeclaredField("arcadium$preparedOuter073").get(null),body=HumanoidModel.class.getDeclaredField("arcadium$preparedBody073").get(null);return outer instanceof String stamp&&stamp.length()==64&&stamp.equals(body);}catch(ReflectiveOperationException unknown){return false;}}};
+    static boolean preparedEvidence(Object value){return value!=null&&PREPARED_EVIDENCE.get(value.getClass());}
+    private static ModelPart preparedPart(PlayerModel m,int i){return switch(i){case 0->m.head;case 1->m.body;case 2->m.rightArm;case 3->m.leftArm;case 4->m.rightLeg;case 5->m.leftLeg;case 6->m.hat;case 7->m.leftPants;case 8->m.rightPants;case 9->m.leftSleeve;case 10->m.rightSleeve;case 11->m.jacket;default->throw new IllegalArgumentException("Unknown player part");};}
+    private static final PreparedBlockState073.Parts PREPARED_PARTS=new PreparedBlockState073.Parts(){
+        public Object part(Object model,int i){return preparedPart((PlayerModel)model,i);}public boolean standard(Object part){return standardPart((ModelPart)part);}public boolean finite(Object part){return finitePose((ModelPart)part);}public boolean visible(Object part){ModelPart p=(ModelPart)part;return p.visible&&!p.invisible;}public Object box(Object part){return ((ModelPart)part).boxes.get(0);}public Object mesh(Object part){return GpuVoxelSkinBridge.mesh((ModelPart)part);}
+    };
+    private static final PreparedBlockState073.Selection PREPARED_SELECTION=new PreparedBlockState073.Selection(){
+        public Object current()throws Throwable{return api.current.invoke();}public boolean active(Object actor)throws Throwable{return(boolean)api.active.invoke(actor);}public Object capture(Object actor)throws Throwable{return api.activeCapture.get(actor);}public Object backend(Object actor)throws Throwable{return api.backend.get(actor);}public Object pass(Object capture)throws Throwable{return api.capturePass.get(capture);}public Object texture(Object capture)throws Throwable{return api.captureTexture.get(capture);}
+        public boolean material(Object capture,Object model,Object texture,Object pass)throws Throwable{String kind=((Enum<?>)pass).name();return (boolean)api.capturePlayer.get(capture)&&!(boolean)api.captureArmor.get(capture)&&(boolean)api.captureActive.get(capture)&&!(boolean)api.captureFinished.get(capture)&&(int)api.captureMode.get(capture)==5888&&(kind.equals("NORMAL")||kind.equals("TRANSLUCENT"))&&!CeraEmissiveAdmission.nativeSubmitRequired(capture,model,(Identifier)texture,kind);}
+        public Object select(Object backend,Object texture,Object pass)throws Throwable{return preparedSelector.select(backend,texture,pass);}public int layer(Object backend)throws Throwable{return(int)api.selectedLayer.get(backend);}
+    };
+    private static final class PreparedLease implements PreparedBlockState073.Counters {
+        Object capture,actor,device,batch,pass;Identifier texture;PlayerModel model;Profile profile;CaptureState context;
+        final PreparedBlockState073.Counts snapshot=new PreparedBlockState073.Counts();final ModelPart[] parts=new ModelPart[12];final Object[] boxes=new Object[12];final PreparedBlockState073.Material material=new PreparedBlockState073.Material();final GpuPlayerPackets.PreparedAppend append=new GpuPlayerPackets.PreparedAppend();final Object[] instances=new Object[2];final int[] sizes=new int[2],counts=new int[2];
+        long epoch,sequence;int visible,skin;boolean playerCounted;
+        public int size(int i){return(int)api.size.get(instances[i]);}public int count(int i){return(int)api.count.get(instances[i]);}public int batch(){return(int)api.batchCount.get(batch);}public int device(){return(int)api.backendCount.get(device);}public boolean recorded(){return(boolean)api.captureRecorded.get(capture);}
+        public void size(int i,int value){api.size.set(instances[i],value);}public void count(int i,int value){api.count.set(instances[i],value);}public void batch(int value){api.batchCount.set(batch,value);}public void device(int value){api.backendCount.set(device,value);}public void recorded(boolean value){api.captureRecorded.set(capture,value);}
+        void clear(){capture=actor=device=batch=pass=null;model=null;profile=null;context=null;texture=null;java.util.Arrays.fill(parts,null);java.util.Arrays.fill(boxes,null);material.actor=material.capture=material.backend=material.pass=material.texture=material.batch=material.model=null;java.util.Arrays.fill(instances,null);visible=skin=0;}
+    }
+    private static final class PreparedAdapter implements PreparedPlayerEmission073.Adapter {
+        public Object createLease(){return new PreparedLease();}
+        public Object preflight(Object raw,Object entity,float scale,Object reuse){
+            if(io.github.arcadiumclient.runtime.client.features.Skin3DConfig.getEnabled()&&!GpuVoxelSkinRenderer.preparedProjectionQualified()){preparedRefusals++;return null;}
+            PreparedLease lease=reuse instanceof PreparedLease old?old:new PreparedLease();lease.clear();
+            try{
+                if(!preparedEnabled()||!preparedEvidence(raw)||scale!=.0625f||!(raw instanceof PlayerModel model)||model.isBaby||!(entity instanceof net.minecraft.client.entity.living.player.ClientPlayerEntity))return refuse(lease);
+                if(!GpuModelTransforms.ready())return refuse(lease);if(api==null)api=new PlayerBatchAccess();if(preparedSelector==null)preparedSelector=new GpuVoxelSkinSelector(api.select);Object actor=api.current.invoke();if(actor==null||!(boolean)api.active.invoke(actor))return refuse(lease);Object capture=api.activeCapture.get(actor);
+                if(!(capture instanceof CaptureAccess access)||!(boolean)api.capturePlayer.get(capture)||(boolean)api.captureArmor.get(capture)||!(boolean)api.captureActive.get(capture)||(boolean)api.captureFinished.get(capture)||(int)api.captureMode.get(capture)!=5888)return refuse(lease);
+                Object pass=api.capturePass.get(capture);String kind=((Enum<?>)pass).name();Identifier texture=(Identifier)api.captureTexture.get(capture);if(texture==null||!kind.equals("NORMAL")&&!kind.equals("TRANSLUCENT")||CeraEmissiveAdmission.nativeSubmitRequired(capture,model,texture,kind))return refuse(lease);
+                Object device=api.backend.get(actor);backend(device);Profile profile=profiles.get(model);if(profile==null){if(profiles.size()+originalVertexProfiles.size()>=MAX_PROFILES||templateBudgetExhausted)return refuse(lease);profile=new Profile(model,device,false);profiles.put(model,profile);}if(profile.template<0||profile.parts.size()!=12)return refuse(lease);
+                ModelPart[] parts=lease.parts;for(int i=0;i<12;i++)parts[i]=preparedPart(model,i);int visible=0;
+                for(int i=0;i<12;i++){ModelPart part=parts[i];Part shape=profile.parts.get(part);if(shape==null||!standardPart(part)||!finitePose(part)||part.boxes.get(0)!=shape.originalBox)return refuse(lease);if(part.visible&&!part.invisible)visible|=1<<i;lease.parts[i]=part;lease.boxes[i]=shape.originalBox;}
+                int skin=GpuSkinLayers.mask(parts);if(io.github.arcadiumclient.runtime.client.features.Skin3DConfig.getEnabled()){
+                    if(skin==0||!GpuVoxelSkinRenderer.preparedProjectionQualified())return refuse(lease);
+                    PreparedVoxelLease073 voxel=GpuVoxelSkinRenderer.preflightPrepared(device,capture,lease.parts,skin,texture,profile.template);
+                    if(voxel==null||!voxel.projectionQualified())return refuse(lease);
+                    return refuse(lease); // Whole-skin admission is deliberately absent from this first body cut.
+                }
+                CaptureState context=access.arcadium$nativePoseState();if(context.epoch!=batchEpoch)context.beginEpoch();if(context.groups.remaining()<2||GpuPlayerPackets.MAX_PLAYERS-GpuPlayerPackets.count()<3)return refuse(lease);
+                Object batch=preparedSelector.select(device,texture,pass);for(int mirror=0;mirror<2;mirror++){
+                    Object instances=api.instances.invoke(profile.geometry[mirror],batch);int n=0;for(int i=0;i<12;i++)if((visible&1<<i)!=0&&(skin&1<<i)==0&&profile.parts.get(parts[i]).mirrored==(mirror==1))n++;
+                    int size=(int)api.size.get(instances);int[] data=(int[])api.data.get(instances);if(size<0||size%19!=0||size+n*19>65536*19)return refuse(lease);if(size+n*19>data.length)api.data.set(instances,java.util.Arrays.copyOf(data,Math.max(size+n*19,data.length*2)));lease.instances[mirror]=instances;
+                }
+                lease.capture=capture;lease.actor=actor;lease.device=device;lease.batch=batch;lease.pass=pass;lease.texture=texture;lease.model=model;lease.profile=profile;lease.context=context;lease.epoch=batchEpoch;lease.sequence=context.sequence;lease.material.actor=actor;lease.material.capture=capture;lease.material.backend=device;lease.material.pass=pass;lease.material.texture=texture;lease.material.batch=batch;lease.material.model=model;lease.visible=visible;lease.skin=skin;preparedActors++;return lease;
+            }catch(Throwable unsupported){return refuse(lease);}
+        }
+        private Object refuse(PreparedLease lease){lease.clear();preparedRefusals++;return null;}
+        public boolean emit(Object value,int block){
+            PreparedLease l=(PreparedLease)value;int oldBatch=0,oldDevice=0,groupCheckpoint=-1;boolean bytesCheckpoint=false,recorded=false;
+            try{
+                if(l.epoch!=batchEpoch||l.sequence!=l.context.sequence||l.model.isBaby||io.github.arcadiumclient.runtime.client.features.Skin3DConfig.getEnabled())return false;
+                int mask=PreparedBlockState073.liveMask(PREPARED_PARTS,l.model,l.parts,l.boxes,l.visible,block);if(mask<0)return false;
+                int layer=PreparedBlockState073.selectOwned(PREPARED_SELECTION,l.material);if(layer==Integer.MIN_VALUE)return false;
+                for(int mirror=0;mirror<2;mirror++)if(api.instances.invoke(l.profile.geometry[mirror],l.batch)!=l.instances[mirror])return false;
+                if(l.epoch!=batchEpoch||l.sequence!=l.context.sequence||api.current.invoke()!=l.actor||!(boolean)api.active.invoke(l.actor)||(int)api.selectedLayer.get(l.device)!=layer)return false;
+                mask=PreparedBlockState073.liveMask(PREPARED_PARTS,l.model,l.parts,l.boxes,l.visible,block);if(mask<0)return false;
+                Matrix4fc matrix=(Matrix4fc)api.captureMatrices.get(l.capture);if(!finiteAffine(matrix))return false;if(mask==0)return true;
+                if(l.context.groups.full())return false;
+                l.snapshot.save(l);oldBatch=l.snapshot.batch();oldDevice=l.snapshot.device();
+                for(int mirror=0;mirror<2;mirror++){Object instances=l.instances[mirror];l.sizes[mirror]=(int)api.size.get(instances);l.counts[mirror]=(int)api.count.get(instances);int n=0;for(int i=0;i<12;i++)if((mask&1<<i)!=0&&l.profile.parts.get(l.parts[i]).mirrored==(mirror==1))n++;if(l.sizes[mirror]+n*19>((int[])api.data.get(instances)).length)return false;}
+                bytesCheckpoint=true;groupCheckpoint=l.context.groups.preparedCheckpoint();GpuPlayerPackets.beginPreparedAppend(l.append);
+                int job=GpuPlayerPackets.addPreparedPose(matrix,l.profile.template,l.append);if(job<0){GpuPlayerPackets.rollbackPreparedAppend(l.append);return false;}
+                NativePoseGroups.Entry group=l.context.groups.addPrepared(l.profile,l.pass,matrix,job,l.append);if(group==null)throw new IllegalStateException("Prepared group allocation failed");
+                int light=(int)api.captureLight.get(l.capture),lightWord=(light&255)|((light>>>16&255)<<8)|((layer&255)<<16),color=pack((Vector4fc)api.captureColor.get(l.capture)),overlay=pack((Vector4fc)api.captureOverlay.get(l.capture));float time=(float)api.captureTime.get(l.capture);int added=0;
+                for(int mirror=0;mirror<2;mirror++){Object instances=l.instances[mirror];int[] data=(int[])api.data.get(instances);int size=l.sizes[mirror],count=l.counts[mirror];
+                    for(int i=0;i<12;i++){if((mask&1<<i)==0)continue;ModelPart part=l.parts[i];Part shape=l.profile.parts.get(part);if(shape.mirrored!=(mirror==1))continue;GpuPlayerPackets.writePose(job,i,part.x*.0625f+part.translateX,part.y*.0625f+part.translateY,part.z*.0625f+part.translateZ,part.rotationX,part.rotationY,part.rotationZ);java.util.Arrays.fill(data,size,size+19,0);data[size]=Float.floatToRawIntBits(-(job*16+i+1));data[size+1]=MAGIC_1;data[size+2]=MAGIC_2;data[size+12]=Float.floatToRawIntBits(time);data[size+13]=lightWord;data[size+14]=color;data[size+15]=overlay;data[size+16]=shape.uv;data[size+17]=shape.dimensions;data[size+18]=shape.size;size+=19;count++;added++;group.mark(i);}
+                    api.size.set(instances,size);api.count.set(instances,count);l.append.point(7+mirror);
+                }
+                api.batchCount.set(l.batch,oldBatch+added);api.backendCount.set(l.device,oldDevice+added);l.append.point(9);api.captureRecorded.set(l.capture,true);l.append.point(10);GpuPlayerPackets.commitPreparedAppend(l.append);
+                poseGroups++;bodyPartsQueued+=added;preparedParts+=added;if(!l.context.counted){playersQueued++;l.context.counted=true;}if(block==0)preparedBodyBlocks++;else preparedOuterBlocks++;return true;
+            }catch(Throwable failedAppend){
+                try{if(bytesCheckpoint){l.snapshot.restore(l);}if(groupCheckpoint>=0)l.context.groups.rollbackPrepared(groupCheckpoint);if(l.append.open())GpuPlayerPackets.rollbackPreparedAppend(l.append);}catch(Throwable rollbackFailed){preparedFailed=true;}
+                return false;
+            }
+        }
+        public void release(Object value){((PreparedLease)value).clear();}
+    }
+
 }

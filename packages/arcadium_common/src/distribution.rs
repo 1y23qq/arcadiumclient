@@ -139,10 +139,10 @@ pub const BRANDING_MOD: &[u8] = include_bytes!("../assets/distribution/ArcadiumB
 pub const BRANDING_SHA1: &str = "e689b04fc1fad7fc27e022228e1894ae01476284";
 
 pub const COMPONENTS: &[(&str, &str)] = &[
-    ("ArcadiumCore-1.8.9.jar", "50d451186f09af161219f8a766fe5a09ae4cbba8"),
-    ("ArcadiumFeatures-1.8.9.jar", "2588a76d82280655a7f2c8a7bb408a21dd30a96a"),
+    ("ArcadiumCore-1.8.9.jar", "66ade1e14856094962a4255c92c338c81e0721ad"),
+    ("ArcadiumFeatures-1.8.9.jar", "691a73a89deea0549ebb5a3306bfee12af2c6cc9"),
     ("ArcadiumRenderer-1.8.9.jar", "a93ef441f12e02add2c756c3b1dedad0454bc616"),
-    ("ArcadiumForgeCompat-1.8.9.jar", "14270693e232f13197772f4c679a5029c41cfc29"),
+    ("ArcadiumForgeCompat-1.8.9.jar", "bf47ba867783d83f1fc02663ea662ae9e0856e22"),
     ("ArcadiumPylon-1.8.9.jar", "94a1ac70643e13cba024b13bd5236247291142a9"),
 ];
 

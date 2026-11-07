@@ -54,4 +54,8 @@ final class NativePoseGroups {
             if (Float.floatToRawIntBits(a.get(column, row)) != Float.floatToRawIntBits(b.get(column, row))) return false;
         return true;
     }
+    int preparedCheckpoint(){return count;}
+    void rollbackPrepared(int checkpoint){if(checkpoint<0||checkpoint>count)throw new IllegalStateException("Stale prepared group checkpoint");for(int i=count-1;i>=checkpoint;i--){Entry e=entries.get(i);e.profile=e.pass=null;e.written=0;}count=checkpoint;}
+    Entry addPrepared(Object profile,Object pass,Matrix4fc root,int job,GpuPlayerPackets.PreparedAppend tx){Entry result=add(profile,pass,root,job);tx.point(6);return result;}
+
 }

@@ -287,4 +287,25 @@ public final class GpuPlayerPackets {
         playerRevision++;poseRevision++;templateRevision++;
         }finally{if(FUSED_SCENE)ActorFusedRuntime.close();}
     }
+    public static final class PreparedAppend {
+        private int players,poses;private long batch;private Thread owner;private boolean open;
+        PreparedFault fault;public boolean open(){return open;}
+        void point(int stage){if(fault!=null)fault.at(stage);}
+    }
+    @FunctionalInterface interface PreparedFault {void at(int stage);}
+    public static void beginPreparedAppend(PreparedAppend tx){if(tx.open)throw new IllegalStateException("Nested prepared append checkpoint");tx.players=playerCount;tx.poses=poseCount;tx.batch=actorBatch;tx.owner=Thread.currentThread();tx.open=true;}
+    public static void commitPreparedAppend(PreparedAppend tx){checkPrepared(tx);tx.open=false;}
+    public static void rollbackPreparedAppend(PreparedAppend tx){
+        checkPrepared(tx);if(playerCount<tx.players||poseCount<tx.poses)throw new IllegalStateException("Prepared append ownership changed");
+        for(int job=playerCount-1;job>=tx.players;job--){if(scene!=null)scene.discard(job);if(lazyActors!=null)lazyActors.clear(job);poseOwners.clear(job);}
+        playerCount=tx.players;poseCount=tx.poses;poseRevision++;stateRevision++;playerRevision++;tx.open=false;
+    }
+    private static void checkPrepared(PreparedAppend tx){if(!tx.open||tx.owner!=Thread.currentThread()||tx.batch!=actorBatch)throw new IllegalStateException("Stale prepared append checkpoint");}
+    public static int addPreparedPose(Matrix4fc base,int template,PreparedAppend tx){
+        checkPrepared(tx);tx.point(0);int job=add(base,0,0,0,0,0,0,0,0,false,false,false,template);if(job<0)return job;
+        tx.point(1);int row=poseCount,words=(row+1)*POSE_WORDS;tx.point(2);
+        if(words>poses.capacity()){FloatBuffer next=BufferUtils.createFloatBuffer(Math.max(words,poses.capacity()*2));next.put(poses.duplicate().position(0).limit(poseCount*POSE_WORDS));poses=next;poseView=poses.duplicate();}
+        tx.point(3);players.put(job*PLAYER_WORDS+29,row);poseOwners.set(job);tx.point(4);poseCount++;poseRevision++;stateRevision++;playerRevision++;tx.point(5);return job;
+    }
+
 }

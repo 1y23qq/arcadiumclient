@@ -231,7 +231,9 @@
     "compat.argentum.MixinTerrainInventoryStorage",
     "compat.argentum.MixinTerrainResidentSubmission",
     "compat.argentum.MixinGpuModelActorRootOrigin073",
-    "compat.argentum.MixinGpuModelActorRootTick073"
+    "compat.argentum.MixinGpuModelActorRootTick073",
+    "compat.argentum.MixinGpuModelPreparedHumanoidMarker073",
+    "compat.argentum.MixinGpuModelPreparedPlayerMarker073"
   ],
   "injectors": {
     "defaultRequire": 1

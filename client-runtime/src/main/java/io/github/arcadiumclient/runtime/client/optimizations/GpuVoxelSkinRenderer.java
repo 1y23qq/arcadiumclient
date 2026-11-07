@@ -446,4 +446,21 @@ public final class GpuVoxelSkinRenderer implements GpuVoxelSkinPipeline.Backend 
             return entry;
         }
     }
+    public static boolean preparedProjectionQualified(){return false;}
+    public static PreparedVoxelLease073 preflightPrepared(Object main,Object capture,ModelPart[] parts,int mask,Identifier texture,int sourceTemplate){
+        GpuVoxelSkinRenderer renderer=instance;if(renderer==null||Integer.bitCount(mask)!=6||!renderer.preflight(main,parts,mask,texture,sourceTemplate))return null;
+        try{
+            State storage=renderer.prepared(main);if(storage==null)return null;Object fact=renderer.preflight.fact();int variant=renderer.preflight.consume(main,parts,mask,texture,sourceTemplate,renderer.epoch);if(variant<0||fact!=renderer.admission.admittedUpload())return null;
+            Object[] meshes=new Object[6],geometry=new Object[6];int at=0;for(int part=6;part<12;part++)if((mask&1<<part)!=0){Object mesh=GpuVoxelSkinBridge.mesh(parts[part]),raw=GpuVoxelSkinBridge.rawOffset(parts[part]);if(mesh==null||raw==null||!standardOffset(part,raw))return null;var offset=GpuVoxelSkinBridge.offset(raw);var entry=storage.mesh(mesh,.0625f,offset);if(entry==null)return null;meshes[at]=mesh;geometry[at++]=entry;}
+            // Existing analytic projection is not the qualified physical-leaf MVP path.
+            return new PreparedVoxelLease073(main,capture,parts,texture,fact,meshes,geometry,mask,sourceTemplate,variant,renderer.epoch,false);
+        }catch(Throwable unavailable){return null;}
+    }
+    public static int queuePreparedPose(PreparedVoxelLease073 lease,Object capture,ModelPart[] parts,Identifier texture,int sourceJob,int light,float age){
+        GpuVoxelSkinRenderer renderer=instance;if(renderer==null||lease==null||sourceJob<0||!lease.consume(lease.main,capture,parts,texture,lease.sourceTemplate,renderer.epoch))return 0;
+        if(lease.fact!=renderer.admission.admittedUpload())return 0;
+        renderer.preflight.arm(lease.main,parts,lease.mask,texture,lease.sourceTemplate,lease.variantTemplate,renderer.epoch,lease.fact);
+        return renderer.queue(parts,lease.mask,texture,sourceJob,lease.sourceTemplate,light,age);
+    }
+
 }

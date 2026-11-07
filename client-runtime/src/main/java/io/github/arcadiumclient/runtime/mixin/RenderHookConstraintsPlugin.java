@@ -42,7 +42,9 @@ public final class RenderHookConstraintsPlugin extends ConstraintsMixinPlugin {
             "io.github.arcadiumclient.runtime.mixin.compat.argentum.MixinTerrainResidentSubmission"
     );
     private static final boolean ACTOR_ROOT_BOOT=Boolean.getBoolean("arcadium.actorRoot073.enabled")&&!Boolean.getBoolean("arcadium.actorScene073.enabled")&&!Boolean.getBoolean("arcadium.actorScene073.fusedInput");
+    private static final boolean PREPARED_PLAYER_BOOT=Boolean.getBoolean("arcadium.preparedPlayer073.enabled")&&!Boolean.getBoolean("arcadium.actorRoot073.enabled")&&!Boolean.getBoolean("arcadium.actorScene073.enabled")&&!Boolean.getBoolean("arcadium.actorScene073.fusedInput");
     @Override public boolean shouldApplyMixin(String targetClassName,String mixinClassName) {
+        if(!PREPARED_PLAYER_BOOT&&(mixinClassName.endsWith(".MixinGpuModelPreparedHumanoidMarker073")||mixinClassName.endsWith(".MixinGpuModelPreparedPlayerMarker073")))return false;
         if(!ACTOR_ROOT_BOOT&&(mixinClassName.endsWith(".MixinGpuModelActorRootOrigin073")||mixinClassName.endsWith(".MixinGpuModelActorRootTick073")))return false;
         if(!TERRAIN_EVENT_BOOT&&TERRAIN_EVENT_MIXINS.contains(mixinClassName))return false;
         if(!VOXEL_PHYSICAL_BOOT&&mixinClassName.endsWith(".MixinGpuVoxelSkinCallList"))return false;
@@ -52,6 +54,8 @@ public final class RenderHookConstraintsPlugin extends ConstraintsMixinPlugin {
     }
     @Override public void postApply(String targetClassName, ClassNode targetClass, String mixinClassName, IMixinInfo mixinInfo) {
         super.postApply(targetClassName, targetClass, mixinClassName, mixinInfo);
+        if(PREPARED_PLAYER_BOOT&&mixinClassName.endsWith(".MixinGpuModelPreparedHumanoidMarker073")){io.github.arcadiumclient.runtime.client.optimizations.PreparedPlayerBootstrap073.arm(targetClass,0);return;}
+        if(PREPARED_PLAYER_BOOT&&mixinClassName.endsWith(".MixinGpuModelPreparedPlayerMarker073")){io.github.arcadiumclient.runtime.client.optimizations.PreparedPlayerBootstrap073.arm(targetClass,1);return;}
         if (mixinClassName.endsWith(".TrustedCosmeticUsernameMarker")) {
             try {
                 int sites = CosmeticUsernameFusion.apply(targetClass).size(); RenderHookAllocationControl.cosmeticSites += sites;
