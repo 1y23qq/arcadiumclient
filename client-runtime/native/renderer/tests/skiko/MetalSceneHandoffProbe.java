@@ -86,6 +86,7 @@ public final class MetalSceneHandoffProbe {
             var host=new MetalCompositeSurface.PylonHost();NativeCalls selected=calls;
             require(host.main(()->selected.create(host.cocoaWindow(original.window)))==0,"Child bridge creation failed");
             original.setVSyncEnabled(true);int actual=interval();require(host.main(()->selected.setSwapInterval(actual))==0,"Actual SDL pacing rejected");
+            awaitInitialWindow(calls,original);
             ticket=new MetalSceneTicket(calls,operation->host.main(operation::getAsInt));device=backend.metalDeviceLease();
             DirectContext skia=device.createResource((d,q)->DirectContext.Companion.makeMetal(d,q));skia.setResourceCacheLimit(16L*1024*1024);
             Typeface face=device.createResource((d,q)->FontMgr.Companion.getDefault().makeFromFile(args[3],0));Font font=device.createResource((d,q)->new Font(face,18));
@@ -125,7 +126,7 @@ public final class MetalSceneHandoffProbe {
             device.close();device=null;backend.awaitFrame();require(calls.scene(10)==0&&calls.scene(11)==0,"Lease ledgers remain live");report.put("nativeLeaseCountsZero",true);
             passed=displayFailures.isEmpty();
             report.put("librarySha256",args[1]);report.put("cohort",args[5]);report.put("actualSkikoVersion","0.154.0");report.put("twoActualResizes",true);report.put("texturedGeometryAndMaterial",true);report.put("actualSkikoTextAndBlur",true);
-        }catch(Throwable failure){report.put("failureClass",failure.getClass().getName());report.put("failure",String.valueOf(failure.getMessage()));if(calls!=null&&calls.attached())report.put("nativeError",calls.error());failure.printStackTrace();passed=false;}
+        }catch(Throwable failure){report.put("failureClass",failure.getClass().getName());report.put("failure",String.valueOf(failure.getMessage()));if(calls!=null&&calls.attached()){report.put("nativeError",calls.error());report.put("nativeErrorIsStickyDiagnostic",true);try{report.put("postFailureWindow",windowState(calls));}catch(Throwable snapshotFailure){report.put("postFailureWindowReadFailure",snapshotFailure.toString());}}failure.printStackTrace();passed=false;}
         finally {
             try {
                 if(ticket!=null)ticket.close();if(device!=null)device.close();
@@ -161,11 +162,29 @@ public final class MetalSceneHandoffProbe {
         try(var other=scene(library,shader);var device=other.metalDeviceLease()){long frame=render(other,192,128);try(var target=device.target(frame)){require(!ticket.prepare(target,()->{}),"A foreign scene/queue was accepted");}other.awaitFrame();}
         report.put("foreignSceneQueueRejected",true);
     }
+    private static boolean windowReady(NativeCalls calls) {
+        return display.isVisible()&&display.isActive()&&calls.query(22)==1&&calls.query(23)==1&&calls.query(25)==1&&calls.query(52)==1&&calls.query(24)==1;
+    }
+    private static Map<String,Object> windowState(NativeCalls calls) {
+        Map<String,Object> state=new LinkedHashMap<>();state.put("sdlVisible",display.isVisible());state.put("sdlActive",display.isActive());
+        for(int key:new int[]{11,12,13,14,15,16,19,20,36,38,46,47,56,57})state.put("fp64Query"+key,Double.longBitsToDouble(calls.query(key)));
+        for(int key:new int[]{17,18,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,37,39,40,41,42,43,44,45,48,49,50,51,52,53,54,73,74,75,80,81,82,83,84})state.put("query"+key,calls.query(key));
+        return state;
+    }
+    private static void awaitInitialWindow(NativeCalls calls,Original original)throws Exception {
+        long started=System.nanoTime(),deadline=started+5_000_000_000L;report.put("initialWindowBefore",windowState(calls));
+        while(!windowReady(calls)&&System.nanoTime()<deadline)pump();
+        long decided=System.nanoTime();original.same();boolean ready=windowReady(calls)&&decided<=deadline;
+        report.put("initialWindowAfter",windowState(calls));report.put("initialWindowReady",ready);report.put("initialWindowWaitNanoseconds",decided-started);
+        report.put("initialWindowDeadlineNanoseconds",5_000_000_000L);report.put("displayedDeadlineUnchangedNanoseconds",5_000_000_000L);
+        require(ready,"Initial original window visibility/occlusion readiness was not established before publication");
+    }
     private static Map<String,Object> await(NativeCalls calls,Original original,long frame,String source,int w,int h)throws Exception {
         long started=System.nanoTime(),deadline=started+5_000_000_000L;while((calls.query(3)!=frame||calls.query(4)!=frame)&&System.nanoTime()<deadline)pump();
         long prepared=calls.query(1),submitted=calls.query(2),completed=calls.query(3),displayed=calls.query(4),gpuFailure=calls.query(84),decided=System.nanoTime();original.same();boolean shown=decided<=deadline&&prepared==frame&&submitted==frame&&completed==frame&&displayed==frame&&gpuFailure==0;
         Map<String,Object> row=new LinkedHashMap<>();row.put("source",source);row.put("frame",frame);row.put("width",w);row.put("height",h);row.put("prepared",prepared);row.put("submitted",submitted);row.put("completed",completed);row.put("displayed",displayed);row.put("gpuFailure",gpuFailure);row.put("exactCurrentDisplayed",shown);row.put("waitElapsedNanoseconds",decided-started);row.put("displayDeadlineNanoseconds",5_000_000_000L);
         if(!shown)displayFailures.add(source+" target"+frame+" displayed"+displayed);
+        if(!shown){try{row.put("postDecisionWindow",windowState(calls));}catch(Throwable snapshotFailure){row.put("postDecisionWindowReadFailure",snapshotFailure.toString());}row.put("postDecisionSnapshotDoesNotChangeDisplayedDecision",true);}
         row.put("sdlVisible",display.isVisible());row.put("sdlActive",display.isActive());row.put("windowVisible",calls.query(22)==1);row.put("windowOcclusionVisible",calls.query(23)==1);row.put("childWindowMatches",calls.query(25)==1);row.put("drawableWidth",calls.query(17));row.put("drawableHeight",calls.query(18));row.put("actualSdlInterval",interval());row.put("nativeConfiguredInterval",calls.query(53));row.put("nativePreparedInterval",calls.query(54));row.put("layerDisplaySync",calls.query(45));row.put("publishedTextureFrame",calls.query(73));row.put("publishedTextureWidth",calls.query(74));row.put("publishedTextureHeight",calls.query(75));
         observations.add(row);
         require(interval()==1&&calls.query(53)==1&&calls.query(54)==1&&calls.query(45)==1,"Actual SDL/native/layer pacing differs");
