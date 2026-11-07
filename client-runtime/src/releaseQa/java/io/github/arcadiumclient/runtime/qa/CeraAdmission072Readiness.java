@@ -82,6 +82,7 @@ public final class CeraAdmission072Readiness {
                 &&(boolean)renderer.getClass().getMethod("isSectionReady",int.class,int.class,int.class).invoke(renderer,0,0,0);
         int missing=0;for(int x=-3;x<=3;x++)for(int z=-4;z<=2;z++)for(int y=0;y<16;y++)if(!sections.contains(x+","+y+","+z))missing++;
         result.put("loaded",coordinates);result.put("sections",sections);result.put("loadedCount",coordinates.size());result.put("sectionCount",sections.size());
+        result.put("cameraYawPitch",List.of(mc.player.yaw,mc.player.pitch,mc.player.lastYaw,mc.player.lastPitch));result.put("cameraIsActualLocalPlayer",mc.getCamera()==mc.player);
         result.put("missingSections",missing);result.put("builderIdle",idle);result.put("targetSectionsReady",targets);result.put("camera",List.of(mc.player.x,mc.player.y,mc.player.z));
         result.put("ready",coordinates.equals(expected)&&sections.size()==49*16&&missing==0&&idle&&targets);return result;
     }

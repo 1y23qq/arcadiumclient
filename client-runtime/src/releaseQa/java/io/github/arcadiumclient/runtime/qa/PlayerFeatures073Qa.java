@@ -275,7 +275,25 @@ public final class PlayerFeatures073Qa {
         }finally{for(int subject=0;subject<fullTraces.length;subject++){System.arraycopy(fullTraces[subject],0,traces[2][subject],0,fullTraces[subject].length);traceStates[2][subject]=fullStates[subject];}itemSamples[2].clear();itemSamples[2].addAll(fullSamples);voxelVariant="optimized";configured=false;}
         progress("collected-full-3d-controls-before-original-quality-assert");
     }
+    private static long warmupViewFrames,warmupViewCorrections;
+    private static Map<String,Object> warmupView(Minecraft mc){
+        return Map.of("yawPitch",List.of(mc.player.yaw,mc.player.pitch,mc.player.lastYaw,mc.player.lastPitch),
+                "rawBits",List.of(Float.floatToRawIntBits(mc.player.yaw),Float.floatToRawIntBits(mc.player.pitch),Float.floatToRawIntBits(mc.player.lastYaw),Float.floatToRawIntBits(mc.player.lastPitch)),
+                "requestedYawPitch",List.of(0,5),"cameraIsActualLocalPlayer",mc.getCamera()==mc.player);
+    }
     public static void world(float delta,long deadline,Operation<Void> original){
+        if(enabled()&&!done&&phase==1&&cameraPrepared){
+            try{
+            Minecraft mc=Minecraft.getInstance();requireAnchor(mc,"before-warmup-view");
+            if(warmupViewFrames++==0)report.put("firstWarmupView",warmupView(mc));
+            require(mc.getCamera()==mc.player,"Warmup view is not the actual local player");
+            if(mc.player.yaw!=0||mc.player.lastYaw!=0||mc.player.pitch!=5||mc.player.lastPitch!=5){
+                if(warmupViewCorrections++==0)report.put("firstChangedWarmupView",warmupView(mc));
+            }
+            mc.player.yaw=mc.player.lastYaw=0;mc.player.pitch=mc.player.lastPitch=5;
+            report.put("warmupViewFrames",warmupViewFrames);report.put("warmupViewCorrections",warmupViewCorrections);
+            }catch(Throwable error){fail(error);return;}
+        }
         if(!enabled()||done||phase!=2){original.call(delta,deadline);return;}
         try{
             Minecraft mc=Minecraft.getInstance();freeze(mc);Map<String,Object> nativeFov=nativeFovState(mc);

@@ -45,6 +45,12 @@ public final class TerrainScene073Qa {
     private static boolean surveying,returningFromSurvey;
     private static Future<Map<String,Object>> surveyStartProof,surveyEndProof,surveyReturnProof;
     private static Map<String,Object> completedSurvey;
+    private static boolean roofSurveyStarted,roofSurveyActive,roofSurveyRestoring;
+    private static TerrainResidentSceneBlueprint.Camera roofAnchor;
+    private static List<TerrainRoofExposure073.Aim> roofAims=List.of();
+    private static int roofAimIndex;
+    private static Object roofManagerIdentity,roofBootstrapChanges;
+    private static final List<Map<String,Object>> roofEvidence=new ArrayList<>();
     private static final List<Map<String,Object>> progressHistory=new ArrayList<>();
     private static int progressTick=-100,progressPhase=-1,progressWarmIndex=-1,progressWrites,progressDropped;
     private static Map<String,Object> shader=Map.of();
@@ -84,9 +90,15 @@ public final class TerrainScene073Qa {
                 if(!foregroundAcquired)report.put("focusAtAcquisition",focusState());foregroundAcquired=true;report.put("foregroundAcquisition",Map.of("acquired",true,"waitingTicks",foregroundWaitTicks));
                 if(phase==4){
                     var state=readiness.sample(mc,plan);report.put("nativeReadiness",state);
-                    if(surveying){advanceInteriorSurvey(mc,state);}
+                    if(roofSurveyActive){advanceRoofSurvey(mc,state);}
+                    else if(warming&&!roofSurveyStarted&&camera.name().equals("roof")&&Boolean.TRUE.equals(state.get("datasetReady"))&&nativeFrames>cameraBaseFrames&&startRoofSurvey(mc,state)){}
+                    else if(surveying){advanceInteriorSurvey(mc,state);}
                     else if(warming&&Boolean.TRUE.equals(state.get("datasetReady"))&&nativeFrames>cameraBaseFrames){
                         require(TerrainResidentScene.regionDraws==0&&!GpuTerrainCommands.enabled,"Warmup must use the unchanged native terrain renderer");
+                        if(roofSurveyRestoring){
+                            require(camera==roofAnchor&&roofManagerIdentity.equals(state.get("nativeRenderManagerIdentity"))&&roofBootstrapChanges.equals(state.get("bootstrapDistanceChanges")),"Roof exposure changed the target camera/render manager/distance");
+                            report.put("restoredOriginalRoof",Map.of("camera",camera.name(),"position",List.of(camera.x(),camera.y(),camera.z()),"yaw",camera.yaw(),"pitch",camera.pitch(),"nativeFrames",nativeFrames-cameraBaseFrames));roofSurveyRestoring=false;
+                        }
                         if(returningFromSurvey){
                             if(surveyReturnProof==null||!surveyReturnProof.isDone()){progress(false);return;}
                             var returned=surveyReturnProof.get();verifySurveyProof(returned,false);verifySurveyDataset(mc,state);
@@ -111,6 +123,28 @@ public final class TerrainScene073Qa {
             }
             if(!done)progress(false);
         }catch(Throwable failure){finish(failure);}
+    }
+    private static boolean startRoofSurvey(Minecraft mc,Map<String,Object> state){
+        require(!GpuTerrainCommands.enabled&&TerrainResidentScene.regionDraws==0&&mc.options.viewDistance==8,"Only native owned D8 preparation may expose roof targets");
+        roofSurveyStarted=true;roofAnchor=camera;Set<TerrainRoofExposure073.Section> finalTargets=new HashSet<>();var finalCamera=plan.cameras().getFirst();int fx=TerrainSceneNativeReadiness.trackingChunk(finalCamera.x()),fz=TerrainSceneNativeReadiness.trackingChunk(finalCamera.z());
+        for(var block:plan.blocks())if(Math.abs((block.x()>>4)-fx)<=8&&Math.abs((block.z()>>4)-fz)<=8)finalTargets.add(new TerrainRoofExposure073.Section(block.x()>>4,block.y()>>4,block.z()>>4));
+        var unbuilt=new ArrayList<TerrainRoofExposure073.Section>();for(Object item:(List<?>)state.get("unreadyTargets")){var row=(Map<?,?>)item;var p=(List<?>)row.get("section");unbuilt.add(new TerrainRoofExposure073.Section(((Number)p.get(0)).intValue(),((Number)p.get(1)).intValue(),((Number)p.get(2)).intValue()));}
+        roofAims=TerrainRoofExposure073.plan(roofAnchor.x(),roofAnchor.y(),roofAnchor.z(),finalTargets,unbuilt);roofManagerIdentity=state.get("nativeRenderManagerIdentity");roofBootstrapChanges=state.get("bootstrapDistanceChanges");
+        report.put("roofExposurePlan",Map.of("finalTargetSections",finalTargets.size(),"selectedUnbuiltFinalTargets",roofAims.stream().map(a->Map.of("section",List.of(a.target().x(),a.target().y(),a.target().z()),"yaw",a.yaw(),"pitch",a.pitch())).toList(),"positionUnchanged",true,"allFinalTargetColumnsRetained",true,"countedAsTargetView",false));
+        if(roofAims.isEmpty())return false;roofSurveyActive=true;roofAimIndex=0;moveRoofAim(mc);return true;
+    }
+    private static void moveRoofAim(Minecraft mc){var aim=roofAims.get(roofAimIndex);camera=new TerrainResidentSceneBlueprint.Camera(roofAnchor.name()+"/native-exposure-"+roofAimIndex,roofAnchor.x(),roofAnchor.y(),roofAnchor.z(),aim.yaw(),aim.pitch(),roofAnchor.fov());moving=TerrainResidentSceneWorld.move(mc,camera);phase=3;}
+    private static void advanceRoofSurvey(Minecraft mc,Map<String,Object> state){
+        require(warming&&!GpuTerrainCommands.enabled&&TerrainResidentScene.regionDraws==0&&mc.options.viewDistance==8,"Resident terrain or distance changed during roof exposure");
+        require(camera.x()==roofAnchor.x()&&camera.y()==roofAnchor.y()&&camera.z()==roofAnchor.z(),"Roof exposure moved its retention anchor");
+        if(!Boolean.TRUE.equals(state.get("datasetReady"))||nativeFrames<=cameraBaseFrames)return;
+        require(roofManagerIdentity.equals(state.get("nativeRenderManagerIdentity"))&&roofBootstrapChanges.equals(state.get("bootstrapDistanceChanges")),"Roof exposure reset native meshes");
+        var aim=roofAims.get(roofAimIndex);var position=List.of(aim.target().x(),aim.target().y(),aim.target().z());
+        boolean ready=true;for(Object value:(List<?>)state.get("unreadyTargets"))if(((Map<?,?>)value).get("section").equals(position)){ready=false;break;}
+        if(!ready)return;
+        roofEvidence.add(Map.of("section",position,"yaw",camera.yaw(),"pitch",camera.pitch(),"nativeFrames",nativeFrames-cameraBaseFrames,"nativeReady",true,"nativeReadiness",state,"actualScheduler",TerrainBuildEligibility073.target(aim.target().x(),aim.target().y(),aim.target().z()),"countedAsTargetView",false));report.put("nativeRoofExposures",List.copyOf(roofEvidence));
+        if(++roofAimIndex<roofAims.size()){moveRoofAim(mc);return;}
+        roofSurveyActive=false;roofSurveyRestoring=true;camera=roofAnchor;moving=TerrainResidentSceneWorld.move(mc,camera);phase=3;
     }
     private static void moveWarmupTarget(Minecraft mc,TerrainResidentSceneBlueprint.Camera target){
         require(warming&&warmIndex<plan.cameras().size(),"Interior surveys are limited to owned native warmup");
@@ -179,9 +213,9 @@ public final class TerrainScene073Qa {
     private static void progress(boolean force)throws Exception{
         if(!force&&ticks-progressTick<100&&progressPhase==phase&&progressWarmIndex==warmIndex)return;
         progressTick=ticks;progressPhase=phase;progressWarmIndex=warmIndex;progressWrites++;
-        var snapshot=new LinkedHashMap<String,Object>();snapshot.put("utc",java.time.Instant.now().toString());snapshot.put("nanoTime",System.nanoTime());snapshot.put("ticks",ticks);snapshot.put("phase",phase);snapshot.put("camera",camera.name());snapshot.put("warmIndex",warmIndex);snapshot.put("warming",warming);snapshot.put("interiorSurveyActive",surveying);snapshot.put("returningFromInteriorSurvey",returningFromSurvey);snapshot.put("interiorSurveyCount",interiorSurveys.size());snapshot.put("actualWarmupTarget",warming&&surveyTarget!=null?surveyTarget.name():camera.name());snapshot.put("nativeTerrainFrames",nativeFrames);snapshot.put("gpuTerrainEnabled",GpuTerrainCommands.enabled);snapshot.put("focus",focusState());
+        var snapshot=new LinkedHashMap<String,Object>();snapshot.put("utc",java.time.Instant.now().toString());snapshot.put("nanoTime",System.nanoTime());snapshot.put("ticks",ticks);snapshot.put("phase",phase);snapshot.put("camera",camera.name());snapshot.put("warmIndex",warmIndex);snapshot.put("warming",warming);snapshot.put("roofExposureActive",roofSurveyActive);snapshot.put("roofExposureIndex",roofAimIndex);snapshot.put("roofExposureTargets",roofAims.size());snapshot.put("roofRestoringOriginalView",roofSurveyRestoring);snapshot.put("interiorSurveyActive",surveying);snapshot.put("returningFromInteriorSurvey",returningFromSurvey);snapshot.put("interiorSurveyCount",interiorSurveys.size());snapshot.put("actualWarmupTarget",warming&&surveyTarget!=null?surveyTarget.name():camera.name());snapshot.put("nativeTerrainFrames",nativeFrames);snapshot.put("gpuTerrainEnabled",GpuTerrainCommands.enabled);snapshot.put("focus",focusState());
         var compact=new LinkedHashMap<String,Object>();Object raw=report.get("nativeReadiness");
-        if(raw instanceof Map<?,?> state){for(String key:List.of("ready","cameraChunk","haloStage","bootstrapDistanceChanges","server","datasetReady","loadedColumns","expectedColumns","missingSections","sectionCount","expectedSectionCount","targetSections","targetsReady","builderIdle"))if(state.containsKey(key))compact.put(key,state.get(key));Object unbuilt=state.get("unreadyTargets");if(unbuilt instanceof List<?> list){compact.put("unreadyTargetsTotal",list.size());compact.put("unreadyTargetsSample",list.subList(0,Math.min(16,list.size())));}}
+        if(raw instanceof Map<?,?> state){for(String key:List.of("ready","cameraChunk","haloStage","bootstrapDistanceChanges","server","datasetReady","loadedColumns","expectedColumns","missingSections","sectionCount","expectedSectionCount","targetSections","targetsReady","builderIdle","schedulerEligibility"))if(state.containsKey(key))compact.put(key,state.get(key));Object unbuilt=state.get("unreadyTargets");if(unbuilt instanceof List<?> list){compact.put("unreadyTargetsTotal",list.size());compact.put("unreadyTargetsSample",list.subList(0,Math.min(16,list.size())));}}
         snapshot.put("nativeReadiness",compact);if(progressHistory.size()==64){progressHistory.removeFirst();progressDropped++;}progressHistory.add(snapshot);
         var payload=new LinkedHashMap<String,Object>();payload.put("correctnessOnly",true);payload.put("performanceClaim",false);payload.put("snapshotWrites",progressWrites);payload.put("historyLimit",64);payload.put("droppedOldSnapshots",progressDropped);payload.put("latest",snapshot);payload.put("history",List.copyOf(progressHistory));
         Path path=output().resolveSibling("progress.json");Files.createDirectories(path.toAbsolutePath().getParent());Files.writeString(path,new GsonBuilder().setPrettyPrinting().create().toJson(payload));
