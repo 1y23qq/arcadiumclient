@@ -53,11 +53,11 @@ final class ActorSceneData {
     private final int[] rowSlots,materials;
     private final boolean[] present,discarded,exact;
     private long revision,batch,epoch,generation;
-    private int used,touchedCount;
+    private int used,touchedCount,retainedTickSlots;
     private boolean historyDirty;
     private final int[] touchedRows=new int[MAX_ROWS];
     private final long[] rowGeneration=new long[MAX_ROWS];
-    long frameRowsCleared,historyRowsCleared;
+    long frameRowsCleared,historyRowsCleared,truncatedTickSlots;
     private Batch sealed;
     long tickWrites,tickReuses,frameCaptures,poseMismatches,materialChanges,gpuOnlyCaptures,cpuInterpolationRows,captureValidationRows,sealedViews,
             overrideRows,overrideWords,constantOverrideWords,reusedOverrideWords,overrideInterpolationWords;
@@ -71,16 +71,21 @@ final class ActorSceneData {
     }
     private void checkOwner(){if(owner!=Thread.currentThread())throw new IllegalStateException("Actor scene mutation requires its render owner");}
     void requireOwner(){checkOwner();}
-    void move(int from,int to){checkOwner();previous[to]=previous[from];current[to]=current[from];observed[to]=observed[from];partial[to]=partial[from];previous[from]=current[from]=null;observed[from]=Long.MIN_VALUE;}
+    void move(int from,int to){checkOwner();previous[to]=previous[from];current[to]=current[from];observed[to]=observed[from];partial[to]=partial[from];previous[from]=current[from]=null;observed[from]=Long.MIN_VALUE;retainedTickSlots=Math.max(retainedTickSlots,Math.max(from,to)+1);}
     void retain(int slot,long handle){checkOwner();if(current[slot]!=null&&current[slot].handle!=handle){previous[slot]=current[slot]=null;observed[slot]=Long.MIN_VALUE;}}
-    void truncate(int size){checkOwner();Arrays.fill(previous,size,previous.length,null);Arrays.fill(current,size,current.length,null);Arrays.fill(observed,size,observed.length,Long.MIN_VALUE);}
+    void truncate(int size){checkOwner();
+        if(size<0||size>current.length)throw new IllegalArgumentException("Invalid actor roster size");
+        if(size>=retainedTickSlots)return;
+        Arrays.fill(previous,size,retainedTickSlots,null);Arrays.fill(current,size,retainedTickSlots,null);Arrays.fill(observed,size,retainedTickSlots,Long.MIN_VALUE);
+        truncatedTickSlots+=retainedTickSlots-size;retainedTickSlots=size;
+    }
     void begin(long nextBatch){checkOwner();
         if(generation==Long.MAX_VALUE)throw new IllegalStateException("Actor batch generation exhausted");generation++;
         for(int i=0;i<touchedCount;i++){int row=touchedRows[i];rowTicks[row]=null;present[row]=discarded[row]=false;frameRowsCleared++;}touchedCount=0;used=0;batch=nextBatch;sealed=null;
     }
     boolean observe(int slot,long handle,long tick,float delta,float oldBody,float body,float oldHead,float head,float oldPitch,float pitch,
                     float walk,float speed,float oldSpeed,float oldSwing,float swing){checkOwner();
-        if(slot>=0&&slot<observed.length)observed[slot]=Long.MIN_VALUE;
+        if(slot>=0&&slot<observed.length){observed[slot]=Long.MIN_VALUE;retainedTickSlots=Math.max(retainedTickSlots,slot+1);}
         if(slot<0||slot>=current.length||handle<=0||handle>MAX_GPU_ID||!Float.isFinite(delta)||delta<0||delta>1)return false;
         scratch[0]=oldBody;scratch[1]=body;scratch[2]=oldHead;scratch[3]=head;scratch[4]=oldPitch;scratch[5]=pitch;scratch[6]=walk;scratch[7]=speed;scratch[8]=oldSpeed;scratch[9]=(float)tick;scratch[10]=oldSwing;scratch[11]=swing;
         for(int i=12;i<TICK_WORDS;i++)scratch[i]=0;for(float value:scratch)if(!Float.isFinite(value))return false;
@@ -170,6 +175,6 @@ final class ActorSceneData {
     void clear(){
         checkOwner();if(epoch==Long.MAX_VALUE)throw new IllegalStateException("Actor scene lifetime epoch exhausted");epoch++;
         if(historyDirty){Arrays.fill(previous,null);Arrays.fill(current,null);Arrays.fill(observed,Long.MIN_VALUE);historyRowsCleared+=current.length;historyDirty=false;}
-        begin(batch+1);
+        retainedTickSlots=0;begin(batch+1);
     }
 }
