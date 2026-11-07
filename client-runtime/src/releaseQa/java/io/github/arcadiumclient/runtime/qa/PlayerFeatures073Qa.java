@@ -35,6 +35,9 @@ public final class PlayerFeatures073Qa {
     private static final String ANIMATION_CONTROLS=System.getProperty("arcadium.playerFeatures073.animationControls","default");
     private static final boolean RAVEN=Boolean.getBoolean("arcadium.playerFeatures073.raven");
     private static final boolean LEGACY_TOGGLE=Boolean.getBoolean("arcadium.playerFeatures073.legacyPositionToggle");
+    private static final boolean VOXEL_ISOLATION=Boolean.getBoolean("arcadium.playerFeatures073.voxelIsolation");
+    private static String voxelVariant="optimized";
+    private static Map<String,Object> lastVoxelEvidence=Map.of();
     private static final boolean STONE=Boolean.getBoolean("arcadium.playerFeatures073.stone");
     private static final Identifier SELF_SKIN=new Identifier("arcadium_qa","textures/entity/p3_self.png"),OTHER_SKIN=new Identifier("arcadium_qa","textures/entity/p3_other.png");
     private static final String[] COUNTERS={"GpuPlayerPipeline.playersDrawn","NativePlayerPosePipeline.bodyPartsQueued","NativePlayerPosePipeline.armorPartsQueued","GpuEquipmentPipeline.partsQueued","GpuVoxelSkinPipeline.analyticParts","GpuVoxelSkinPipeline.nativeParts","GpuModelTransforms.dispatches","GpuModelTransforms.offloadedParts","GpuResidentBodies.actorsDrawn","ModernArmorGlintPipeline.layersSupported","ModernArmorGlintPipeline.glintParts","NametagLayout.scopesReused"};
@@ -70,7 +73,7 @@ public final class PlayerFeatures073Qa {
     private static Map<?,?> referenceReport;
     private PlayerFeatures073Qa(){}
     public static boolean enabled(){return System.getProperty("arcadium.playerFeatures073.output")!=null;}
-    private static String[] cases(){return HELD?(STONE?HELD_WITH_STONE:HELD_CASES):FORGE?FORGE_CASES:VARIANT.equals("modern")?MODERN:CORE;}
+    private static String[] cases(){if(VOXEL_ISOLATION)return new String[]{"fp-sword"};return HELD?(STONE?HELD_WITH_STONE:HELD_CASES):FORGE?FORGE_CASES:VARIANT.equals("modern")?MODERN:CORE;}
     private static String current(){return cases()[scenario];}
 
     public static void tick(){
@@ -82,10 +85,11 @@ public final class PlayerFeatures073Qa {
                 require(List.of("core","modern","held").contains(VARIANT)&&List.of("vanilla","animations","all").contains(HELD_PROFILE),"Unknown player feature variant/profile");
                 require(List.of("default","overflow-custom","badlion-custom").contains(ANIMATION_CONTROLS)&&(ANIMATION_CONTROLS.equals("default")||HELD&&!HELD_PROFILE.equals("vanilla")),"Nondefault controls require an explicit enabled held-animation profile");
                 require(!RAVEN||FORGE&&HELD,"Raven is restricted to the owned actual Forge held fixture");
+                require(!VOXEL_ISOLATION||HELD&&FORGE&&HELD_PROFILE.equals("all")&&ANIMATION_CONTROLS.equals("default")&&!LEGACY_TOGGLE&&!RAVEN,"Voxel diagnosis requires the exact isolated all-profile fixture");
                 require(!LEGACY_TOGGLE||HELD&&ANIMATION_CONTROLS.equals("overflow-custom"),"Legacy position toggle requires explicit fake held Overflow controls");
                 require(List.of("off","readonly","pack").contains(PlayerFeatures073QuadEvidence.mode()),"Unknown quad observation mode");
                 require(!CONTROL||REFERENCE==null,"A public control cannot consume another reference");
-                if(!CONTROL){require(REFERENCE!=null,"Candidate requires the matching successful public072 reference");var baseline=read(Path.of(REFERENCE).resolve("result.json"));referenceReport=baseline;var run=read(Path.of(REFERENCE).resolve("run.json"));require(Boolean.TRUE.equals(baseline.get("passed"))&&Boolean.TRUE.equals(baseline.get("public072Control"))&&Boolean.TRUE.equals(run.get("passed"))&&Boolean.TRUE.equals(run.get("naturalExit"))&&!Boolean.TRUE.equals(run.get("forcedTermination")),"Public072 reference is not a natural complete pass");}
+                if(!CONTROL){require(REFERENCE!=null,"Candidate requires the matching successful public072 reference");var baseline=read(Path.of(REFERENCE).resolve("result.json"));referenceReport=baseline;require(Boolean.TRUE.equals(baseline.get("voxelIsolationOnly"))==VOXEL_ISOLATION,"Reference one-case diagnostic scope differs");var run=read(Path.of(REFERENCE).resolve("run.json"));require(Boolean.TRUE.equals(baseline.get("passed"))&&Boolean.TRUE.equals(baseline.get("public072Control"))&&Boolean.TRUE.equals(run.get("passed"))&&Boolean.TRUE.equals(run.get("naturalExit"))&&!Boolean.TRUE.equals(run.get("forcedTermination")),"Public072 reference is not a natural complete pass");}
                 if(FORGE){
                     require(Boolean.getBoolean("arcadium.forge.prepared"),"Forge was not prepared by the real launch path");
                     Class<?> loader=Class.forName("net.minecraftforge.fml.common.Loader");Object instance=loader.getMethod("instance").invoke(null);Map<?,?> mods=(Map<?,?>)loader.getMethod("getIndexedModList").invoke(instance);Object container=mods.get("arcadiumrenderprobe");require(container!=null,"Real Forge callback probe is absent");probe=container.getClass().getMethod("getMod").invoke(container).getClass();require(probe.getField("registered").getBoolean(null),"Real Forge observer was not registered");
@@ -98,7 +102,7 @@ public final class PlayerFeatures073Qa {
                 report.put("purpose","Public072 native pixels versus merged073 player feature compatibility; not FPS data");report.put("public072Control",CONTROL);report.put("forgePrepared",FORGE);report.put("variant",VARIANT);report.put("heldProfile",HELD_PROFILE);report.put("cases",List.of(cases()));report.put("reference",REFERENCE==null?"none":REFERENCE);report.put("counterOrder",List.of(COUNTERS));
                 report.put("heldCaseMeaning","sword idle, sword blocking and bow; explicit stone suffixes are true stone cubes");report.put("quadMode",PlayerFeatures073QuadEvidence.mode());
                 report.put("tracedSubjectOrder",List.of("self-avatar","ordinary-neighbor","actual-local-player"));report.put("productionQuadCompatibilityAtStart",productionQuadMetrics());
-                report.put("animationControls",animationControls());report.put("ravenRequested",RAVEN);
+                report.put("animationControls",animationControls());report.put("ravenRequested",RAVEN);report.put("voxelIsolationOnly",VOXEL_ISOLATION);
                 report.put("settings",Map.of("width",mc.width,"height",mc.height,"fov",70,"viewDistance",3,"fpsLimit",120,"renderDelta",.5,"worldRenderScale",false,"minimumPlayers",1,"full3DSkin",Skin3DConfig.getEnabled()));
                 mc.startGame("arcadium-player-features073","Player Features QA",new WorldSettings(730721,WorldSettings.GameMode.CREATIVE,false,false,WorldGeneratorType.FLAT).enableCommands());phase=1;wait=0;
             }else if(phase==1&&mc.world!=null&&mc.player!=null&&wait>100){
@@ -183,7 +187,7 @@ public final class PlayerFeatures073Qa {
         for(Method method:BetaOptimizationsConfig.class.getMethods())if(Modifier.isStatic(method.getModifiers())&&method.getName().startsWith("set")&&Arrays.equals(method.getParameterTypes(),new Class<?>[]{boolean.class}))method.invoke(null,false);
         for(String name:List.of("GpuModelTransforms","GpuPlayerPipeline","GpuEquipmentPipeline","GpuVoxelSkinLayers","GpuNameTags","CachedNameMasking","CompactNameTagPreparation","RetainedNameTagScenes","ReduceRenderHookAllocations"))beta(name,gpu);
         io.github.arcadiumclient.runtime.client.branding.NametagLayout.optimized=gpu;org.polyfrost.oneconfig.internal.TextOptimizationOptions.nameMaskCache=gpu;
-        beta("MinimumPlayers",1);beta("MinimumGpuLabels",1);boolean voxels=gpu&&(!HELD||HELD_PROFILE.equals("all"));beta("GpuVoxelSkinLayers",voxels);try{Class.forName("io.github.arcadiumclient.runtime.client.optimizations.GpuVoxelSkinPipeline").getField("enabled").setBoolean(null,voxels);}catch(ClassNotFoundException absent){require(CONTROL,"Merged voxel pipeline is absent");}
+        beta("MinimumPlayers",1);beta("MinimumGpuLabels",1);boolean voxels=gpu&&(!HELD||HELD_PROFILE.equals("all"))&&(!VOXEL_ISOLATION||!voxelVariant.equals("body-native3d"));beta("GpuVoxelSkinLayers",voxels);try{Class.forName("io.github.arcadiumclient.runtime.client.optimizations.GpuVoxelSkinPipeline").getField("enabled").setBoolean(null,voxels);}catch(ClassNotFoundException absent){require(CONTROL,"Merged voxel pipeline is absent");}
         configured=true;configuredGpu=gpu;
     }
     private static void beta(String name,Object value)throws Exception{try{BetaOptimizationsConfig.class.getMethod("set"+name,value instanceof Boolean?boolean.class:int.class).invoke(null,value);}catch(NoSuchMethodException absent){require(CONTROL,"Merged beta setter is absent: "+name);}}
@@ -239,6 +243,37 @@ public final class PlayerFeatures073Qa {
         float current=(float)pinnedField(net.minecraft.client.render.GameRenderer.class,mc.gameRenderer,"fov","f_94566859"),previous=(float)pinnedField(net.minecraft.client.render.GameRenderer.class,mc.gameRenderer,"lastFov","f_40701228");
         int stable=fovConvergence.observe(ticks,current,previous);return Map.of("current",current,"previous",previous,"currentRawBits",Float.floatToRawIntBits(current),"previousRawBits",Float.floatToRawIntBits(previous),"realTick",ticks,"stableConsecutiveNativeTicks",stable,"privateFieldsWritten",false,"readinessInvokesFovModifier",false);
     }
+    private static boolean sameVoxelPublication(Map<?,?> full,Map<?,?> affine){
+        if(!Objects.equals(full.get("mdiArguments"),affine.get("mdiArguments")))return false;List<?> before=(List<?>)full.get("cpuUploadInputs"),after=(List<?>)affine.get("cpuUploadInputs");if(before.isEmpty()||before.size()!=after.size())return false;
+        for(int draw=0;draw<before.size();draw++){Map<?,?> a=(Map<?,?>)before.get(draw),b=(Map<?,?>)after.get(draw);if(!Arrays.equals((int[])a.get("vertexWords"),(int[])b.get("vertexWords")))return false;int[] x=(int[])a.get("instanceWords"),y=(int[])b.get("instanceWords");if(x.length!=y.length)return false;for(int row=0;row<x.length;row+=19)for(int word=12;word<19;word++)if(x[row+word]!=y[row+word])return false;}
+        List<?> a=(List<?>)full.get("submissions"),b=(List<?>)affine.get("submissions");if(a.isEmpty()||a.size()!=b.size())return false;
+        for(int i=0;i<a.size();i++){Map<?,?> x=(Map<?,?>)a.get(i),y=(Map<?,?>)b.get(i);if(!Boolean.TRUE.equals(x.get("accepted"))||!Boolean.TRUE.equals(y.get("accepted")))return false;for(String key:List.of("captureMatrixAtSubmitEntry","physicalModelViewAtSubmitEntry","projectionAtSubmitEntry"))if(!Arrays.equals((int[])((Map<?,?>)x.get(key)).get("rawBits"),(int[])((Map<?,?>)y.get(key)).get("rawBits")))return false;}
+        return true;
+    }
+    private static Map<String,Object> voxelControl(Minecraft mc,String key,String variant,boolean gpu,BufferedImage nativeImage,Map<String,Object> nativeCallbacks,long deadline,Operation<Void> original)throws Exception{
+        Map<String,Object> control=new LinkedHashMap<>();voxelVariant=variant;configured=false;if(FORGE)probe.getMethod("reset").invoke(null);long[] before=metrics();BufferedImage image=render(mc,2,gpu,deadline,original);long[] after=metrics(),delta=new long[before.length];for(int i=0;i<delta.length;i++)delta[i]=after[i]-before[i];
+        control.put("counterDeltas",delta);control.put("evidence",lastVoxelEvidence);control.put("traces",traceSnapshot(2));control.put("states",traceStates[2].clone());control.put("itemSamples",new ArrayList<>(itemSamples[2]));control.put("callbacks",callbacks());control.put("nativePixels",compare(nativeImage,image,2));control.put("actualNativeTick",ticks);verifyHeldForgeCallbacks(control,nativeCallbacks,(Map<String,Object>)control.get("callbacks"));require(nativeCallbacks.equals(control.get("callbacks")),"Actual diagnostic callbacks changed");
+        ImageIO.write(image,"png",output().getParent().resolve(key+"-"+variant+"-diagnostic.png").toFile());try{control.put("actualReducedHooks",Class.forName("io.github.arcadiumclient.runtime.client.optimizations.RenderHookAllocationControl").getField("enabled").getBoolean(null));}catch(ClassNotFoundException absent){require(CONTROL,"Missing current hook state");control.put("actualReducedHooks","absent in public control");}return control;
+    }
+    private static void voxelControls(Minecraft mc,String key,Map<String,Object> result,BufferedImage nativeImage,Map<String,Object> nativeCallbacks,long deadline,Operation<Void> original)throws Exception{
+        Map<String,Object> fullEvidence=lastVoxelEvidence;long[][] fullTraces=traceSnapshot(2);Map<String,String>[] fullStates=traceStates[2].clone();List<Map<String,Object>> fullSamples=new ArrayList<>(itemSamples[2]);result.put("fullOptimizedVoxelEvidence",fullEvidence);Map<String,Object> controls=new LinkedHashMap<>();List<String> errors=new ArrayList<>();result.put("voxelIsolationControls",controls);result.put("voxelControlErrors",errors);int actualTick=ticks;if(fullEvidence.get("failure")!=null)errors.add("Original full-path evidence failed");
+        try{
+            Map<String,Object> affine=voxelControl(mc,key,"voxel-affine",true,nativeImage,nativeCallbacks,deadline,original);controls.put("voxel-affine",affine);
+            Map<String,Object> native3d=voxelControl(mc,key,"body-native3d",true,nativeImage,nativeCallbacks,deadline,original);controls.put("body-native3d",native3d);
+            Map<String,Object> repeat=voxelControl(mc,key,"native-repeat",false,nativeImage,nativeCallbacks,deadline,original);controls.put("native-repeat",repeat);
+            if(ticks!=actualTick)errors.add("An actual native tick advanced inside the same-frame controls");
+            if(((Number)((Map<?,?>)repeat.get("nativePixels")).get("changedPixels")).intValue()!=0)errors.add("Native-to-native RGBA repeat was not exact");
+            if(!CONTROL){
+                long[] affineCounts=(long[])affine.get("counterDeltas"),nativeCounts=(long[])native3d.get("counterDeltas");Map<?,?> evidence=(Map<?,?>)affine.get("evidence");
+                if(affineCounts[1]<=0||affineCounts[5]<=0||((Number)evidence.get("readyBypasses")).longValue()<=0||((Number)evidence.get("actualMdiCalls")).longValue()<=0)errors.add("CPU-affine control did not retain real compact body and GPU voxel/MDI routes");
+                boolean samePublication=sameVoxelPublication(fullEvidence,evidence);affine.put("sameVertexMaterialAndInputMatrices",samePublication);if(!samePublication)errors.add("The affine control changed another voxel publication input");
+                if(nativeCounts[1]<=0||nativeCounts[4]!=0||nativeCounts[5]!=0)errors.add("Native3D control did not retain compact body with the original skin layer");
+                for(Object item:(List<?>)evidence.get("submissions"))if(Boolean.TRUE.equals(((Map<?,?>)item).get("marker")))errors.add("CPU-affine voxel control retained a pose marker");
+            }
+            for(var entry:controls.entrySet())if(((Map<?,?>)((Map<?,?>)entry.getValue()).get("evidence")).get("failure")!=null)errors.add("Voxel evidence failed in "+entry.getKey());
+        }finally{for(int subject=0;subject<fullTraces.length;subject++){System.arraycopy(fullTraces[subject],0,traces[2][subject],0,fullTraces[subject].length);traceStates[2][subject]=fullStates[subject];}itemSamples[2].clear();itemSamples[2].addAll(fullSamples);voxelVariant="optimized";configured=false;}
+        progress("collected-full-3d-controls-before-original-quality-assert");
+    }
     public static void world(float delta,long deadline,Operation<Void> original){
         if(!enabled()||done||phase!=2){original.call(delta,deadline);return;}
         try{
@@ -256,7 +291,7 @@ public final class PlayerFeatures073Qa {
             long[] before=metrics();BufferedImage gpuImage=render(mc,2,!CONTROL,deadline,original);long[] after=metrics();Map<String,Object> gpuCallbacks=callbacks();
             Path directory=output().getParent();Files.createDirectories(directory);String key=String.format(Locale.ROOT,"%02d-%s",scenario,current());ImageIO.write(nativeImage,"png",directory.resolve(key+"-native.png").toFile());ImageIO.write(gpuImage,"png",directory.resolve(key+"-gpu.png").toFile());
             Map<String,Object> result=new LinkedHashMap<>();report.put(key,result);result.put("membership",membership);result.put("nativeCallbacks",nativeCallbacks);result.put("gpuCallbacks",gpuCallbacks);result.put("nativeTraces",traceSnapshot(1));result.put("gpuTraces",traceSnapshot(2));result.put("nativeStates",traceStates[1].clone());result.put("gpuStates",traceStates[2].clone());result.put("nativeItemSamples",new ArrayList<>(itemSamples[1]));result.put("gpuItemSamples",new ArrayList<>(itemSamples[2]));result.put("actualCape",Map.of("enabled",CapeConfig.getEnabled(),"preset",CapeConfig.getPreset(),"selfTextureSelected",!HELD,"remoteUnchanged",true));result.put("actualNick",Map.of("enabled",NickHiderConfig.getEnabled(),"own",expected,"rawBB",HELD?"BB":"CCCC","sourceOwnName",actors[0].getGameProfile().getName(),"sessionUnchanged",mc.getSession().getUsername().equals("ArcadiumTest")&&mc.getSession().getAccessToken().equals("0")));result.put("style",((Enum<?>)glintField.get(animationItems)).name());result.put("sneak",((Enum<?>)sneakField.get(animationMovement)).name());result.put("perspective",mc.options.perspective);result.put("actualAnimations",Map.of("enabled",AnimationsConfig.getEnabled(),"mode",AnimationsConfig.getMode(),"full3DSkin",Skin3DConfig.getEnabled()));result.put("actualHeldInputs",List.of(Map.of("item",actors[0].getItemInHand().getItem().getClass().getSimpleName(),"hasItemInUse",actors[0].hasItemInUse(),"itemUseTimer",actors[0].getItemUseTimer()),Map.of("item",actors[1].getItemInHand().getItem().getClass().getSimpleName(),"hasItemInUse",actors[1].hasItemInUse(),"itemUseTimer",actors[1].getItemUseTimer())));if(HELD)result.put("actualLocalHandState",handState(mc));
-            require(nativeCallbacks.equals(gpuCallbacks),"Real Forge callback sequence/cancel/mutation changed");verifyHeldForgeCallbacks(result,nativeCallbacks,gpuCallbacks);recordPixels(result,"pixels",nativeImage,gpuImage,2);
+            require(nativeCallbacks.equals(gpuCallbacks),"Real Forge callback sequence/cancel/mutation changed");verifyHeldForgeCallbacks(result,nativeCallbacks,gpuCallbacks);if(VOXEL_ISOLATION){result.put("pixels",compare(nativeImage,gpuImage,2));voxelControls(mc,key,result,nativeImage,nativeCallbacks,deadline,original);}recordPixels(result,"pixels",nativeImage,gpuImage,2);if(VOXEL_ISOLATION)require(((List<?>)result.get("voxelControlErrors")).isEmpty(),"A diagnostic control did not exercise its declared route");
             long[] deltaCounts=new long[before.length];for(int i=0;i<before.length;i++)deltaCounts[i]=after[i]-before[i];result.put("counterDeltas",deltaCounts);
             if(REFERENCE!=null){Map<?,?> baselineCase=(Map<?,?>)referenceReport.get(key);Map<?,?> baselineFov=(Map<?,?>)baselineCase.get("nativeFov");require(baselineFov!=null&&((Number)baselineFov.get("currentRawBits")).longValue()==((Number)nativeFov.get("currentRawBits")).longValue()&&((Number)baselineFov.get("previousRawBits")).longValue()==((Number)nativeFov.get("previousRawBits")).longValue(),"Reference native FOV does not match the converged actual camera");BufferedImage released=ImageIO.read(Path.of(REFERENCE).resolve(key+"-native.png").toFile());recordPixels(result,"public072NativePixels",released,nativeImage,0);recordPixels(result,"public072GpuPixels",released,gpuImage,2);}
             if(HELD){require(!itemSamples[1].isEmpty()&&!itemSamples[2].isEmpty(),"Actual held-item draw entry was not observed");if(current().startsWith("fp-"))require(itemSamples[1].stream().anyMatch(sample->"FIRST_PERSON".equals(sample.get("transform"))),"Actual first-person item route was not observed");}
@@ -287,8 +322,13 @@ public final class PlayerFeatures073Qa {
         }catch(Throwable error){fail(error);}finally{mode=0;rendering=-1;}
     }
     private static BufferedImage render(Minecraft mc,int which,boolean gpu,long deadline,Operation<Void> original)throws Exception{
+        if(VOXEL_ISOLATION)PlayerFeatures073VoxelEvidence.begin(gpu&&!CONTROL?voxelVariant:"native");
+        try{
         configure(gpu);freeze(mc);mode=which;itemSamples[which].clear();itemDepth=0;for(int i=0;i<traces[which].length;i++){Arrays.fill(traces[which][i],0);traceStates[which][i]=Map.of();}GL11.glClear(GL11.GL_COLOR_BUFFER_BIT|GL11.GL_DEPTH_BUFFER_BIT);original.call(.5f,deadline);require(itemDepth==0,"Held-item observation scope leaked");require(GL11.glGetError()==GL11.GL_NO_ERROR,"OpenGL error after actual feature world draw");return capture(mc);
+    
+        }finally{if(VOXEL_ISOLATION)lastVoxelEvidence=PlayerFeatures073VoxelEvidence.end();}
     }
+
     public static int player(Entity entity){if(!enabled()||done||phase!=2||mode==0)return -1;int subject=-1;for(int i=0;i<actors.length;i++)if(entity==actors[i]){subject=i;break;}if(subject<0&&entity==Minecraft.getInstance().player)subject=2;if(subject>=0){rendering=subject;traces[mode][subject][COUNTERS.length]++;}return subject;}
     public static void playerEnd(int actor,long[] before){if(actor<0)return;long[] after=metrics();for(int i=0;i<after.length;i++)traces[mode][actor][i]+=after[i]-before[i];traceStates[mode][actor]=pipelineStates();rendering=-1;}
     public static long[] playerMetrics(){return metrics();}

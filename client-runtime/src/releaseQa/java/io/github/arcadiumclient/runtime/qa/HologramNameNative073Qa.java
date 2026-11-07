@@ -33,6 +33,7 @@ public final class HologramNameNative073Qa {
     private static final List<Map<String, Object>> cases = new ArrayList<>();
     private static final List<Map<String, Object>> diagnosticPairs = new ArrayList<>();
     private static final List<Map<String, Object>> callbackInputs = new ArrayList<>();
+    private static final List<Map<String, Object>> constructorPoses = new ArrayList<>();
     private static int ticks, phase, wait, framebuffer, color, depth, begins, ends, displays, levelHeads, customLayers;
     private static int currentChange, imageSerial;
     private static boolean done, verifying, nested, nestedDone, throwBegin, nestedRestored;
@@ -43,6 +44,8 @@ public final class HologramNameNative073Qa {
 
     private HologramNameNative073Qa() { }
     public static boolean enabled() { return System.getProperty("arcadium.hologramNames073.output") != null; }
+    public static boolean observeFontPhase() { return verifying && currentChange == 3; }
+    public static int observerImageSerial() { return imageSerial; }
     public static void noteBegin(Entity entity, String label) {
         if (!verifying) return;
         begins++;
@@ -97,6 +100,8 @@ public final class HologramNameNative073Qa {
             createFramebuffer(); Object worldRenderer = Class.forName("dev.rdh.argentum.impl.render.terrain.ArgentumWorldRenderer").getMethod("instanceNullable").invoke(null);
             require(worldRenderer != null, "Argentum world renderer is unavailable"); batch = worldRenderer.getClass().getMethod("getNameTagBatch").invoke(worldRenderer);
             beginBatch = batch.getClass().getMethod("begin", Matrix4fc.class); endBatch = batch.getClass().getMethod("end");
+            String cohort = System.getProperty("arcadium.hologramNames073.cohort", "");
+            if (!cohort.isEmpty()) { require(cohort.equals("off") || cohort.equals("on"), "Unknown fresh-cohort mode"); verifyCohort(stands, renderer, layers, cohort.equals("on")); return; }
             Image originalBody = image(stands, false, false, false, false, 0), originalName = image(stands, true, false, false, false, 0), typedName = image(stands, true, true, false, false, 0);
             compare(originalBody, originalName, "original living entry", COUNT); compare(originalName, typedName, "native text", COUNT);
             require(visible(typedName) > 200, "Native reference must contain visible name pixels"); write("native-off.png", originalName); write("native-on.png", typedName);
@@ -168,7 +173,62 @@ public final class HologramNameNative073Qa {
         for (int i = 0; i < COUNT; i++) { ArmorStandEntity entity = stand("§bArcadiumTest " + i + " §f250✫", i % 3 == 0); if (i == 1) entity.width = entity.height = 0; result.add(entity); }
         return result;
     }
-    private static ArmorStandEntity stand(String name, boolean sneaking) { Minecraft mc = Minecraft.getInstance(); ArmorStandEntity result = new ArmorStandEntity(mc.world, mc.player.x, mc.player.y, mc.player.z + 8); result.setInvisible(true); result.setCustomNameVisible(true); result.setCustomName(name); result.setSneaking(sneaking); return result; }
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private static void verifyCohort(List<ArmorStandEntity> stands, ArmorStandRenderer renderer, List layers, boolean hooks) throws Exception {
+        report.put("freshNativeCohort", hooks ? "on" : "off"); report.put("captures", cases); report.put("privateCacheWrites", false); report.put("extraFontCallbacks", false);
+        capture(stands, false, false, false, false, 0, 0, "original living entry");
+        Image visible = capture(stands, true, hooks, false, false, 0, COUNT, "native names"); require(visible(visible) > 200, "Native cohort labels were not visible");
+        capture(stands, true, hooks, true, false, 0, COUNT, "Argentum batched names");
+        long packets = GpuNameTags.packetsDrawn; capture(stands, true, hooks, true, true, 0, COUNT, "GPU names"); require(GpuNameTags.packetsDrawn > packets, "GPU name packets were not drawn");
+        capture(stands, true, hooks, false, false, 1, COUNT, "same entity new label and camera");
+        capture(stands, true, hooks, false, false, 2, COUNT, "same entity Unicode label");
+        for (int phase = 0; phase < 4; phase++) capture(stands, true, hooks, false, false, 3, COUNT, "sneaking transition natural font phase " + phase);
+        BetaOptimizationsConfig.setRetainedNameTagScenes(true); BetaOptimizationsConfig.setCompactNameTagPreparation(true);
+        capture(stands, true, hooks, true, true, 0, COUNT, "retained compact name scene build");
+        capture(stands, true, hooks, true, true, 0, COUNT, "retained compact name scene replay");
+        BetaOptimizationsConfig.setRetainedNameTagScenes(false); BetaOptimizationsConfig.setCompactNameTagPreparation(false);
+        NickHiderConfig.setEnabled(true); NickHiderConfig.setNickname("Mask073"); capture(stands, true, hooks, false, false, 0, COUNT, "live NickHider");
+        NickHiderConfig.setNickname("Changed073"); capture(stands, true, hooks, false, false, 0, COUNT, "changed nickname"); NickHiderConfig.setEnabled(false);
+        NoRenderConfig.setEnabled(true); NoRenderConfig.setNameTags(true); NoRender.refresh();
+        require(visible(capture(stands, true, hooks, false, false, 0, COUNT, "NoRender hidden names")) == 0, "Native NoRender did not suppress names"); NoRenderConfig.setEnabled(false); NoRender.refresh();
+        ArmorStandEntity first = stands.getFirst();
+        for (int slot = 0; slot < 5; slot++) { first.setEquipment(slot, new ItemStack(Items.DIAMOND)); capture(stands, true, hooks, false, false, 0, COUNT - 1, "immediate equipment slot " + slot); first.setEquipment(slot, null); }
+        first.setInvisible(false); capture(stands, true, hooks, false, false, 0, COUNT - 1, "visible stand body"); first.setInvisible(true);
+        first.setCustomNameVisible(false); capture(stands, true, hooks, false, false, 0, COUNT - 1, "hidden custom name"); first.setCustomNameVisible(true);
+        first.damagedTimer = 1; capture(stands, true, hooks, false, false, 0, COUNT - 1, "hurt native overlay"); first.damagedTimer = 0;
+        first.deathTicks = 1; capture(stands, true, hooks, false, false, 0, COUNT - 1, "death native state"); first.deathTicks = 0;
+        EntityRenderLayer<ArmorStandEntity> custom = new EntityRenderLayer<>() {
+            @Override public void render(ArmorStandEntity entity, float a, float b, float c, float d, float e, float f, float g) { if (verifying) customLayers++; }
+            @Override public boolean colorsWhenDamaged() { return false; }
+        };
+        layers.add(custom); Image customImage = capture(stands, true, hooks, false, false, 0, 0, "unknown layer native callback"); require(customImage.customLayers == COUNT, "A native custom layer was skipped"); layers.remove(custom);
+        require(!FastInvisibleHolograms.render(new ArmorStandRenderer(dispatcher) { }, first, 0, 0, 0, 0, 0), "Unknown renderer accelerated"); report.put("unknownRendererNative", true);
+        nested = true; capture(stands, true, hooks, false, false, 0, COUNT + 1, "nested native layout callback"); nested = false; require(nestedRestored, "Nested callback owner was not restored");
+        throwBegin = true; Throwable thrown = null;
+        try { image(stands, true, hooks, true, false, 0); } catch (Throwable failure) { thrown = failure; } finally { throwBegin = false; }
+        require(thrown != null && stack(thrown).contains("hologram073 deliberate native callback"), "Native callback failure was swallowed"); require(owner() == null, "Throwing callback retained its owner");
+        require(Class.forName("dev.rdh.argentum.impl.render.entity.NameTagBatch").getMethod("active").invoke(null) == null, "Throwing callback leaked the native name batch");
+        report.put("exceptionScopeAndBatchRestored", true); capture(stands, true, hooks, false, false, 0, COUNT, "recovered after callback failure");
+        require(GL11.glGetError() == GL11.GL_NO_ERROR, "OpenGL error after fresh native lifecycle"); report.put("scopeOwnerAfter", owner()); report.put("nestedScopeRestored", nestedRestored); report.put("gpu", GL11.glGetString(GL11.GL_RENDERER)); report.put("glVersion", GL11.glGetString(GL11.GL_VERSION));
+    }
+    private static Image capture(List<ArmorStandEntity> stands, boolean fast, boolean hooks, boolean batched, boolean gpu, int change, int expected, String name) throws Exception {
+        Image image = image(stands, fast, hooks, batched, gpu, change); require(image.accelerated == expected, name + " admission count differs: " + image.accelerated);
+        long typed = hooks ? expected : 0; require(image.batchTyped == typed && image.layoutTyped == typed, name + " did not follow its fixed cohort path");
+        String prefix = String.format(java.util.Locale.ROOT, "scene-%02d", cases.size()); Map<String, Object> row = new LinkedHashMap<>(); row.put("name", name); row.put("passed", true); row.put("rgba", compressed(image.rgba, prefix + ".rgba.gz")); row.put("depth", compressed(image.depth, prefix + ".depth-f32.gz")); row.put("integerDepth", compressed(image.depthUnsigned, prefix + ".depth-u32.gz"));
+        row.put("state", image.state); row.put("callbacks", List.of(image.begins, image.ends, image.displays, image.levelHeads, image.customLayers)); row.put("accelerated", image.accelerated); row.put("batchTyped", image.batchTyped); row.put("layoutTyped", image.layoutTyped); row.put("input", image.input); row.put("visiblePixels", visible(image)); write(prefix + ".png", image); row.put("png", prefix + ".png"); cases.add(row); return image;
+    }
+    private static Map<String, Object> compressed(byte[] bytes, String name) throws Exception {
+        Path path = output().resolveSibling(name); try (var stream = new java.util.zip.GZIPOutputStream(Files.newOutputStream(path))) { stream.write(bytes); }
+        return Map.of("path", path.toString(), "bytes", bytes.length, "sha256", HexFormat.of().formatHex(java.security.MessageDigest.getInstance("SHA-256").digest(bytes)), "encoding", "gzip lossless");
+    }
+    private static ArmorStandEntity stand(String name, boolean sneaking) {
+        Minecraft mc = Minecraft.getInstance(); ArmorStandEntity result = new ArmorStandEntity(mc.world, mc.player.x, mc.player.y, mc.player.z + 8);
+        List<Integer> before = pose(result); result.yaw = result.lastYaw = result.headYaw = result.lastHeadYaw = result.bodyYaw = result.lastBodyYaw = 5f;
+        List<Integer> after = pose(result); for (int i = 0; i < 6; i++) require(after.get(i) == Float.floatToRawIntBits(5f), "Synthetic stand yaw initialization failed");
+        constructorPoses.add(Map.of("label", name, "nativeConstructorPoseBits", before, "controlledPoseBits", after));
+        result.setInvisible(true); result.setCustomNameVisible(true); result.setCustomName(name); result.setSneaking(sneaking); return result;
+    }
+    private static List<Integer> pose(ArmorStandEntity entity) { return List.of(Float.floatToRawIntBits(entity.yaw), Float.floatToRawIntBits(entity.lastYaw), Float.floatToRawIntBits(entity.headYaw), Float.floatToRawIntBits(entity.lastHeadYaw), Float.floatToRawIntBits(entity.bodyYaw), Float.floatToRawIntBits(entity.lastBodyYaw), Float.floatToRawIntBits(entity.pitch), Float.floatToRawIntBits(entity.lastPitch)); }
 
     private static Image image(List<ArmorStandEntity> stands, boolean fast, boolean hooks, boolean batched, boolean gpu, int change) throws Exception {
         currentChange = change; callbackInputs.clear(); int serial = ++imageSerial;
@@ -182,6 +242,8 @@ public final class HologramNameNative073Qa {
         dispatcher.cameraYaw = change == 0 ? 0 : 17; dispatcher.cameraPitch = change == 0 ? 0 : -9;
         List<Integer> initialModelView = matrix(GL11.GL_MODELVIEW_MATRIX), initialProjection = matrix(GL11.GL_PROJECTION_MATRIX);
         List<Integer> initialDepthState = depthState();
+        ArmorStandEntity firstFixture = stands.getFirst(); List<Integer> controlledPose = pose(firstFixture);
+        Map<String, Object> worldLight = new LinkedHashMap<>(); worldLight.put("packedLight", firstFixture.getLightLevel(0)); worldLight.put("brightnessBits", Float.floatToRawIntBits(firstFixture.getBrightness(0))); worldLight.put("worldTime", Minecraft.getInstance().world.getTime()); worldLight.put("timeOfDay", Minecraft.getInstance().world.getTimeOfDay()); worldLight.put("sunAngleBits", Float.floatToRawIntBits(Minecraft.getInstance().world.getSunAngle(0)));
         if (batched) beginBatch.invoke(batch, new Matrix4f().rotateY((float) Math.PI));
         long accelerated = FastInvisibleHolograms.accelerated, typedBatch = HologramNamePreparation.batchTypedCalls, typedLayout = HologramNamePreparation.layoutTypedCalls;
         begins = ends = displays = levelHeads = customLayers = 0; nestedDone = false; nestedRestored = !nested; verifying = true;
@@ -192,11 +254,13 @@ public final class HologramNameNative073Qa {
                 require(dispatcher.render(entity, -6 + i % 4 * 4 + change * .17, -3.5 + i / 4 * 2 + change * .09, change * .13, 0, 0, false), "Dispatcher rejected a synthetic fixture");
                 require(owner() == null, "Name callback retained a current entity after dispatcher return");
             }
-        } finally { verifying = false; if (batched) endBatch.invoke(batch); }
+        } finally { verifying = false; HologramNameFont073Evidence.endImage(); if (batched) endBatch.invoke(batch); }
         ByteBuffer rgba = BufferUtils.createByteBuffer(WIDTH * HEIGHT * 4), z = BufferUtils.createByteBuffer(WIDTH * HEIGHT * 4), unsigned = BufferUtils.createByteBuffer(WIDTH * HEIGHT * 4); GL11.glReadPixels(0, 0, WIDTH, HEIGHT, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, rgba); GL11.glReadPixels(0, 0, WIDTH, HEIGHT, GL11.GL_DEPTH_COMPONENT, GL11.GL_FLOAT, z); GL11.glReadPixels(0, 0, WIDTH, HEIGHT, GL11.GL_DEPTH_COMPONENT, GL11.GL_UNSIGNED_INT, unsigned);
         byte[] pixels = new byte[rgba.capacity()], depths = new byte[z.capacity()], depthsUnsigned = new byte[unsigned.capacity()]; rgba.get(pixels); z.get(depths); unsigned.get(depthsUnsigned);
         List<Integer> state = List.of(GL11.glIsEnabled(GL11.GL_ALPHA_TEST) ? 1 : 0, GL11.glIsEnabled(GL11.GL_CULL_FACE) ? 1 : 0, GL11.glIsEnabled(GL12.GL_RESCALE_NORMAL) ? 1 : 0, GL11.glGetInteger(GL13.GL_ACTIVE_TEXTURE), GL11.glGetInteger(GL11.GL_MODELVIEW_STACK_DEPTH), GL11.glGetInteger(GL11.GL_PROJECTION_STACK_DEPTH), GL11.glGetInteger(GL11.GL_DEPTH_WRITEMASK), GL11.glGetInteger(GL20.GL_CURRENT_PROGRAM), GL11.glGetInteger(GL11.GL_DEPTH_FUNC));
         Map<String, Object> input = new LinkedHashMap<>(); input.put("serial", serial); input.put("change", change); input.put("fast", fast); input.put("hooks", hooks); input.put("preparedSites", HologramNamePreparation.preparedSites); input.put("batched", batched); input.put("gpu", gpu); input.put("initialModelView", initialModelView); input.put("initialProjection", initialProjection); input.put("initialDepthState", initialDepthState); input.put("finalDepthState", depthState()); input.put("callbackInputs", List.copyOf(callbackInputs));
+        input.put("controlledStandPoseBits", controlledPose); input.put("worldLight", worldLight);
+        if (!firstFixture.isInvisible()) { var standRenderer = (ArmorStandRenderer) (Object) dispatcher.getRenderer(firstFixture); var model = (net.minecraft.client.render.model.entity.ArmorStandModel) standRenderer.getModel(); input.put("nativeBasePlateRotationYBits", Float.floatToRawIntBits(model.basePlate.rotationY)); }
         return new Image(pixels, depths, depthsUnsigned, state, FastInvisibleHolograms.accelerated - accelerated, HologramNamePreparation.batchTypedCalls - typedBatch, HologramNamePreparation.layoutTypedCalls - typedLayout, begins, ends, displays, levelHeads, customLayers, input);
     }
 
@@ -278,5 +342,5 @@ public final class HologramNameNative073Qa {
     private static String stack(Throwable failure) { java.io.StringWriter text = new java.io.StringWriter(); failure.printStackTrace(new java.io.PrintWriter(text)); return text.toString(); }
     private static Path output() { return Path.of(System.getProperty("arcadium.hologramNames073.output")); }
     private static void require(boolean value, String message) { if (!value) throw new IllegalStateException(message); }
-    private static void finish(Throwable failure) { done = true; report.put("cases", cases); report.put("diagnosticPairs", diagnosticPairs); report.put("preparedSites", HologramNamePreparation.preparedSites); report.put("batchTypedCalls", HologramNamePreparation.batchTypedCalls); report.put("layoutTypedCalls", HologramNamePreparation.layoutTypedCalls); report.put("passed", failure == null); report.put("syntheticOffline", true); report.put("livingOrEntityRendererQaInstrumentation", false); report.put("performanceClaim", false); if (failure != null) { report.put("error", stack(failure)); failure.printStackTrace(); } try { Files.createDirectories(output().getParent()); Files.writeString(output(), new GsonBuilder().setPrettyPrinting().create().toJson(report)); } catch (Exception error) { error.printStackTrace(); } Minecraft.getInstance().stop(); }
+    private static void finish(Throwable failure) { done = true; report.put("cases", cases); report.put("diagnosticPairs", diagnosticPairs); report.put("nativeConstructorAndControlledPoses", constructorPoses); report.put("fontPhaseObserver", HologramNameFont073Evidence.report()); report.put("preparedSites", HologramNamePreparation.preparedSites); report.put("batchTypedCalls", HologramNamePreparation.batchTypedCalls); report.put("layoutTypedCalls", HologramNamePreparation.layoutTypedCalls); report.put("passed", failure == null); report.put("syntheticOffline", true); report.put("livingOrEntityRendererQaInstrumentation", false); report.put("performanceClaim", false); if (failure != null) { report.put("error", stack(failure)); failure.printStackTrace(); } try { Files.createDirectories(output().getParent()); Files.writeString(output(), new GsonBuilder().setPrettyPrinting().create().toJson(report)); } catch (Exception error) { error.printStackTrace(); } Minecraft.getInstance().stop(); }
 }
