@@ -14,6 +14,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @IfModLoaded("argentum")
 @Mixin(value=RenderSectionManager.class,remap=false)
 public abstract class MixinTerrainInventoryManager {
- @Inject(method="<init>",at=@At("RETURN")) private void inventoryAttach(CallbackInfo callback){TerrainResidentInventoryHooks.attach((RenderSectionManager)(Object)this);}
+ @Inject(method="<init>*",at=@At("RETURN")) private void inventoryAttach(CallbackInfo callback){TerrainResidentInventoryHooks.attach((RenderSectionManager)(Object)this);}
  @WrapMethod(method="destroy") private void inventoryRetire(Operation<Void> original){var scope=TerrainResidentInventoryHooks.begin(this);boolean ok=false;try{original.call();ok=true;}finally{TerrainResidentInventoryHooks.end(scope,ok);if(ok)TerrainResidentInventoryHooks.retired((RenderSectionManager)(Object)this);}}
 }
