@@ -39,6 +39,23 @@ class ActorSceneDataTest {
     @Test void denseMovesAndResourceEpochsDoNotAliasAnOldOwner(){
         var data=new ActorSceneData(3);data.begin(1);observe(data,20);var tick=data.current(0);data.move(0,1);assertSame(tick,data.current(1));assertNull(data.current(0));data.retain(1,8);assertNull(data.current(1));assertNull(data.previous(1));long epoch=data.epoch();data.clear();assertTrue(data.epoch()>epoch);observe(data,22);assertTrue(data.current(0).revision>tick.revision);
     }
+    @Test void repeatedEmptyClearsRetireViewsWithoutRepeatedHistoryWork(){
+        var data=new ActorSceneData(8192);data.begin(1);var empty=data.seal().raw();long epoch=data.epoch();
+        data.clear();assertEquals(epoch+1,data.epoch());assertEquals(0,data.historyRowsCleared);assertThrows(IllegalStateException.class,empty::check);
+        assertTrue(data.observe(8191,9,20,.5f,0,0,0,0,0,0,0,0,0,0,0));
+        assertTrue(data.captureGpuOnly(8191,9,8191,new Matrix4f(),0,0,0,false,false,false,0,0,0,0));var raw=data.seal().raw();
+        assertTrue(raw.active(8191));data.clear();assertEquals(8192,data.historyRowsCleared);assertNull(data.current(8191));assertNull(data.previous(8191));assertFalse(data.active(8191));assertThrows(IllegalStateException.class,raw::check);
+        epoch=data.epoch();var retired=data.seal().raw();for(int i=0;i<100;i++)data.clear();
+        assertEquals(epoch+100,data.epoch());assertEquals(8192,data.historyRowsCleared);assertThrows(IllegalStateException.class,retired::check);
+        assertFalse(data.canCapture(8191,9));
+    }
+    @Test void freshObservationAfterMovedOrRetainedHistoryRequiresACompleteRetirement(){
+        var data=new ActorSceneData(8);data.begin(1);observe(data,20);var old=data.current(0);data.move(0,7);data.retain(7,8);
+        data.clear();assertEquals(8,data.historyRowsCleared);for(int i=0;i<8;i++){assertNull(data.current(i));assertNull(data.previous(i));}
+        assertTrue(data.observe(7,8,21,.5f,0,0,0,0,0,0,0,0,0,0,0));assertTrue(data.current(7).revision>old.revision);
+        assertTrue(data.captureGpuOnly(7,8,4,new Matrix4f(),0,0,0,false,false,false,0,0,0,0));var raw=data.seal().raw();data.clear();data.clear();
+        assertEquals(16,data.historyRowsCleared);assertFalse(data.active(4));assertFalse(data.canCapture(7,8));assertThrows(IllegalStateException.class,raw::check);
+    }
     @Test void variantSharesTickButOwnsItsTargetTemplate(){
         var data=new ActorSceneData(2);data.begin(1);observe(data,20);assertTrue(capture(data,0));assertTrue(data.material(0,4));assertTrue(data.variant(0,1,384));var batch=data.seal();assertSame(batch.tick(0),batch.tick(1));var a=FloatBuffer.allocate(32);var b=FloatBuffer.allocate(32);batch.cpu(0,a,0);batch.cpu(1,b,0);assertEquals(192,a.get(27));assertEquals(384,b.get(27));
     }

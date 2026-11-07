@@ -21,6 +21,7 @@ public final class RenderHookLateExtension implements IExtension {
         boolean known=switch(kind){
             case "particle" -> target.name.equals("net/minecraft/client/ParticleManager")||target.name.equals("net/minecraft/unmapped/C_16190149");
             case "layer" -> target.name.equals("net/minecraft/client/render/entity/LivingEntityRenderer")||target.name.equals("net/minecraft/unmapped/C_71252617");
+            case "entity-name" -> target.name.equals("net/minecraft/client/render/entity/EntityRenderer")||target.name.equals("net/minecraft/unmapped/C_53593123");
             default -> false;
         };
         if(!known)return;

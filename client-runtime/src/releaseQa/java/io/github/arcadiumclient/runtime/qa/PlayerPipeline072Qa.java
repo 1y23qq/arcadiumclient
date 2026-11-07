@@ -41,6 +41,7 @@ public final class PlayerPipeline072Qa {
     private static final boolean BASELINE = Boolean.getBoolean("arcadium.playerPipeline072.baseline");
     private static final boolean PROFILING = Boolean.getBoolean("arcadium.playerPipeline072.profiling");
     private static final boolean ACTOR_SCENE_PERFORMANCE=Boolean.getBoolean("arcadium.actorScene073.performance");
+    private static final boolean FUSED_CROWDED_VISUAL=Boolean.getBoolean("arcadium.fusedMinecraft073.crowdedVisual");
     private static final boolean QUIET_WINDOW=Boolean.getBoolean("arcadium.performance073.quietWindow");
     private static QuietPerformanceWindow073 quietWindow;
     private static final String RESIDENT_BODY_MODE=System.getProperty("arcadium.residentBodies072.mode","off");
@@ -102,7 +103,8 @@ public final class PlayerPipeline072Qa {
             require(Set.of("off","control","active").contains(RESIDENT_BODY_MODE)&&(RESIDENT_BODY_MODE.equals("off")||!BASELINE&&(VISUAL||RESIDENT_BODY_PERFORMANCE)),"Private resident bodies require an explicit optimized visual or certified fixture");
             require("ArcadiumTest".equals(mc.getSession().getUsername()) && "0".equals(mc.getSession().getAccessToken()), "Use only the owned offline fixture");
             require(List.of("default", "3d-skin", "wavy", "skin+wavy").contains(SCENE), "Unknown scene");
-            require(Set.of(3,20,50).contains(PLAYERS)||ACTOR_SCENE_PERFORMANCE&&!VISUAL&&!BASELINE&&!PROFILING&&SCENE.equals("default")&&PLAYERS==64,"Unsupported actor count or uncertified64-player fixture");
+            require(!FUSED_CROWDED_VISUAL||VISUAL&&!BASELINE&&!PROFILING&&SCENE.equals("default")&&PLAYERS==64&&Set.of("off","on").contains(System.getProperty("arcadium.fusedMinecraft073.mode","")),"Crowded fused visual requires its owned explicit64 lane");
+            require(Set.of(3,20,50).contains(PLAYERS)||ACTOR_SCENE_PERFORMANCE&&!VISUAL&&!BASELINE&&!PROFILING&&SCENE.equals("default")&&PLAYERS==64||FUSED_CROWDED_VISUAL,"Unsupported actor count or uncertified64-player fixture");
             require(VOXEL_ADMISSIONS.contains(VOXEL_ADMISSION) && (VOXEL_ADMISSION.equals("gpu") || VISUAL && SKIN), "Admission fallback checks require an explicit visual skin fixture");
             require(!NATIVE_BODY_CONTROL || VISUAL && !BASELINE && SKIN, "Native body control requires an explicit optimized visual skin fixture");
             require(!NATIVE_VOXEL_ROOT_CONTROL||VISUAL&&!BASELINE&&SKIN&&!NATIVE_BODY_CONTROL&&!PROFILING&&VOXEL_ADMISSION.equals("gpu")
@@ -127,7 +129,7 @@ public final class PlayerPipeline072Qa {
                     Class<?> helper = Class.forName("io.github.arcadiumclient.runtime.qa.AnimationPose072Qa");
                     report.put("nativePoseValidation", helper.getMethod("verify", Minecraft.class).invoke(null, mc));
                 } else report.put("nativePoseValidation", Map.of("run", false, "reason", "Frozen 0.7.1 baseline"));
-                int columns = PLAYERS == 3 ? 3 : PLAYERS == 20 ? 5 : PLAYERS==64&&ACTOR_SCENE_PERFORMANCE ? 8 : 10;
+                int columns = PLAYERS == 3 ? 3 : PLAYERS == 20 ? 5 : PLAYERS==64&&(ACTOR_SCENE_PERFORMANCE||FUSED_CROWDED_VISUAL) ? 8 : 10;
                 for (int i = 0; i < PLAYERS; i++) {
                     Actor actor = new Actor(mc.world, new GameProfile(new UUID(0x7207200000004000L + i, 0x8000000000000072L), "PipelineQA" + i), i);
                     actor.updatePositionAndAngles((i % columns - (columns - 1) * .5) * 1.45, 4, 2 + i / columns * 1.7, 180 + i % 13, 10 + i % 9);
@@ -355,6 +357,9 @@ public final class PlayerPipeline072Qa {
         result.put("residentBodySelectedMaterial",Boolean.getBoolean("arcadium.residentBodies072.selectedMaterial"));
         result.put("allOnBetaProfile",ALL_ON_BETA);
         result.put("nativeVoxelRootControl",NATIVE_VOXEL_ROOT_CONTROL);
+        Map<String,Object> privateFlags=new TreeMap<>();
+        for(String key:List.of("arcadium.residentBodies072.mode","arcadium.residentBodies072.sharedPalette","arcadium.residentBodies072.selectedMaterial","arcadium.terrainResident072.enabled","arcadium.namePreparation073.lowerEntity"))privateFlags.put(key,System.getProperty(key,"<absent>"));
+        result.put("otherPrivateFlags",privateFlags);
         return result;
     }
 

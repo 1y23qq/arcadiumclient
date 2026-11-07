@@ -140,6 +140,7 @@ if (minecraftVersion == "1.7.10") {
                 "**/optimizations/**", "**/diagnostics/**", "**/features/BetaOptimizationsConfig.kt",
                 "**/RenderHookConstraintsPlugin.java", "**/ReducedRenderHookMarker.java",
                 "**/compat/argentum/TypedLayerOperationsMarker.java",
+                "**/compat/argentum/TypedEntityNameOperationsMarker.java",
                 "**/compat/cera/TrustedCosmeticUsernameMarker.java",
                 "**/compat/polyblur/**", "**/compat/overflowparticles/TypedParticleOperationsMarker.java",
                 "**/compat/argentum/MixinGpuModel*.java", "**/client/WorldRenderScaleMixin.java",

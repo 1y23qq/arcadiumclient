@@ -6,6 +6,8 @@ import io.github.arcadiumclient.runtime.client.optimizations.GlCallbackFusion;
 import io.github.arcadiumclient.runtime.client.optimizations.ParticleOperationFusion;
 import io.github.arcadiumclient.runtime.client.optimizations.LayerOperationFusion;
 import io.github.arcadiumclient.runtime.client.optimizations.CosmeticUsernameFusion;
+import io.github.arcadiumclient.runtime.client.optimizations.LowerNamePreparation;
+import io.github.arcadiumclient.runtime.client.optimizations.LowerNamePreparationFusion;
 import io.github.arcadiumclient.runtime.client.optimizations.RenderHookLateExtension;
 import io.github.arcadiumclient.runtime.client.optimizations.RenderHookAllocationControl;
 import org.apache.logging.log4j.LogManager;
@@ -44,6 +46,7 @@ public final class RenderHookConstraintsPlugin extends ConstraintsMixinPlugin {
             return;
         }
         if (mixinClassName.endsWith(".TypedLayerOperationsMarker")) { RenderHookLateExtension.arm(targetClass, "layer", node -> LayerOperationFusion.apply(node).size(), sites -> RenderHookAllocationControl.layerSites += sites); return; }
+        if (mixinClassName.endsWith(".TypedEntityNameOperationsMarker")) { RenderHookLateExtension.arm(targetClass, "entity-name", LowerNamePreparationFusion::apply, sites -> { LowerNamePreparation.preparedSites = sites; RenderHookAllocationControl.nameSites += sites; }); return; }
         boolean particles = mixinClassName.endsWith(".TypedParticleOperationsMarker");
         if (particles) { RenderHookLateExtension.arm(targetClass, "particle", node -> ParticleOperationFusion.apply(node).size(), sites -> RenderHookAllocationControl.particleSites += sites); return; }
         if (!mixinClassName.endsWith(".ReducedRenderHookMarker")) return;

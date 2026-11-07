@@ -102,6 +102,6 @@ public final class FastInvisibleHolograms {
 
     public static String status() {
         return !BetaOptimizationsConfig.getFastInvisibleHolograms() ? "Invisible holograms: Off"
-                : "Invisible holograms: " + accelerated + " name-only | " + (equipmentFallbacks + rendererFallbacks + stateFallbacks) + " original | Typed names: " + HologramNamePreparation.batchTypedCalls + "/" + HologramNamePreparation.layoutTypedCalls;
+                : "Invisible holograms: " + accelerated + " name-only | " + (equipmentFallbacks + rendererFallbacks + stateFallbacks) + " original | Typed names: " + HologramNamePreparation.batchTypedCalls + "/" + HologramNamePreparation.layoutTypedCalls + "/" + LowerNamePreparation.typedCalls;
     }
 }

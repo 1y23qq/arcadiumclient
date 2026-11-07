@@ -23,6 +23,7 @@
     "compat.argentum.MixinGpuModelBakedItemAdmission",
     "compat.forge.MixinLegacyItemCameraScope",
     "compat.argentum.TypedLayerOperationsMarker",
+    "compat.argentum.TypedEntityNameOperationsMarker",
     "compat.cera.TrustedCosmeticUsernameMarker",
     "compat.overflowparticles.TypedParticleOperationsMarker",
     "compat.polyblur.MixinHybridHandHistory",
