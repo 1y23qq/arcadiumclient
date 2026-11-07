@@ -21,6 +21,7 @@ public final class GpuVoxelSkinRenderer implements GpuVoxelSkinPipeline.Backend 
     private static final Vector4f WHITE = new Vector4f(1), CLEAR = new Vector4f(0);
     private static GpuVoxelSkinRenderer instance;
     private final GpuVoxelSkinNativeAccess api;
+    private final GpuVoxelSkinBorrowedBlendState borrowedBlend;
     private final IdentityHashMap<Object, State> owners = new IdentityHashMap<>(), geometries = new IdentityHashMap<>();
     private final Map<Long, Integer> variants = new HashMap<>();
     private final Matrix4f marker = new Matrix4f();
@@ -40,10 +41,11 @@ public final class GpuVoxelSkinRenderer implements GpuVoxelSkinPipeline.Backend 
         if (instance == null) instance = new GpuVoxelSkinRenderer();
         GpuVoxelSkinPipeline.attach(instance);
     }
-    private GpuVoxelSkinRenderer() throws ReflectiveOperationException { api = new GpuVoxelSkinNativeAccess(); }
+    private GpuVoxelSkinRenderer() throws ReflectiveOperationException { api = new GpuVoxelSkinNativeAccess();borrowedBlend=GpuVoxelSkinBorrowedBlendState.live(); }
 
     private boolean supported() {
         if (failed) return false;
+        if(!borrowedBlend.available()){state="Native voxel blend context unavailable; using original layers";return false;}
         if (!GL.getCapabilities().OpenGL43) { state = "OpenGL 4.3 required; using original skin layers"; return false; }
         if (!GL11.glIsEnabled(GL12.GL_RESCALE_NORMAL) || GL11.glIsEnabled(GL11.GL_NORMALIZE))
             return reject("Unsupported voxel normal state", false);
@@ -71,6 +73,7 @@ public final class GpuVoxelSkinRenderer implements GpuVoxelSkinPipeline.Backend 
             Object actor=api.capture.current.invoke();
             if(actor==null||api.capture.backend.get(actor)!=main)return;
             if(!GL.getCapabilities().OpenGL43){state="OpenGL 4.3 required; using original skin layers";return;}
+            if(!borrowedBlend.available()){state="Native voxel blend context unavailable; using original layers";return;}
             if(!GpuVoxelSkinDraw.ready())return;
             State storage=owners.get(main);
             if(storage==null){
@@ -215,13 +218,14 @@ public final class GpuVoxelSkinRenderer implements GpuVoxelSkinPipeline.Backend 
                     || (boolean)api.capture.captureFinished.get(capture) || (boolean)api.capture.captureArmor.get(capture)
                     || (int)api.capture.captureMode.get(capture) != GL11.GL_MODELVIEW || GpuVoxelSkinBridge.excludedMesh(mesh)) return false;
             Object backend = api.capture.backend.get(actor); State storage = prepared(backend);
+            if(storage==null||!supported())return false;
             if(GpuVoxelSkinPhysicalProjection.ENABLED){
                 if(storage==null||storage.projection==null||!storage.projection.ready())return false;
                 projectionState=storage;projectionTicket=storage.projection.capture(mesh,GpuVoxelSkinBridge.part(mesh),scale);
                 if(projectionTicket==0){GpuVoxelSkinPhysicalProjection.declines++;return false;}
             }
             preflight.clear();
-            if(storage==null||!supported()||!materialSupported())return false;
+            if(!materialSupported())return false;
             GpuVoxelSkinMath.Offset offset = GpuVoxelSkinBridge.offsetForMesh(mesh);
             if (offset == null) return reject("Voxel offset was not observed in the player binder", true);
             Object pass = api.capture.capturePass.get(capture); String kind = ((Enum<?>)pass).name();
@@ -359,7 +363,10 @@ public final class GpuVoxelSkinRenderer implements GpuVoxelSkinPipeline.Backend 
             try{
                 if(pending==0){api.modelDiscard.invoke(storage.auxiliary);continue;}
                 int mainCount=(int)api.capture.backendCount.get(entry.getKey()),jobs=GpuPlayerPackets.count();
-                api.modelFlush.invoke(storage.auxiliary,(CommandList)commandList);
+                long blendTicket=borrowedBlend.capture();Throwable flushFailure=null;
+                try{api.modelFlush.invoke(storage.auxiliary,(CommandList)commandList);}
+                catch(Throwable failure){flushFailure=failure;throw failure;}
+                finally{try{borrowedBlend.restore(blendTicket);}catch(Throwable restoreFailure){if(flushFailure!=null)flushFailure.addSuppressed(restoreFailure);else throw restoreFailure;}}
                 if(mainCount!=(int)api.capture.backendCount.get(entry.getKey())||jobs!=GpuPlayerPackets.count())
                     throw new IllegalStateException("Auxiliary flush changed the main actor batch");
                 GpuVoxelSkinPipeline.auxiliaryBatches++;

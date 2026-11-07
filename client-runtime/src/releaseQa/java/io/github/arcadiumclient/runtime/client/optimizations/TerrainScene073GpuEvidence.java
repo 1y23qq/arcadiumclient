@@ -19,7 +19,7 @@ public final class TerrainScene073GpuEvidence {
     private static int ownedProgram;
     private static final Map<String,Map<String,Object>> configuredPasses=new LinkedHashMap<>();
     private static String operationKey;
-    private static String currentOperation()throws Exception{
+    static String currentOperation()throws Exception{
         Class<?> oracle=Class.forName("io.github.arcadiumclient.runtime.qa.TerrainFullFrameOracle073");
         if(!(boolean)oracle.getMethod("controlling").invoke(null))return null;
         int stage=(int)value(oracle,null,"stage");if(stage<0)return null;
@@ -33,7 +33,7 @@ public final class TerrainScene073GpuEvidence {
     public static Map<String,Object> configuredPass(Object renderer,String pass,ChunkRenderMatrices matrices,CameraTransform face,CameraTransform render)throws Throwable{
         var state=configured(renderer,matrices,face,render);var row=passRecord(pass);if(row!=null){row.put("configuredCalls",((Number)row.get("configuredCalls")).intValue()+1);row.put("state",state);row.put("physicalState",physicalState());}return state;
     }
-    public static void returnedPass(String pass)throws Exception{var row=passRecord(pass);if(row!=null)row.put("returnCalls",((Number)row.get("returnCalls")).intValue()+1);}
+    public static void returnedPass(String pass)throws Exception{var row=passRecord(pass);if(row!=null)row.put("returnCalls",((Number)row.get("returnCalls")).intValue()+1);if(TerrainEvent073Evidence.enabled())TerrainEvent073Evidence.returned(pass);}
     private static Map<String,Object> physicalState(){
         var row=new LinkedHashMap<String,Object>();row.put("program",GL11.glGetInteger(GL20.GL_CURRENT_PROGRAM));row.put("blend",GL11.glIsEnabled(GL11.GL_BLEND));row.put("depthTest",GL11.glIsEnabled(GL11.GL_DEPTH_TEST));row.put("depthWrite",GL11.glGetBoolean(GL11.GL_DEPTH_WRITEMASK));row.put("depthFunc",GL11.glGetInteger(GL11.GL_DEPTH_FUNC));row.put("cull",GL11.glIsEnabled(GL11.GL_CULL_FACE));row.put("frontFace",GL11.glGetInteger(GL11.GL_FRONT_FACE));row.put("blendSrcRgb",GL11.glGetInteger(GL14.GL_BLEND_SRC_RGB));row.put("blendDstRgb",GL11.glGetInteger(GL14.GL_BLEND_DST_RGB));return row;
     }
@@ -44,7 +44,7 @@ public final class TerrainScene073GpuEvidence {
             var row=(Map<?,?>)records.get(pass);if(row==null||((Number)row.get("configuredCalls")).intValue()!=1)throw new IllegalStateException("Supported resident pass lost its actual configured callback: "+pass);
             var state=(Map<?,?>)row.get("state");var fact=(Map<?,?>)state.get("compiledFact");if(fact==null||!Boolean.TRUE.equals(state.get("physicalProgramMatches"))||Boolean.TRUE.equals(fact.get("fragmentDiscard"))!=pass.equals("cutout_mipped"))throw new IllegalStateException("Actual supported fragment-discard/program provenance differs");
         }
-        var result=new LinkedHashMap<String,Object>();result.put("operation",key);result.put("nativePasses",records);result.put("actualConfiguredAndReturnCallbacks",true);result.put("readOnlyCorrectnessObserver",true);if(gpu){var counts=new LinkedHashMap<String,Object>();for(String pass:List.of("solid","cutout_mipped")){var count=new LinkedHashMap<>(currentCounts(pass));count.put("actualIndirectRecipes",TerrainOracleGeometry073.capture(pass));counts.put(pass,count);}result.put("residentPassCounts",counts);}return result;
+        var result=new LinkedHashMap<String,Object>();result.put("operation",key);result.put("nativePasses",records);result.put("actualConfiguredAndReturnCallbacks",true);result.put("readOnlyCorrectnessObserver",true);if(gpu){var counts=new LinkedHashMap<String,Object>();for(String pass:List.of("solid","cutout_mipped")){var observed=TerrainEvent073Evidence.enabled()?TerrainEvent073Evidence.pass(pass):null;if(TerrainEvent073Evidence.enabled()&&(observed==null||!key.equals(observed.get("operation"))))throw new IllegalStateException("Missing same-operation event pass snapshot: "+pass);var count=new LinkedHashMap<>(observed==null?currentCounts(pass):(Map<String,Object>)observed.get("counts"));count.put("actualIndirectRecipes",observed==null?TerrainOracleGeometry073.capture(pass):observed.get("actualGeometry"));if(observed!=null)count.put("actualEventSnapshot",observed);counts.put(pass,count);}result.put("residentPassCounts",counts);}return result;
     }
 
     private static TerrainResidentNativeAccess nativeApi;
@@ -80,9 +80,9 @@ public final class TerrainScene073GpuEvidence {
     public static Map<String,Object> currentCounts()throws Exception{return currentCounts("solid");}
     public static Map<String,Object> currentCounts(String passName)throws Exception{
         Object scene=passScene(passName);
-        TerrainResidentGpuBuffers buffers=(TerrainResidentGpuBuffers)value(scene.getClass(),scene,"buffers");
+        TerrainResidentGpuBuffers buffers=TerrainEvent073Evidence.enabled()?TerrainEvent073Evidence.context(passName).buffers():(TerrainResidentGpuBuffers)value(scene.getClass(),scene,"buffers");
         if(buffers==null)throw new IllegalStateException("Resident buffers were not allocated");
-        int regions=((Map<?,?>)value(scene.getClass(),scene,"byStorage")).size();if(regions<1||regions>1024)throw new IllegalStateException("Invalid active resident region inventory");
+        int regions=TerrainEvent073Evidence.enabled()?TerrainEvent073Evidence.context(passName).frame().highWater:((Map<?,?>)value(scene.getClass(),scene,"byStorage")).size();if(regions<1||regions>1024)throw new IllegalStateException("Invalid active resident region inventory");
         IntBuffer counts=BufferUtils.createIntBuffer(regions);int previous=GL11.glGetInteger(GL31.GL_COPY_READ_BUFFER);long total=0;
         try{
             GL15.glBindBuffer(GL31.GL_COPY_READ_BUFFER,buffers.countHandle());GL15.glGetBufferSubData(GL31.GL_COPY_READ_BUFFER,0,counts);

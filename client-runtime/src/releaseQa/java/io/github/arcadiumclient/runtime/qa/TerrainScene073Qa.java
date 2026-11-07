@@ -7,6 +7,7 @@ import io.github.arcadiumclient.runtime.client.features.BetaOptimizationsConfig;
 import io.github.arcadiumclient.runtime.client.optimizations.GpuTerrainCommands;
 import io.github.arcadiumclient.runtime.client.optimizations.TerrainResidentScene;
 import io.github.arcadiumclient.runtime.client.optimizations.TerrainScene073GpuEvidence;
+import io.github.arcadiumclient.runtime.client.optimizations.TerrainEvent073Evidence;
 import java.nio.*;
 import java.nio.file.*;
 import java.util.*;
@@ -76,6 +77,7 @@ public final class TerrainScene073Qa {
             require("ArcadiumTest".equals(mc.getSession().getUsername())&&"0".equals(mc.getSession().getAccessToken())&&mc.getCurrentServerEntry()==null,"Use only the owned offline terrain073 fixture");
             require(GpuTerrainCommands.residentBootRequested(),"The private resident mixins must be selected at JVM startup");
             if(phase==0&&ticks>60&&mc.screen!=null&&mc.world==null){
+                if(TerrainEvent073Evidence.enabled())TerrainEvent073Evidence.preflight();
                 ClientPreferences.setSetupComplete(true);mc.options.pauseOnUnfocus=false;mc.options.vsync=false;Display.setVSyncEnabled(false);mc.options.viewDistance=8;mc.options.fpsLimit=260;mc.options.cloudRenderMode=0;mc.options.perspective=0;mc.options.viewBobbing=false;mc.options.hideGui=true;mc.options.fov=75;mc.options.difficulty=Difficulty.PEACEFUL;org.polyfrost.oneconfig.internal.OneConfigConfig.limitUnfocusedFps=false;
                 var settings=new TreeMap<String,Object>();
                 for(var entry:BetaOptimizationsConfig.INSTANCE.getTree().map.entrySet())if(entry.getValue() instanceof Property<?> property&&property.get() instanceof Boolean){boolean value=!entry.getKey().equals("worldRenderScale");property.setAs(value&&!entry.getKey().equals("gpuTerrainCommands"));settings.put(entry.getKey(),value);}
@@ -127,6 +129,7 @@ public final class TerrainScene073Qa {
                     }
                 }
                 else if(phase==7&&pngComplete(capturedFrame(mc))){
+                    if(TerrainEvent073Evidence.enabled()){TerrainEvent073Evidence.healthy();if(!TerrainEvent073Evidence.steadyReady()){require(++eligibleFrames<240,"No actual unchanged event-frame pair");return;}}
                     Path path=capturedFrame(mc);var image=ImageIO.read(path.toFile());require(image!=null&&image.getWidth()==1920&&image.getHeight()==1080,"Incomplete native terrain073 screenshot");
                     var colors=new HashSet<Integer>();for(int y=0;y<1080;y+=8)for(int x=0;x<1920;x+=8)colors.add(image.getRGB(x,y));require(colors.size()>=32,"Blank terrain073 capture");
                     report.put("frame",Map.of("file",path.getFileName().toString(),"width",1920,"height",1080,"sampledColors",colors.size(),"fullUncropped",true,"captureStage",TerrainFullFrameOracle073.enabled()?"pre-PolyBlur world":"normal final framebuffer"));
@@ -200,10 +203,10 @@ public final class TerrainScene073Qa {
     }
     public static void configured(Object renderer,String pass,ChunkRenderMatrices matrices,CameraTransform face,CameraTransform render){
         if(!enabled()||done)return;
-        try{var state=TerrainScene073GpuEvidence.configuredPass(renderer,pass,matrices,face,render);if(pass.equals("solid")){shader=state;if(phase>=4)report.put("latestNativeTerrainState",shader);}}catch(Throwable error){finish(error);}
+        try{var state=TerrainScene073GpuEvidence.configuredPass(renderer,pass,matrices,face,render);if(pass.equals("solid")){shader=state;if(phase>=4)report.put("latestNativeTerrainState",shader);}}catch(Throwable error){if(TerrainEvent073Evidence.enabled())TerrainEvent073Evidence.error("configured observer",error);else finish(error);}
     }
     public static void terrainReturned(String pass){
-        if(!enabled()||done)return;try{TerrainScene073GpuEvidence.returnedPass(pass);}catch(Throwable error){finish(error);return;}if(!pass.equals("solid"))return;nativeFrames++;if(phase!=5)return;
+        if(!enabled()||done)return;try{TerrainScene073GpuEvidence.returnedPass(pass);}catch(Throwable error){if(TerrainEvent073Evidence.enabled())TerrainEvent073Evidence.error("pass-return observer",error);else finish(error);return;}if(!pass.equals("solid"))return;nativeFrames++;if(phase!=5)return;
         if(TerrainFullFrameOracle073.enabled()){if(TerrainFullFrameOracle073.controlling())TerrainFullFrameOracle073.terrainReturn();if(!TerrainFullFrameOracle073.gpuStage())return;}
         try{
             Map<String,Object> evidence=TerrainResidentScene.evidence();report.put("resident",evidence);report.put("shader",shader);
@@ -215,7 +218,7 @@ public final class TerrainScene073Qa {
             report.put("camera",Map.of("position",List.of(Minecraft.getInstance().player.x,Minecraft.getInstance().player.y,Minecraft.getInstance().player.z),"yaw",Minecraft.getInstance().player.yaw,"pitch",Minecraft.getInstance().player.pitch,"fovDegrees",Minecraft.getInstance().options.fov));
             if(TerrainFullFrameOracle073.enabled()){TerrainFullFrameOracle073.gpuValidated(Map.of("resident",evidence,"shader",shader,"counts",counts));return;}
             capture=true;phase=6;
-        }catch(Throwable failure){finish(failure);}
+        }catch(Throwable failure){if(TerrainEvent073Evidence.enabled())TerrainEvent073Evidence.error("terrain validation observer",failure);else finish(failure);}
     }
     public static void frame(){
         if(!enabled()||done||!capture)return;capture=false;var mc=Minecraft.getInstance();
@@ -245,7 +248,7 @@ public final class TerrainScene073Qa {
     }
     private static void require(boolean condition,String message){if(!condition)throw new IllegalStateException(message);}
     private static void finish(Throwable error){
-        if(done)return;try{progress(true);}catch(Exception diagnostic){report.put("progressWriteError",diagnostic.toString());}done=true;report.put("passed",error==null);report.put("blueprintSha256",plan.sha256());report.put("phase",phase);report.put("correctnessOnly",true);report.put("fullSceneVisualParityQualified",false);report.put("publicationQualified",false);report.put("performanceClaim",false);report.put("finalResident",TerrainResidentScene.evidence());
+        if(done)return;if(TerrainEvent073Evidence.enabled()){try{TerrainEvent073Evidence.healthy();}catch(Throwable observer){if(error==null)error=observer;else if(error!=observer)error.addSuppressed(observer);}report.put("actualEventPath",TerrainEvent073Evidence.report());}try{progress(true);}catch(Exception diagnostic){report.put("progressWriteError",diagnostic.toString());}done=true;report.put("passed",error==null);report.put("blueprintSha256",plan.sha256());report.put("phase",phase);report.put("correctnessOnly",true);report.put("fullSceneVisualParityQualified",false);report.put("publicationQualified",false);report.put("performanceClaim",false);report.put("finalResident",TerrainResidentScene.evidence());
         if(error!=null){report.put("error",error.toString());error.printStackTrace();}
         report.put("environment",Map.of("renderer",GL11.glGetString(GL11.GL_RENDERER),"openGl",GL11.glGetString(GL11.GL_VERSION),"java",System.getProperty("java.version")));
         try{Files.createDirectories(output().toAbsolutePath().getParent());Files.writeString(output(),new GsonBuilder().setPrettyPrinting().create().toJson(report));}catch(Exception failed){failed.printStackTrace();}Minecraft.getInstance().stop();
