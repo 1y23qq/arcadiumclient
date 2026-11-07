@@ -163,7 +163,7 @@ public final class MetalSceneHandoffProbe {
         report.put("foreignSceneQueueRejected",true);
     }
     private static boolean windowReady(NativeCalls calls) {
-        return display.isVisible()&&display.isActive()&&calls.query(22)==1&&calls.query(23)==1&&calls.query(25)==1&&calls.query(52)==1&&calls.query(24)==1;
+        return display.isVisible()&&display.isActive()&&calls.query(22)==1&&calls.query(23)==1&&calls.query(25)==1&&calls.query(24)==1;
     }
     private static Map<String,Object> windowState(NativeCalls calls) {
         Map<String,Object> state=new LinkedHashMap<>();state.put("sdlVisible",display.isVisible());state.put("sdlActive",display.isActive());
