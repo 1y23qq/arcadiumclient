@@ -30,6 +30,7 @@ final class ActorFusedRuntime {
     private static ActorFusedInput.View cachedView;private static int[] cachedRows=new int[0];private static int cachedCount;
     private static long cachedWorld,cachedBatch,cachedRaw,cachedPackets;
     static long fusedDispatches,fallbackDispatches,fusedRows,fallbackRows,uploadedWords,differentialReuses,foreignRefusals,quarantines;
+    static long uploadCalls,committedDirtyWords,transmittedWords,shadowComparedWords,committedViewReuses;
     private ActorFusedRuntime(){}
     private static long actual(){if(Platform.get()!=Platform.WINDOWS)return 0;return WGL.wglGetCurrentContext(null);}
     private static Object capabilities(){return GL.getCapabilities();}
@@ -89,12 +90,12 @@ final class ActorFusedRuntime {
             if(!same){if(cachedRows.length<scope.rows.count())cachedRows=new int[scope.rows.count()];cachedCount=scope.rows.count();for(int i=0;i<cachedCount;i++)cachedRows[i]=scope.rows.at(i);cachedWorld=raw.lifetime();cachedBatch=raw.batch();cachedRaw=raw.revision();cachedPackets=packetRevision;cachedView=view;}
             var lease=lifetime.acquire(context.key(),new ActorFusedLifetime.Key(view.world,view.batch,view.generation,view.capacity));
             if(lease==null)return scope;scope.lease=lease;
-            int nameBuffer=lease.buffer();var shadow=stores.shadows.get(nameBuffer);var diff=shadow.diff(view);
+            int nameBuffer=lease.buffer();var shadow=stores.shadows.get(nameBuffer);var diff=shadow.diff(view);shadowComparedWords+=diff.comparedWords;
             if(!lease.uploadRequired&&diff.ranges!=0)throw new IllegalStateException("Read-only reused input requires an unexpected rewrite");
             try{
                 GL42.glMemoryBarrier(GL43.GL_SHADER_STORAGE_BARRIER_BIT|GL42.GL_BUFFER_UPDATE_BARRIER_BIT);GL15.glBindBuffer(GL43.GL_SHADER_STORAGE_BUFFER,nameBuffer);
-                for(int r=0;r<diff.ranges;r++){int count=diff.length(r);scope.reserve(count);scope.upload.clear().limit(count);for(int p=diff.start(r),end=p+count;p<end;p++)scope.upload.put(view.word(p));scope.upload.flip();GL15.glBufferSubData(GL43.GL_SHADER_STORAGE_BUFFER,(long)diff.start(r)*4,scope.upload);uploadedWords+=count;}
-                diff.commit();if(diff.ranges==0)differentialReuses++;if(lease.uploadRequired)lease.uploaded(context.key());
+                for(int r=0;r<diff.ranges;r++){int count=diff.length(r);scope.reserve(count);scope.upload.clear().limit(count);for(int p=diff.start(r),end=p+count;p<end;p++)scope.upload.put(view.word(p));scope.upload.flip();GL15.glBufferSubData(GL43.GL_SHADER_STORAGE_BUFFER,(long)diff.start(r)*4,scope.upload);uploadedWords+=count;transmittedWords+=count;uploadCalls++;}
+                diff.commit();if(diff.ranges==0)differentialReuses++;if(lease.uploadRequired)lease.uploaded(context.key());committedDirtyWords+=diff.dirtyWords;if(diff.exactCommittedViewReuse)committedViewReuses++;
             }catch(Throwable uploadFailure){shadow.invalidate();throw uploadFailure;}
             requireCurrent();GL30.glBindBufferBase(GL43.GL_SHADER_STORAGE_BUFFER,3,nameBuffer);GL30.glUniform1ui(program.metadataUniform,view.metadataBase);scope.fused=true;scope.taggedRows=view.taggedRows;return scope;
         }catch(Throwable failure){failed=true;frameReady=false;if(!scope.open){depth--;throw failure;}if(!ownsCurrent()){scope.close();throw failure;}try{scope.dropUnusedLease();return scope;}catch(Throwable fallbackFailure){try{scope.close();}finally{if(fallbackFailure!=failure)failure.addSuppressed(fallbackFailure);}throw failure;}}

@@ -52,15 +52,38 @@ final class ActorFusedInput {
         int ranges(){check();return source.rangeCount;}int start(int range){check();return source.ranges[range*2];}int length(int range){check();return source.ranges[range*2+1];}
     }
     static final class Shadow {
+        private static final int MAX_CLEAN_GAP=16;
         private int[] words=new int[0],ranges=new int[0];private final BitSet valid=new BitSet();private Object owner;private long world=Long.MIN_VALUE,plan;private boolean invalid=true;
-        void invalidate(){invalid=true;valid.clear();plan++;}
-        Diff diff(View view){view.check();if(owner!=null&&owner!=view.context)throw new IllegalStateException("Foreign fused diff shadow");boolean fresh=invalid||words.length!=view.capacity*WORDS||world!=view.world;if(ranges.length<view.capacity*WORDS*2)ranges=new int[view.capacity*WORDS*2];int count=0;for(int r=0;r<view.ranges();r++)for(int p=view.start(r),end=p+view.length(r);p<end;p++)if(fresh||!valid.get(p)||words[p]!=view.word(p))count=append(ranges,count,p,1);return new Diff(this,view,count,fresh,++plan);}
+        private Object committedContext,committedSource;private long committedWorld,committedBatch,committedGeneration,committedPlan=Long.MIN_VALUE;private int committedCapacity;
+        void invalidate(){invalid=true;valid.clear();committedContext=committedSource=null;committedPlan=Long.MIN_VALUE;plan++;}
+        Diff diff(View view){
+            view.check();if(owner!=null&&owner!=view.context)throw new IllegalStateException("Foreign fused diff shadow");
+            boolean fresh=invalid||words.length!=view.capacity*WORDS||world!=view.world;
+            boolean exact=!fresh&&committedContext==view.context&&committedSource==view.source&&committedWorld==view.world&&committedBatch==view.batch
+                &&committedGeneration==view.generation&&committedCapacity==view.capacity&&committedPlan==plan;
+            if(exact)return new Diff(this,view,0,false,++plan,0,0,0,true);
+            if(ranges.length<view.capacity*WORDS*2)ranges=new int[view.capacity*WORDS*2];int count=0,dirty=0,transmitted=0,compared=0;
+            for(int r=0;r<view.ranges();r++){
+                int start=view.start(r),end=start+view.length(r),first=-1,last=-1;
+                if(fresh){ranges[count*2]=start;ranges[count*2+1]=end-start;count++;dirty+=end-start;transmitted+=end-start;continue;}
+                for(int p=start;p<end;p++){
+                    compared++;
+                    if(valid.get(p)&&words[p]==view.word(p))continue;
+                    dirty++;
+                    if(first>=0&&p-last-1>MAX_CLEAN_GAP){ranges[count*2]=first;ranges[count*2+1]=last-first+1;count++;transmitted+=last-first+1;first=-1;}
+                    if(first<0)first=p;last=p;
+                }
+                if(first>=0){ranges[count*2]=first;ranges[count*2+1]=last-first+1;count++;transmitted+=last-first+1;}
+            }
+            return new Diff(this,view,count,fresh,++plan,dirty,transmitted,compared,false);
+        }
     }
     static final class Diff {
-        private final Shadow target;private final View view;private final boolean fresh;private final long plan;final int ranges;
-        Diff(Shadow target,View view,int ranges,boolean fresh,long plan){this.target=target;this.view=view;this.ranges=ranges;this.fresh=fresh;this.plan=plan;}
+        private final Shadow target;private final View view;private final boolean fresh;private final long plan;final int ranges,dirtyWords,transmittedWords,comparedWords;final boolean exactCommittedViewReuse;
+        Diff(Shadow target,View view,int ranges,boolean fresh,long plan,int dirty,int transmitted,int compared,boolean exact){this.target=target;this.view=view;this.ranges=ranges;this.fresh=fresh;this.plan=plan;dirtyWords=dirty;transmittedWords=transmitted;comparedWords=compared;exactCommittedViewReuse=exact;}
         private void check(){view.check();if(plan!=target.plan)throw new IllegalStateException("Superseded fused upload plan");}
         int start(int i){check();return target.ranges[i*2];}int length(int i){check();return target.ranges[i*2+1];}
-        void commit(){check();if(target.words.length!=view.capacity*WORDS)target.words=new int[view.capacity*WORDS];if(fresh)target.valid.clear();for(int r=0;r<ranges;r++)for(int p=start(r),end=p+length(r);p<end;p++){target.words[p]=view.word(p);target.valid.set(p);}target.world=view.world;target.owner=view.context;target.invalid=false;}
+        void commit(){check();if(target.words.length!=view.capacity*WORDS)target.words=new int[view.capacity*WORDS];if(fresh)target.valid.clear();for(int r=0;r<ranges;r++)for(int p=start(r),end=p+length(r);p<end;p++){target.words[p]=view.word(p);target.valid.set(p);}target.world=view.world;target.owner=view.context;target.invalid=false;
+            target.committedContext=view.context;target.committedSource=view.source;target.committedWorld=view.world;target.committedBatch=view.batch;target.committedGeneration=view.generation;target.committedCapacity=view.capacity;target.committedPlan=plan;}
     }
 }
