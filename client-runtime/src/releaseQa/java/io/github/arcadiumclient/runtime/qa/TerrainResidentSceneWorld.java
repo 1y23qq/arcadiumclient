@@ -24,10 +24,18 @@ public final class TerrainResidentSceneWorld {
             var world=server.getWorld(0);world.getGameRules().set("doDaylightCycle","false");world.getGameRules().set("doMobSpawning","false");world.getGameRules().set("randomTickSpeed","0");
             world.setTimeOfDay(6000);world.getData().setRaining(false);world.getData().setThundering(false);
             world.getData().setRainTime(1000000);world.getData().setThunderTime(1000000);world.getData().setClearWeatherTime(1000000);
+            var halo=TerrainSceneCameraHalo.halo(plan.cameras());var required=TerrainSceneCameraHalo.measured(plan.cameras());
+            int previouslyLoaded=world.chunkCache.getChunks().size();
+            for(var column:halo){var chunk=world.chunkCache.loadChunk(column.x(),column.z());if(chunk.chunkX!=column.x()||chunk.chunkZ!=column.z())throw new IllegalStateException("Native chunk generation returned a different column");}
+            var loaded=new HashMap<TerrainSceneCameraHalo.Column,net.minecraft.world.chunk.WorldChunk>();for(var chunk:world.chunkCache.getChunks())loaded.put(new TerrainSceneCameraHalo.Column(chunk.chunkX,chunk.chunkZ),chunk);
+            int missing=0,unpopulated=0,unlit=0;
+            for(var column:required){var chunk=loaded.get(column);if(chunk==null){missing++;continue;}if(!chunk.isTerrainPopulated())unpopulated++;if(!chunk.isLightPopulated())unlit++;}
+            if(missing!=0||unpopulated!=0)throw new IllegalStateException("Native camera-union generation incomplete: missing="+missing+", terrain="+unpopulated);
+            var haloReport=new LinkedHashMap<String,Object>();haloReport.put("method","native ServerChunkCache.loadChunk");haloReport.put("cameraCount",plan.cameras().size());haloReport.put("haloRadius",9);haloReport.put("measuredRadius",8);haloReport.put("unionHaloColumns",halo.size());haloReport.put("unionRequiredD8Columns",required.size());haloReport.put("previouslyLoadedServerColumns",previouslyLoaded);haloReport.put("loadedServerColumnsAfterGeneration",loaded.size());haloReport.put("requiredMissing",missing);haloReport.put("requiredUnpopulated",unpopulated);haloReport.put("requiredUnlitBeforeNaturalTick",unlit);haloReport.put("readinessFlagsWritten",false);haloReport.put("clientViewDistanceChanged",false);
             int removed=0,changed=0;
             for(var entity:new ArrayList<>(world.entities))if(!(entity instanceof PlayerEntity)){world.removeEntityNow(entity);removed++;}
             for(var p:plan.blocks())if(world.setBlockState(new BlockPos(p.x(),p.y(),p.z()),block(p.material()).getStateFromMetadata(p.metadata()),3))changed++;
-            return Map.of("blueprintSha256",plan.sha256(),"placements",plan.blocks().size(),"changedBlocks",changed,"removedNonPlayerEntities",removed,"nativeServerTask",true,"meshPublicationNotYetQualified",true);
+            return Map.of("blueprintSha256",plan.sha256(),"placements",plan.blocks().size(),"changedBlocks",changed,"removedNonPlayerEntities",removed,"nativeServerTask",true,"meshPublicationNotYetQualified",true,"cameraHaloGeneration",haloReport);
         });
     }
     public static Future<Map<String,Object>> edit(Minecraft mc,TerrainResidentSceneBlueprint.Edit edit){

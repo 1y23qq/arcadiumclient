@@ -21,6 +21,7 @@
     "compat.argentum.ReducedRenderHookMarker",
     "compat.argentum.MixinGpuModelBakedItemVertices",
     "compat.argentum.MixinGpuModelBakedItemAdmission",
+    "compat.forge.MixinLegacyItemCameraScope",
     "compat.argentum.TypedLayerOperationsMarker",
     "compat.cera.TrustedCosmeticUsernameMarker",
     "compat.overflowparticles.TypedParticleOperationsMarker",

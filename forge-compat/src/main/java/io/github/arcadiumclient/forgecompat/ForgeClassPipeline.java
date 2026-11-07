@@ -27,26 +27,38 @@ final class ForgeClassPipeline extends AbstractMap<String, byte[]> {
     private final AccessTransformerRules access;
     private final Map<String, byte[]> fabricPatches;
     private final Set<String> guestClasses;
+    private final byte[] materializedCamera;
     private final Map<String, byte[]> cache = new ConcurrentHashMap<>();
     private final ThreadLocal<Boolean> transforming = ThreadLocal.withInitial(() -> false);
     private volatile boolean ready;
 
     private ForgeClassPipeline(FabricLauncher launcher, ForgeMappings mappings, AccessTransformerRules access,
-                               Map<String, byte[]> fabricPatches, Set<String> guestClasses) {
+                               Map<String, byte[]> fabricPatches, Set<String> guestClasses, byte[] materializedCamera) {
         this.launcher = launcher;
         this.mappings = mappings;
         this.access = access;
         this.fabricPatches = fabricPatches;
         this.guestClasses = guestClasses;
+        this.materializedCamera = materializedCamera;
     }
 
     static ForgeClassPipeline install(FabricLauncher launcher, ForgeMappings mappings,
                                      AccessTransformerRules access, List<Path> jars) throws IOException {
         Set<String> classes = new HashSet<>();
+        byte[] camera = null;
+        boolean cameraEntrySeen = false;
         for (Path jar : jars) {
             try (ZipFile zip = new ZipFile(jar.toFile())) {
                 zip.stream().filter(entry -> entry.getName().endsWith(".class")).forEach(entry ->
                         classes.add(entry.getName().substring(0, entry.getName().length() - 6)));
+                var entry = zip.getEntry(HostForgeCameraCompatibility.TARGET + ".class");
+                if (!cameraEntrySeen && entry != null) {
+                    cameraEntrySeen = true;
+                    try (var input = zip.getInputStream(entry)) {
+                        byte[] bytes = input.readNBytes(16 * 1024 * 1024 + 1);
+                        if (bytes.length <= 16 * 1024 * 1024) camera = bytes;
+                    }
+                }
             }
         }
         Object transformer = net.fabricmc.loader.impl.FabricLoaderImpl.INSTANCE.getGameProvider().getEntrypointTransformer();
@@ -57,7 +69,7 @@ final class ForgeClassPipeline extends AbstractMap<String, byte[]> {
             if (patches == null || patches instanceof ForgeClassPipeline) {
                 throw new IOException("The host class transformer is not ready for Forge compatibility.");
             }
-            ForgeClassPipeline pipeline = new ForgeClassPipeline(launcher, mappings, access, patches, Set.copyOf(classes));
+            ForgeClassPipeline pipeline = new ForgeClassPipeline(launcher, mappings, access, patches, Set.copyOf(classes), camera);
             field.set(transformer, pipeline);
             return pipeline;
         } catch (ReflectiveOperationException exception) {
@@ -75,7 +87,14 @@ final class ForgeClassPipeline extends AbstractMap<String, byte[]> {
             || HostMatrixCompatibility.CAPTURE.equals(internal);
         boolean legacyTarget = internal.startsWith("net/minecraft/") || guestClasses.contains(internal) || access.targets(internal);
         boolean target = hostRenderer || legacyTarget;
-        if (!target || transforming.get()) return original;
+        if (!target) return original;
+        if (transforming.get()) {
+            if (HostForgeCameraCompatibility.TARGET.equals(internal)) {
+                byte[] camera = normalizeCamera(original == null ? materializedCamera : original);
+                if (camera != null) return camera;
+            }
+            return original;
+        }
         if (ready) {
             byte[] cached = cache.get(name);
             if (cached != null) return cached;
@@ -123,6 +142,10 @@ final class ForgeClassPipeline extends AbstractMap<String, byte[]> {
                     bytes = runtime.toByteArray();
                 }
             }
+            if (internal.equals(HostForgeCameraCompatibility.TARGET)) {
+                byte[] camera = normalizeCamera(bytes);
+                if (camera != null) bytes = camera;
+            }
             HostClassMetadata.synchronize(internal, bytes);
             if (ready) cache.put(name, bytes);
             return bytes;
@@ -132,4 +155,16 @@ final class ForgeClassPipeline extends AbstractMap<String, byte[]> {
     }
 
     @Override public Set<Entry<String, byte[]>> entrySet() { return fabricPatches.entrySet(); }
+
+    private byte[] normalizeCamera(byte[] bytes) {
+        if (bytes == null) return null;
+        try {
+            ClassNode camera = new ClassNode();
+            new ClassReader(bytes).accept(camera, 0);
+            if (!HostForgeCameraCompatibility.normalize(camera, mappings)) return null;
+            ClassWriter normalized = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+            camera.accept(normalized);
+            return normalized.toByteArray();
+        } catch (IllegalArgumentException | IndexOutOfBoundsException unsupported) { return null; }
+    }
 }

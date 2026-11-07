@@ -282,9 +282,9 @@ class HostRegistryCompatibilityTest {
             nested[0] = true;
             throw stop;
         });
-        var constructor = ForgeClassPipeline.class.getDeclaredConstructor(FabricLauncher.class, ForgeMappings.class, AccessTransformerRules.class, Map.class, Set.class);
+        var constructor = ForgeClassPipeline.class.getDeclaredConstructor(FabricLauncher.class, ForgeMappings.class, AccessTransformerRules.class, Map.class, Set.class, byte[].class);
         constructor.setAccessible(true);
-        ForgeClassPipeline pipeline = constructor.newInstance(launcher, mappings, new AccessTransformerRules(), new HashMap<>(), Set.of(FML, outer.replace('.', '/')));
+        ForgeClassPipeline pipeline = constructor.newInstance(launcher, mappings, new AccessTransformerRules(), new HashMap<>(), Set.of(FML, outer.replace('.', '/')), null);
         var field = GameTransformer.class.getDeclaredField("patchedClasses"); field.setAccessible(true); field.set(gameTransformer, pipeline);
         IllegalStateException reentry = assertThrows(IllegalStateException.class, () -> gameTransformer.transform(outer));
         assertSame(stop, reentry.getCause()); assertTrue(nested[0]);

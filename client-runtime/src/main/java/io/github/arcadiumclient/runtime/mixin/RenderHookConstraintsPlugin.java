@@ -18,7 +18,8 @@ public final class RenderHookConstraintsPlugin extends ConstraintsMixinPlugin {
     private static final boolean FORGE_PREPARED=Boolean.getBoolean("arcadium.forge.prepared");
     private static final java.util.Set<String> FORGE_ITEM_MIXINS=java.util.Set.of(
             "io.github.arcadiumclient.runtime.mixin.compat.argentum.MixinGpuModelBakedItemVertices",
-            "io.github.arcadiumclient.runtime.mixin.compat.argentum.MixinGpuModelBakedItemAdmission"
+            "io.github.arcadiumclient.runtime.mixin.compat.argentum.MixinGpuModelBakedItemAdmission",
+            "io.github.arcadiumclient.runtime.mixin.compat.forge.MixinLegacyItemCameraScope"
     );
     private static final java.util.Set<String> RESIDENT_TERRAIN_MIXINS=java.util.Set.of(
             "io.github.arcadiumclient.runtime.mixin.compat.argentum.MixinTerrainResidentContext",

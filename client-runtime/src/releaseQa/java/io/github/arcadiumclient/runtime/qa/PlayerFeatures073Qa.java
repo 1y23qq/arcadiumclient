@@ -73,6 +73,7 @@ public final class PlayerFeatures073Qa {
     private static Map<?,?> referenceReport;
     private PlayerFeatures073Qa(){}
     public static boolean enabled(){return System.getProperty("arcadium.playerFeatures073.output")!=null;}
+    public static boolean voxelObservationEnabled(){return VOXEL_ISOLATION&&enabled()&&!done&&phase==2;}
     private static String[] cases(){if(VOXEL_ISOLATION)return new String[]{"fp-sword"};return HELD?(STONE?HELD_WITH_STONE:HELD_CASES):FORGE?FORGE_CASES:VARIANT.equals("modern")?MODERN:CORE;}
     private static String current(){return cases()[scenario];}
 

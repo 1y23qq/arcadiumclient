@@ -29,16 +29,21 @@ public final class TerrainSceneNativeReadiness {
             serverTask=owner.executeTask(()->{
                 var world=owner.getWorld(0);var tracker=world.getChunkMap();int radius=((PlayerPipeline072ChunkMapAccess)tracker).player072$trackingRadius();
                 var chunks=new HashMap<List<Integer>,net.minecraft.world.chunk.WorldChunk>();for(var c:world.chunkCache.getChunks())chunks.put(List.of(c.chunkX,c.chunkZ),c);
-                int players=0,count=0,pending=0,unlit=0,unpopulated=0,unticked=0,unsent=0,remaining=-1;boolean center=false;
+                int players=0,count=0,pending=0,unlit=0,unpopulated=0,unticked=0,unsent=0,remaining=-1,unreadyCount=0,unlitWithMissingNeighbors=0,unlitWithoutMissingNeighbors=0;boolean center=false;
+                var unreadyColumns=new ArrayList<Map<String,Object>>();var missingColumns=new ArrayList<List<Integer>>();
                 for(var entity:world.players)if(entity instanceof ServerPlayerEntity player){
                     players++;center=trackingChunk(player.trackedX)==expectedX&&trackingChunk(player.trackedZ)==expectedZ;remaining=player.pendingChunks.size();
                     for(int x=expectedX-8;x<=expectedX+8;x++)for(int z=expectedZ-8;z<=expectedZ+8;z++){
-                        var c=chunks.get(List.of(x,z));if(c==null)continue;count++;
+                        var c=chunks.get(List.of(x,z));if(c==null){if(missingColumns.size()<32)missingColumns.add(List.of(x,z));continue;}count++;
                         boolean queued=false;for(var pos:player.pendingChunks)if(pos.x==x&&pos.z==z){queued=true;break;}
-                        if(queued)pending++;if(!c.isLightPopulated())unlit++;if(!c.isTerrainPopulated())unpopulated++;if(!((PlayerPipeline072ChunkStateAccess)c).player072$hasTicked())unticked++;if(!tracker.isChunkWithinView(player,x,z))unsent++;
+                        boolean light=c.isLightPopulated(),terrain=c.isTerrainPopulated(),ticked=((PlayerPipeline072ChunkStateAccess)c).player072$hasTicked(),sent=tracker.isChunkWithinView(player,x,z);
+                        if(queued)pending++;if(!light)unlit++;if(!terrain)unpopulated++;if(!ticked)unticked++;if(!sent)unsent++;
+                        var neighbors=new ArrayList<List<Integer>>();for(int dx=-1;dx<=1;dx++)for(int dz=-1;dz<=1;dz++)if(!chunks.containsKey(List.of(x+dx,z+dz)))neighbors.add(List.of(x+dx,z+dz));
+                        if(!light){if(neighbors.isEmpty())unlitWithoutMissingNeighbors++;else unlitWithMissingNeighbors++;}
+                        if(queued||!light||!terrain||!ticked||!sent){unreadyCount++;if(unreadyColumns.size()<32)unreadyColumns.add(Map.of("column",List.of(x,z),"pending",queued,"terrainPopulated",terrain,"lightPopulated",light,"hasTicked",ticked,"sent",sent,"missingNativeNeighborColumns",neighbors));}
                     }
                 }
-                var data=new LinkedHashMap<String,Object>();data.put("cameraChunk",List.of(expectedX,expectedZ));data.put("trackingRadius",radius);data.put("players",players);data.put("trackingCenterMatches",center);data.put("originalD8Chunks",count);data.put("pendingOriginalD8",pending);data.put("unlit",unlit);data.put("unpopulated",unpopulated);data.put("unticked",unticked);data.put("unsent",unsent);data.put("pendingAll",remaining);return data;
+                var data=new LinkedHashMap<String,Object>();data.put("cameraChunk",List.of(expectedX,expectedZ));data.put("trackingRadius",radius);data.put("players",players);data.put("trackingCenterMatches",center);data.put("originalD8Chunks",count);data.put("pendingOriginalD8",pending);data.put("unlit",unlit);data.put("unpopulated",unpopulated);data.put("unticked",unticked);data.put("unsent",unsent);data.put("pendingAll",remaining);data.put("loadedServerColumns",chunks.size());data.put("unreadyColumnsTotal",unreadyCount);data.put("unreadyColumnsSample",unreadyColumns);data.put("unreadyColumnSampleLimit",32);data.put("missingOriginalD8ColumnsSample",missingColumns);data.put("unlitWithMissingNativeNeighbors",unlitWithMissingNeighbors);data.put("unlitWithoutMissingNativeNeighbors",unlitWithoutMissingNeighbors);return data;
             });
         }
         boolean originalReady=server!=null&&server.get("cameraChunk").equals(List.of(cx,cz))&&Integer.valueOf(1).equals(server.get("players"))&&Boolean.TRUE.equals(server.get("trackingCenterMatches"))&&Integer.valueOf(289).equals(server.get("originalD8Chunks"));

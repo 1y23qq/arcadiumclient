@@ -39,6 +39,14 @@ public final class TerrainScene073Qa {
     private static boolean warming=true;
     private static TerrainResidentSceneBlueprint.Camera camera=plan.cameras().getFirst();
     private static final List<Map<String,Object>> warmup=new ArrayList<>();
+    private static final List<Map<String,Object>> interiorSurveys=new ArrayList<>();
+    private static TerrainResidentSceneBlueprint.Camera surveyTarget;
+    private static TerrainTrackingInteriorSurvey073.Survey survey;
+    private static boolean surveying,returningFromSurvey;
+    private static Future<Map<String,Object>> surveyStartProof,surveyEndProof,surveyReturnProof;
+    private static Map<String,Object> completedSurvey;
+    private static final List<Map<String,Object>> progressHistory=new ArrayList<>();
+    private static int progressTick=-100,progressPhase=-1,progressWarmIndex=-1,progressWrites,progressDropped;
     private static Map<String,Object> shader=Map.of();
     private TerrainScene073Qa(){}
     public static boolean enabled(){return System.getProperty("arcadium.terrainWorld073.output")!=null;}
@@ -58,24 +66,37 @@ public final class TerrainScene073Qa {
                 settings.put("minimumPlayers",1);settings.put("minimumGpuLabels",1);settings.put("minimumGpuParticles",1);settings.put("worldResolution",75);report.put("betaSettings",settings);var nativeSettings=new TreeMap<>(settings);nativeSettings.put("gpuTerrainCommands",false);report.put("warmupBetaSettings",nativeSettings);
                 mc.startGame("arcadium-terrain073-positive","Owned terrain073 positive",new WorldSettings(720912,WorldSettings.GameMode.CREATIVE,false,false,WorldGeneratorType.FLAT).enableCommands());phase=1;
             }else if(phase==1&&mc.world!=null&&mc.player!=null){mc.openScreen(null);building=TerrainResidentSceneWorld.build(mc,plan);phase=2;}
-            else if(phase==2&&building.isDone()){report.put("worldBuild",building.get());moving=TerrainResidentSceneWorld.move(mc,camera);phase=3;}
-            else if(phase==3&&moving.isDone()){report.put("serverCamera",moving.get());cameraBaseFrames=nativeFrames;phase=4;}
+            else if(phase==2&&building.isDone()){report.put("worldBuild",building.get());moveWarmupTarget(mc,camera);}
+            else if(phase==3&&moving.isDone()){
+                report.put("serverCamera",moving.get());cameraBaseFrames=nativeFrames;
+                if(surveying&&surveyStartProof==null)surveyStartProof=serverSurveyProof(mc);
+                if(returningFromSurvey&&surveyReturnProof==null)surveyReturnProof=serverSurveyProof(mc);
+                phase=4;
+            }
             if(phase!=lastPhase){lastPhase=phase;System.out.println("TERRAIN073_PHASE "+phase);}
             if(phase>=4){
                 TerrainResidentSceneWorld.freezeClientCamera(mc,camera);require(mc.screen==null,"Unexpected GUI in terrain073 source fixture");
                 if(!Display.isActive()){
                     if(foregroundAcquired){report.put("focusFailure",focusState());throw new IllegalStateException("Owned terrain073 window lost foreground after acquisition");}
                     report.put("foregroundAcquisition",Map.of("acquired",false,"waitingTicks",++foregroundWaitTicks));
-                    require(foregroundWaitTicks<=1200,"Owned terrain073 window was never focused");return;
+                    require(foregroundWaitTicks<=1200,"Owned terrain073 window was never focused");progress(false);return;
                 }
                 if(!foregroundAcquired)report.put("focusAtAcquisition",focusState());foregroundAcquired=true;report.put("foregroundAcquisition",Map.of("acquired",true,"waitingTicks",foregroundWaitTicks));
                 if(phase==4){
                     var state=readiness.sample(mc,plan);report.put("nativeReadiness",state);
-                    if(warming&&Boolean.TRUE.equals(state.get("datasetReady"))&&nativeFrames>cameraBaseFrames){
+                    if(surveying){advanceInteriorSurvey(mc,state);}
+                    else if(warming&&Boolean.TRUE.equals(state.get("datasetReady"))&&nativeFrames>cameraBaseFrames){
                         require(TerrainResidentScene.regionDraws==0&&!GpuTerrainCommands.enabled,"Warmup must use the unchanged native terrain renderer");
+                        if(returningFromSurvey){
+                            if(surveyReturnProof==null||!surveyReturnProof.isDone()){progress(false);return;}
+                            var returned=surveyReturnProof.get();verifySurveyProof(returned,false);verifySurveyDataset(mc,state);
+                            require(completedSurvey.get("nativeRenderManagerIdentity").equals(state.get("nativeRenderManagerIdentity")),"Interior survey reset the native render manager");
+                            require(completedSurvey.get("bootstrapDistanceChanges").equals(state.get("bootstrapDistanceChanges")),"Interior survey changed client render distance");
+                            completedSurvey.put("returnedTargetReadiness",state);completedSurvey.put("returnedServerProof",returned);completedSurvey.put("actualTargetNativeFrames",nativeFrames-cameraBaseFrames);completedSurvey.put("returnedToExactTarget",camera==surveyTarget);
+                            require(camera==surveyTarget,"Interior camera was counted as the target view");returningFromSurvey=false;
+                        }
                         warmup.add(Map.of("camera",camera.name(),"readiness",state,"nativeTerrainFrames",nativeFrames-cameraBaseFrames));report.put("nativeViewWarmup",List.copyOf(warmup));
-                        if(++warmIndex<plan.cameras().size())camera=plan.cameras().get(warmIndex);else{warming=false;camera=plan.cameras().getFirst();}
-                        moving=TerrainResidentSceneWorld.move(mc,camera);phase=3;
+                        if(++warmIndex<plan.cameras().size())moveWarmupTarget(mc,plan.cameras().get(warmIndex));else{require(warmup.size()==plan.cameras().size(),"A native target warmup entry was omitted");for(int i=0;i<warmup.size();i++)require(warmup.get(i).get("camera").equals(plan.cameras().get(i).name()),"An interior survey replaced a target view");warming=false;camera=plan.cameras().getFirst();moving=TerrainResidentSceneWorld.move(mc,camera);phase=3;}
                     }else if(!warming&&Boolean.TRUE.equals(state.get("ready"))){
                         BetaOptimizationsConfig.setGpuTerrainCommands(true);GpuTerrainCommands.enabled=true;readyDraws=TerrainResidentScene.regionDraws;phase=5;
                     }
@@ -88,7 +109,47 @@ public final class TerrainScene073Qa {
                     require(Boolean.TRUE.equals(released.get("ownedObjectsDeleted"))&&Long.valueOf(0).equals(released.get("budgetBytes"))&&Integer.valueOf(0).equals(released.get("budgetOwners"))&&Long.valueOf(0).equals(released.get("residentBytes")),"Resident terrain cleanup was incomplete");finish(null);
                 }
             }
+            if(!done)progress(false);
         }catch(Throwable failure){finish(failure);}
+    }
+    private static void moveWarmupTarget(Minecraft mc,TerrainResidentSceneBlueprint.Camera target){
+        require(warming&&warmIndex<plan.cameras().size(),"Interior surveys are limited to owned native warmup");
+        require(!GpuTerrainCommands.enabled&&TerrainResidentScene.regionDraws==0,"No resident draws may run during the native survey");
+        surveyTarget=target;survey=TerrainTrackingInteriorSurvey073.forTarget(target.x(),target.z());surveying=survey!=null;returningFromSurvey=false;surveyStartProof=surveyEndProof=surveyReturnProof=null;
+        if(surveying){
+            require(mc.options.viewDistance==8,"Interior survey requires the unchanged client D8");
+            camera=new TerrainResidentSceneBlueprint.Camera(target.name()+"/tracking-interior",survey.x(),target.y(),survey.z(),target.yaw(),target.pitch(),target.fov());
+            report.put("activeInteriorSurvey",Map.of("target",target.name(),"trackingCenter",List.of(survey.trackingX(),survey.trackingZ()),"targetTickCenter",List.of(survey.targetTickX(),survey.targetTickZ()),"surveyPosition",List.of(camera.x(),camera.y(),camera.z()),"countedAsTargetView",false));
+        }else camera=target;
+        moving=TerrainResidentSceneWorld.move(mc,camera);phase=3;
+    }
+    private static void advanceInteriorSurvey(Minecraft mc,Map<String,Object> state)throws Exception{
+        require(warming&&survey!=null&&!GpuTerrainCommands.enabled&&TerrainResidentScene.regionDraws==0,"Unexpected survey scope");
+        if(!Boolean.TRUE.equals(state.get("datasetReady"))||nativeFrames<=cameraBaseFrames||surveyStartProof==null||!surveyStartProof.isDone())return;
+        verifySurveyDataset(mc,state);var start=surveyStartProof.get();
+        if(!surveyProofMatches(start,true)){report.put("interiorSurveyAwaitingNativeTracking",start);surveyStartProof=serverSurveyProof(mc);surveyEndProof=null;return;}
+        if(surveyEndProof==null){surveyEndProof=serverSurveyProof(mc);return;}
+        if(!surveyEndProof.isDone())return;var end=surveyEndProof.get();verifySurveyProof(end,true);
+        if(((Number)end.get("worldTick")).longValue()<=((Number)start.get("worldTick")).longValue()){surveyEndProof=serverSurveyProof(mc);return;}
+        completedSurvey=new LinkedHashMap<>();completedSurvey.put("target",surveyTarget.name());completedSurvey.put("survey",camera.name());completedSurvey.put("startServerProof",start);completedSurvey.put("endServerProof",end);completedSurvey.put("nativeReadiness",state);completedSurvey.put("nativeFrames",nativeFrames-cameraBaseFrames);completedSurvey.put("nativeRenderManagerIdentity",state.get("nativeRenderManagerIdentity"));completedSurvey.put("bootstrapDistanceChanges",state.get("bootstrapDistanceChanges"));completedSurvey.put("manualChunkTicks",false);completedSurvey.put("readinessFlagsWritten",false);completedSurvey.put("viewDistanceChanged",false);completedSurvey.put("countedAsTargetView",false);
+        interiorSurveys.add(completedSurvey);report.put("nativeInteriorSurveys",interiorSurveys);
+        surveying=false;returningFromSurvey=true;camera=surveyTarget;moving=TerrainResidentSceneWorld.move(mc,camera);phase=3;
+    }
+    private static void verifySurveyDataset(Minecraft mc,Map<String,Object> state){
+        require(mc.options.viewDistance==8&&Integer.valueOf(289).equals(state.get("loadedColumns"))&&Integer.valueOf(4624).equals(state.get("sectionCount"))&&Integer.valueOf(0).equals(state.get("missingSections"))&&Boolean.TRUE.equals(state.get("builderIdle")),"Survey must retain full native D8 data and idle builders");
+        require(state.get("cameraChunk").equals(List.of(survey.trackingX(),survey.trackingZ())),"Survey changed the measured tracking chunk");
+    }
+    private static void verifySurveyProof(Map<String,Object> proof,boolean interior){
+        require(surveyProofMatches(proof,interior),"Native D8 survey centers/radii differ from their actual owned position: "+proof);
+    }
+    private static boolean surveyProofMatches(Map<String,Object> proof,boolean interior){return Integer.valueOf(8).equals(proof.get("trackingRadius"))&&Integer.valueOf(8).equals(proof.get("tickRadius"))&&proof.get("trackingCenter").equals(List.of(survey.trackingX(),survey.trackingZ()))&&proof.get("storedTrackingCenter").equals(List.of(survey.trackingX(),survey.trackingZ()))&&proof.get("tickCenter").equals(interior?List.of(survey.trackingX(),survey.trackingZ()):List.of(survey.targetTickX(),survey.targetTickZ()));}
+    private static Future<Map<String,Object>> serverSurveyProof(Minecraft mc){
+        require("ArcadiumTest".equals(mc.getSession().getUsername())&&"0".equals(mc.getSession().getAccessToken())&&mc.getCurrentServerEntry()==null&&mc.getServer()!=null,"Survey cannot inspect a human or remote world");
+        var owner=mc.getServer();return owner.executeTask(()->{
+            var world=owner.getWorld(0);require(world.players.size()==1&&world.players.getFirst() instanceof net.minecraft.server.entity.living.player.ServerPlayerEntity,"Survey requires one owned server player");
+            var player=(net.minecraft.server.entity.living.player.ServerPlayerEntity)world.players.getFirst();require("ArcadiumTest".equals(player.getName()),"Unexpected server player in survey");
+            var proof=new LinkedHashMap<String,Object>();proof.put("worldTick",world.getTime());proof.put("position",List.of(player.x,player.y,player.z));proof.put("trackingCenter",List.of(TerrainTrackingInteriorSurvey073.trackingChunk(player.x),TerrainTrackingInteriorSurvey073.trackingChunk(player.z)));proof.put("storedTrackingCenter",List.of(TerrainTrackingInteriorSurvey073.trackingChunk(player.trackedX),TerrainTrackingInteriorSurvey073.trackingChunk(player.trackedZ)));proof.put("tickCenter",List.of(TerrainTrackingInteriorSurvey073.tickingChunk(player.x),TerrainTrackingInteriorSurvey073.tickingChunk(player.z)));proof.put("trackingRadius",((io.github.arcadiumclient.runtime.qa.mixin.PlayerPipeline072ChunkMapAccess)world.getChunkMap()).player072$trackingRadius());proof.put("tickRadius",owner.getPlayerManager().getChunkViewDistance());return proof;
+        });
     }
     public static void configured(Object renderer,String pass,ChunkRenderMatrices matrices,CameraTransform face,CameraTransform render){
         if(!enabled()||done||!pass.equals("solid"))return;
@@ -115,6 +176,16 @@ public final class TerrainScene073Qa {
     private static boolean pngComplete(Path path)throws Exception{
         if(!Files.isRegularFile(path)||Files.size(path)<12)return false;try(var channel=Files.newByteChannel(path)){var tail=ByteBuffer.allocate(12);channel.position(channel.size()-12);while(tail.hasRemaining()&&channel.read(tail)>0){}return tail.position()==12&&tail.getInt(0)==0&&tail.getInt(4)==0x49454e44;}
     }
+    private static void progress(boolean force)throws Exception{
+        if(!force&&ticks-progressTick<100&&progressPhase==phase&&progressWarmIndex==warmIndex)return;
+        progressTick=ticks;progressPhase=phase;progressWarmIndex=warmIndex;progressWrites++;
+        var snapshot=new LinkedHashMap<String,Object>();snapshot.put("utc",java.time.Instant.now().toString());snapshot.put("nanoTime",System.nanoTime());snapshot.put("ticks",ticks);snapshot.put("phase",phase);snapshot.put("camera",camera.name());snapshot.put("warmIndex",warmIndex);snapshot.put("warming",warming);snapshot.put("interiorSurveyActive",surveying);snapshot.put("returningFromInteriorSurvey",returningFromSurvey);snapshot.put("interiorSurveyCount",interiorSurveys.size());snapshot.put("actualWarmupTarget",warming&&surveyTarget!=null?surveyTarget.name():camera.name());snapshot.put("nativeTerrainFrames",nativeFrames);snapshot.put("gpuTerrainEnabled",GpuTerrainCommands.enabled);snapshot.put("focus",focusState());
+        var compact=new LinkedHashMap<String,Object>();Object raw=report.get("nativeReadiness");
+        if(raw instanceof Map<?,?> state){for(String key:List.of("ready","cameraChunk","haloStage","bootstrapDistanceChanges","server","datasetReady","loadedColumns","expectedColumns","missingSections","sectionCount","expectedSectionCount","targetSections","targetsReady","builderIdle"))if(state.containsKey(key))compact.put(key,state.get(key));Object unbuilt=state.get("unreadyTargets");if(unbuilt instanceof List<?> list){compact.put("unreadyTargetsTotal",list.size());compact.put("unreadyTargetsSample",list.subList(0,Math.min(16,list.size())));}}
+        snapshot.put("nativeReadiness",compact);if(progressHistory.size()==64){progressHistory.removeFirst();progressDropped++;}progressHistory.add(snapshot);
+        var payload=new LinkedHashMap<String,Object>();payload.put("correctnessOnly",true);payload.put("performanceClaim",false);payload.put("snapshotWrites",progressWrites);payload.put("historyLimit",64);payload.put("droppedOldSnapshots",progressDropped);payload.put("latest",snapshot);payload.put("history",List.copyOf(progressHistory));
+        Path path=output().resolveSibling("progress.json");Files.createDirectories(path.toAbsolutePath().getParent());Files.writeString(path,new GsonBuilder().setPrettyPrinting().create().toJson(payload));
+    }
     private static Map<String,Object> focusState(){
         var state=new LinkedHashMap<String,Object>();state.put("ticks",ticks);state.put("phase",phase);state.put("camera",camera.name());state.put("warmIndex",warmIndex);state.put("nativeFrames",nativeFrames);state.put("displayActive",Display.isActive());
         try{
@@ -125,7 +196,7 @@ public final class TerrainScene073Qa {
     }
     private static void require(boolean condition,String message){if(!condition)throw new IllegalStateException(message);}
     private static void finish(Throwable error){
-        if(done)return;done=true;report.put("passed",error==null);report.put("blueprintSha256",plan.sha256());report.put("phase",phase);report.put("correctnessOnly",true);report.put("fullSceneVisualParityQualified",false);report.put("publicationQualified",false);report.put("performanceClaim",false);report.put("finalResident",TerrainResidentScene.evidence());
+        if(done)return;try{progress(true);}catch(Exception diagnostic){report.put("progressWriteError",diagnostic.toString());}done=true;report.put("passed",error==null);report.put("blueprintSha256",plan.sha256());report.put("phase",phase);report.put("correctnessOnly",true);report.put("fullSceneVisualParityQualified",false);report.put("publicationQualified",false);report.put("performanceClaim",false);report.put("finalResident",TerrainResidentScene.evidence());
         if(error!=null){report.put("error",error.toString());error.printStackTrace();}
         report.put("environment",Map.of("renderer",GL11.glGetString(GL11.GL_RENDERER),"openGl",GL11.glGetString(GL11.GL_VERSION),"java",System.getProperty("java.version")));
         try{Files.createDirectories(output().toAbsolutePath().getParent());Files.writeString(output(),new GsonBuilder().setPrettyPrinting().create().toJson(report));}catch(Exception failed){failed.printStackTrace();}Minecraft.getInstance().stop();

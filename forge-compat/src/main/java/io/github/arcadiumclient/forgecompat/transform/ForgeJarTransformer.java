@@ -72,7 +72,7 @@ public final class ForgeJarTransformer {
                           Consumer<ClassNode> afterRemap) throws IOException {
         Contents contents = read(input);
         index(contents, mappings, officialInput);
-        String key = textHash("forge-jar-v1\0" + contents.sha256 + "\0" + mappings.runtimeNamespace() + "\0"
+        String key = textHash("forge-jar-v3-camera-reentrant\0" + contents.sha256 + "\0" + mappings.runtimeNamespace() + "\0"
             + mappings.identity() + "\0" + officialInput + "\0" + engineIdentity());
         Path directory = cacheDir.toAbsolutePath().normalize();
         Files.createDirectories(directory);
