@@ -1,3 +1,5 @@
 All module settings must be editable from Arcadium Options > Mods > the module's settings page, unless the user explicitly requests another entry point. This includes layouts, colors, per-line options and advanced controls. Use tabs or embedded panels for complex editors. A hotkey, separate Minecraft screen or configuration file must not be the only way to change a setting. Verify the flow starting from the module card before release.
 
 Keep Optimizations (Beta) within two or three categories. Put optimizations with verified Hypixel benefits first and open their category by default on a fresh layout. Keep detailed diagnostics on a separate, explicitly opened page rather than above the settings. Follow this organization when adding future options, and report every enabled option and numeric value used in final performance tests.
+
+Minecraft optimization requests, including FPS and startup performance, target Minecraft 1.8.9 unless the user explicitly names another version. Do not expand optimization implementation or testing to 1.7.10, 1.21.11 or 26.2 by default. This version scope does not change requested Windows or macOS distribution targets.

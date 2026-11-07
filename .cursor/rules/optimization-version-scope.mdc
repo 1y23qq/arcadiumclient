@@ -1,0 +1,6 @@
+---
+description: Default Minecraft optimization work to 1.8.9
+alwaysApply: true
+---
+
+Apply the optimization version scope in AGENTS.md: FPS and startup optimization requests target Minecraft 1.8.9 unless the user explicitly requests another version. Preserve requested Windows and macOS distribution targets.
