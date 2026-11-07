@@ -50,7 +50,7 @@ internal class NickRenderPolicy(val revision: Long, val enabled: Boolean, userna
     }.sortedWith(compareByDescending<Rule> { it.source.length }.thenBy { it.order })
     private val candidates = active.groupBy { fold(it.source[0]) }
 
-    private fun matches(text: String): List<Match>? {
+    private fun matches(text: String, limited: Boolean = true): List<Match>? {
         if (active.isEmpty()) return emptyList()
         var result: ArrayList<Match>? = null
         var position = 0
@@ -67,6 +67,7 @@ internal class NickRenderPolicy(val revision: Long, val enabled: Boolean, userna
                     raw++; source++
                 }
                 if (source != rule.source.length) continue
+                if (!NickTextProjection.codePointBoundary(text, position) || !NickTextProjection.codePointBoundary(text, raw)) continue
                 val restore = buildString {
                     var i = position
                     while (i + 1 < raw) { if (text[i] == '\u00a7') { append(text[i++]); append(text[i++]) } else i++ }
@@ -76,7 +77,7 @@ internal class NickRenderPolicy(val revision: Long, val enabled: Boolean, userna
             }
             if (found == null) position++ else {
                 growth += found.replacement.length.toLong() - (found.end - found.start)
-                if (text.length.toLong() + growth > maxOf(65536L, text.length.toLong() * 8)) return null
+                if (limited && text.length.toLong() + growth > maxOf(65536L, text.length.toLong() * 8)) return null
                 if (result == null) result = ArrayList()
                 result += found
                 position = found.end
@@ -92,6 +93,10 @@ internal class NickRenderPolicy(val revision: Long, val enabled: Boolean, userna
             matches.forEach { append(text, position, it.start); append(it.replacement); position = it.end }
             append(text, position, text.length)
         }
+    }
+    fun project(text: String): NickTextProjection {
+        val matches = matches(text) ?: NickRenderPolicy(revision, enabled, ownUsername, ownNickname, emptyList()).matches(text, false).orEmpty()
+        return NickTextProjection.replace(text, matches.map { NickTextProjection.Edit(it.start, it.end, it.replacement) })
     }
     fun replaceRuns(runs: List<String>): List<String> {
         if (active.isEmpty()) return runs

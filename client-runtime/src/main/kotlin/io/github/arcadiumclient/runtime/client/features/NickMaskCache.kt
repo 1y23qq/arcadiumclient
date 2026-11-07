@@ -8,6 +8,8 @@ internal class NickMaskCache(private val capacity: Int = 2048) {
         override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, Result>): Boolean = size > capacity
     }
     private val rendered = java.util.IdentityHashMap<String, Boolean>()
+    private val projections = object : LinkedHashMap<String, NickTextProjection>(32, 0.75f, true) {}
+    private var projectionChars = 0
     private val order = java.util.ArrayDeque<String>()
     private var renderedChars = 0
     private var revision = Long.MIN_VALUE
@@ -22,10 +24,10 @@ internal class NickMaskCache(private val capacity: Int = 2048) {
         private set
 
     fun synchronize(policy: NickRenderPolicy) {
-        if (revision != policy.revision) { revision = policy.revision; entries.clear(); rendered.clear(); order.clear(); renderedChars = 0 }
+        if (revision != policy.revision) { revision = policy.revision; entries.clear(); rendered.clear(); order.clear(); renderedChars = 0; projections.clear(); projectionChars = 0 }
     }
     fun disable() {
-        if (revision != Long.MIN_VALUE) { revision = Long.MIN_VALUE; entries.clear(); rendered.clear(); order.clear(); renderedChars = 0 }
+        if (revision != Long.MIN_VALUE) { revision = Long.MIN_VALUE; entries.clear(); rendered.clear(); order.clear(); renderedChars = 0; projections.clear(); projectionChars = 0 }
     }
     fun replace(text: String, policy: NickRenderPolicy, useCache: Boolean): String {
         synchronize(policy)
@@ -44,6 +46,22 @@ internal class NickMaskCache(private val capacity: Int = 2048) {
         }
         return replace(text, legacyPolicy!!, true)
     }
+    fun project(text: String, policy: NickRenderPolicy, rawInput: Boolean): NickTextProjection {
+        synchronize(policy)
+        if (!policy.enabled || (!rawInput && rendered.containsKey(text))) return NickTextProjection.identity(text)
+        projections[text]?.let { hits++; return it }
+        misses++
+        val value = policy.project(text)
+        if (text.length <= 4096 && text.length + value.display.length <= 262144) {
+            projections[text] = value; projectionChars += text.length + value.display.length
+            while (projections.size > minOf(capacity, 128) || projectionChars > 262144) {
+                val entry = projections.entries.iterator().next(); projectionChars -= entry.key.length + entry.value.display.length; projections.remove(entry.key)
+            }
+        }
+        return value
+    }
+    fun projectionSize(): Int = projections.size
+    fun projectionCharacters(): Int = projectionChars
     fun rememberRendered(value: String) {
         if (value.length > 16384 || rendered.put(value, true) != null) return
         order.addLast(value); renderedChars += value.length

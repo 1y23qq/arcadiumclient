@@ -74,6 +74,7 @@
     "client.LongChatProtocolLimitMixin",
     "client.RodThicknessMixin",
     "client.PasswordHiderMixin",
+    "client.NickTextFieldProjectionMixin",
     "client.ServerSwitchConnectionMixin",
     "client.DisconnectedPacketMixin",
     "client.StaleDisconnectMixin",

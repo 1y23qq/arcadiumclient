@@ -147,6 +147,7 @@
     {
       "id": "interactive-chat-and-book-text",
       "release": "0.7.3",
+      "status": "Native mouse regression passed on the same Main20 artifact as the input-layout repair: eight cases, four original local-server command echoes, three book page changes and one raw suggestion. Full renderer/release qualification remains open.",
       "requirement": "Restore native clickable chat commands and interactive book text, including Nick Hider enabled, without changing original server ClickEvent payloads or native URL confirmation.",
       "gates": [
         "Native literal hit-testing retains displayed text, inherited style, click/hover/insertion, siblings and copy behavior.",
@@ -158,6 +159,7 @@
     {
       "id": "nick-custom-replacement-layout",
       "release": "0.7.3",
+      "status": "Implemented with a shared raw/display projection and bounded revision-aware reuse. Main20 passed 674 unit tests and 20 native Vanilla/Inter field cases with exact RGBA references, raw editing/copy checks and 2740 direct native-method mouse hits. Physical keyboard/send and custom resource-font checks remain separate gates.",
       "requirement": "Render custom Nick Hider replacements coherently when replacement text has a different length, including editable chat fields, without changing raw text, server commands or click metadata.",
       "gates": [
         "One non-cascading display projection controls rendering, caret, selection, scrolling and mouse positions.",

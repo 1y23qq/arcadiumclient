@@ -4,6 +4,7 @@ package io.github.arcadiumclient.runtime.mixin.client;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import io.github.arcadiumclient.runtime.client.features.PasswordHider;
+import io.github.arcadiumclient.runtime.client.features.NickTextFieldProjection;
 import io.github.arcadiumclient.runtime.mixin.client.access.ChatScreenAccessor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.game.ChatScreen;
@@ -15,6 +16,7 @@ import org.spongepowered.asm.mixin.injection.At;
 public abstract class PasswordHiderMixin {
     @ModifyExpressionValue(method = {"render", "mouseClicked", "setSelectionEnd"}, at = @At(value = "FIELD", target = "Lnet/minecraft/client/gui/widget/TextFieldWidget;text:Ljava/lang/String;"))
     private String arcadium$privateInput(String text) {
+        if (NickTextFieldProjection.active(this)) return text;
         if (Minecraft.getInstance().screen instanceof ChatScreen chat
             && ((ChatScreenAccessor) chat).arcadium$chatField() == (Object) this) return PasswordHider.display(text);
         return text;

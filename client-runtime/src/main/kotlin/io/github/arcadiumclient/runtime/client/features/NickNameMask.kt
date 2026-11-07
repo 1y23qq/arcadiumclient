@@ -7,7 +7,10 @@ internal object NickNameMask {
     private data class Replacement(val start: Int, val end: Int, val value: String)
 
     fun alias(value: String, username: String): String {
-        val clean = value.filter { !it.isISOControl() && it != '\u00a7' }.trim().take(64)
+        val filtered = value.filter { !it.isISOControl() && it != '\u00a7' }.trim()
+        var end = minOf(64, filtered.length)
+        if (end > 0 && end < filtered.length && filtered[end - 1].isHighSurrogate() && filtered[end].isLowSurrogate()) end--
+        val clean = filtered.substring(0, end)
         return clean.takeIf { it.isNotEmpty() && !it.contains(username, ignoreCase = true) }
             ?: if ("You".contains(username, ignoreCase = true)) "Hidden" else "You"
     }

@@ -47,6 +47,10 @@ object NickHider {
 
     @JvmStatic fun cacheHits(): Long = cache.get().hits
     @JvmStatic fun cacheMisses(): Long = cache.get().misses
+    @JvmStatic fun inputProjection(text: String): NickTextProjection =
+        if (!NickHiderConfig.enabled) NickTextProjection.identity(text) else cache.get().project(text, policy(), true)
+    @JvmStatic fun trimProjection(text: String): NickTextProjection =
+        if (!NickHiderConfig.enabled) NickTextProjection.identity(text) else cache.get().project(text, policy(), false)
 
     @JvmStatic
     fun displayRuns(runs: List<String>): List<String> {

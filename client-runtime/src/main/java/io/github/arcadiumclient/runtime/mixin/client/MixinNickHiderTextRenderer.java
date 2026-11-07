@@ -9,6 +9,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import java.util.List;
 import io.github.arcadiumclient.runtime.client.features.NickHider;
 import io.github.arcadiumclient.runtime.client.features.NickHiderConfig;
+import io.github.arcadiumclient.runtime.client.features.NickTextProjection;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 
@@ -55,7 +56,11 @@ public abstract class MixinNickHiderTextRenderer {
     private String arcadium$trim(String text, int width, Operation<String> original) {
         if (!NickHiderConfig.getEnabled()) return original.call(text, width);
         boolean outer = NickHider.beginRender();
-        try { return original.call(outer ? arcadium$display(text) : text, width); }
+        try {
+            if (!outer || text == null) return original.call(text, width);
+            NickTextProjection projection = NickHider.trimProjection(text);
+            return projection.sourceTrim(original.call(projection.getDisplay(), width), false);
+        }
         finally { NickHider.endRender(); }
     }
 
@@ -63,7 +68,11 @@ public abstract class MixinNickHiderTextRenderer {
     private String arcadium$trimDirection(String text, int width, boolean reverse, Operation<String> original) {
         if (!NickHiderConfig.getEnabled()) return original.call(text, width, reverse);
         boolean outer = NickHider.beginRender();
-        try { return original.call(outer ? arcadium$display(text) : text, width, reverse); }
+        try {
+            if (!outer || text == null) return original.call(text, width, reverse);
+            NickTextProjection projection = NickHider.trimProjection(text);
+            return projection.sourceTrim(original.call(projection.getDisplay(), width, reverse), reverse);
+        }
         finally { NickHider.endRender(); }
     }
 

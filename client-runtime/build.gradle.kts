@@ -133,6 +133,7 @@ if (minecraftVersion == "1.7.10") {
             }
             exclude("**/features/StarHider.kt", "**/client/StarHiderMixin.java",
                 "**/features/NickReplacementRules.kt", "**/gui/NickReplacementSettings.kt",
+                "**/features/NickTextFieldProjection.java", "**/client/NickTextFieldProjectionMixin.java",
                 "**/features/CapeConfig.kt", "**/client/capes/**",
                 "**/gui/CapePresetSettings.kt", "**/client/LocalCape*.java",
                 "**/features/NoHitDelayConfig.kt", "**/client/MixinNoHitDelay.java",
@@ -201,7 +202,7 @@ if (minecraftVersion == "1.7.10") {
         val patchFile = layout.projectDirectory.file("legacy-source-patches.json")
         inputs.file(patchFile)
         from("src/test") {
-            exclude("**/NickReplacementRulesTest.kt", "**/LegacyNickHiderTextClickTest.java", "**/capes/**", "**/client/bedwars/**", "**/optimizations/**", "**/diagnostics/**", "**/CeraLightmapColorProbe.java", "**/BundledSkinMeshProbe.java", "**/SkinInstancingTest.java", "**/SkinDetailBudgetTest.java")
+            exclude("**/NickReplacementRulesTest.kt", "**/NickInputProjectionTest.kt", "**/LegacyNickHiderTextClickTest.java", "**/capes/**", "**/client/bedwars/**", "**/optimizations/**", "**/diagnostics/**", "**/CeraLightmapColorProbe.java", "**/BundledSkinMeshProbe.java", "**/SkinInstancingTest.java", "**/SkinDetailBudgetTest.java")
         }
         into(layout.buildDirectory.dir("generated/test"))
         doLast {
