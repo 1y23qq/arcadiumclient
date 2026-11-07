@@ -63,6 +63,7 @@
     "client.EmojiFontMixin",
     "client.EmojiChatPickerMixin",
     "client.ChatClickTweaksMixin",
+    "client.BookTextClickMixin",
     "client.ChatDecorationColorsMixin",
     "client.ChatInputTweaksMixin",
     "client.ChatInputLimitMixin",

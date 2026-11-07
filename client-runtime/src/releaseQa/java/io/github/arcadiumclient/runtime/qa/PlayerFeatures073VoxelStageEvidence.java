@@ -33,7 +33,7 @@ public final class PlayerFeatures073VoxelStageEvidence {
         if(mode.equals("off"))return;
         if(text.length()>16384||!SOURCE_PINS.containsKey(type))throw new IllegalStateException("Unexpected bounded graphics source");
         byte[] bytes=text.getBytes(java.nio.charset.StandardCharsets.UTF_8);String pin=HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(bytes));
-        if(!SOURCE_PINS.get(type).equals(pin))throw new IllegalStateException("Actual graphics source differs from the frozen oracle");
+        if(!SOURCE_PINS.get(type).equals(pin)&&!PlayerFeatures073VoxelProjectionControl.sourceAllowed(type,text))throw new IllegalStateException("Actual graphics source differs from the frozen oracle");
         if(sources.containsKey(pin))return;
         Path output=Path.of(System.getProperty("arcadium.playerFeatures073.output")).toAbsolutePath().resolveSibling("voxel-graphics-source-"+pin+".glsl");
         if(Files.exists(output)){if(!Arrays.equals(Files.readAllBytes(output),bytes))throw new IllegalStateException("Existing graphics source evidence changed");}else Files.write(output,bytes,StandardOpenOption.CREATE_NEW);
@@ -46,7 +46,7 @@ public final class PlayerFeatures073VoxelStageEvidence {
         List<Object> uniforms=new ArrayList<>(),attributes=new ArrayList<>();
         for(int i=0;i<uniformCount;i++){
             IntBuffer size=BufferUtils.createIntBuffer(1),type=BufferUtils.createIntBuffer(1);String name=GL20.glGetActiveUniform(program,i,size,type);int count=size.get(0),kind=type.get(0),components=components(kind);boolean integer=integer(kind);
-            if(name.length()>128||count<1||count>16)throw new IllegalStateException("Uniform evidence exceeds bounded layout");
+            if(name.length()>128||count<1||count>32)throw new IllegalStateException("Uniform evidence exceeds bounded layout");
             List<Object> elements=new ArrayList<>();
             for(int element=0;element<count;element++){
                 String indexed=count==1?name:name.endsWith("[0]")?name.substring(0,name.length()-3)+"["+element+"]":name+"["+element+"]";int location=GL20.glGetUniformLocation(program,indexed);

@@ -53,6 +53,14 @@ public final class LegacyNickHiderText {
         return out;
     }
 
+    public static Text interactionComponent(Text text) {
+        if (text instanceof RenderedText rendered && rendered.value instanceof LiteralText literal) {
+            rendered.ready(literal.getRawString());
+            return literal;
+        }
+        return text;
+    }
+
     public static List<Text> renderedLines(List<Text> lines) {
         if (!NickHiderConfig.getEnabled()) return lines;
         long revision = NickHider.renderRevision();

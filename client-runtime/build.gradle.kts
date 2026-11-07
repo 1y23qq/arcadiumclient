@@ -159,7 +159,7 @@ if (minecraftVersion == "1.7.10") {
                 "**/compat/argentum/MixinRetainedHud.java", "**/client/BetaRenderCleanupMixin.java",
                 "**/client/MixinBedwars*.java", "**/client/MixinArcadiumPrefixTextRenderer.java",
                 "**/client/MixinBadlionEntityAnimations.java", "**/client/MixinGuiScaleSpectatorHud.java",
-                "**/client/MixinBadlionTitleAnimations.java", "**/client/MixinNickHiderTextWrapping.java",
+                "**/client/MixinBadlionTitleAnimations.java", "**/client/MixinNickHiderTextWrapping.java", "**/client/BookTextClickMixin.java",
                 "**/client/MixinSkinChangerPlayerInfo.java", "**/compat/argentum/MixinNoRenderFastBlocks.java",
                 "**/client/RodThicknessMixin.java", "**/client/PasswordHiderMixin.java",
                 "**/client/ServerSwitchConnectionMixin.java", "**/client/DisconnectedPacketMixin.java",
@@ -201,7 +201,7 @@ if (minecraftVersion == "1.7.10") {
         val patchFile = layout.projectDirectory.file("legacy-source-patches.json")
         inputs.file(patchFile)
         from("src/test") {
-            exclude("**/NickReplacementRulesTest.kt", "**/capes/**", "**/client/bedwars/**", "**/optimizations/**", "**/diagnostics/**", "**/CeraLightmapColorProbe.java", "**/BundledSkinMeshProbe.java", "**/SkinInstancingTest.java", "**/SkinDetailBudgetTest.java")
+            exclude("**/NickReplacementRulesTest.kt", "**/LegacyNickHiderTextClickTest.java", "**/capes/**", "**/client/bedwars/**", "**/optimizations/**", "**/diagnostics/**", "**/CeraLightmapColorProbe.java", "**/BundledSkinMeshProbe.java", "**/SkinInstancingTest.java", "**/SkinDetailBudgetTest.java")
         }
         into(layout.buildDirectory.dir("generated/test"))
         doLast {

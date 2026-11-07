@@ -6,11 +6,13 @@ package io.github.arcadiumclient.runtime.mixin.client;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import io.github.arcadiumclient.runtime.client.chat.ChatHistoryAccess;
 import io.github.arcadiumclient.runtime.client.chat.ChatHistory;
 import io.github.arcadiumclient.runtime.client.chat.ChatTweaks;
 import io.github.arcadiumclient.runtime.client.features.ChatFiltersConfig;
 import io.github.arcadiumclient.runtime.client.features.ChatTweaksConfig;
+import io.github.arcadiumclient.runtime.client.features.LegacyNickHiderText;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.client.gui.ChatMessage;
@@ -35,6 +37,11 @@ public abstract class ChatTweaksMixin implements ChatHistoryAccess {
     @Shadow public abstract void resetScroll();
     @Unique private final ChatTweaks arcadium$decorations = new ChatTweaks();
     @Unique private ChatTweaks.Display arcadium$current;
+
+    @ModifyExpressionValue(method = "getMessageAt", at = @At(value = "INVOKE", target = "Ljava/util/Iterator;next()Ljava/lang/Object;"))
+    private Object arcadium$clickableComponent(Object component) {
+        return component instanceof Text text ? LegacyNickHiderText.interactionComponent(text) : component;
+    }
 
     @WrapMethod(method = "addMessage(Lnet/minecraft/text/Text;IIZ)V")
     private void arcadium$prepareDisplay(Text text, int id, int tick, boolean refreshing, Operation<Void> original) {

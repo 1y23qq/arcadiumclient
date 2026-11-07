@@ -35,7 +35,7 @@ public final class TerrainScene073Qa {
     private static boolean capture,done,foregroundAcquired;
     private static int foregroundWaitTicks;
     private static long readyDraws,nativeFrames,cameraBaseFrames;
-    private static int warmIndex;
+    private static int warmIndex,oracleViewIndex;
     private static boolean warming=true;
     private static TerrainResidentSceneBlueprint.Camera camera=plan.cameras().getFirst();
     private static final List<Map<String,Object>> warmup=new ArrayList<>();
@@ -58,7 +58,14 @@ public final class TerrainScene073Qa {
     public static boolean enabled(){return System.getProperty("arcadium.terrainWorld073.output")!=null;}
     public static boolean oracleReady(){return phase==5&&!done&&foregroundAcquired;}
     public static int oracleTick(){return ticks;}
-    public static void oracleComplete(Map<String,Object> oracle){require(phase==5&&Boolean.TRUE.equals(oracle.get("passed")),"A failed/unarmed oracle cannot advance terrain QA");report.put("oneCameraPrePolyBlurOracle",oracle);capture=true;phase=6;}
+    public static int oracleViewIndex(){return oracleViewIndex;}
+    public static TerrainResidentSceneBlueprint.Camera oracleCamera(){return camera;}
+    public static long oracleNativeFrames(){return nativeFrames;}
+    @SuppressWarnings("unchecked") public static Map<String,Object> oracleLastReadiness(){return (Map<String,Object>)report.getOrDefault("nativeReadiness",Map.of());}
+    public static Map<String,Object> oracleFreshReadiness()throws Exception{var state=readiness.sample(Minecraft.getInstance(),plan);report.put("nativeReadiness",state);require(Boolean.TRUE.equals(state.get("ready")),"Full native readiness changed before the actual comparison group");return state;}
+    public static void oracleMoveNative(Minecraft mc,TerrainResidentSceneBlueprint.Camera target){require(TerrainFullFrameOracle073.allViews()&&!warming,"Only the opt-in owned comparison may move between mature views");BetaOptimizationsConfig.setGpuTerrainCommands(false);GpuTerrainCommands.enabled=false;camera=target;moving=TerrainResidentSceneWorld.move(mc,target);phase=3;}
+    public static void oracleViewComplete(){require(TerrainFullFrameOracle073.allViews()&&phase==5&&oracleViewIndex<8,"Unexpected comparison view transition");TerrainOraclePreparation073.begin(++oracleViewIndex,Minecraft.getInstance());}
+    public static void oracleComplete(Map<String,Object> oracle){require(phase==5&&Boolean.TRUE.equals(oracle.get("passed")),"A failed/unarmed oracle cannot advance terrain QA");report.put(TerrainFullFrameOracle073.allViews()?"multiViewPrePolyBlurOracle":"oneCameraPrePolyBlurOracle",oracle);capture=true;phase=6;}
     public static void oracleFailed(Throwable error){if(done)return;report.put("oracleFailure",error.toString());try{BetaOptimizationsConfig.setGpuTerrainCommands(false);GpuTerrainCommands.enabled=false;GpuTerrainCommands.reset();report.put("oracleFailureCleanup",TerrainScene073GpuEvidence.released());}catch(Throwable cleanup){error.addSuppressed(cleanup);}finish(error);}
     private static Path capturedFrame(Minecraft mc){return TerrainFullFrameOracle073.enabled()?TerrainFullFrameOracle073.gpuPng():mc.gameDir.toPath().resolve("screenshots/terrain073-resident-positive.png");}
     private static Path output(){return Path.of(System.getProperty("arcadium.terrainWorld073.output"));}
@@ -113,9 +120,10 @@ public final class TerrainScene073Qa {
                             require(camera==surveyTarget,"Interior camera was counted as the target view");returningFromSurvey=false;
                         }
                         warmup.add(Map.of("camera",camera.name(),"readiness",state,"nativeTerrainFrames",nativeFrames-cameraBaseFrames));report.put("nativeViewWarmup",List.copyOf(warmup));
-                        if(++warmIndex<plan.cameras().size())moveWarmupTarget(mc,plan.cameras().get(warmIndex));else{require(warmup.size()==plan.cameras().size(),"A native target warmup entry was omitted");for(int i=0;i<warmup.size();i++)require(warmup.get(i).get("camera").equals(plan.cameras().get(i).name()),"An interior survey replaced a target view");warming=false;camera=plan.cameras().getFirst();moving=TerrainResidentSceneWorld.move(mc,camera);phase=3;}
-                    }else if(!warming&&Boolean.TRUE.equals(state.get("ready"))){
-                        BetaOptimizationsConfig.setGpuTerrainCommands(true);GpuTerrainCommands.enabled=true;readyDraws=TerrainResidentScene.regionDraws;phase=5;
+                        if(++warmIndex<plan.cameras().size())moveWarmupTarget(mc,plan.cameras().get(warmIndex));else{require(warmup.size()==plan.cameras().size(),"A native target warmup entry was omitted");for(int i=0;i<warmup.size();i++)require(warmup.get(i).get("camera").equals(plan.cameras().get(i).name()),"An interior survey replaced a target view");warming=false;if(TerrainFullFrameOracle073.allViews())TerrainOraclePreparation073.begin(0,mc);else{camera=plan.cameras().getFirst();moving=TerrainResidentSceneWorld.move(mc,camera);phase=3;}}
+                    }else if(!warming&&(TerrainFullFrameOracle073.allViews()?TerrainOraclePreparation073.tick(mc,state):Boolean.TRUE.equals(state.get("ready")))){
+                        if(TerrainFullFrameOracle073.allViews())report.put("oracleNativePreparation",TerrainOraclePreparation073.evidence());
+                        BetaOptimizationsConfig.setGpuTerrainCommands(true);GpuTerrainCommands.enabled=true;readyDraws=TerrainResidentScene.regionDraws;eligibleFrames=0;phase=5;
                     }
                 }
                 else if(phase==7&&pngComplete(capturedFrame(mc))){
@@ -220,7 +228,7 @@ public final class TerrainScene073Qa {
     private static void progress(boolean force)throws Exception{
         if(!force&&ticks-progressTick<100&&progressPhase==phase&&progressWarmIndex==warmIndex)return;
         progressTick=ticks;progressPhase=phase;progressWarmIndex=warmIndex;progressWrites++;
-        var snapshot=new LinkedHashMap<String,Object>();snapshot.put("utc",java.time.Instant.now().toString());snapshot.put("nanoTime",System.nanoTime());snapshot.put("ticks",ticks);snapshot.put("phase",phase);snapshot.put("camera",camera.name());snapshot.put("warmIndex",warmIndex);snapshot.put("warming",warming);snapshot.put("roofExposureActive",roofSurveyActive);snapshot.put("roofExposureIndex",roofAimIndex);snapshot.put("roofExposureTargets",roofAims.size());snapshot.put("roofRestoringOriginalView",roofSurveyRestoring);snapshot.put("interiorSurveyActive",surveying);snapshot.put("returningFromInteriorSurvey",returningFromSurvey);snapshot.put("interiorSurveyCount",interiorSurveys.size());snapshot.put("actualWarmupTarget",warming&&surveyTarget!=null?surveyTarget.name():camera.name());snapshot.put("nativeTerrainFrames",nativeFrames);snapshot.put("gpuTerrainEnabled",GpuTerrainCommands.enabled);snapshot.put("focus",focusState());
+        var snapshot=new LinkedHashMap<String,Object>();snapshot.put("utc",java.time.Instant.now().toString());snapshot.put("nanoTime",System.nanoTime());snapshot.put("ticks",ticks);snapshot.put("phase",phase);snapshot.put("camera",camera.name());snapshot.put("warmIndex",warmIndex);snapshot.put("warming",warming);snapshot.put("roofExposureActive",roofSurveyActive);snapshot.put("roofExposureIndex",roofAimIndex);snapshot.put("roofExposureTargets",roofAims.size());snapshot.put("roofRestoringOriginalView",roofSurveyRestoring);snapshot.put("interiorSurveyActive",surveying);snapshot.put("returningFromInteriorSurvey",returningFromSurvey);snapshot.put("interiorSurveyCount",interiorSurveys.size());snapshot.put("actualWarmupTarget",warming&&surveyTarget!=null?surveyTarget.name():camera.name());snapshot.put("oracleViewIndex",oracleViewIndex);if(TerrainFullFrameOracle073.allViews())snapshot.put("oraclePreparation",TerrainOraclePreparation073.progress());snapshot.put("nativeTerrainFrames",nativeFrames);snapshot.put("gpuTerrainEnabled",GpuTerrainCommands.enabled);snapshot.put("focus",focusState());
         var compact=new LinkedHashMap<String,Object>();Object raw=report.get("nativeReadiness");
         if(raw instanceof Map<?,?> state){for(String key:List.of("ready","cameraChunk","haloStage","bootstrapDistanceChanges","server","datasetReady","loadedColumns","expectedColumns","missingSections","sectionCount","expectedSectionCount","targetSections","targetsReady","builderIdle","schedulerEligibility"))if(state.containsKey(key))compact.put(key,state.get(key));Object unbuilt=state.get("unreadyTargets");if(unbuilt instanceof List<?> list){compact.put("unreadyTargetsTotal",list.size());compact.put("unreadyTargetsSample",list.subList(0,Math.min(16,list.size())));}}
         snapshot.put("nativeReadiness",compact);if(progressHistory.size()==64){progressHistory.removeFirst();progressDropped++;}progressHistory.add(snapshot);
