@@ -325,7 +325,7 @@ public final class PlayerFeatures073Qa {
         if(VOXEL_ISOLATION)PlayerFeatures073VoxelEvidence.begin(gpu&&!CONTROL?voxelVariant:"native");
         try{
         configure(gpu);freeze(mc);mode=which;itemSamples[which].clear();itemDepth=0;for(int i=0;i<traces[which].length;i++){Arrays.fill(traces[which][i],0);traceStates[which][i]=Map.of();}GL11.glClear(GL11.GL_COLOR_BUFFER_BIT|GL11.GL_DEPTH_BUFFER_BIT);original.call(.5f,deadline);require(itemDepth==0,"Held-item observation scope leaked");require(GL11.glGetError()==GL11.GL_NO_ERROR,"OpenGL error after actual feature world draw");return capture(mc);
-    
+
         }finally{if(VOXEL_ISOLATION)lastVoxelEvidence=PlayerFeatures073VoxelEvidence.end();}
     }
 
