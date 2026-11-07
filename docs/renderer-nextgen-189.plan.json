@@ -167,6 +167,17 @@
         "Formatting, Unicode/emoji boundaries, vanilla/Inter/resource fonts and Password Hider retain correct behavior.",
         "No new unbounded cache or repeated unchanged-text projection rebuild; actual owned input-field mouse/keyboard regression proof is required."
       ]
+    },
+    {
+      "id": "native-ui-cursor-response",
+      "release": "0.7.3",
+      "status": "Implemented native SDL UI cursor visibility in the legacy Core. Both legacy Core variants build; 116 CPU policy checks pass. Windows 1.8.9 paired old/new Core runs pass all nine 5/120 FPS, menu, reload, fullscreen/windowed and gameplay-grab states, with real Root mouse events and native SDL/Win32 visibility. No cursor-motion rate, FPS-gain or native 1.7.10 claim; full renderer/release qualification remains open.",
+      "requirement": "Keep menu pointer motion responsive when game rendering slows, using the native hardware cursor where supported while preserving normal UI hit testing and grabbed in-game aiming.",
+      "gates": [
+        "Identify each affected shared, legacy and modern cursor path and verify the actual native capability and fallback.",
+        "Check low and normal frame rates, cursor style and hotspot, UI scale, focus, grabs, fullscreen changes and cursor resource lifetime.",
+        "Do not add a separate rendering or input thread or change game, combat or networking behavior."
+      ]
     }
   ]
 }

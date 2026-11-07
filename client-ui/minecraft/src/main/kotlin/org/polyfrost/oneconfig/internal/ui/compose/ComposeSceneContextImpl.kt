@@ -18,9 +18,6 @@ import com.mojang.blaze3d.platform.InputConstants
 import net.minecraft.client.Minecraft
 import org.polyfrost.oneconfig.api.platform.v1.Platform
 
-//? if <= 1.8.9
-//import org.polyfrost.oneconfig.internal.legacy.FullscreenCursor
-
 //? if >= 26.1 || <= 1.8.9 {
 import androidx.compose.ui.platform.PlatformTextInputMethodRequest
 import kotlinx.coroutines.awaitCancellation
@@ -102,8 +99,6 @@ private class PlatformImpl : PlatformContext by PlatformContext.Empty() {
     }
 
     fun resetPointerIcon() {
-        //? if <= 1.8.9
-        //FullscreenCursor.setIcon(0)
         //? if sdl {
         SDL_SetCursor(SDL_GetDefaultCursor())
         //?} else {
@@ -112,14 +107,6 @@ private class PlatformImpl : PlatformContext by PlatformContext.Empty() {
     }
 
     private fun applyPointerIcon(pointerIcon: PointerIcon) {
-        //? if <= 1.8.9 {
-        /*FullscreenCursor.setIcon(when (pointerIcon) {
-            PointerIcon.Hand -> 1
-            PointerIcon.Text -> 2
-            PointerIcon.Crosshair -> 3
-            else -> 0
-        })
-        *///?}
         //? if sdl {
         SDL_SetCursor(when (pointerIcon) {
             PointerIcon.Default -> SDL_GetDefaultCursor()

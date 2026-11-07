@@ -17,17 +17,18 @@ public final class PlayerFeatures073VoxelStageEvidence {
     private static final int[][] POINTS={{774,350},{783,463}};
     private static String mode="off",failure;
     private static int programSnapshots;
+    private static Map<String,Object> rejectedAttribute;
     private static Object deferred,immediate;
     private static Field actorField;
     private PlayerFeatures073VoxelStageEvidence(){}
-    public static void begin(String value){if(!mode.equals("off")||deferred!=null||immediate!=null)throw new IllegalStateException("Nested voxel stage collector");mode=value;failure=null;programSnapshots=0;events.clear();queues.clear();}
+    public static void begin(String value){if(!mode.equals("off")||deferred!=null||immediate!=null)throw new IllegalStateException("Nested voxel stage collector");mode=value;failure=null;programSnapshots=0;rejectedAttribute=null;events.clear();queues.clear();}
     public static Map<String,Object> end(){
         Map<String,Object> result=new LinkedHashMap<>();result.put("mode",mode);result.put("shadowEvents",new ArrayList<>(events));result.put("acceptedShadowQueues",new ArrayList<>(queues));result.put("sources",new ArrayList<>(sources.values()));
         if(deferred!=null||immediate!=null)fail("scope-leak",new IllegalStateException());
         try{validateShadows(events,queues);}catch(Throwable error){fail("shadow-positivity",error);}
         if((mode.equals("optimized")||mode.equals("voxel-affine"))&&(programSnapshots==0||sources.size()!=2))fail("missing-exact-graphics-inputs",new IllegalStateException());
         try{result.put("finalSamples",samples());}catch(Throwable error){fail("final-samples",error);}
-        result.put("programSnapshotsThisRender",programSnapshots);result.put("completedActualShadowEvents",events.stream().filter(event->event.containsKey("before")&&event.containsKey("after")&&Boolean.TRUE.equals(event.get("originalReturnedNormally"))).count());result.put("failure",failure);result.put("programRelinkOrRenderMutation",false);mode="off";return result;
+        result.put("programSnapshotsThisRender",programSnapshots);if(rejectedAttribute!=null)result.put("rejectedAttribute",rejectedAttribute);result.put("completedActualShadowEvents",events.stream().filter(event->event.containsKey("before")&&event.containsKey("after")&&Boolean.TRUE.equals(event.get("originalReturnedNormally"))).count());result.put("failure",failure);result.put("programRelinkOrRenderMutation",false);mode="off";return result;
     }
     public static void source(int type,String text)throws Exception{
         if(mode.equals("off"))return;
@@ -43,7 +44,7 @@ public final class PlayerFeatures073VoxelStageEvidence {
         if(mode.equals("off"))return Map.of();
         int uniformCount=GL20.glGetProgrami(program,GL20.GL_ACTIVE_UNIFORMS),attributeCount=GL20.glGetProgrami(program,GL20.GL_ACTIVE_ATTRIBUTES);
         if(uniformCount<0||uniformCount>128||attributeCount<0||attributeCount>32||GL20.glGetProgrami(program,GL31.GL_ACTIVE_UNIFORM_BLOCKS)!=0||GL43.glGetProgramInterfacei(program,GL43.GL_SHADER_STORAGE_BLOCK,GL43.GL_ACTIVE_RESOURCES)!=0)throw new IllegalStateException("Unknown graphics interface requires a separate collector");
-        List<Object> uniforms=new ArrayList<>(),attributes=new ArrayList<>();
+        List<Object> uniforms=new ArrayList<>(),attributes=new ArrayList<>(),drawParameters=new ArrayList<>();
         for(int i=0;i<uniformCount;i++){
             IntBuffer size=BufferUtils.createIntBuffer(1),type=BufferUtils.createIntBuffer(1);String name=GL20.glGetActiveUniform(program,i,size,type);int count=size.get(0),kind=type.get(0),components=components(kind);boolean integer=integer(kind);
             if(name.length()>128||count<1||count>32)throw new IllegalStateException("Uniform evidence exceeds bounded layout");
@@ -58,7 +59,9 @@ public final class PlayerFeatures073VoxelStageEvidence {
         }
         Set<Integer> consumed=new HashSet<>();Map<String,Integer> buffers=new LinkedHashMap<>();int maximum=GL11.glGetInteger(GL20.GL_MAX_VERTEX_ATTRIBS);
         for(int i=0;i<attributeCount;i++){
-            IntBuffer size=BufferUtils.createIntBuffer(1),type=BufferUtils.createIntBuffer(1);String name=GL20.glGetActiveAttrib(program,i,size,type);int base=GL20.glGetAttribLocation(program,name),kind=type.get(0);int[] shape=attributeShape(kind);int[] slots=attributeSlots(name,kind,size.get(0),base,maximum,consumed);List<Object> columns=new ArrayList<>();
+            IntBuffer size=BufferUtils.createIntBuffer(1),type=BufferUtils.createIntBuffer(1);String name=GL20.glGetActiveAttrib(program,i,size,type);int base=GL20.glGetAttribLocation(program,name),kind=type.get(0);
+            Map<String,Object> system=PlayerFeatures073VoxelProjectionControl.drawParameterInput(program,name,kind,size.get(0),base);if(system!=null){drawParameters.add(system);continue;}
+            int[] shape,slots;try{shape=attributeShape(kind);slots=attributeSlots(name,kind,size.get(0),base,maximum,consumed);}catch(IllegalStateException error){if(rejectedAttribute==null)rejectedAttribute=Map.of("name",name.length()<=128?name:name.substring(0,128),"shaderType",kind,"arraySize",size.get(0),"location",base,"program",program,"currentProgram",GL11.glGetInteger(GL20.GL_CURRENT_PROGRAM));throw new IllegalStateException("Attribute layout rejected: "+rejectedAttribute,error);}List<Object> columns=new ArrayList<>();
             for(int slot:slots){
                 org.lwjgl.PointerBuffer pointer=BufferUtils.createPointerBuffer(1);GL20.glGetVertexAttribPointerv(slot,GL20.GL_VERTEX_ATTRIB_ARRAY_POINTER,pointer);Map<String,Object> column=new LinkedHashMap<>();column.put("location",slot);column.put("column",slot-base);
                 for(var entry:Map.of("enabled",GL20.GL_VERTEX_ATTRIB_ARRAY_ENABLED,"buffer",GL15.GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING,"stride",GL20.GL_VERTEX_ATTRIB_ARRAY_STRIDE,"components",GL20.GL_VERTEX_ATTRIB_ARRAY_SIZE,"type",GL20.GL_VERTEX_ATTRIB_ARRAY_TYPE,"normalized",GL20.GL_VERTEX_ATTRIB_ARRAY_NORMALIZED,"integer",GL30.GL_VERTEX_ATTRIB_ARRAY_INTEGER,"divisor",GL33.GL_VERTEX_ATTRIB_ARRAY_DIVISOR).entrySet())column.put(entry.getKey(),GL20.glGetVertexAttribi(slot,entry.getValue()));
@@ -69,10 +72,11 @@ public final class PlayerFeatures073VoxelStageEvidence {
             }
             attributes.add(Map.of("name",name,"location",base,"shaderType",kind,"columns",shape[0],"rows",shape[1],"integerShaderInput",shape[2]!=0,"columnSlots",columns));
         }
-        Map<String,Object> result=new LinkedHashMap<>();result.put("program",program);result.put("activeUniforms",uniforms);result.put("activeAttributes",attributes);result.put("maxVertexAttribs",maximum);result.put("attributeColumnSlotsComplete",true);result.put("copiedSourceBuffers",buffers);result.put("depthFacts",depthFacts());
+        requireAttributeAccounting(attributeCount,attributes.size(),drawParameters.size());Map<String,Object> result=new LinkedHashMap<>();result.put("program",program);result.put("activeUniforms",uniforms);result.put("activeAttributes",attributes);result.put("activeAttributeEntryCount",attributeCount);result.put("activeGenericAttributeEntryCount",attributes.size());result.put("drawParameterInputs",drawParameters);result.put("attributeEntryAccountingComplete",true);result.put("maxVertexAttribs",maximum);result.put("attributeColumnSlotsComplete",true);result.put("copiedSourceBuffers",buffers);result.put("depthFacts",depthFacts());
         result.put("fog",Map.of("enabled",GL11.glIsEnabled(GL11.GL_FOG),"mode",GL11.glGetInteger(GL11.GL_FOG_MODE),"density",GL11.glGetFloat(GL11.GL_FOG_DENSITY),"start",GL11.glGetFloat(GL11.GL_FOG_START),"end",GL11.glGetFloat(GL11.GL_FOG_END),"color",floats(GL11.GL_FOG_COLOR,4)));programSnapshots++;return result;
     }
     private static int[] attributeShape(int type){return switch(type){case GL11.GL_FLOAT->new int[]{1,1,0};case GL20.GL_FLOAT_VEC2->new int[]{1,2,0};case GL20.GL_FLOAT_VEC3->new int[]{1,3,0};case GL20.GL_FLOAT_VEC4->new int[]{1,4,0};case GL20.GL_FLOAT_MAT2->new int[]{2,2,0};case GL20.GL_FLOAT_MAT3->new int[]{3,3,0};case GL20.GL_FLOAT_MAT4->new int[]{4,4,0};case 0x8b65->new int[]{2,3,0};case 0x8b66->new int[]{2,4,0};case 0x8b67->new int[]{3,2,0};case 0x8b68->new int[]{3,4,0};case 0x8b69->new int[]{4,2,0};case 0x8b6a->new int[]{4,3,0};case GL11.GL_INT->new int[]{1,1,1};case GL20.GL_INT_VEC2->new int[]{1,2,1};case GL20.GL_INT_VEC3->new int[]{1,3,1};case GL20.GL_INT_VEC4->new int[]{1,4,1};case GL11.GL_UNSIGNED_INT->new int[]{1,1,2};case GL30.GL_UNSIGNED_INT_VEC2->new int[]{1,2,2};case GL30.GL_UNSIGNED_INT_VEC3->new int[]{1,3,2};case GL30.GL_UNSIGNED_INT_VEC4->new int[]{1,4,2};default->throw new IllegalStateException("Unsupported active attribute shader type");};}
+    private static void requireAttributeAccounting(int total,int generic,int system){if(total<0||generic<0||system<0||system>1||generic+system!=total||system==1&&(total!=15||generic!=14))throw new IllegalStateException("Active input accounting is incomplete");}
     private static int[] attributeSlots(String name,int type,int count,int base,int maximum,Set<Integer> consumed){int[] shape=attributeShape(type);if(name.length()>128||name.contains("[")||count!=1||maximum<1||base<0||base>Math.min(maximum,32)-shape[0])throw new IllegalStateException("Attribute location or array layout changed");int[] slots=new int[shape[0]];for(int i=0;i<slots.length;i++){slots[i]=base+i;if(consumed.contains(slots[i]))throw new IllegalStateException("Active attributes overlap consumed column slots");}for(int slot:slots)consumed.add(slot);return slots;}
     private static void validateSlot(int[] shape,int slot,Map<String,Object> data){
         int enabled=((Number)data.get("enabled")).intValue(),integer=((Number)data.get("integer")).intValue();if(enabled!=0&&enabled!=1||integer!=0&&integer!=1)throw new IllegalStateException("Unknown attribute flags");
