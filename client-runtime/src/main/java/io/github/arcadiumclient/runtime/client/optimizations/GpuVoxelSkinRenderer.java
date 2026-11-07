@@ -21,6 +21,7 @@ public final class GpuVoxelSkinRenderer implements GpuVoxelSkinPipeline.Backend 
     private static final Vector4f WHITE = new Vector4f(1), CLEAR = new Vector4f(0);
     private static GpuVoxelSkinRenderer instance;
     private final GpuVoxelSkinNativeAccess api;
+    private final GpuVoxelSkinSelector selector;
     private final GpuVoxelSkinBorrowedBlendState borrowedBlend;
     private final IdentityHashMap<Object, State> owners = new IdentityHashMap<>(), geometries = new IdentityHashMap<>();
     private final Map<Long, Integer> variants = new HashMap<>();
@@ -41,7 +42,7 @@ public final class GpuVoxelSkinRenderer implements GpuVoxelSkinPipeline.Backend 
         if (instance == null) instance = new GpuVoxelSkinRenderer();
         GpuVoxelSkinPipeline.attach(instance);
     }
-    private GpuVoxelSkinRenderer() throws ReflectiveOperationException { api = new GpuVoxelSkinNativeAccess();borrowedBlend=GpuVoxelSkinBorrowedBlendState.live(); }
+    private GpuVoxelSkinRenderer() throws ReflectiveOperationException { api = new GpuVoxelSkinNativeAccess();selector=new GpuVoxelSkinSelector(api.capture.select);borrowedBlend=GpuVoxelSkinBorrowedBlendState.live(); }
 
     private boolean supported() {
         if (failed) return false;
@@ -165,7 +166,7 @@ public final class GpuVoxelSkinRenderer implements GpuVoxelSkinPipeline.Backend 
                 var geometry=storage.mesh(mesh,.0625f,offset);if(geometry==null){GpuVoxelSkinPipeline.budgetFallbacks++;return false;}
                 if(geometry.vertexCount()!=0)nonempty++;
             }
-            Object batch=api.capture.select.invoke(storage.auxiliary,texture,api.normalPass),instances=api.capture.instances.invoke(storage.geometry,batch);
+            Object batch=selector.select(storage.auxiliary,texture,api.normalPass),instances=api.capture.instances.invoke(storage.geometry,batch);
             if(!GpuVoxelSkinPreflight.hasRoom(GpuPlayerPackets.count(),GpuPlayerPackets.MAX_PLAYERS,(int)api.capture.count.get(instances),nonempty)){
                 GpuVoxelSkinPipeline.budgetFallbacks++;state="Voxel job budget retains original callbacks";return false;
             }
@@ -285,7 +286,7 @@ public final class GpuVoxelSkinRenderer implements GpuVoxelSkinPipeline.Backend 
     private boolean submit(State storage, GpuVoxelSkinGeometryCache.Entry geometry, Object backend, Identifier texture, Object pass,
                            Matrix4f matrix, int light, Vector4fc color, float time, Vector4fc overlay, Object capture,long projectionTicket) throws Throwable {
         backend=storage.auxiliary;
-        Object batch = api.capture.select.invoke(backend, texture, pass);
+        Object batch = selector.select(backend, texture, pass);
         Object instances = api.capture.instances.invoke(storage.geometry, batch);
         api.prioritize(batch, storage.geometry, instances);
         if ((int)api.capture.count.get(instances) >= MAX_INSTANCES) { GpuVoxelSkinPipeline.budgetFallbacks++; return false; }
@@ -320,7 +321,7 @@ public final class GpuVoxelSkinRenderer implements GpuVoxelSkinPipeline.Backend 
         long previousBytes=storage.textureBudget.bytes();
         if(!storage.textureBudget.admit(source,texture,descriptor)){GpuVoxelSkinPipeline.budgetFallbacks++;state="Voxel texture budget; using original layers";return false;}
         storage.descriptors.putIfAbsent(key,descriptor);GpuVoxelSkinPipeline.auxiliaryTextureBytes+=storage.textureBudget.bytes()-previousBytes;
-        api.capture.select.invoke(storage.auxiliary,texture,api.normalPass);
+        selector.select(storage.auxiliary,texture,api.normalPass);
         if(!api.sourceCopyMatches(storage.auxiliary,texture,source,name,generation,fact))return reject("Auxiliary skin array has no current upload copy",false);
         return true;
     }
