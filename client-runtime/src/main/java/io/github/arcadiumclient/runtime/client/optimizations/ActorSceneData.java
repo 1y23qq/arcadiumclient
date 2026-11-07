@@ -24,6 +24,7 @@ final class ActorSceneData {
     static final class Batch {
         private final ActorSceneData source;
         private final long generation,lifetime;
+        private Raw raw;
         Batch(ActorSceneData source){this.source=source;generation=source.generation;lifetime=source.epoch;}
         private void check(){if(source.owner!=Thread.currentThread()||generation!=source.generation||lifetime!=source.epoch)throw new IllegalStateException("Actor batch view is stale or belongs to another thread");}
         Tick tick(int job){check();return source.rowTicks[job];}
@@ -31,7 +32,19 @@ final class ActorSceneData {
         long batch(){check();return source.batch;}
         int input(int job,FloatBuffer target,int payloadOffset){check();return source.input(job,target,payloadOffset);}
         void cpu(int job,FloatBuffer target,int offset){check();source.cpu(job,target,offset);}
+        Raw raw(){check();if(raw==null||raw.revision!=source.rawRevision)raw=new Raw(this,source);return raw;}
     }
+    static final class Raw {
+        private final Batch batch;private final ActorSceneData source;private final long revision;private final int limit;
+        Raw(Batch batch,ActorSceneData source){this.batch=batch;this.source=source;revision=source.rawRevision;limit=source.used;}
+        void check(){batch.check();if(revision!=source.rawRevision)throw new IllegalStateException("Actor raw view changed after sealing");}
+        long batch(){check();return source.batch;}long lifetime(){check();return source.epoch;}long revision(){check();return revision;}
+        boolean active(int job){check();return job>=0&&job<limit&&source.present[job]&&!source.discarded[job];}
+        boolean exact(int job){check();return source.exact[job];}Tick tick(int job){check();return source.rowTicks[job];}
+        int slot(int job){check();return source.rowSlots[job];}float partial(int job){check();return source.rowPartial[job];}
+        void copyWords(int job,int[] target,int offset){check();if(!active(job)||offset<0||offset>target.length-32)throw new IllegalArgumentException("Unknown sealed actor word span");for(int i=0;i<32;i++)target[offset+i]=Float.floatToRawIntBits(source.words[job*32+i]);}
+    }
+    private long rawRevision;
     private final Thread owner=Thread.currentThread();
     private final Tick[] previous,current,rowTicks;
     private final long[] observed;
@@ -40,7 +53,10 @@ final class ActorSceneData {
     private final int[] rowSlots,materials;
     private final boolean[] present,discarded,exact;
     private long revision,batch,epoch,generation;
-    private int used;
+    private int used,touchedCount;
+    private final int[] touchedRows=new int[MAX_ROWS];
+    private final long[] rowGeneration=new long[MAX_ROWS];
+    long frameRowsCleared;
     private Batch sealed;
     long tickWrites,tickReuses,frameCaptures,poseMismatches,materialChanges,gpuOnlyCaptures,cpuInterpolationRows,captureValidationRows,sealedViews,
             overrideRows,overrideWords,constantOverrideWords,reusedOverrideWords,overrideInterpolationWords;
@@ -48,18 +64,21 @@ final class ActorSceneData {
     ActorSceneData(int capacity){
         if(capacity<1||capacity>8192)throw new IllegalArgumentException("Invalid actor scene capacity");
         previous=new Tick[capacity];current=new Tick[capacity];observed=new long[capacity];partial=new float[capacity];Arrays.fill(observed,Long.MIN_VALUE);
+        Arrays.fill(rowGeneration,Long.MIN_VALUE);
         rowTicks=new Tick[MAX_ROWS];rowPartial=new float[MAX_ROWS];rowHandles=new long[MAX_ROWS];rowSlots=new int[MAX_ROWS];materials=new int[MAX_ROWS];
         present=new boolean[MAX_ROWS];discarded=new boolean[MAX_ROWS];exact=new boolean[MAX_ROWS];words=new float[MAX_ROWS*32];
     }
-    void move(int from,int to){previous[to]=previous[from];current[to]=current[from];observed[to]=observed[from];partial[to]=partial[from];previous[from]=current[from]=null;observed[from]=Long.MIN_VALUE;}
-    void retain(int slot,long handle){if(current[slot]!=null&&current[slot].handle!=handle){previous[slot]=current[slot]=null;observed[slot]=Long.MIN_VALUE;}}
-    void truncate(int size){Arrays.fill(previous,size,previous.length,null);Arrays.fill(current,size,current.length,null);Arrays.fill(observed,size,observed.length,Long.MIN_VALUE);}
-    void begin(long nextBatch){
+    private void checkOwner(){if(owner!=Thread.currentThread())throw new IllegalStateException("Actor scene mutation requires its render owner");}
+    void requireOwner(){checkOwner();}
+    void move(int from,int to){checkOwner();previous[to]=previous[from];current[to]=current[from];observed[to]=observed[from];partial[to]=partial[from];previous[from]=current[from]=null;observed[from]=Long.MIN_VALUE;}
+    void retain(int slot,long handle){checkOwner();if(current[slot]!=null&&current[slot].handle!=handle){previous[slot]=current[slot]=null;observed[slot]=Long.MIN_VALUE;}}
+    void truncate(int size){checkOwner();Arrays.fill(previous,size,previous.length,null);Arrays.fill(current,size,current.length,null);Arrays.fill(observed,size,observed.length,Long.MIN_VALUE);}
+    void begin(long nextBatch){checkOwner();
         if(generation==Long.MAX_VALUE)throw new IllegalStateException("Actor batch generation exhausted");generation++;
-        Arrays.fill(rowTicks,0,used,null);Arrays.fill(present,0,used,false);Arrays.fill(discarded,0,used,false);used=0;batch=nextBatch;sealed=null;
+        for(int i=0;i<touchedCount;i++){int row=touchedRows[i];rowTicks[row]=null;present[row]=discarded[row]=false;frameRowsCleared++;}touchedCount=0;used=0;batch=nextBatch;sealed=null;
     }
     boolean observe(int slot,long handle,long tick,float delta,float oldBody,float body,float oldHead,float head,float oldPitch,float pitch,
-                    float walk,float speed,float oldSpeed,float oldSwing,float swing){
+                    float walk,float speed,float oldSpeed,float oldSwing,float swing){checkOwner();
         if(slot>=0&&slot<observed.length)observed[slot]=Long.MIN_VALUE;
         if(slot<0||slot>=current.length||handle<=0||handle>MAX_GPU_ID||!Float.isFinite(delta)||delta<0||delta>1)return false;
         scratch[0]=oldBody;scratch[1]=body;scratch[2]=oldHead;scratch[3]=head;scratch[4]=oldPitch;scratch[5]=pitch;scratch[6]=walk;scratch[7]=speed;scratch[8]=oldSpeed;scratch[9]=(float)tick;scratch[10]=oldSwing;scratch[11]=swing;
@@ -70,12 +89,14 @@ final class ActorSceneData {
         else{if(revision==Long.MAX_VALUE)throw new IllegalStateException("Actor tick revision exhausted");if(old==null||old.handle!=handle)previous[slot]=null;else if(old.tick!=tick)previous[slot]=old;current[slot]=new Tick(handle,tick,++revision,scratch);tickWrites++;}
         observed[slot]=batch;partial[slot]=delta;return true;
     }
-    boolean canCapture(int slot,long handle){return sealed==null&&slot>=0&&slot<current.length&&observed[slot]==batch&&current[slot]!=null&&current[slot].handle==handle;}
+    boolean canCapture(int slot,long handle){checkOwner();return sealed==null&&slot>=0&&slot<current.length&&observed[slot]==batch&&current[slot]!=null&&current[slot].handle==handle;}
+    private void touch(int job){if(rowGeneration[job]!=generation){rowGeneration[job]=generation;touchedRows[touchedCount++]=job;}}
     private boolean store(int slot,long handle,int job,Matrix4fc root,float swing,int left,int right,boolean sneak,boolean riding,boolean bow,int template,int options,float reserved0,float reserved1){
         if(!canCapture(slot,handle)||job<0||job>=MAX_ROWS||left<0||left>255||right<0||right>255||options<0||options>8191||template<0||!Float.isFinite(swing)||!Float.isFinite(reserved0)||!Float.isFinite(reserved1))return false;
-        int offset=job*32;for(int column=0;column<4;column++)for(int row=0;row<4;row++){float value=root.get(column,row);if(!Float.isFinite(value))return false;words[offset+column*4+row]=value;}
+        for(int column=0;column<4;column++)for(int row=0;row<4;row++)if(!Float.isFinite(root.get(column,row)))return false;
+        touch(job);int offset=job*32;for(int column=0;column<4;column++)for(int row=0;row<4;row++)words[offset+column*4+row]=root.get(column,row);
         rowTicks[job]=current[slot];rowPartial[job]=partial[slot];rowHandles[job]=handle;rowSlots[job]=slot;materials[job]=0;present[job]=true;discarded[job]=false;used=Math.max(used,job+1);
-        words[offset+21]=swing;words[offset+22]=sneak?1:0;words[offset+23]=bow?1:0;words[offset+24]=left;words[offset+25]=right;words[offset+26]=riding?1:0;words[offset+27]=template;words[offset+28]=options;words[offset+29]=-1;words[offset+30]=reserved0;words[offset+31]=reserved1;frameCaptures++;return true;
+        words[offset+21]=swing;words[offset+22]=sneak?1:0;words[offset+23]=bow?1:0;words[offset+24]=left;words[offset+25]=right;words[offset+26]=riding?1:0;words[offset+27]=template;words[offset+28]=options;words[offset+29]=-1;words[offset+30]=reserved0;words[offset+31]=reserved1;frameCaptures++;rawRevision++;return true;
     }
     boolean capture(int slot,long handle,int job,Matrix4fc root,float walk,float speed,float age,float yaw,float pitch,float swing,int left,int right,boolean sneak,boolean riding,boolean bow,int template,int options){return capture(slot,handle,job,root,walk,speed,age,yaw,pitch,swing,left,right,sneak,riding,bow,template,options,0,0);}
     boolean capture(int slot,long handle,int job,Matrix4fc root,float walk,float speed,float age,float yaw,float pitch,float swing,int left,int right,boolean sneak,boolean riding,boolean bow,int template,int options,float reserved0,float reserved1){
@@ -115,6 +136,7 @@ final class ActorSceneData {
     long epoch(){return epoch;}
     Batch seal(){if(sealed==null){sealed=new Batch(this);sealedViews++;}return sealed;}
     void cpu(int job,FloatBuffer target,int offset){
+        checkOwner();
         if(!present(job))throw new IllegalArgumentException("Missing actor arena row");for(int i=0;i<32;i++)target.put(offset+i,words[job*32+i]);
         if(!exact[job]){Tick tick=rowTicks[job];float delta=rowPartial[job];target.put(offset+16,walk(tick,delta)).put(offset+17,speed(tick,delta)).put(offset+18,age(tick,delta)).put(offset+19,yaw(tick,delta)).put(offset+20,pitch(tick,delta));cpuInterpolationRows++;}
     }
@@ -138,11 +160,11 @@ final class ActorSceneData {
         }
         return payloadOffset;
     }
-    boolean material(int job,int id){if(!active(job)||id<0)return false;if(materials[job]==id)return true;if(sealed!=null)return false;materials[job]=id;materialChanges++;return true;}
-    boolean variant(int source,int target,int template){
+    boolean material(int job,int id){checkOwner();if(!active(job)||id<0)return false;if(materials[job]==id)return true;if(sealed!=null)return false;materials[job]=id;materialChanges++;return true;}
+    boolean variant(int source,int target,int template){checkOwner();
         if(sealed!=null||!active(source)||target<0||target>=MAX_ROWS)return false;
-        System.arraycopy(words,source*32,words,target*32,32);words[target*32+27]=template;rowTicks[target]=rowTicks[source];rowPartial[target]=rowPartial[source];rowHandles[target]=rowHandles[source];rowSlots[target]=rowSlots[source];materials[target]=materials[source];present[target]=true;discarded[target]=false;exact[target]=exact[source];used=Math.max(used,target+1);return true;
+        touch(target);System.arraycopy(words,source*32,words,target*32,32);words[target*32+27]=template;rowTicks[target]=rowTicks[source];rowPartial[target]=rowPartial[source];rowHandles[target]=rowHandles[source];rowSlots[target]=rowSlots[source];materials[target]=materials[source];present[target]=true;discarded[target]=false;exact[target]=exact[source];used=Math.max(used,target+1);rawRevision++;return true;
     }
-    void discard(int job){if(present(job)){if(sealed!=null)discarded[job]=true;else{present[job]=false;rowTicks[job]=null;}}}
-    void clear(){if(epoch==Long.MAX_VALUE)throw new IllegalStateException("Actor scene lifetime epoch exhausted");epoch++;Arrays.fill(previous,null);Arrays.fill(current,null);Arrays.fill(observed,Long.MIN_VALUE);begin(batch+1);}
+    void discard(int job){checkOwner();if(present(job)){rawRevision++;if(sealed!=null)discarded[job]=true;else{present[job]=false;rowTicks[job]=null;}}}
+    void clear(){checkOwner();if(epoch==Long.MAX_VALUE)throw new IllegalStateException("Actor scene lifetime epoch exhausted");epoch++;Arrays.fill(previous,null);Arrays.fill(current,null);Arrays.fill(observed,Long.MIN_VALUE);begin(batch+1);}
 }

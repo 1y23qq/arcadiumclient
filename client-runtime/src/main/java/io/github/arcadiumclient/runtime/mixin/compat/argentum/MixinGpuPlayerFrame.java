@@ -22,6 +22,7 @@ public abstract class MixinGpuPlayerFrame {
     private void arcadium$visiblePlayers(float delta,long nanoTime,CallbackInfo callback){
         ModernArmorGlintPipeline.beginFrame();
         Minecraft mc=Minecraft.getInstance();
+        GpuPlayerPackets.beginActorFrame();
         GpuPlayerPackets.prepareActors(mc.world,mc.world==null?List.of():mc.world.players,
                 BetaOptimizationsConfig.getGpuPlayerPipeline()&&(GpuResidentPlayerState.canRetainActors()||GpuPlayerPackets.actorSceneReady())&&!GpuPlayerPipeline.hasForgeHooks());
         if(Minecraft.getInstance().world==null)GpuModelTransforms.clearFrameBudget();

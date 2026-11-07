@@ -41,6 +41,8 @@ public final class PlayerPipeline072Qa {
     private static final boolean BASELINE = Boolean.getBoolean("arcadium.playerPipeline072.baseline");
     private static final boolean PROFILING = Boolean.getBoolean("arcadium.playerPipeline072.profiling");
     private static final boolean ACTOR_SCENE_PERFORMANCE=Boolean.getBoolean("arcadium.actorScene073.performance");
+    private static final boolean QUIET_WINDOW=Boolean.getBoolean("arcadium.performance073.quietWindow");
+    private static QuietPerformanceWindow073 quietWindow;
     private static final String RESIDENT_BODY_MODE=System.getProperty("arcadium.residentBodies072.mode","off");
     private static final boolean RESIDENT_BODY_PERFORMANCE=Boolean.getBoolean("arcadium.residentBodies072.performanceQualified");
     private static final boolean RESIDENT_BODY_SHARED=Boolean.getBoolean("arcadium.residentBodies072.sharedPalette");
@@ -155,13 +157,18 @@ public final class PlayerPipeline072Qa {
                 Map<String, Object> warmTerrain = phase == 2 ? terrainState(mc) : null;
                 if (phase == 2 && System.nanoTime() - settled >= WARMUP * 1_000_000_000L && Boolean.TRUE.equals(warmTerrain.get("ready")) && stableInventory(warmTerrain)) {
                     if (!Display.isActive()) { status("waiting_for_focus"); return; }
+                    if(QUIET_WINDOW){
+                        require(ACTOR_SCENE_PERFORMANCE&&!VISUAL&&!PROFILING,"Quiet windows require the owned unprofiled actor performance fixture");
+                        if(quietWindow==null)quietWindow=new QuietPerformanceWindow073(output().toAbsolutePath().getParent(),System.getProperty("arcadium.performance073.caseId",""),System.getProperty("arcadium.performance073.nonce",""),ProcessHandle.current().pid());
+                        if(!quietWindow.awaitRelease()){status("awaiting_root_quiet_release");return;}
+                    }
                     report.put("environment", Map.of("gpu", GL11.glGetString(GL11.GL_RENDERER), "openGl", GL11.glGetString(GL11.GL_VERSION),
                             "java", System.getProperty("java.runtime.version"), "cpuThreads", Runtime.getRuntime().availableProcessors(), "width", mc.width, "height", mc.height));
                     measuredSettings = settings(mc); report.put("settingsBefore", measuredSettings); report.put("countersBefore", counters());
                     if (!VISUAL) matchDataset(warmTerrain);
                     report.put("requestedBeta", requested); report.put("requestedBetaPresence", requestedPresence);
                     if(ACTOR_SCENE_PERFORMANCE){
-                        armCounters();status("recording");started=System.nanoTime();last=0;phase=3;phaseTicks=0;pendingImage=false;
+                        armCounters();status("recording");started=QUIET_WINDOW?quietWindow.start():System.nanoTime();last=0;phase=3;phaseTicks=0;pendingImage=false;
                     }else{
                         started = System.nanoTime(); last = 0; phase = VISUAL ? 4 : 3; phaseTicks = 0; pendingImage = VISUAL;
                         armCounters();status(VISUAL ? "visual" : "recording");
@@ -307,6 +314,7 @@ public final class PlayerPipeline072Qa {
             last = now;
             if (now - started < SECONDS * 1_000_000_000L) return;
             if(ACTOR_SCENE_PERFORMANCE)phase=5;
+            if(QUIET_WINDOW){quietWindow.end(now);report.put("quietWindow",quietWindow.report());}
             require(sampleCount > 100, "Too few performance frames");
             long[] sorted = Arrays.copyOf(frames, sampleCount); Arrays.sort(sorted);
             long total = 0, slow = 0; for (long time : sorted) total += time;

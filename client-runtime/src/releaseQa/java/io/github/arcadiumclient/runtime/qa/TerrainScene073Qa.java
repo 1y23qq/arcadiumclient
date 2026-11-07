@@ -56,6 +56,11 @@ public final class TerrainScene073Qa {
     private static Map<String,Object> shader=Map.of();
     private TerrainScene073Qa(){}
     public static boolean enabled(){return System.getProperty("arcadium.terrainWorld073.output")!=null;}
+    public static boolean oracleReady(){return phase==5&&!done&&foregroundAcquired;}
+    public static int oracleTick(){return ticks;}
+    public static void oracleComplete(Map<String,Object> oracle){require(phase==5&&Boolean.TRUE.equals(oracle.get("passed")),"A failed/unarmed oracle cannot advance terrain QA");report.put("oneCameraPrePolyBlurOracle",oracle);capture=true;phase=6;}
+    public static void oracleFailed(Throwable error){if(done)return;report.put("oracleFailure",error.toString());try{BetaOptimizationsConfig.setGpuTerrainCommands(false);GpuTerrainCommands.enabled=false;GpuTerrainCommands.reset();report.put("oracleFailureCleanup",TerrainScene073GpuEvidence.released());}catch(Throwable cleanup){error.addSuppressed(cleanup);}finish(error);}
+    private static Path capturedFrame(Minecraft mc){return TerrainFullFrameOracle073.enabled()?TerrainFullFrameOracle073.gpuPng():mc.gameDir.toPath().resolve("screenshots/terrain073-resident-positive.png");}
     private static Path output(){return Path.of(System.getProperty("arcadium.terrainWorld073.output"));}
     public static void tick(){
         if(!enabled()||done)return;var mc=Minecraft.getInstance();
@@ -113,10 +118,10 @@ public final class TerrainScene073Qa {
                         BetaOptimizationsConfig.setGpuTerrainCommands(true);GpuTerrainCommands.enabled=true;readyDraws=TerrainResidentScene.regionDraws;phase=5;
                     }
                 }
-                else if(phase==7&&pngComplete(mc.gameDir.toPath().resolve("screenshots/terrain073-resident-positive.png"))){
-                    Path path=mc.gameDir.toPath().resolve("screenshots/terrain073-resident-positive.png");var image=ImageIO.read(path.toFile());require(image!=null&&image.getWidth()==1920&&image.getHeight()==1080,"Incomplete native terrain073 screenshot");
+                else if(phase==7&&pngComplete(capturedFrame(mc))){
+                    Path path=capturedFrame(mc);var image=ImageIO.read(path.toFile());require(image!=null&&image.getWidth()==1920&&image.getHeight()==1080,"Incomplete native terrain073 screenshot");
                     var colors=new HashSet<Integer>();for(int y=0;y<1080;y+=8)for(int x=0;x<1920;x+=8)colors.add(image.getRGB(x,y));require(colors.size()>=32,"Blank terrain073 capture");
-                    report.put("frame",Map.of("file",path.getFileName().toString(),"width",1920,"height",1080,"sampledColors",colors.size(),"fullUncropped",true));
+                    report.put("frame",Map.of("file",path.getFileName().toString(),"width",1920,"height",1080,"sampledColors",colors.size(),"fullUncropped",true,"captureStage",TerrainFullFrameOracle073.enabled()?"pre-PolyBlur world":"normal final framebuffer"));
                     BetaOptimizationsConfig.setGpuTerrainCommands(false);GpuTerrainCommands.enabled=false;GpuTerrainCommands.reset();var released=TerrainScene073GpuEvidence.released();report.put("cleanup",released);
                     require(Boolean.TRUE.equals(released.get("ownedObjectsDeleted"))&&Long.valueOf(0).equals(released.get("budgetBytes"))&&Integer.valueOf(0).equals(released.get("budgetOwners"))&&Long.valueOf(0).equals(released.get("residentBytes")),"Resident terrain cleanup was incomplete");finish(null);
                 }
@@ -191,6 +196,7 @@ public final class TerrainScene073Qa {
     }
     public static void terrainReturned(String pass){
         if(!enabled()||done||!pass.equals("solid"))return;nativeFrames++;if(phase!=5)return;
+        if(TerrainFullFrameOracle073.enabled()){if(TerrainFullFrameOracle073.controlling())TerrainFullFrameOracle073.terrainReturn();if(!TerrainFullFrameOracle073.gpuStage())return;}
         try{
             Map<String,Object> evidence=TerrainResidentScene.evidence();report.put("resident",evidence);report.put("shader",shader);
             if(!Boolean.TRUE.equals(evidence.get("ready"))||TerrainResidentScene.regionDraws<=readyDraws){if(++eligibleFrames>120)throw new IllegalStateException("Resident terrain never submitted current full-world geometry: "+evidence.get("status"));return;}
@@ -199,12 +205,13 @@ public final class TerrainScene073Qa {
             require(Boolean.TRUE.equals(shader.get("physicalProgramMatches"))&&shader.containsKey("compiledFact"),"Actual compiled native shader provenance missing");
             var counts=TerrainScene073GpuEvidence.currentCounts();require(((Number)counts.get("gpuCommandCount")).longValue()>0&&((Number)counts.get("positiveRegions")).intValue()>0,"Resident indirect counters contain no geometry");report.put("gpuCounts",counts);
             report.put("camera",Map.of("position",List.of(Minecraft.getInstance().player.x,Minecraft.getInstance().player.y,Minecraft.getInstance().player.z),"yaw",Minecraft.getInstance().player.yaw,"pitch",Minecraft.getInstance().player.pitch,"fovDegrees",Minecraft.getInstance().options.fov));
+            if(TerrainFullFrameOracle073.enabled()){TerrainFullFrameOracle073.gpuValidated(Map.of("resident",evidence,"shader",shader,"counts",counts));return;}
             capture=true;phase=6;
         }catch(Throwable failure){finish(failure);}
     }
     public static void frame(){
         if(!enabled()||done||!capture)return;capture=false;var mc=Minecraft.getInstance();
-        try{require(mc.width==1920&&mc.height==1080&&GL11.glGetError()==GL11.GL_NO_ERROR,"Unexpected terrain073 source capture state");Screenshot.take(mc.gameDir,"terrain073-resident-positive.png",mc.width,mc.height,mc.getRenderTarget());phase=7;}
+        try{require(mc.width==1920&&mc.height==1080&&GL11.glGetError()==GL11.GL_NO_ERROR,"Unexpected terrain073 source capture state");if(TerrainFullFrameOracle073.enabled()){require(TerrainFullFrameOracle073.completed()&&pngComplete(TerrainFullFrameOracle073.gpuPng()),"Oracle must complete all real operations before phase7");}else Screenshot.take(mc.gameDir,"terrain073-resident-positive.png",mc.width,mc.height,mc.getRenderTarget());phase=7;}
         catch(Throwable failure){finish(failure);}
     }
     private static boolean pngComplete(Path path)throws Exception{
