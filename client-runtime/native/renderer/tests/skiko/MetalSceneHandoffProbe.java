@@ -27,7 +27,7 @@ public final class MetalSceneHandoffProbe {
     private static final byte[] MATERIAL={(byte)255,0,0,(byte)255,0,(byte)255,0,(byte)255,0,0,(byte)255,(byte)255,(byte)255,(byte)255,0,(byte)255};
     private static final class NativeCalls implements CurrentFrameCalls {
         final MemorySegment scene;MemorySegment bridge=MemorySegment.NULL;Object owner;
-        final MethodHandle create,interval,prepare,prepareScene,publish,hide,release,destroy,query,readPixels,sceneQuery,errorText;
+        final MethodHandle create,interval,prepare,prepareScene,publish,hide,release,destroy,query,readPixels,sceneQuery,errorText,ticketDump;
         NativeCalls(MetalResidentSceneBackend backend) {
             scene=backend.presentationContext();SymbolLookup symbols=backend.presentationSymbols();Linker l=Linker.nativeLinker();
             try{require((int)fn(l,symbols,"arc_present_abi",FunctionDescriptor.of(JAVA_INT)).invokeExact()==1&&(int)fn(l,symbols,"arc_present_scene_abi",FunctionDescriptor.of(JAVA_INT)).invokeExact()==1,"Presentation ABI differs");}catch(Throwable failure){throw error(failure);}
@@ -43,6 +43,7 @@ public final class MetalSceneHandoffProbe {
             sceneQuery=fn(l,symbols,"arc_scene_query",FunctionDescriptor.of(JAVA_LONG,ADDRESS,JAVA_INT));
             errorText=fn(l,symbols,"arc_present_error",FunctionDescriptor.of(JAVA_INT,ADDRESS,ADDRESS,JAVA_LONG));
             readPixels=symbols.find("arc_present_testing_read_rgba").map(p->l.downcallHandle(p,FunctionDescriptor.of(JAVA_INT,ADDRESS,JAVA_LONG,ADDRESS,JAVA_LONG))).orElse(null);
+            ticketDump=readPixels==null?null:fn(l,symbols,"arc_present_testing_ticket_dump",FunctionDescriptor.of(JAVA_INT,ADDRESS,ADDRESS,JAVA_LONG));
         }
         static MethodHandle fn(Linker l,SymbolLookup s,String n,FunctionDescriptor d){return l.downcallHandle(s.find(n).orElseThrow(),d);}
         static RuntimeException error(Throwable e){return new IllegalStateException("Owned native handoff call failed",e);}
@@ -63,6 +64,27 @@ public final class MetalSceneHandoffProbe {
         @Override public long query(int key){try{return(long)query.invokeExact(bridge,key);}catch(Throwable e){throw error(e);}}
         long scene(int key){try{return(long)sceneQuery.invokeExact(scene,key);}catch(Throwable e){throw error(e);}}
         ByteBuffer drawable(long frame,int bytes){ByteBuffer out=ByteBuffer.allocateDirect(bytes);try{require(readPixels!=null&&(int)readPixels.invokeExact(bridge,frame,MemorySegment.ofBuffer(out),(long)bytes)==0,"Actual drawable readback is unavailable");return out;}catch(Throwable e){throw error(e);}}
+        Map<String,Object> ticketTrace(long decision) {
+            long before=System.nanoTime();Map<String,Object> result=new LinkedHashMap<>();
+            try(Arena memory=Arena.ofConfined()) {
+                MemorySegment data=memory.allocate(1608,8);int code=(int)ticketDump.invokeExact(bridge,data,1608L);long after=System.nanoTime();
+                result.put("dumpCode",code);result.put("dumpCallBeforeDecisionLagNs",before-decision);result.put("dumpCallAfterDecisionLagNs",after-decision);result.put("readOnlyAfterHardDecision",true);result.put("notDisplayProof",true);
+                if(code!=0)return result;
+                long version=data.get(JAVA_LONG,0),capacity=data.get(JAVA_LONG,8),count=data.get(JAVA_LONG,16);require(version==1&&capacity==8&&count>=0&&count<=8,"Ticket witness dump layout differs");
+                result.put("version",version);result.put("count",count);result.put("overflow",data.get(JAVA_LONG,24));result.put("identityErrors",data.get(JAVA_LONG,32));result.put("timebaseNumer",data.get(JAVA_LONG,40));result.put("timebaseDenom",data.get(JAVA_LONG,48));result.put("nativeDumpEntryHostTicks",data.get(JAVA_LONG,56));result.put("nativeStateId",data.get(JAVA_LONG,64));
+                String[] names={"frame","stateId","layerId","viewId","acquiredDrawableId","acquiredDrawableObjectId","sourceGeneration","sourceKind","armedHostTicks","completedEntryHostTicks","completedStatus","completedStateId","presentedCallbackEntryHostTicks","presentedTimeBits","shownDrawableId","shownDrawableObjectId","presentedStateId","displayedBeforeHandler","displayedAfterHandler","completedCalls","presentedCalls","sourceImageId","superlayerId","snapshotFlags"};
+                boolean valid=data.get(JAVA_LONG,24)==0&&data.get(JAVA_LONG,32)==0&&data.get(JAVA_LONG,40)>0&&data.get(JAVA_LONG,48)>0&&data.get(JAVA_LONG,64)!=0;
+                List<Map<String,Object>> rows=new ArrayList<>();for(int i=0;i<count;i++){
+                    Map<String,Object> row=new LinkedHashMap<>();for(int field=0;field<24;field++)row.put(names[field],data.get(JAVA_LONG,(9L+i*24L+field)*8));
+                    double reported=Double.longBitsToDouble((long)row.get("presentedTimeBits"));row.put("reportedPresentedTimeSeconds",Double.isFinite(reported)?reported:null);
+                    long state=(long)row.get("stateId"),completedCalls=(long)row.get("completedCalls"),presentedCalls=(long)row.get("presentedCalls");
+                    boolean stable=(long)row.get("snapshotFlags")==0&&state==data.get(JAVA_LONG,64)&&completedCalls<=1&&presentedCalls<=1
+                            &&(completedCalls==0||(long)row.get("completedStateId")==state)
+                            &&(presentedCalls==0||((long)row.get("presentedStateId")==state&&(long)row.get("acquiredDrawableId")==((long)row.get("shownDrawableId"))&&(long)row.get("acquiredDrawableObjectId")==((long)row.get("shownDrawableObjectId"))&&Double.isFinite(reported)));
+                    row.put("stableIdentity",stable);valid&=stable;rows.add(row);
+                }result.put("tickets",rows);result.put("witnessStructurallyValid",valid);result.put("missingEventDoesNotProveCallbackAbsent",true);return result;
+            }catch(Throwable failure){result.put("diagnosticFailure",failure.getClass().getName());return result;}
+        }
     }
     private static final class Original implements GpuSurface {
         final GlSurface delegate=new GlSurface(new PixelFormat());long window,context;int creates,swaps,destroys;NativeCalls calls;
@@ -183,6 +205,7 @@ public final class MetalSceneHandoffProbe {
         long started=System.nanoTime(),deadline=started+5_000_000_000L;while((calls.query(3)!=frame||calls.query(4)!=frame)&&System.nanoTime()<deadline)pump();
         long prepared=calls.query(1),submitted=calls.query(2),completed=calls.query(3),displayed=calls.query(4),gpuFailure=calls.query(84),decided=System.nanoTime();original.same();boolean shown=decided<=deadline&&prepared==frame&&submitted==frame&&completed==frame&&displayed==frame&&gpuFailure==0;
         Map<String,Object> row=new LinkedHashMap<>();row.put("source",source);row.put("frame",frame);row.put("width",w);row.put("height",h);row.put("prepared",prepared);row.put("submitted",submitted);row.put("completed",completed);row.put("displayed",displayed);row.put("gpuFailure",gpuFailure);row.put("exactCurrentDisplayed",shown);row.put("waitElapsedNanoseconds",decided-started);row.put("displayDeadlineNanoseconds",5_000_000_000L);
+        if(calls.ticketDump!=null)row.put("ticketWitnessAfterDecision",calls.ticketTrace(decided));
         if(!shown)displayFailures.add(source+" target"+frame+" displayed"+displayed);
         if(!shown){try{row.put("postDecisionWindow",windowState(calls));}catch(Throwable snapshotFailure){row.put("postDecisionWindowReadFailure",snapshotFailure.toString());}row.put("postDecisionSnapshotDoesNotChangeDisplayedDecision",true);}
         row.put("sdlVisible",display.isVisible());row.put("sdlActive",display.isActive());row.put("windowVisible",calls.query(22)==1);row.put("windowOcclusionVisible",calls.query(23)==1);row.put("childWindowMatches",calls.query(25)==1);row.put("drawableWidth",calls.query(17));row.put("drawableHeight",calls.query(18));row.put("actualSdlInterval",interval());row.put("nativeConfiguredInterval",calls.query(53));row.put("nativePreparedInterval",calls.query(54));row.put("layerDisplaySync",calls.query(45));row.put("publishedTextureFrame",calls.query(73));row.put("publishedTextureWidth",calls.query(74));row.put("publishedTextureHeight",calls.query(75));

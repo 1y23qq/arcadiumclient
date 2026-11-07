@@ -15,3 +15,9 @@ ARC_API int arc_present_testing_read_rgba(void *value, uint64_t frame, void *des
     }
     return ARC_PRESENT_OK;
 }
+
+ARC_API int arc_present_testing_ticket_dump(void *value,void *destination,uint64_t length) {
+    ArcPresentation *p=bridge(value);
+    if(!p||!mainThread()||!renderContext(p))return ARC_PRESENT_INVALID;
+    return arc_ticket_trace_dump(&p.state->ticketTrace,mach_absolute_time(),destination,length)==0?ARC_PRESENT_OK:ARC_PRESENT_INVALID;
+}

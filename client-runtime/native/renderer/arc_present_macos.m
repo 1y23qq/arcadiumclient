@@ -20,11 +20,19 @@
 #include <string.h>
 #include <math.h>
 
+#if defined(ARC_PRESENT_TESTING)
+#include "arc_present_ticket_trace.h"
+#include <mach/mach_time.h>
+#endif
+
 static const uint64_t image_limit = UINT64_C(128) * 1024 * 1024;
 
 @interface ArcPresentationState : NSObject {
 @public atomic_uint_fast64_t completed, displayed, liveBytes;
 @public atomic_bool inFlight, failed;
+#if defined(ARC_PRESENT_TESTING)
+@public arc_ticket_trace ticketTrace;
+#endif
 }
 @end
 @implementation ArcPresentationState
@@ -32,6 +40,11 @@ static const uint64_t image_limit = UINT64_C(128) * 1024 * 1024;
     if ((self = [super init])) {
         atomic_init(&completed, 0); atomic_init(&displayed, 0); atomic_init(&liveBytes, 0);
         atomic_init(&inFlight, false); atomic_init(&failed, false);
+#if defined(ARC_PRESENT_TESTING)
+        mach_timebase_info_data_t timebase={0,0};
+        (void)mach_timebase_info(&timebase);
+        arc_ticket_trace_init(&ticketTrace,(uint64_t)(uintptr_t)(__bridge void *)self,timebase.numer,timebase.denom);
+#endif
     }
     return self;
 }
@@ -421,12 +434,33 @@ int arc_present_publish(void *value, uint64_t frame) {
 #endif
                 ArcPresentationState *state = p.state; ArcPresentationImage *ownedImage = p.image;
                 atomic_store(&state->inFlight, true); p.submitted = frame; p.ticket = NO;
-                [drawable addPresentedHandler:^(id<MTLDrawable> shown) { (void)shown; latest(&state->displayed, frame); }];
+#if defined(ARC_PRESENT_TESTING)
+                int traceSlot=arc_ticket_trace_begin(&state->ticketTrace,frame,p->publishedLayer,p->publishedSuperlayer,p->publishedView,
+                    p->publishedDrawable,(uint64_t)(uintptr_t)(__bridge void *)drawable,p.image.sceneGeneration,p.image.fromScene,
+                    (uint64_t)(uintptr_t)(__bridge void *)ownedImage,mach_absolute_time());
+#endif
+                [drawable addPresentedHandler:^(id<MTLDrawable> shown) {
+#if defined(ARC_PRESENT_TESTING)
+                    uint64_t traceEntry=mach_absolute_time(),traceBefore=atomic_load(&state->displayed);
+#endif
+                    (void)shown; latest(&state->displayed, frame);
+#if defined(ARC_PRESENT_TESTING)
+                    double reported=shown.presentedTime;uint64_t bits;memcpy(&bits,&reported,sizeof(bits));
+                    arc_ticket_trace_presented(&state->ticketTrace,traceSlot,frame,(uint64_t)(uintptr_t)(__bridge void *)state,traceEntry,
+                        shown.drawableID,(uint64_t)(uintptr_t)(__bridge void *)shown,bits,traceBefore,atomic_load(&state->displayed));
+#endif
+                }];
                 [command addCompletedHandler:^(id<MTLCommandBuffer> finished) {
+#if defined(ARC_PRESENT_TESTING)
+                    uint64_t traceEntry=mach_absolute_time();
+#endif
                     if (!ownedImage.metal || ownedImage.width == 0 || ownedImage.height == 0) atomic_store(&state->failed, true);
                     if (finished.status == MTLCommandBufferStatusError) atomic_store(&state->failed, true);
                     if (ownedImage.sourceClaim && arc_scene_metal_target_failed(ownedImage.sourceClaim)) atomic_store(&state->failed, true);
                     latest(&state->completed, frame); atomic_store(&state->inFlight, false);
+#if defined(ARC_PRESENT_TESTING)
+                    arc_ticket_trace_completed(&state->ticketTrace,traceSlot,frame,(uint64_t)(uintptr_t)(__bridge void *)state,traceEntry,finished.status);
+#endif
                 }];
                 [command commit]; submitted = YES;
                 [command waitUntilScheduled];
