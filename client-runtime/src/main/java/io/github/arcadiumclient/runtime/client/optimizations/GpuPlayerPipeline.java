@@ -69,6 +69,7 @@ public final class GpuPlayerPipeline {
     private static ModelPart[] parts(PlayerModel model){return new ModelPart[]{model.head,model.body,model.rightArm,model.leftArm,model.rightLeg,model.leftLeg,model.hat,model.leftPants,model.rightPants,model.leftSleeve,model.rightSleeve,model.jacket};}
 
     public static boolean capture(PlayerRenderer renderer,ClientPlayerEntity player,double x,double y,double z,float delta){
+        ActorRoot073.requireOwner();
         if(!BetaOptimizationsConfig.getGpuPlayerPipeline()||failed)return false;
         if(!GpuModelTransforms.ready()){
             int visible=GpuModelTransforms.visiblePlayers(),minimum=BetaOptimizationsConfig.getMinimumPlayers();
@@ -123,18 +124,32 @@ public final class GpuPlayerPipeline {
             boolean sceneOnly=!extraLayers&&GpuPlayerPackets.actorSceneCanCapture(player)&&Double.isFinite(x)&&Double.isFinite(y)&&Double.isFinite(z)&&Math.abs(x)<=Float.MAX_VALUE&&Math.abs(y)<=Float.MAX_VALUE&&Math.abs(z)<=Float.MAX_VALUE;
             float body=angle(player.lastBodyYaw,player.bodyYaw,delta),head=0,pitch=0,walk=0,speed=0,age=player.ticks+delta;
             if(!sceneOnly){head=angle(player.lastHeadYaw,player.headYaw,delta)-body;pitch=player.lastPitch+(player.pitch-player.lastPitch)*delta;walk=player.walkAnimationProgress-player.walkAnimationSpeed*(1-delta);speed=Math.min(1,player.lastWalkAnimationSpeed+(player.walkAnimationSpeed-player.lastWalkAnimationSpeed)*delta);}
+            boolean upsideDown;float height,nativeSwing;
+            if(ActorRoot073.enabled()&&!extraLayers&&!sceneOnly){
+                upsideDown=PlayerPoseOptions.upsideDown(player.getName(),player.isModelPartVisible(PlayerModelPart.CAPE));height=player.height;nativeSwing=player.getAttackAnimationProgress(delta);
+                job=ActorRoot073.reserve(player,x,y,z,(profile.size[2]&255)==3,upsideDown,delta,walk,speed,age,head,pitch,nativeSwing,model.itemInLeftHand,model.itemInRightHand,model.sneaking,false,model.aimingBow,profile.template,PlayerPoseOptions.flags());
+                if(job<0){
+                    root.identity().translate((float)x,(float)y,(float)z).rotateY((float)Math.toRadians(180-body));
+                    if(upsideDown)root.translate(0,height+.1f,0).rotateZ((float)Math.PI);
+                    root.scale(-1,-1,1).scale(.9375f).translate(0,-1.5078125f,0);
+                    job=sceneOnly?GpuPlayerPackets.addActorScene(player,root,nativeSwing,model.itemInLeftHand,model.itemInRightHand,model.sneaking,false,model.aimingBow,profile.template)
+                            :GpuPlayerPackets.addActor(player,root,walk,speed,age,head,pitch,nativeSwing,model.itemInLeftHand,model.itemInRightHand,model.sneaking,false,model.aimingBow,profile.template);
+                }
+            }else{
+                if(ActorRoot073.enabled())ActorRoot073.layerFallbacks++;
             root.identity().translate((float)x,(float)y,(float)z).rotateY((float)Math.toRadians(180-body));
-            boolean upsideDown=PlayerPoseOptions.upsideDown(player.getName(),player.isModelPartVisible(PlayerModelPart.CAPE));float height=player.height;
+            upsideDown=PlayerPoseOptions.upsideDown(player.getName(),player.isModelPartVisible(PlayerModelPart.CAPE));height=player.height;
             if(upsideDown)root.translate(0,height+.1f,0).rotateZ((float)Math.PI);
             root.scale(-1,-1,1).scale(.9375f).translate(0,-1.5078125f,0);
-            float nativeSwing=player.getAttackAnimationProgress(delta);
+            nativeSwing=player.getAttackAnimationProgress(delta);
             job=sceneOnly?GpuPlayerPackets.addActorScene(player,root,nativeSwing,model.itemInLeftHand,model.itemInRightHand,model.sneaking,false,model.aimingBow,profile.template)
                     :GpuPlayerPackets.addActor(player,root,walk,speed,age,head,pitch,nativeSwing,model.itemInLeftHand,model.itemInRightHand,model.sneaking,false,model.aimingBow,profile.template);
+            }
             if(job<0)return false;
             if(batch==null)batch=api.select.invoke(backend,skin,api.translucent);
             int light=player.getLightLevel(delta),layer=(int)api.selectedLayer.get(backend),lightWord=(light&255)|((light>>>16&255)<<8)|(layer&255)<<16;
             if(GpuPlayerPackets.actorSceneEnabled())GpuPlayerPackets.observeMaterial(job,backend,batch,skin,layer);
-            boolean residentBody=GpuResidentBodies.queue(backend,profile,job,mask,batch,skin,light,age,root);
+            boolean residentBody=!ActorRoot073.rootJob(job)&&GpuResidentBodies.queue(backend,profile,job,mask,batch,skin,light,age,root);
             int added=residentBody?Integer.bitCount(mask):0;
             if(!residentBody)for(int mirror=0;mirror<2;mirror++){
                 int n=0;for(int i=0;i<12;i++)if((mask&(1<<i))!=0&&profile.mirrored[i]==(mirror==1))n++;
@@ -149,12 +164,13 @@ public final class GpuPlayerPipeline {
                 api.size.set(instances,size);api.count.set(instances,count+n);added+=n;
             }
             if(!residentBody){api.batchCount.set(batch,(int)api.batchCount.get(batch)+added);api.backendCount.set(backend,(int)api.backendCount.get(backend)+added);}
-            committed=true;
+            committed=true;ActorRoot073.commit(job);if(ActorRoot073.rootJob(job))GpuPlayerPackets.notePersistentActor();
             boolean counted=extraLayers&&renderLayers(renderAccess,model,profile.parts,skinMask,nativeLayers,job,profile.template,player,actor,skin,light,walk,speed,delta,age,head,pitch,x,y,z,body,upsideDown,height);
             if(!counted){api.entityCount.set(actor,(int)api.entityCount.get(actor)+1);api.playerCount.set(actor,(int)api.playerCount.get(actor)+1);}
             api.nameAdd.invoke(api.nameTags.get(actor),renderer,player,x,y,z,light);
             playersDrawn++;partsQueued+=added;state="Compact poses active";return true;
         }catch(Throwable error){
+            if(ActorRoot073.foreign(error))throw new ActorRootProtocol073.Foreign();ActorRoot073.requireOwner();
             if(!committed){
                 if(instances0!=null){api.size.set(instances0,oldSize0);api.count.set(instances0,oldCount0);}
                 if(instances1!=null){api.size.set(instances1,oldSize1);api.count.set(instances1,oldCount1);}

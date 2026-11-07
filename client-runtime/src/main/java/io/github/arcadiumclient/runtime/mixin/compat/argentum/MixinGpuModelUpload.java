@@ -24,20 +24,23 @@ public abstract class MixinGpuModelUpload {
 
     @WrapMethod(method = "upload")
     private void arcadium$expandTransforms(CommandList commands, IntBuffer instances, Operation<Void> original) throws Throwable {
+        io.github.arcadiumclient.runtime.client.optimizations.ActorRoot073.requireOwner();
         int token = GpuResolvedInstanceCache.beginUpload(this, commands, instances, instanceBuffer);
         try {
-            original.call(commands, instances);
+            io.github.arcadiumclient.runtime.client.optimizations.ActorRoot073.requireOwner();original.call(commands, instances);io.github.arcadiumclient.runtime.client.optimizations.ActorRoot073.requireOwner();
             if (GpuResolvedInstanceCache.reused(token, instanceBuffer)) return;
             if (GpuResolvedInstanceCache.needsRepair(token))
                 commands.uploadData(instanceBuffer, MemoryUtil.memAddress(instances), (long)instances.remaining() * Integer.BYTES, GlBufferUsage.STREAM_DRAW);
             if (!GpuModelTransforms.hasJobs(instances)) { GpuResolvedInstanceCache.abort(token); return; }
             try {
+                io.github.arcadiumclient.runtime.client.optimizations.ActorRoot073.requireOwner();
                 GpuModelTransforms.expand(instanceBuffer.handle(), instances);
                 GpuResolvedInstanceCache.complete(token, instanceBuffer);
             } catch (Throwable error) {
                 GpuResolvedInstanceCache.abort(token);
-                GpuModelTransforms.disable(error); GpuModelTransforms.recover(instances);
-                original.call(commands, instances);
+                if(io.github.arcadiumclient.runtime.client.optimizations.ActorRoot073.foreign(error))throw error;io.github.arcadiumclient.runtime.client.optimizations.ActorRoot073.requireOwner();
+                if(io.github.arcadiumclient.runtime.client.optimizations.ActorRoot073.failure(error))io.github.arcadiumclient.runtime.client.optimizations.ActorRoot073.disablePrivate();else GpuModelTransforms.disable(error); GpuModelTransforms.recover(instances);
+                io.github.arcadiumclient.runtime.client.optimizations.ActorRoot073.requireOwner();original.call(commands, instances);io.github.arcadiumclient.runtime.client.optimizations.ActorRoot073.requireOwner();
             }
         } catch (Throwable error) {
             GpuResolvedInstanceCache.abort(token); throw error;

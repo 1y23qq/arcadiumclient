@@ -103,8 +103,9 @@ public final class PlayerPipeline072Qa {
             require(Set.of("off","control","active").contains(RESIDENT_BODY_MODE)&&(RESIDENT_BODY_MODE.equals("off")||!BASELINE&&(VISUAL||RESIDENT_BODY_PERFORMANCE)),"Private resident bodies require an explicit optimized visual or certified fixture");
             require("ArcadiumTest".equals(mc.getSession().getUsername()) && "0".equals(mc.getSession().getAccessToken()), "Use only the owned offline fixture");
             require(List.of("default", "3d-skin", "wavy", "skin+wavy").contains(SCENE), "Unknown scene");
+            VoxelSkin073PerformanceQa.validate(VISUAL,BASELINE,PROFILING,SCENE,PLAYERS,WARMUP,SECONDS);
             require(!FUSED_CROWDED_VISUAL||VISUAL&&!BASELINE&&!PROFILING&&SCENE.equals("default")&&PLAYERS==64&&Set.of("off","on").contains(System.getProperty("arcadium.fusedMinecraft073.mode","")),"Crowded fused visual requires its owned explicit64 lane");
-            require(Set.of(3,20,50).contains(PLAYERS)||ACTOR_SCENE_PERFORMANCE&&!VISUAL&&!BASELINE&&!PROFILING&&SCENE.equals("default")&&PLAYERS==64||FUSED_CROWDED_VISUAL,"Unsupported actor count or uncertified64-player fixture");
+            require(Set.of(3,20,50).contains(PLAYERS)||ACTOR_SCENE_PERFORMANCE&&!VISUAL&&!BASELINE&&!PROFILING&&SCENE.equals("default")&&PLAYERS==64||FUSED_CROWDED_VISUAL||VoxelSkin073PerformanceQa.enabled()&&PLAYERS==64,"Unsupported actor count or uncertified64-player fixture");
             require(VOXEL_ADMISSIONS.contains(VOXEL_ADMISSION) && (VOXEL_ADMISSION.equals("gpu") || VISUAL && SKIN), "Admission fallback checks require an explicit visual skin fixture");
             require(!NATIVE_BODY_CONTROL || VISUAL && !BASELINE && SKIN, "Native body control requires an explicit optimized visual skin fixture");
             require(!NATIVE_VOXEL_ROOT_CONTROL||VISUAL&&!BASELINE&&SKIN&&!NATIVE_BODY_CONTROL&&!PROFILING&&VOXEL_ADMISSION.equals("gpu")
@@ -124,7 +125,7 @@ public final class PlayerPipeline072Qa {
                 mc.player.lastX = mc.player.prevX = mc.player.x; mc.player.lastY = mc.player.prevY = mc.player.y; mc.player.lastZ = mc.player.prevZ = mc.player.z;
                 mc.player.lastYaw = mc.player.yaw; mc.player.lastPitch = mc.player.pitch;
                 mc.player.velocityX = mc.player.velocityY = mc.player.velocityZ = 0;
-                Features062Qa.seedSkin(mc); configureCase(SKIN, WAVY);
+                Features062Qa.seedSkin(mc); configureCase(SKIN, WAVY);if(VoxelSkin073PerformanceQa.enabled())VoxelSkin073PerformanceQa.seed(mc);
                 if (!BASELINE) {
                     Class<?> helper = Class.forName("io.github.arcadiumclient.runtime.qa.AnimationPose072Qa");
                     report.put("nativePoseValidation", helper.getMethod("verify", Minecraft.class).invoke(null, mc));
@@ -142,22 +143,24 @@ public final class PlayerPipeline072Qa {
                     for (PlayerModelPart part : PlayerModelPart.values()) require(actor.isModelPartVisible(part), "An outer skin part is hidden: " + part);
                     mc.world.forceEntity(72000 + i, actor); actors.add(actor);
                 }
+                VoxelSkin073PerformanceQa.actorsReady(mc,actors);
                 Features062Qa.voxelDraws = Features062Qa.meshCompiles = 0;
                 world = mc.world; settled = System.nanoTime(); phase = 2; phaseTicks = 0;
                 report.put("fixture", Map.of("scene", SCENE, "players", PLAYERS, "mode", VISUAL ? "fixed-delta-visual" : "dynamic-performance", "baseline", BASELINE,
                         "requestedSeconds", SECONDS, "warmupSeconds", WARMUP, "fixedVisualDelta", .5, "performanceUsesDynamicInterpolation", !VISUAL,
-                        "outerSkinPartMask", 127, "forgeEnvironment", "not-covered"));
+                        "outerSkinPartMask", 127, "forgeEnvironment", VoxelSkin073PerformanceQa.enabled()?"actual-Forge-guest":"not-covered"));
                 status("warming");
             }
             if (phase >= 2) {
                 require(mc.world == world && mc.screen == null, "The player scene changed");
                 mc.world.setTimeOfDay(6000);
-                mc.player.yaw = mc.player.lastYaw = 0; mc.player.pitch = mc.player.lastPitch = 8;
+                if(VoxelSkin073PerformanceQa.enabled()&&phase==3)require(mc.player.yaw==0&&mc.player.pitch==8,"Camera changed during voxel timing");else { mc.player.yaw = mc.player.lastYaw = 0; mc.player.pitch = mc.player.lastPitch = 8; }
                 if (VISUAL) mc.player.ticks = 100;
                 validatePresence(mc);
                 require(mc.width == 1920 && mc.height == 1080 && Display.getWidth() == 1920 && Display.getHeight() == 1080, "The fixture requires a real 1920x1080 framebuffer/window");
                 Map<String, Object> warmTerrain = phase == 2 ? terrainState(mc) : null;
                 if (phase == 2 && System.nanoTime() - settled >= WARMUP * 1_000_000_000L && Boolean.TRUE.equals(warmTerrain.get("ready")) && stableInventory(warmTerrain)) {
+                    if(VoxelSkin073PerformanceQa.enabled()&&!VoxelSkin073PerformanceQa.beforeReady()){if(!VoxelSkin073PerformanceQa.witnessActive()){renderTraces.clear();VoxelSkin073PerformanceQa.armWitness(false);}return;}
                     if (!Display.isActive()) { status("waiting_for_focus"); return; }
                     if(QUIET_WINDOW){
                         require(ACTOR_SCENE_PERFORMANCE&&!VISUAL&&!PROFILING,"Quiet windows require the owned unprofiled actor performance fixture");
@@ -170,7 +173,7 @@ public final class PlayerPipeline072Qa {
                     if (!VISUAL) matchDataset(warmTerrain);
                     report.put("requestedBeta", requested); report.put("requestedBetaPresence", requestedPresence);
                     if(ACTOR_SCENE_PERFORMANCE){
-                        armCounters();status("recording");started=QUIET_WINDOW?quietWindow.start():System.nanoTime();last=0;phase=3;phaseTicks=0;pendingImage=false;
+                        armCounters();if(VoxelSkin073PerformanceQa.enabled())VoxelSkin073PerformanceQa.beginMeasured(measuredSettings);status("recording");started=QUIET_WINDOW?quietWindow.start():System.nanoTime();last=0;phase=3;phaseTicks=0;pendingImage=false;
                     }else{
                         started = System.nanoTime(); last = 0; phase = VISUAL ? 4 : 3; phaseTicks = 0; pendingImage = VISUAL;
                         armCounters();status(VISUAL ? "visual" : "recording");
@@ -261,6 +264,7 @@ public final class PlayerPipeline072Qa {
     }
 
     public static void worldRendered() {
+        if(VoxelSkin073PerformanceQa.witnessActive())try{VoxelSkin073PerformanceQa.witnessFrame(actorRenderState());}catch(Throwable failure){finish(failure);return;}
         if (!enabled() || done || phase != 4 || !pendingImage || phaseTicks < 8) return;
         Minecraft mc = Minecraft.getInstance();
         try {
@@ -308,6 +312,7 @@ public final class PlayerPipeline072Qa {
     }
 
     public static void frame() {
+        if(VoxelSkin073PerformanceQa.enabled()&&!done&&phase==5&&VoxelSkin073PerformanceQa.afterReady()){try{completePerformance();}catch(Throwable failure){finish(failure);}return;}
         if (!enabled() || done || phase != 3) return;
         try {
             require(Display.isActive(), "Focus was lost during performance capture");
@@ -328,10 +333,13 @@ public final class PlayerPipeline072Qa {
             report.put("timedNativeVoxelDraws", Features062Qa.voxelDraws - phaseVoxelStart);
             report.put("timedVoxelProof", voxelEvidence());
             require(measuredSettings.equals(report.get("settingsAfter")), "Settings changed during performance capture");
-            requireVoxelPath();
-            requireBodyPath();
-            finish(null);
+            if(VoxelSkin073PerformanceQa.enabled()){VoxelSkin073PerformanceQa.endMeasured((Map<String,Object>)report.get("settingsAfter"));renderTraces.clear();VoxelSkin073PerformanceQa.armWitness(true);return;}
+            completePerformance();
         } catch (Throwable failure) { finish(failure); }
+    }
+
+    private static void completePerformance(){
+        requireVoxelPath();requireBodyPath();if(VoxelSkin073PerformanceQa.enabled())report.put("voxelCostEvidence",VoxelSkin073PerformanceQa.result());finish(null);
     }
 
     private static Map<String, Object> settings(Minecraft mc) throws Exception {
@@ -350,7 +358,7 @@ public final class PlayerPipeline072Qa {
         result.put("unfocusedFpsEnabled", OneConfigConfig.limitUnfocusedFps);
         result.put("camera", Map.of("x", mc.player.x, "y", mc.player.y, "z", mc.player.z, "yaw", mc.player.yaw, "pitch", mc.player.pitch));
         result.put("gpuTimers", false); result.put("gpuReadbacksDuringTiming", false); result.put("fixedDeltaDuringTiming", false);
-        result.put("profiling", PROFILING); result.put("notFinalPerformance", PROFILING||NATIVE_VOXEL_ROOT_CONTROL||!RESIDENT_BODY_MODE.equals("off")||RESIDENT_BODY_PERFORMANCE);
+        result.put("profiling", PROFILING); result.put("notFinalPerformance", PROFILING||NATIVE_VOXEL_ROOT_CONTROL||!RESIDENT_BODY_MODE.equals("off")||RESIDENT_BODY_PERFORMANCE||VoxelSkin073PerformanceQa.enabled());
         result.put("nativeBodyControl", NATIVE_BODY_CONTROL);
         result.put("residentBodyMode",RESIDENT_BODY_MODE);
         result.put("residentBodySharedPalette",RESIDENT_BODY_SHARED);
@@ -360,6 +368,7 @@ public final class PlayerPipeline072Qa {
         Map<String,Object> privateFlags=new TreeMap<>();
         for(String key:List.of("arcadium.residentBodies072.mode","arcadium.residentBodies072.sharedPalette","arcadium.residentBodies072.selectedMaterial","arcadium.terrainResident072.enabled","arcadium.namePreparation073.lowerEntity"))privateFlags.put(key,System.getProperty(key,"<absent>"));
         result.put("otherPrivateFlags",privateFlags);
+        if(VoxelSkin073PerformanceQa.enabled()){Map<String,Object> flags=new TreeMap<>();for(String key:List.of("arcadium.actorRoot073.enabled","arcadium.nativeLayerRoot072.replay","arcadium.terrainResident073.events","arcadium.voxelSkin073.physicalMvp","arcadium.voxelSkin073.physicalMvpMode"))flags.put(key,System.getProperty(key,"<absent>"));result.put("voxelCostPrivateFlags",flags);}
         return result;
     }
 
@@ -555,7 +564,7 @@ public final class PlayerPipeline072Qa {
         } else {
             require(Features062Qa.voxelDraws > phaseVoxelStart, "Native compiled voxel meshes did not draw during the measured phase");
             if (!BASELINE && BetaOptimizationsConfig.getGpuPlayerPipeline() && !NATIVE_BODY_CONTROL) {
-                boolean nativeRoute=counter("GpuPlayerPipeline", "nativeSkinCallbacks")>phaseNativeSkinStart
+                boolean nativeRoute=(counter("GpuPlayerPipeline", "nativeSkinCallbacks")>phaseNativeSkinStart||VoxelSkin073PerformanceQa.actualForgeBodyRoute())
                         && counter("NativePlayerPosePipeline", "bodyPartsQueued")>phaseNativeStart;
                 require(counter("GpuSkinLayers", "hybridPlayers")>phaseHybridStart || nativeRoute,
                         "Detailed skins never used compact bodies or the verified native-callback GPU body path");
@@ -867,7 +876,7 @@ public final class PlayerPipeline072Qa {
     public record RenderCheckpoint(long compact, long nativeParts, int voxels, long analyticVoxels, long nativeGpuVoxels,long resident) {}
     private static final class RenderTrace { int calls; long compact, nativeParts, voxels, analyticVoxels, nativeGpuVoxels,resident; }
     public static RenderCheckpoint beginPlayer(net.minecraft.client.entity.living.player.ClientPlayerEntity player) {
-        if (!enabled() || !VISUAL || done || !(player instanceof Actor)) return null;
+        if (!enabled() || !VISUAL&&!VoxelSkin073PerformanceQa.witnessActive() || done || !(player instanceof Actor)) return null;
         RenderCheckpoint checkpoint=new RenderCheckpoint(counter("GpuPlayerPipeline", "playersDrawn"), counter("NativePlayerPosePipeline", "bodyPartsQueued"), Features062Qa.voxelDraws,
                 counter("GpuVoxelSkinPipeline", "analyticParts"), counter("GpuVoxelSkinPipeline", "nativeParts"),counter("GpuResidentBodies","actorsQueued"));
         GpuVoxelSkin072QualityControls.nativeRootActor(true);return checkpoint;
@@ -918,8 +927,9 @@ public final class PlayerPipeline072Qa {
         if (failure == null && NameReset072Qa.enabled()) try { report.put("nativeNameResetProof", NameReset072Qa.verify()); } catch (Throwable error) { failure = error; }
         if (failure == null && ActorPacket072Qa.enabled()) try { report.put("nativeActorPacketProof", ActorPacket072Qa.verify()); } catch (Throwable error) { failure = error; }
         if(failure==null&&ResidentMaterial072Evidence.enabled())try{report.put("residentMaterialProof",ResidentMaterial072Evidence.verify());}catch(Throwable error){failure=error;}
+        if(VoxelSkin073PerformanceQa.enabled())report.put("voxelCostEvidence",VoxelSkin073PerformanceQa.result());
         done = true; report.put("passed", failure == null); report.put("syntheticOffline", true); report.put("phase", phase);
-        report.put("profiling", PROFILING); report.put("diagnosticOnly", PROFILING||NATIVE_VOXEL_ROOT_CONTROL||!RESIDENT_BODY_MODE.equals("off")||RESIDENT_BODY_PERFORMANCE); report.put("notFinalPerformance", PROFILING||NATIVE_VOXEL_ROOT_CONTROL||!RESIDENT_BODY_MODE.equals("off")||RESIDENT_BODY_PERFORMANCE);
+        report.put("profiling", PROFILING); report.put("diagnosticOnly", PROFILING||NATIVE_VOXEL_ROOT_CONTROL||!RESIDENT_BODY_MODE.equals("off")||RESIDENT_BODY_PERFORMANCE||VoxelSkin073PerformanceQa.enabled()); report.put("notFinalPerformance", PROFILING||NATIVE_VOXEL_ROOT_CONTROL||!RESIDENT_BODY_MODE.equals("off")||RESIDENT_BODY_PERFORMANCE||VoxelSkin073PerformanceQa.enabled());
         report.put("scope", NATIVE_VOXEL_ROOT_CONTROL ? "Correctness-only original-callback body root and GPU voxel diagnostic on the pinned pre-admission main. No FPS qualification."
                 : PROFILING ? "Diagnostic-only JFR capture; timing includes profiler overhead and is not final FPS evidence. Owned offline synthetic players."
                 : "Owned local synthetic player rendering fixture; not real Hypixel performance or another PC measurement.");

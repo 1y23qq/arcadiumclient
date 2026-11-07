@@ -53,6 +53,7 @@ public final class GpuPlayerPackets {
     public static boolean actorSceneReady(){return FUSED_SCENE?ActorFusedRuntime.frameReady():ACTOR_SCENE&&ActorSceneGpu.supported();}
     public static String actorSceneStatus(){if(ActorFusedMode.OLD_REQUESTED&&ActorFusedMode.FUSED_REQUESTED)return "Actor input: Conflicting private flags; exact native32";if(FUSED_SCENE)return ActorFusedRuntime.status();return !ACTOR_SCENE?"Actor tick/frame scene: Private prototype off":"Actor tick/frame scene: Resolved/streamed "+ActorSceneGpu.resolvedActorRows+"/"+(ActorSceneGpu.streamRows+actorSceneStreamRows)+" | Tick uploads "+ActorSceneGpu.tickUploads+" | GPU-only/lazyCPU "+scene.gpuOnlyCaptures+"/"+scene.cpuInterpolationRows+" | Sparse words/cached/interpolated "+scene.overrideWords+"/"+scene.constantOverrideWords+"/"+scene.overrideInterpolationWords+" | Pose/material fallback "+scene.poseMismatches+"/"+materials.fallbacks+" | Resolver failures "+ActorSceneGpu.failures+" | Context epoch/refusal "+ActorSceneGpu.contextEpoch()+"/"+ActorSceneGpu.contextRefusals+" | GPU bytes "+ActorSceneGpu.bytes();}
     public static int count(){return playerCount;}
+    public static void notePersistentActor(){stateRevision++;playerRevision++;}
     public static long playerRevision(){return playerRevision;}
     public static long poseRevision(){return poseRevision;}
     public static long templateRevision(){return templateRevision;}
@@ -96,6 +97,7 @@ public final class GpuPlayerPackets {
         return required<=current?current:Math.max(required,Math.min(maximum,current*2));
     }
     public static void beginBatch(){
+        ActorRoot073.beginBatch();
         if(actorBatch==Long.MAX_VALUE){clearActors();actorBatch=0;}actorBatch++;
         playerCount=reservedActors=actorFrameReady&&(GpuResidentPlayerState.enabled||SCENE_CAPTURE)?actors.size():0;
         if(scene!=null){scene.begin(actorBatch);lazyActors.clear();}
@@ -179,12 +181,13 @@ public final class GpuPlayerPackets {
         poses.put(offset,tx).put(offset+1,ty).put(offset+2,tz).put(offset+3,rx).put(offset+4,ry).put(offset+5,rz);
         poseRevision++;stateRevision++;
     }
-    public static void rollback(int index){if(scene!=null&&index>=0&&index<playerCount&&scene.present(index)){materialize(index);scene.discard(index);lazyActors.clear(index);stateRevision++;playerRevision++;}if(index>=reservedActors&&index>=0&&index==playerCount-1){
+    public static void rollback(int index){if(ActorRoot073.rootJob(index)){ActorRoot073.cancel(index);return;}if(scene!=null&&index>=0&&index<playerCount&&scene.present(index)){materialize(index);scene.discard(index);lazyActors.clear(index);stateRevision++;playerRevision++;}if(index>=reservedActors&&index>=0&&index==playerCount-1){
         if(poseOwners.get(index)&&(int)players.get(index*PLAYER_WORDS+29)==poseCount-1)poseCount--;
         poseOwners.clear(index);playerCount--;poseRevision++;stateRevision++;playerRevision++;
     }}
-    public static void resetTemplates(){clearActors();templateIds.clear();templateWords=0;templateRevision++;uploadedTemplates=-1;beginBatch();}
+    public static void resetTemplates(){ActorRoot073.invalidate();clearActors();templateIds.clear();templateWords=0;templateRevision++;uploadedTemplates=-1;beginBatch();}
     public static Matrix4f resolve(int encoded,Matrix4f destination){
+        if(ActorRoot073.rootJob(encoded/16))return ActorRoot073.resolve(encoded,destination,templates);
         int player=encoded/16,part=encoded%16,base=player*PLAYER_WORDS;
         if(player<0||player>=playerCount||part>=PARTS)throw new IllegalArgumentException("Invalid compact player instance");
         materialize(player);
@@ -206,6 +209,7 @@ public final class GpuPlayerPackets {
                 .translate(templates[t+8],templates[t+9],templates[t+10]).scale(templates[t+12],templates[t+13],templates[t+14]);
     }
     public static void bind(){
+        if(ActorRoot073.hasJobs()&&playerCount==0){ensureGpuStores();GL30.glBindBufferBase(GL43.GL_SHADER_STORAGE_BUFFER,3,playerBuffer);sharedBindings(false);return;}
         if(FUSED_SCENE){bindOrdinary(false,null);return;}
         if(ACTOR_SCENE)ActorSceneGpu.requireCurrent();
         if(playerBuffer==0){

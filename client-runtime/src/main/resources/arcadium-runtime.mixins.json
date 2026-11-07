@@ -229,7 +229,9 @@
     "compat.argentum.MixinTerrainInventoryRegion",
     "compat.argentum.MixinTerrainInventoryRegionManager",
     "compat.argentum.MixinTerrainInventoryStorage",
-    "compat.argentum.MixinTerrainResidentSubmission"
+    "compat.argentum.MixinTerrainResidentSubmission",
+    "compat.argentum.MixinGpuModelActorRootOrigin073",
+    "compat.argentum.MixinGpuModelActorRootTick073"
   ],
   "injectors": {
     "defaultRequire": 1

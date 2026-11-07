@@ -20,6 +20,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class MixinGpuPlayerFrame {
     @Inject(method="render(FJ)V",at=@At("HEAD"))
     private void arcadium$visiblePlayers(float delta,long nanoTime,CallbackInfo callback){
+        io.github.arcadiumclient.runtime.client.optimizations.ActorRoot073.frame(delta);
         ModernArmorGlintPipeline.beginFrame();
         Minecraft mc=Minecraft.getInstance();
         GpuPlayerPackets.beginActorFrame();

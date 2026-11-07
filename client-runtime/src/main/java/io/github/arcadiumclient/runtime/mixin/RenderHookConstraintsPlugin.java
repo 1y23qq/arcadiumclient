@@ -41,7 +41,9 @@ public final class RenderHookConstraintsPlugin extends ConstraintsMixinPlugin {
             "io.github.arcadiumclient.runtime.mixin.compat.argentum.MixinTerrainInventoryStorage",
             "io.github.arcadiumclient.runtime.mixin.compat.argentum.MixinTerrainResidentSubmission"
     );
+    private static final boolean ACTOR_ROOT_BOOT=Boolean.getBoolean("arcadium.actorRoot073.enabled")&&!Boolean.getBoolean("arcadium.actorScene073.enabled")&&!Boolean.getBoolean("arcadium.actorScene073.fusedInput");
     @Override public boolean shouldApplyMixin(String targetClassName,String mixinClassName) {
+        if(!ACTOR_ROOT_BOOT&&(mixinClassName.endsWith(".MixinGpuModelActorRootOrigin073")||mixinClassName.endsWith(".MixinGpuModelActorRootTick073")))return false;
         if(!TERRAIN_EVENT_BOOT&&TERRAIN_EVENT_MIXINS.contains(mixinClassName))return false;
         if(!VOXEL_PHYSICAL_BOOT&&mixinClassName.endsWith(".MixinGpuVoxelSkinCallList"))return false;
         if(!FORGE_PREPARED&&FORGE_ITEM_MIXINS.contains(mixinClassName))return false;

@@ -1,0 +1,41 @@
+package io.github.arcadiumclient.runtime.client.optimizations;
+
+import java.nio.*;
+import java.util.*;
+import static io.github.arcadiumclient.runtime.client.optimizations.ActorRootInput073.*;
+
+public final class ActorRootProtocol073Test {
+    static int checks;
+    static void ok(boolean value,String message){checks++;if(!value)throw new IllegalStateException(message);}
+    static final class Fake implements ActorRootProtocol073.Access {
+        Object owner=new Object(),current=owner;int p=31,g=32,r=33,w=34,queries,writes,originalCalls,next=100;boolean failFence,flipFence,flipDelete;
+        final int[] b={0,12,13,14,15,16,17,18};final long[] start={0,4,8,12,16,20,24,28},size={0,64,128,192,256,320,384,448};
+        final List<String> log=new ArrayList<>();final Set<Long> live=new HashSet<>();final Map<Long,Integer> deleted=new HashMap<>();
+        public Object owner(){return owner;}public boolean owns(Object key){return key==owner&&current==key;}
+        void check(){if(!owns(owner))throw new ActorRootProtocol073.Foreign();}
+        public int program(){check();queries++;return p;}public int generic(){check();queries++;return g;}public int copyRead(){check();queries++;return r;}public int copyWrite(){check();queries++;return w;}
+        public int buffer(int i){check();queries++;return b[i];}public long start(int i){check();queries++;return start[i];}public long size(int i){check();queries++;return size[i];}
+        public void program(int n){check();writes++;p=n;log.add("program:"+n);}public void generic(int n){check();writes++;g=n;log.add("generic:"+n);}public void copyRead(int n){check();writes++;r=n;log.add("read:"+n);}public void copyWrite(int n){check();writes++;w=n;log.add("write:"+n);}
+        public void base(int i,int n){check();writes++;b[i]=n;start[i]=size[i]=0;log.add("base:"+i+":"+n);}public void range(int i,int n,long s,long z){check();writes++;b[i]=n;start[i]=s;size[i]=z;log.add("range:"+i+":"+n);}
+        public long fence(){check();log.add("fence");if(failFence)return 0;long name=++next;ok(live.add(name),"Duplicate sync creation");if(flipFence){flipFence=false;current=new Object();}return name;}
+        public void deleteFence(long n){check();ok(live.remove(n),"Sync leaked or deleted twice");deleted.merge(n,1,Integer::sum);log.add("delete:"+n);if(flipDelete){flipDelete=false;current=new Object();}}
+        void nativeRetry(){check();originalCalls++;}
+    }
+    static final class Backend implements ActorRootCore073.Backend {public boolean reserve(ActorRootCore073 core){return true;}public void dirty(int s){}public void roster(){}public void pose(ActorRootCore073.Entry e){}public void endBatch(){}public void invalidate(){}}
+    public static void main(String[] args){
+        ActorRootCore073 core=new ActorRootCore073(new Backend());core.world(new Object());core.beginBatch(.5f);ok(core.camera(0,0,0),"Camera");float[] pose=new float[16];pose[13]=-1;
+        State a=new State(1,4,3,1,4,3,0,0,1.8f,0);int first=core.reserve(new Object(),a,1,4,3,pose);core.commit(first);ActorRootProtocol073.FrameHeader header=new ActorRootProtocol073.FrameHeader();ByteBuffer bytes=ByteBuffer.allocate(48);int uploads=0;
+        ok(header.needs(core.frame().frameId(),core.size(),core.rosterRevision),"Initial frame not dirty");ActorRootInput073.encodeFrame(bytes,core.frame(),2048);header.uploaded(core.frame().frameId(),core.size(),core.rosterRevision);uploads++;ok(bytes.order(ByteOrder.LITTLE_ENDIAN).getInt(28)==1,"Initial source count");
+        long sameFrame=core.frame().frameId();int second=core.reserve(new Object(),new State(2,4,3,2,4,3,0,0,1.8f,0),2,4,3,pose);core.commit(second);ok(core.frame().frameId()==sameFrame&&header.needs(sameFrame,core.size(),core.rosterRevision),"Same-batch new committed slot skipped frame refresh");bytes.clear();ActorRootInput073.encodeFrame(bytes,core.frame(),2048);header.uploaded(sameFrame,core.size(),core.rosterRevision);uploads++;ok(bytes.getInt(28)==2&&uploads==2,"Shader count remains stale");ok(header.needs(sameFrame,2,core.rosterRevision+1),"Same-count roster generation not refreshed");for(int i=0;i<1000;i++)ok(!header.needs(sameFrame,2,core.rosterRevision),"Unchanged store performed extra preparation");
+        Fake access=new Fake();ActorRootProtocol073 protocol=new ActorRootProtocol073(access);var outer=protocol.capture();int queryCount=access.queries;ok(queryCount==28,"Full caller query inventory");access.p=99;access.g=98;access.r=97;access.w=96;Arrays.fill(access.b,77);Arrays.fill(access.start,44);Arrays.fill(access.size,88);Object oldOwner=access.owner;access.current=new Object();int before=access.writes;
+        ok(!protocol.finish(outer)&&protocol.pending()==1,"Foreign full caller was not deferred");ok(access.writes==before,"Foreign state restore issued writes");try{protocol.require();access.nativeRetry();throw new IllegalStateException("Foreign retry ran");}catch(ActorRootProtocol073.Foreign expected){}ok(access.originalCalls==0&&access.writes==before,"Foreign retry/reupload path executed");
+        Object newGeneration=new Object();access.owner=access.current=newGeneration;ok(!protocol.drain()&&access.writes==before,"Stale generation restored a caller");access.owner=access.current=oldOwner;ok(protocol.drain()&&protocol.pending()==0,"Actual-owner full restore did not complete");ok(access.p==31&&access.g==32&&access.r==33&&access.w==34,"Program/generic/copy bindings lost");for(int i=0;i<8;i++)ok(access.b[i]==(i==0?0:11+i)&&access.start[i]==i*4L&&access.size[i]==i*64L,"Indexed caller range not exact");ok(access.log.subList(access.log.size()-4,access.log.size()).equals(List.of("read:33","write:34","generic:32","program:31")),"Full restore ordering changed");
+        var reused=protocol.capture();ok(reused==outer,"Caller array allocated on every unchanged dispatch");ok(protocol.finish(reused),"Same-owner finish");
+        var one=protocol.capture();access.p=41;var two=protocol.capture();access.p=51;access.current=new Object();ok(!protocol.finish(two)&&!protocol.finish(one)&&protocol.pending()==2,"Nested deferral order");access.current=access.owner;ok(protocol.drain()&&access.p==31,"Nested full caller did not finish at outer state");
+        ActorRootProtocol073.Fences fences=new ActorRootProtocol073.Fences();ok(fences.publish(access,access.owner),"First fence");long oldest=fences.current();access.failFence=true;ok(!fences.publish(access,access.owner)&&fences.current()==oldest&&access.live.contains(oldest),"Failed fence discarded prior reader");access.failFence=false;ok(fences.recover(access,access.owner)&&access.deleted.get(oldest)==1&&access.live.size()==1,"Poison recovery leaked old sync");
+        long prior=fences.current();access.flipFence=true;ok(!fences.publish(access,access.owner)&&fences.current()==prior&&fences.pending()!=0&&access.live.size()==2,"Foreign post-create did not retain both handles");int logs=access.log.size();for(int i=0;i<50;i++)ok(!fences.recover(access,access.owner),"Foreign poison recovery ran");ok(access.log.size()==logs&&access.live.size()==2,"Repeated foreign faults leaked syncs or wrote state");access.current=access.owner;ok(fences.recover(access,access.owner)&&fences.pending()==0&&access.live.size()==1&&access.deleted.get(prior)==1,"Owner recovery did not retire old sync exactly once");
+        for(int i=0;i<64;i++){long previous=fences.current();ok(fences.publish(access,access.owner),"Repeated same-batch fence");ok(access.deleted.get(previous)==1&&access.live.size()==1,"Repeated same-batch sync leak/double delete");}fences.deleteCurrent(access,access.owner);fences.deleteCurrent(access,access.owner);ok(access.live.isEmpty(),"Final sync cleanup");
+        ok(ActorRootInput073.RECORD_BYTES==80&&ActorRootInput073.FRAME_BYTES==48&&ActorRootCore073.JOB_BASE==8192,"Source ABI expanded into old32-word frame stream");
+        System.out.println("{\"passed\":true,\"checks\":"+checks+",\"sameBatchCount1To2\":true,\"sameCountRosterRefresh\":true,\"fullCaller0Through7ProgramGenericCopies\":true,\"foreignWritesAndRetries\":0,\"ownerGenerationsAndNestedOrder\":true,\"unchangedFrame1000NoPrepare\":true,\"boundedSyncHandles\":2,\"syncsLeft\":"+access.live.size()+",\"noGlCalls\":true}");
+    }
+}

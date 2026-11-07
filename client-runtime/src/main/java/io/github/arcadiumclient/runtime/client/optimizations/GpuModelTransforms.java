@@ -66,6 +66,7 @@ public final class GpuModelTransforms {
     public static int visiblePlayers(){return players;}
 
     private static void initialize() {
+        ActorRoot073.requireOwner();
         if(ActorFusedMode.FUSED&&!ActorFusedRuntime.ownsCurrent()){capability="Actual actor context differs; using native recovery";return;}
         checked = true;
         if (!GL.getCapabilities().OpenGL43) { capability = "OpenGL 4.3 required; using Argentum"; return; }
@@ -75,6 +76,7 @@ public final class GpuModelTransforms {
             try(var stream=GpuModelTransforms.class.getResourceAsStream("/assets/arcadium/shaders/model_transforms.comp")){if(stream==null)throw new IOException("Missing model transform shader");rawModel=new String(stream.readAllBytes(),StandardCharsets.UTF_8);}
             try(var stream=GpuModelTransforms.class.getResourceAsStream("/assets/arcadium/shaders/player_pose.glsl")){if(stream==null)throw new IOException("Missing compact player shader");rawPlayer=new String(stream.readAllBytes(),StandardCharsets.UTF_8);}
             int header=rawModel.indexOf('\n');String ordinary=rawModel.substring(0,header+1)+rawPlayer+rawModel.substring(header+1);
+            String rootOrdinary=ordinary;ordinary=ActorRootSource073.compose(ordinary,rawPlayer,"2b35115692e6615f84dc3d8648c479cf8875d6f00f0f41cc5efd0647198e7777","20c5af9d1d3b4037bd2eb03a5a7e17a8c383d217857a3a15e1e44299c408079c");boolean rootSource=!ordinary.equals(rootOrdinary);
             ActorFusedShader.Result fusedSource=null;
             boolean fusionEligible=ActorFusedMode.FUSED&&ActorFusedRuntime.canPatch();
             if(fusionEligible)try(var stream=GpuModelTransforms.class.getResourceAsStream("/assets/arcadium/shaders/actor_fused_reader_073.glsl")){if(stream!=null){var candidate=ActorFusedShader.compose(rawModel,rawPlayer,new String(stream.readAllBytes(),StandardCharsets.UTF_8),true);if(candidate.accepted())fusedSource=candidate;}}catch(Exception unsupported){fusedSource=null;}
@@ -83,11 +85,14 @@ public final class GpuModelTransforms {
             shader = GL20.glCreateShader(GL43.GL_COMPUTE_SHADER);
             GL20.glShaderSource(shader, source); GL20.glCompileShader(shader);
             if(fusedSource!=null&&GL20.glGetShaderi(shader,GL20.GL_COMPILE_STATUS)==0){fusedSource=null;ActorFusedRuntime.disableFusion();GL20.glShaderSource(shader,ordinary);GL20.glCompileShader(shader);}
+            if(rootSource&&GL20.glGetShaderi(shader,GL20.GL_COMPILE_STATUS)==0){ActorRoot073.requireOwner();ActorRoot073.disablePrivate();rootSource=false;ordinary=rootOrdinary;source=ordinary;GL20.glShaderSource(shader,ordinary);GL20.glCompileShader(shader);}
             if (GL20.glGetShaderi(shader, GL20.GL_COMPILE_STATUS) == 0) throw new IllegalStateException(GL20.glGetShaderInfoLog(shader));
             program = GL20.glCreateProgram(); GL20.glAttachShader(program, shader); GL20.glLinkProgram(program);
             if(fusedSource!=null&&GL20.glGetProgrami(program,GL20.GL_LINK_STATUS)==0){fusedSource=null;ActorFusedRuntime.disableFusion();ordinaryProgram(shader,program,ordinary);}
+            if(rootSource&&GL20.glGetProgrami(program,GL20.GL_LINK_STATUS)==0){ActorRoot073.requireOwner();ActorRoot073.disablePrivate();rootSource=false;ordinary=rootOrdinary;source=ordinary;ordinaryProgram(shader,program,ordinary);}
             if (GL20.glGetProgrami(program, GL20.GL_LINK_STATUS) == 0) throw new IllegalStateException(GL20.glGetProgramInfoLog(program));
             countUniform = GL20.glGetUniformLocation(program, "instanceCount");
+            if(rootSource&&!ActorRoot073.linked(program,ActorRootSource073.sha(source))){ordinaryProgram(shader,program,rootOrdinary);countUniform=GL20.glGetUniformLocation(program,"instanceCount");ActorRoot073.disablePrivate();}
             if(ActorFusedMode.FUSED){
                 fusedProgramLink=new Object();ActorFusedRuntime.modelLinked(fusedProgramLink);
                 if(fusedSource!=null&&!qualifyFusedProgram(program,fusedProgramLink,countUniform,fusedSource)){
@@ -108,10 +113,10 @@ public final class GpuModelTransforms {
                 sortProgram = GL20.glCreateProgram(); GL20.glAttachShader(sortProgram, sortShader); GL20.glLinkProgram(sortProgram);
                 if (GL20.glGetProgrami(sortProgram, GL20.GL_LINK_STATUS) == 0) throw new IllegalStateException(GL20.glGetProgramInfoLog(sortProgram));
                 sortCountUniform = GL20.glGetUniformLocation(sortProgram, "instanceCount");
-            } finally { if(!ActorFusedMode.FUSED||ActorFusedRuntime.ownsCurrent())GL20.glDeleteShader(sortShader);else ActorFusedRuntime.deferShader(sortShader); }
+            } finally { if(!ActorRoot073.ownsOwner()){ActorRoot073.deferShader(sortShader);throw new ActorRootProtocol073.Foreign();}if(!ActorFusedMode.FUSED||ActorFusedRuntime.ownsCurrent())GL20.glDeleteShader(sortShader);else ActorFusedRuntime.deferShader(sortShader); }
             supported = true; validateProgram(); capability = "Validated compute";
-        } catch (Exception error) { disable(error); }
-        finally { if(shader!=0){if(!ActorFusedMode.FUSED||ActorFusedRuntime.ownsCurrent())GL20.glDeleteShader(shader);else ActorFusedRuntime.deferShader(shader);} }
+        } catch (Exception error) { if(ActorRoot073.foreign(error)||!ActorRoot073.ownsOwner())throw new ActorRootProtocol073.Foreign();disable(error); }
+        finally { if(shader!=0){if(!ActorRoot073.ownsOwner()){ActorRoot073.deferShader(shader);throw new ActorRootProtocol073.Foreign();}if(!ActorFusedMode.FUSED||ActorFusedRuntime.ownsCurrent())GL20.glDeleteShader(shader);else ActorFusedRuntime.deferShader(shader);} }
     }
 
     private static boolean qualifyFusedProgram(int name,Object link,int count,ActorFusedShader.Result source){
@@ -139,7 +144,8 @@ public final class GpuModelTransforms {
     }
 
     private static void validateProgram() {
-        int testBuffer=GL15.glGenBuffers();
+        ActorRoot073.requireOwner();ActorRootProtocol073.Caller validationCaller;
+        int testBuffer=0;
         int oldCopy=GL11.glGetInteger(GL31.GL_COPY_READ_BUFFER), oldStorage=GL11.glGetInteger(GL43.GL_SHADER_STORAGE_BUFFER_BINDING);
         long oldParts=offloadedParts,oldDispatches=dispatches,oldSorted=sortedBatches;
         int[] payload=new int[64*STRIDE];Matrix4f[] expected=new Matrix4f[64];
@@ -151,7 +157,9 @@ public final class GpuModelTransforms {
             rest[t+8]=-.25f;rest[t+10]=-.125f;rest[t+12]=.5f;rest[t+13]=.75f;rest[t+14]=.25f;
         }
         int compactTemplate=GpuPlayerPackets.registerTemplate(rest);
+        validationCaller=ActorRoot073.captureCaller();
         try {
+            testBuffer=GL15.glGenBuffers();
             for(int i=0;i<64;i++) {
                 var base=new Matrix4f().translation(i*.75f-24,i%7-3,8+i*.125f).rotateY(i*.13f).scale(-.9375f,-.9375f,.9375f);
                 var shape=new Matrix4f().translation(-.25f,-.125f,-.125f).scale(i%2==0?.5f:-.5f,.75f,.25f);
@@ -189,7 +197,7 @@ public final class GpuModelTransforms {
                 if(d>previous+0.002f)throw new IllegalStateException("GPU sort validation failed");previous=d;
             }
         } finally {
-            GL15.glBindBuffer(GL31.GL_COPY_READ_BUFFER,oldCopy);GL15.glBindBuffer(GL43.GL_SHADER_STORAGE_BUFFER,oldStorage);GL15.glDeleteBuffers(testBuffer);
+            if(validationCaller!=null){if(!ActorRoot073.finishCaller(validationCaller)){ActorRoot073.deferBuffer(testBuffer);throw new ActorRootProtocol073.Foreign();}ActorRoot073.requireOwner();GL15.glDeleteBuffers(testBuffer);}else{GL15.glBindBuffer(GL31.GL_COPY_READ_BUFFER,oldCopy);GL15.glBindBuffer(GL43.GL_SHADER_STORAGE_BUFFER,oldStorage);GL15.glDeleteBuffers(testBuffer);}
             count=uploaded=0;offloadedParts=oldParts;dispatches=oldDispatches;sortedBatches=oldSorted;
             modelRevision++;
             GpuPlayerPackets.beginBatch();
@@ -197,7 +205,7 @@ public final class GpuModelTransforms {
     }
 
     public static boolean hasJobs(IntBuffer instances) {
-        if ((count == 0&&GpuPlayerPackets.count()==0) || instances.remaining() % STRIDE != 0) return false;
+        if ((count == 0&&GpuPlayerPackets.count()==0&&!ActorRoot073.hasJobs()) || instances.remaining() % STRIDE != 0) return false;
         for (int i = instances.position(); i < instances.limit(); i += STRIDE)
             if (marked(instances.get(i + 1), instances.get(i + 2))) return true;
         return false;
@@ -205,26 +213,28 @@ public final class GpuModelTransforms {
 
     public static void expand(int instanceBuffer, IntBuffer payload) {
         boolean privateInput=ActorFusedMode.FUSED;if(privateInput)ActorFusedRuntime.requireCurrent();ActorFusedRuntime.Scope actorInput=null;
+        ActorRootGl073.Scope rootInput=null;
         int instances = payload.remaining() / STRIDE;
         boolean sort = false;
         int gpuParts = 0;
         for (int i=payload.position();i<payload.limit();i+=STRIDE) if(marked(payload.get(i+1),payload.get(i+2))) {
             gpuParts++; sort |= payload.get(i+2)==SORT_MAGIC;
         }
-        int previousProgram = GL11.glGetInteger(GL20.GL_CURRENT_PROGRAM);
-        int previousGeneric = GL11.glGetInteger(GL43.GL_SHADER_STORAGE_BUFFER_BINDING);
-        int previous0 = GL30.glGetIntegeri(GL43.GL_SHADER_STORAGE_BUFFER_BINDING, 0);
-        int previous1 = GL30.glGetIntegeri(GL43.GL_SHADER_STORAGE_BUFFER_BINDING, 1);
-        int previous2 = GL30.glGetIntegeri(GL43.GL_SHADER_STORAGE_BUFFER_BINDING, 2);
-        long start0=range(previous0,GL43.GL_SHADER_STORAGE_BUFFER_START,0), size0=range(previous0,GL43.GL_SHADER_STORAGE_BUFFER_SIZE,0);
-        long start1=range(previous1,GL43.GL_SHADER_STORAGE_BUFFER_START,1), size1=range(previous1,GL43.GL_SHADER_STORAGE_BUFFER_SIZE,1);
-        long start2=range(previous2,GL43.GL_SHADER_STORAGE_BUFFER_START,2), size2=range(previous2,GL43.GL_SHADER_STORAGE_BUFFER_SIZE,2);
-        int previous3=GL30.glGetIntegeri(GL43.GL_SHADER_STORAGE_BUFFER_BINDING,3),previous4=GL30.glGetIntegeri(GL43.GL_SHADER_STORAGE_BUFFER_BINDING,4),previous5=GL30.glGetIntegeri(GL43.GL_SHADER_STORAGE_BUFFER_BINDING,5);
-        int previous6=GL30.glGetIntegeri(GL43.GL_SHADER_STORAGE_BUFFER_BINDING,6);
-        long start3=range(previous3,GL43.GL_SHADER_STORAGE_BUFFER_START,3),size3=range(previous3,GL43.GL_SHADER_STORAGE_BUFFER_SIZE,3);
-        long start4=range(previous4,GL43.GL_SHADER_STORAGE_BUFFER_START,4),size4=range(previous4,GL43.GL_SHADER_STORAGE_BUFFER_SIZE,4);
-        long start5=range(previous5,GL43.GL_SHADER_STORAGE_BUFFER_START,5),size5=range(previous5,GL43.GL_SHADER_STORAGE_BUFFER_SIZE,5);
-        long start6=range(previous6,GL43.GL_SHADER_STORAGE_BUFFER_START,6),size6=range(previous6,GL43.GL_SHADER_STORAGE_BUFFER_SIZE,6);
+        ActorRootProtocol073.Caller rootCaller=ActorRoot073.captureCaller();
+        int previousProgram = rootCaller!=null?rootCaller.program:GL11.glGetInteger(GL20.GL_CURRENT_PROGRAM);
+        int previousGeneric = rootCaller!=null?rootCaller.generic:GL11.glGetInteger(GL43.GL_SHADER_STORAGE_BUFFER_BINDING);
+        int previous0 = rootCaller!=null?rootCaller.buffers[0]:GL30.glGetIntegeri(GL43.GL_SHADER_STORAGE_BUFFER_BINDING, 0);
+        int previous1 = rootCaller!=null?rootCaller.buffers[1]:GL30.glGetIntegeri(GL43.GL_SHADER_STORAGE_BUFFER_BINDING, 1);
+        int previous2 = rootCaller!=null?rootCaller.buffers[2]:GL30.glGetIntegeri(GL43.GL_SHADER_STORAGE_BUFFER_BINDING, 2);
+        long start0=rootCaller!=null?rootCaller.starts[0]:range(previous0,GL43.GL_SHADER_STORAGE_BUFFER_START,0), size0=rootCaller!=null?rootCaller.sizes[0]:range(previous0,GL43.GL_SHADER_STORAGE_BUFFER_SIZE,0);
+        long start1=rootCaller!=null?rootCaller.starts[1]:range(previous1,GL43.GL_SHADER_STORAGE_BUFFER_START,1), size1=rootCaller!=null?rootCaller.sizes[1]:range(previous1,GL43.GL_SHADER_STORAGE_BUFFER_SIZE,1);
+        long start2=rootCaller!=null?rootCaller.starts[2]:range(previous2,GL43.GL_SHADER_STORAGE_BUFFER_START,2), size2=rootCaller!=null?rootCaller.sizes[2]:range(previous2,GL43.GL_SHADER_STORAGE_BUFFER_SIZE,2);
+        int previous3=rootCaller!=null?rootCaller.buffers[3]:GL30.glGetIntegeri(GL43.GL_SHADER_STORAGE_BUFFER_BINDING,3),previous4=rootCaller!=null?rootCaller.buffers[4]:GL30.glGetIntegeri(GL43.GL_SHADER_STORAGE_BUFFER_BINDING,4),previous5=rootCaller!=null?rootCaller.buffers[5]:GL30.glGetIntegeri(GL43.GL_SHADER_STORAGE_BUFFER_BINDING,5);
+        int previous6=rootCaller!=null?rootCaller.buffers[6]:GL30.glGetIntegeri(GL43.GL_SHADER_STORAGE_BUFFER_BINDING,6);
+        long start3=rootCaller!=null?rootCaller.starts[3]:range(previous3,GL43.GL_SHADER_STORAGE_BUFFER_START,3),size3=rootCaller!=null?rootCaller.sizes[3]:range(previous3,GL43.GL_SHADER_STORAGE_BUFFER_SIZE,3);
+        long start4=rootCaller!=null?rootCaller.starts[4]:range(previous4,GL43.GL_SHADER_STORAGE_BUFFER_START,4),size4=rootCaller!=null?rootCaller.sizes[4]:range(previous4,GL43.GL_SHADER_STORAGE_BUFFER_SIZE,4);
+        long start5=rootCaller!=null?rootCaller.starts[5]:range(previous5,GL43.GL_SHADER_STORAGE_BUFFER_START,5),size5=rootCaller!=null?rootCaller.sizes[5]:range(previous5,GL43.GL_SHADER_STORAGE_BUFFER_SIZE,5);
+        long start6=rootCaller!=null?rootCaller.starts[6]:range(previous6,GL43.GL_SHADER_STORAGE_BUFFER_START,6),size6=rootCaller!=null?rootCaller.sizes[6]:range(previous6,GL43.GL_SHADER_STORAGE_BUFFER_SIZE,6);
         try {
             if (!supported || failed) throw new IllegalStateException("GPU transforms unavailable");
             if (uploaded != count) {
@@ -236,6 +246,7 @@ public final class GpuModelTransforms {
             GL30.glBindBufferBase(GL43.GL_SHADER_STORAGE_BUFFER, 1, input);
             if(privateInput){GL20.glUseProgram(program);actorInput=GpuPlayerPackets.bindModelInput(program,fusedProgramLink,payload);}else GpuPlayerPackets.bind();
             GL20.glUseProgram(program); GL20.glUniform1i(countUniform, instances);
+            rootInput=ActorRoot073.bind();if(rootInput!=null)rootInput.beforeDispatch();
             if(actorInput!=null)actorInput.beforeDispatch();
             GL43.glDispatchCompute((instances + 63) / 64, 1, 1);
             GL42.glMemoryBarrier(GL43.GL_SHADER_STORAGE_BARRIER_BIT | GL42.GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT);
@@ -244,7 +255,8 @@ public final class GpuModelTransforms {
             if(sort){if(privateInput)restoreBinding(3,previous3,start3,size3);sortGpu(instanceBuffer,instances);}
             offloadedParts += gpuParts;
         } finally {
-            try{if(actorInput!=null)actorInput.close();}finally{
+            try{try{if(rootInput!=null)rootInput.close();}finally{if(actorInput!=null)actorInput.close();}}finally{
+            if(rootCaller!=null){if(!ActorRoot073.finishCaller(rootCaller))throw new ActorRootProtocol073.Foreign();}else{
             if(privateInput&&!ActorFusedRuntime.ownsCurrent()){
                 ActorFusedRuntime.deferCaller(previousProgram,previousGeneric,new int[]{previous0,previous1,previous2,previous3,previous4,previous5,previous6},new long[]{start0,start1,start2,start3,start4,start5,start6},new long[]{size0,size1,size2,size3,size4,size5,size6});
                 throw new IllegalStateException("Native model caller state retained for its actual owning context");
@@ -258,6 +270,7 @@ public final class GpuModelTransforms {
             GL15.glBindBuffer(GL43.GL_SHADER_STORAGE_BUFFER, previousGeneric);
             if(privateInput)GL20.glUseProgram(previousProgram);
             }
+            }
         }
     }
 
@@ -268,6 +281,7 @@ public final class GpuModelTransforms {
     }
 
     public static void recover(IntBuffer instances) {
+        ActorRoot073.requireOwner();
         boolean sort = false;
         for (int i = instances.position(); i < instances.limit(); i += STRIDE) {
             if (!marked(instances.get(i + 1), instances.get(i + 2))) continue;
@@ -295,6 +309,7 @@ public final class GpuModelTransforms {
     }
 
     private static void sortGpu(int instanceBuffer, int instances) {
+        ActorRoot073.requireOwner();
         if(ActorFusedMode.FUSED)ActorFusedRuntime.requireCurrent();
         int activeSortProgram=sortProgram,activeSortUniform=sortCountUniform;Object activeSortLink=fusedProgramLink;
         int oldSortCount=ActorFusedMode.FUSED?GL20.glGetUniformi(activeSortProgram,activeSortUniform):0,oldSortProgram=ActorFusedMode.FUSED?GL11.glGetInteger(GL20.GL_CURRENT_PROGRAM):0;
@@ -308,7 +323,7 @@ public final class GpuModelTransforms {
             GL15.glBindBuffer(GL31.GL_COPY_READ_BUFFER,scratch);GL15.glBindBuffer(GL31.GL_COPY_WRITE_BUFFER,instanceBuffer);
             GL31.glCopyBufferSubData(GL31.GL_COPY_READ_BUFFER,GL31.GL_COPY_WRITE_BUFFER,0,0,(long)instances*STRIDE*4);
             GL42.glMemoryBarrier(GL42.GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT);sortedBatches++;dispatches++;
-        } finally {if(!ActorFusedMode.FUSED||ActorFusedRuntime.ownsCurrent()){if(ActorFusedMode.FUSED&&ActorFusedRuntime.sameLink(activeSortLink)&&GL20.glIsProgram(activeSortProgram)){GL20.glUseProgram(activeSortProgram);GL20.glUniform1i(activeSortUniform,oldSortCount);GL20.glUseProgram(oldSortProgram);}GL15.glBindBuffer(GL31.GL_COPY_READ_BUFFER,previousRead);GL15.glBindBuffer(GL31.GL_COPY_WRITE_BUFFER,previousWrite);}else{ActorFusedRuntime.deferSort(activeSortProgram,activeSortLink,activeSortUniform,oldSortCount,oldSortProgram);ActorFusedRuntime.deferCopies(previousRead,previousWrite);}}
+        } finally {ActorRoot073.requireOwner();if(!ActorFusedMode.FUSED||ActorFusedRuntime.ownsCurrent()){if(ActorFusedMode.FUSED&&ActorFusedRuntime.sameLink(activeSortLink)&&GL20.glIsProgram(activeSortProgram)){GL20.glUseProgram(activeSortProgram);GL20.glUniform1i(activeSortUniform,oldSortCount);GL20.glUseProgram(oldSortProgram);}GL15.glBindBuffer(GL31.GL_COPY_READ_BUFFER,previousRead);GL15.glBindBuffer(GL31.GL_COPY_WRITE_BUFFER,previousWrite);}else{ActorFusedRuntime.deferSort(activeSortProgram,activeSortLink,activeSortUniform,oldSortCount,oldSortProgram);ActorFusedRuntime.deferCopies(previousRead,previousWrite);}}
     }
 
     private static float distance(IntBuffer data,int index) {
@@ -342,6 +357,8 @@ public final class GpuModelTransforms {
     }
 
     public static void close() {
+        ActorRoot073.requireOwner();
+        ActorRoot073.close();
         if(ActorFusedMode.FUSED&&!ActorFusedRuntime.ownsCurrent())return;
         if(ActorFusedMode.FUSED)ActorFusedRuntime.forget(program,fusedProgramLink);
         batchOwner = null; batchThread = null; batchEpoch++; modelRevision++;

@@ -150,7 +150,7 @@ if (minecraftVersion == "1.7.10") {
                 "**/compat/argentum/MixinGpuResolvedDriverUpload.java",
                 "**/compat/argentum/MixinGpuPlayerFrame.java",
                 "**/compat/argentum/MixinGpuTerrainCommands.java",
-                "**/compat/argentum/MixinTerrainResident*.java",
+                "**/compat/argentum/MixinTerrainResident*.java", "**/compat/argentum/MixinTerrainInventory*.java",
                 "**/compat/argentum/MixinGpuVoxel*.java",
                 "**/compat/argentum/MixinModernArmor*.java", "**/client/ModernArmorGlintMixin.java",
                 "**/compat/argentum/MixinGpuNameTags.java",
