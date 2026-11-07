@@ -32,7 +32,17 @@ public final class RenderHookConstraintsPlugin extends ConstraintsMixinPlugin {
             "io.github.arcadiumclient.runtime.mixin.compat.argentum.MixinTerrainResidentShaderSource",
             "io.github.arcadiumclient.runtime.mixin.compat.argentum.MixinTerrainResidentShaderDelete"
     );
+    private static final boolean TERRAIN_EVENT_BOOT=RESIDENT_TERRAIN_BOOT&&Boolean.getBoolean("arcadium.terrainResident073.events");
+    private static final java.util.Set<String> TERRAIN_EVENT_MIXINS=java.util.Set.of(
+            "io.github.arcadiumclient.runtime.mixin.compat.argentum.MixinTerrainInventoryLists",
+            "io.github.arcadiumclient.runtime.mixin.compat.argentum.MixinTerrainInventoryManager",
+            "io.github.arcadiumclient.runtime.mixin.compat.argentum.MixinTerrainInventoryRegion",
+            "io.github.arcadiumclient.runtime.mixin.compat.argentum.MixinTerrainInventoryRegionManager",
+            "io.github.arcadiumclient.runtime.mixin.compat.argentum.MixinTerrainInventoryStorage",
+            "io.github.arcadiumclient.runtime.mixin.compat.argentum.MixinTerrainResidentSubmission"
+    );
     @Override public boolean shouldApplyMixin(String targetClassName,String mixinClassName) {
+        if(!TERRAIN_EVENT_BOOT&&TERRAIN_EVENT_MIXINS.contains(mixinClassName))return false;
         if(!VOXEL_PHYSICAL_BOOT&&mixinClassName.endsWith(".MixinGpuVoxelSkinCallList"))return false;
         if(!FORGE_PREPARED&&FORGE_ITEM_MIXINS.contains(mixinClassName))return false;
         if(!RESIDENT_TERRAIN_BOOT&&RESIDENT_TERRAIN_MIXINS.contains(mixinClassName))return false;

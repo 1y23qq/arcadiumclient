@@ -27,6 +27,9 @@ final class TerrainResidentGpuBuffers implements AutoCloseable {
     private final TerrainResidentResources resources;
     private final int[] nextFrame=new int[33];
     long meshUploads,dispatches,reuses;
+    private boolean publishedMode,legacyMode,publishedValid;
+    private long publishedRevision=-1;
+    record PublishedResult(boolean ready,boolean dispatched,boolean needsReplay){}
     TerrainResidentGpuBuffers(CommandList device,int capacity,String shaderSource){
         if(capacity<1||capacity>MAX_REGIONS||(long)capacity*REGION_BYTES>64L*1024*1024)throw new IllegalArgumentException("Resident terrain GPU budget exceeded");
         this.capacity=capacity;versions=new long[capacity];identities=new Object[capacity];
@@ -71,6 +74,7 @@ final class TerrainResidentGpuBuffers implements AutoCloseable {
                     int renderX,int renderY,int renderZ,float fractionX,float fractionY,float fractionZ,
                     int faceX,int faceY,int faceZ,float faceFractionX,float faceFractionY,float faceFractionZ,float distance,boolean distanceEnabled,boolean cull){
         resources.requireCurrent();
+        if(publishedMode)throw new IllegalStateException("Do not mix legacy and published terrain input");legacyMode=true;
         if(closed||count<1||count>capacity||count>regions.length||count>storageIdentities.length||clip.length!=16)throw new IllegalArgumentException("Invalid resident terrain frame");
         for(float value:clip)if(!Float.isFinite(value))throw new IllegalArgumentException("Non-finite resident terrain clip matrix");
         if(!Float.isFinite(distance)||distance<=0||!fractions(fractionX,fractionY,fractionZ)||!fractions(faceFractionX,faceFractionY,faceFractionZ))throw new IllegalArgumentException("Invalid resident terrain camera/distance");
@@ -86,6 +90,9 @@ final class TerrainResidentGpuBuffers implements AutoCloseable {
             }
             for(int region=count;region<capacity;region++)if(identities[region]!=null){identities[region]=null;versions[region]=0;changed=true;}
         }finally{GL15.glBindBuffer(GL31.GL_COPY_WRITE_BUFFER,previousWrite);}
+        return dispatchPrepared(changed,count,clip,renderX,renderY,renderZ,fractionX,fractionY,fractionZ,faceX,faceY,faceZ,faceFractionX,faceFractionY,faceFractionZ,distance,distanceEnabled,cull);
+    }
+    private boolean dispatchPrepared(boolean changed,int count,float[] clip,int renderX,int renderY,int renderZ,float fractionX,float fractionY,float fractionZ,int faceX,int faceY,int faceZ,float faceFractionX,float faceFractionY,float faceFractionZ,float distance,boolean distanceEnabled,boolean cull){
         int[] frame=nextFrame;for(int i=0;i<16;i++)frame[i]=Float.floatToRawIntBits(clip[i]);
         frame[16]=renderX;frame[17]=renderY;frame[18]=renderZ;frame[19]=Float.floatToRawIntBits(fractionX);frame[20]=Float.floatToRawIntBits(fractionY);frame[21]=Float.floatToRawIntBits(fractionZ);
         frame[22]=faceX;frame[23]=faceY;frame[24]=faceZ;frame[25]=Float.floatToRawIntBits(faceFractionX);frame[26]=Float.floatToRawIntBits(faceFractionY);frame[27]=Float.floatToRawIntBits(faceFractionZ);
@@ -105,6 +112,31 @@ final class TerrainResidentGpuBuffers implements AutoCloseable {
             for(int i=0;i<4;i++)if(oldBindings[i]==0||oldSizes[i]==0)GL30.glBindBufferBase(GL43.GL_SHADER_STORAGE_BUFFER,i,oldBindings[i]);else GL30.glBindBufferRange(GL43.GL_SHADER_STORAGE_BUFFER,i,oldBindings[i],oldStarts[i],oldSizes[i]);
             GL15.glBindBuffer(GL43.GL_SHADER_STORAGE_BUFFER,previousGeneric);GL20.glUseProgram(previousProgram);
         }
+    }
+    PublishedResult preparePublished(TerrainResidentInventory.Frame input,Object actualNativeList,float[] clip,
+                    int renderX,int renderY,int renderZ,float fractionX,float fractionY,float fractionZ,
+                    int faceX,int faceY,int faceZ,float faceFractionX,float faceFractionY,float faceFractionZ,float distance,boolean distanceEnabled,boolean cull){
+        resources.requireCurrent();if(legacyMode)throw new IllegalStateException("Do not alias legacy CPU shadows with published inputs");publishedMode=true;
+        if(closed||input==null||!input.valid(actualNativeList)||input.highWater<1||input.highWater>capacity||input.activeRegions<1||clip.length!=16)throw new IllegalArgumentException("Unknown published terrain frame");
+        for(float value:clip)if(!Float.isFinite(value))throw new IllegalArgumentException("Invalid published clip");
+        if(!Float.isFinite(distance)||distance<=0||!fractions(fractionX,fractionY,fractionZ)||!fractions(faceFractionX,faceFractionY,faceFractionZ))throw new IllegalArgumentException("Invalid current camera");
+        boolean update=!publishedValid||publishedRevision!=input.throughUpload;
+        if(update&&!input.fullReplay&&(!publishedValid||publishedRevision!=input.baseUpload))return new PublishedResult(false,false,true);
+        for(var span:input.metadata())if(span.firstWord<0||span.firstWord%20!=0||span.length()<1||span.length()>5120||span.length()%20!=0||(long)span.firstWord+span.length()>(long)capacity*5120)throw new IllegalArgumentException("Published metadata range");
+        for(var span:input.orders())if(span.firstWord<0||span.firstWord%65!=0||span.length()!=65||(long)span.firstWord+65>(long)capacity*65)throw new IllegalArgumentException("Published rank range");
+        try{
+            if(update){
+                nativeOrder.updatePublished(input.orders());
+                if(!input.metadata().isEmpty()){
+                    int before=GL11.glGetInteger(GL31.GL_COPY_WRITE_BUFFER);
+                    try{GL15.glBindBuffer(GL31.GL_COPY_WRITE_BUFFER,meshes.handle());for(var span:input.metadata()){metadataUpload.clear();span.put(metadataUpload.asIntBuffer());metadataUpload.limit(span.length()*4);GL15.glBufferSubData(GL31.GL_COPY_WRITE_BUFFER,(long)span.firstWord*4,metadataUpload);meshUploads++;}}
+                    finally{GL15.glBindBuffer(GL31.GL_COPY_WRITE_BUFFER,before);}
+                }
+            }
+            if(!input.valid(actualNativeList))throw new IllegalStateException("Published frame changed before dispatch");
+            boolean dispatched=dispatchPrepared(update,input.highWater,clip,renderX,renderY,renderZ,fractionX,fractionY,fractionZ,faceX,faceY,faceZ,faceFractionX,faceFractionY,faceFractionZ,distance,distanceEnabled,cull);
+            publishedRevision=input.throughUpload;publishedValid=true;return new PublishedResult(true,dispatched,false);
+        }catch(Throwable error){publishedValid=false;initialized=false;throw error;}
     }
     private static boolean fractions(float x,float y,float z){return Float.isFinite(x)&&Float.isFinite(y)&&Float.isFinite(z)&&Math.abs(x)<=1&&Math.abs(y)<=1&&Math.abs(z)<=1;}
     void requireOwner(){resources.requireCurrent();}

@@ -223,7 +223,13 @@
     "client.FastFramePresentScopeMixin",
     "client.FastFrameGeometryMixin",
     "client.access.FastFrameBuilderAccess",
-    "client.optimizations.EntityNametagScopeMixin"
+    "client.optimizations.EntityNametagScopeMixin",
+    "compat.argentum.MixinTerrainInventoryLists",
+    "compat.argentum.MixinTerrainInventoryManager",
+    "compat.argentum.MixinTerrainInventoryRegion",
+    "compat.argentum.MixinTerrainInventoryRegionManager",
+    "compat.argentum.MixinTerrainInventoryStorage",
+    "compat.argentum.MixinTerrainResidentSubmission"
   ],
   "injectors": {
     "defaultRequire": 1

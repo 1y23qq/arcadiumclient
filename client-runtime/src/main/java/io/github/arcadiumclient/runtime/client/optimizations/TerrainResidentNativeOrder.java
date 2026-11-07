@@ -63,6 +63,13 @@ final class TerrainResidentNativeOrder implements AutoCloseable {
         }finally{GL15.glBindBuffer(GL31.GL_COPY_WRITE_BUFFER,previousWrite);}
         return changed;
     }
+    void updatePublished(java.util.List<TerrainResidentInventory.Span> spans){
+        if(closed)throw new IllegalStateException("Retired native order");if(spans.isEmpty())return;
+        for(var span:spans)if(span.firstWord<0||span.firstWord%65!=0||span.length()!=65||(long)span.firstWord+65>(long)capacity*65)throw new IllegalArgumentException("Unknown published rank range");
+        int before=GL11.glGetInteger(GL31.GL_COPY_WRITE_BUFFER);
+        try{GL15.glBindBuffer(GL31.GL_COPY_WRITE_BUFFER,buffer.handle());for(var span:spans){upload.clear();span.put(upload.asIntBuffer());upload.limit(BYTES);GL15.glBufferSubData(GL31.GL_COPY_WRITE_BUFFER,(long)span.firstWord*4,upload);uploads++;copiedBytes+=span.word(0);}}
+        finally{GL15.glBindBuffer(GL31.GL_COPY_WRITE_BUFFER,before);}
+    }
     int handle(){return buffer.handle();}
     @Override public void close(){if(!closed){if(resources!=null)resources.delete(ticket);else buffer.delete();closed=true;}}
 }
