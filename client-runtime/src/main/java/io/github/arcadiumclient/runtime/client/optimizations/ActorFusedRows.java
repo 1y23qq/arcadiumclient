@@ -9,15 +9,15 @@ final class ActorFusedRows {
     private final int[] seen=new int[MAX];private int[] ids=new int[16];private int generation,count;
     int count(){return count;}int at(int index){if(index<0||index>=count)throw new IndexOutOfBoundsException();return ids[index];}
     boolean collect(IntBuffer payload,int rows){
-        count=0;if(payload==null||payload.remaining()%19!=0||rows<0||rows>MAX)return false;
+        count=0;if(payload==null||payload.remaining()%19!=0||rows<0||rows>MAX)return false;boolean ordered=true;
         if(generation==Integer.MAX_VALUE){Arrays.fill(seen,0);generation=0;}generation++;
         for(int i=payload.position();i<payload.limit();i+=19){
             if(payload.get(i+1)!=MAGIC1||(payload.get(i+2)!=MAGIC2&&payload.get(i+2)!=SORT))continue;
             float marker=Float.intBitsToFloat(payload.get(i));if(marker>=0)continue;
             float value=-marker-1;int encoded=(int)value,job=encoded>>>4;
             if(!Float.isFinite(marker)||value!=encoded||encoded<0||(encoded&15)>=12||job>=rows)return false;
-            if(seen[job]==generation)continue;seen[job]=generation;if(count==ids.length)ids=Arrays.copyOf(ids,Math.min(MAX,ids.length*2));ids[count++]=job;
+            if(seen[job]==generation)continue;seen[job]=generation;if(count>0&&job<ids[count-1])ordered=false;if(count==ids.length)ids=Arrays.copyOf(ids,Math.min(MAX,ids.length*2));ids[count++]=job;
         }
-        Arrays.sort(ids,0,count);return true;
+        if(!ordered)Arrays.sort(ids,0,count);return true;
     }
 }

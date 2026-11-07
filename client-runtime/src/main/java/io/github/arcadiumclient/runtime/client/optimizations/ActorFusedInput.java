@@ -18,7 +18,7 @@ final class ActorFusedInput {
         int nextCapacity=Math.max(capacity,needed==1?1:Integer.highestOneBit(needed-1)<<1);if(nextCapacity>MAX)return null;
         boolean grow=nextCapacity!=capacity;int[] next=grow?new int[nextCapacity*WORDS]:scratch;
         int[] nextRanges=grow?new int[(nextCapacity*3+2)*2]:scratchRanges;ActorSceneData.Tick[] known=grow?new ActorSceneData.Tick[nextCapacity]:ticks;int[] touchedSlots=grow?new int[nextCapacity]:touched;
-        int count=0,slotCount=0,tagged=0,metaBase=nextCapacity*32,tickBase=nextCapacity*36,overrideBase=nextCapacity*52;
+        int count=0,slotCount=0,tagged=0,metaBase=nextCapacity*32,tickBase=nextCapacity*36,overrideBase=nextCapacity*52;boolean slotsOrdered=true;
         try{
             for(int i=0;i<selected.count();i++){
                 int row=selected.at(i),p=row*32,m=metaBase+row*4;boolean active=raw.active(row),tag=active&&!raw.exact(row);
@@ -27,14 +27,14 @@ final class ActorFusedInput {
                 if(!tag)continue;
                 for(int w=0;w<16;w++)if(!Float.isFinite(Float.intBitsToFloat(next[p+w])))return null;
                 if(next[p+29]!=Float.floatToRawIntBits(-1)||!Float.isFinite(Float.intBitsToFloat(next[p+21])))return null;
-                int slot=raw.slot(row);var tick=raw.tick(row);if(known[slot]!=null&&known[slot]!=tick)return null;if(known[slot]==null){known[slot]=tick;touchedSlots[slotCount++]=slot;}
+                int slot=raw.slot(row);var tick=raw.tick(row);if(known[slot]!=null&&known[slot]!=tick)return null;if(known[slot]==null){known[slot]=tick;if(slotCount>0&&slot<touchedSlots[slotCount-1])slotsOrdered=false;touchedSlots[slotCount++]=slot;}
                 float delta=raw.partial(row);int mask=tick.arithmeticMask;if(Float.floatToRawIntBits(delta)==0x80000000)mask|=31;else if(delta>0&&delta<0x1p-24f)mask|=30;
                 int tail=overrideBase+row*5,cursor=tail;next[m]=1;next[m+1]=tickBase+slot*16;next[m+2]=Float.floatToRawIntBits(delta);next[m+3]=mask==0?0:(tail<<5)|mask;
                 for(int w=16;w<=20;w++)next[p+w]=0;
                 for(int w=0;w<5;w++)if((mask&(1<<w))!=0){float value;if(w==1&&tick.constantSpeed){value=Float.intBitsToFloat(tick.constantSpeedBits);cachedOverrideWords++;}else{value=pose(tick,delta,w);overrideWords++;}next[cursor++]=Float.floatToRawIntBits(value);}while(cursor<tail+5)next[cursor++]=0;tagged++;
             }
             for(int i=0;i<selected.count();i++)count=append(nextRanges,count,metaBase+selected.at(i)*4,4);
-            Arrays.sort(touchedSlots,0,slotCount);for(int i=0;i<slotCount;i++){int slot=touchedSlots[i],p=tickBase+slot*16;for(int w=0;w<16;w++)next[p+w]=Float.floatToRawIntBits(known[slot].word(w));count=append(nextRanges,count,p,16);tickVisits++;}
+            if(!slotsOrdered)Arrays.sort(touchedSlots,0,slotCount);for(int i=0;i<slotCount;i++){int slot=touchedSlots[i],p=tickBase+slot*16;for(int w=0;w<16;w++)next[p+w]=Float.floatToRawIntBits(known[slot].word(w));count=append(nextRanges,count,p,16);tickVisits++;}
             for(int i=0;i<selected.count();i++){int row=selected.at(i);if(next[metaBase+row*4]==1)count=append(nextRanges,count,overrideBase+row*5,5);}
             raw.check();int[] previous=words,priorRanges=ranges;words=next;scratch=grow?new int[nextCapacity*WORDS]:previous;ranges=nextRanges;scratchRanges=grow?new int[nextRanges.length]:priorRanges;capacity=nextCapacity;rangeCount=count;ticks=known;touched=touchedSlots;owner=context;
             return new View(this,context,raw.lifetime(),raw.batch(),++generation,nextCapacity,tagged);

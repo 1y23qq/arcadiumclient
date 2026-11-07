@@ -18,7 +18,10 @@ final class DenseActorSlots {
     private final IdentityHashMap<Object, Boolean> input;
     private final Entry[] dense;
     private final int[] moveFrom,moveTo;
+    private Object[] orderedInput=new Object[0];
+    private int orderedSize;
     private int size,moves;
+    long stableRosterReuses;
     private long frame,handleSequence,epoch;
     private Object world;
 
@@ -31,6 +34,11 @@ final class DenseActorSlots {
     boolean prepare(Object nextWorld,List<?> actors) {
         if(nextWorld==null){if(!actors.isEmpty())return false;clear();return true;}
         if(actors.size()>capacity)return false;
+        if(world==nextWorld&&actors.size()==orderedSize){
+            boolean same=true;
+            for(int index=0;index<orderedSize;index++)if(actors.get(index)!=orderedInput[index]){same=false;break;}
+            if(same){if(frame==Long.MAX_VALUE)throw new IllegalStateException("Actor frame generation exhausted");frame++;moves=0;stableRosterReuses++;return true;}
+        }
         input.clear();
         try{
             for(int index=0;index<actors.size();index++){
@@ -49,6 +57,9 @@ final class DenseActorSlots {
                 if(handleSequence==Long.MAX_VALUE)throw new IllegalStateException("Actor handle generation exhausted");
                 Entry entry=new Entry(owner,++handleSequence,size,current);active.put(owner,entry);dense[size++]=entry;
             }
+            if(orderedInput.length<actors.size())orderedInput=new Object[Math.min(capacity,Math.max(actors.size(),Math.max(16,orderedInput.length*2)))];
+            for(int index=0;index<actors.size();index++)orderedInput[index]=actors.get(index);
+            if(actors.size()<orderedSize)Arrays.fill(orderedInput,actors.size(),orderedSize,null);orderedSize=actors.size();
             return true;
         }finally{input.clear();}
     }
@@ -68,5 +79,5 @@ final class DenseActorSlots {
     int moveFrom(int index){if(index<0||index>=moves)throw new IndexOutOfBoundsException(index);return moveFrom[index];}
     int moveTo(int index){if(index<0||index>=moves)throw new IndexOutOfBoundsException(index);return moveTo[index];}
     long epoch(){return epoch;}
-    void clear(){Arrays.fill(dense,0,size,null);active.clear();size=moves=0;world=null;epoch++;}
+    void clear(){Arrays.fill(dense,0,size,null);Arrays.fill(orderedInput,0,orderedSize,null);orderedSize=0;active.clear();size=moves=0;world=null;epoch++;}
 }
