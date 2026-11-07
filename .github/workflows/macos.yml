@@ -24,6 +24,10 @@ on:
       skiko_sha256:
         type: string
         description: Exact whitelisted Skiko/font archive SHA-256
+      legacy_readiness_diagnostics:
+        type: boolean
+        default: false
+        description: Optional TEST-only legacy off/observe/ready comparison; old failures remain failures
       metal_client_tag:
         type: string
         description: Optional draft input tag for the private fake-account Minecraft composition probe
@@ -268,6 +272,7 @@ jobs:
           PYLON_SHA256: ${{ inputs.pylon_sha256 }}
           SKIKO_TAG: ${{ inputs.skiko_tag }}
           SKIKO_SHA256: ${{ inputs.skiko_sha256 }}
+          LEGACY_READINESS_DIAGNOSTICS: ${{ inputs.legacy_readiness_diagnostics }}
         run: |
           args=(--arch '${{ matrix.arch }}')
           if [ -n "$PYLON_TAG" ]; then
@@ -279,6 +284,11 @@ jobs:
             args+=(--skiko-inputs "$RUNNER_TEMP/skiko-metal/ArcadiumSkikoMetalInputs-073.zip" --skiko-sha256 "$SKIKO_SHA256")
           else
             test -z "$SKIKO_SHA256"
+          fi
+          if [ "$LEGACY_READINESS_DIAGNOSTICS" = "true" ]; then
+            test -n "$PYLON_TAG"
+            test -n "$SKIKO_TAG"
+            args+=(--legacy-readiness-diagnostics)
           fi
           python3 client-runtime/native/renderer/build.py "${args[@]}"
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1

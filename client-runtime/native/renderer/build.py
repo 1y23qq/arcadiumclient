@@ -68,6 +68,54 @@ def scene_handoff_plan() -> list[dict]:
             for cohort, role in (("ticket", "production"), ("pixels", "instrumented-test-only"))]
 
 
+def readiness_case_plan() -> list[dict]:
+    result = []
+    for repeat, modes in ((1, ("off", "observe", "ready")), (2, ("ready", "observe", "off"))):
+        for mode in modes:
+            result.append({"ordinal": len(result) + 1, "repeat": repeat, "mode": mode,
+                           "label": f"r{repeat}-{mode}", "surfaceOrder": 0, "nativeFrames": 3, "pylonFrames": 6,
+                           "freshNativeProcess": True, "freshJvm": True, "displayedDeadlineNanoseconds": 5_000_000_000})
+    return result
+
+
+def run_readiness_controls(run, output: Path, source: Path, java: str, pylon_output: Path, pylon: dict, library: Path) -> str:
+    plan = readiness_case_plan()
+    (output / "legacy-readiness-case-plan.json").write_text(json.dumps({"cases": plan, "casePairs": 6,
+        "nativeProcesses": 6, "jvms": 6, "oldTwentyAndHandoffAlreadyPreserved": True,
+        "readinessIsDisplayedProof": False, "resubmissions": 0}, indent=2) + "\n")
+    outcomes = []
+    for case in plan:
+        label, mode = case["label"], case["mode"]
+        native = [str(output / "native/arcadium_metal_presentation_test"), "0"]
+        if mode != "off":
+            native.append(mode)
+        code = run(native, f"native-readiness-{label}.log", None, timeout=45)
+        native_result = {**case, "exitCode": code, "passed": code == 0, "processGuardSeconds": 45,
+                         "processTimedOut": code == 124, "performanceClaim": False}
+        (output / f"native-readiness-{label}-result.json").write_text(json.dumps(native_result, indent=2) + "\n")
+        result_path = output / f"java-pylon-readiness-{label}-result.json"
+        java_code = run([java, "-XstartOnFirstThread", "--enable-native-access=ALL-UNNAMED",
+             "-Darcadium.present072.expectedHostedLayer=false", "-Darcadium.present073.testPreflight=" + mode, "-cp",
+             os.pathsep.join((str(pylon_output), pylon["path"])),
+             "io.github.arcadiumclient.runtime.client.optimizations.backend.MetalPylonPresentationProbe",
+             str(library), str(source / "tests/reference_scene.metal"), str(result_path), "transport", "0"],
+            f"java-pylon-readiness-{label}.log", None, timeout=90)
+        try:
+            result = json.loads(result_path.read_text(encoding="utf-8")) if result_path.is_file() else {}
+        except (ValueError, OSError) as error:
+            result = {"passed": False, "resultReadError": type(error).__name__}
+        java_passed = java_code == 0 and result.get("passed") is True and result.get("testPreflightMode") == mode and result.get("displayedCurrentFrames") == 6
+        outcomes.append({**case, "nativePassed": code == 0, "nativeExitCode": code, "javaExitCode": java_code,
+                         "javaPassed": java_passed, "javaProcessTimedOut": java_code == 124,
+                         "javaProcessGuardSeconds": 90, "javaResultPresent": result_path.is_file(),
+                         "passed": code == 0 and java_passed})
+    suite = {"passed": all(case["passed"] for case in outcomes), "cases": outcomes,
+             "oldFailuresStillFailOverall": True, "currentDisplayedGateUnchanged": True,
+             "resubmissions": 0, "worldOrFpsOrCompatibilityClaim": False}
+    (output / "legacy-readiness-suite-result.json").write_text(json.dumps(suite, indent=2) + "\n")
+    return "passed" if suite["passed"] else "failed"
+
+
 def main() -> None:
     source = Path(__file__).resolve().parent
     root = source.parents[2]
@@ -80,7 +128,10 @@ def main() -> None:
     parser.add_argument("--hosted-layer-experiment", action="store_true")
     parser.add_argument("--skiko-inputs", type=Path)
     parser.add_argument("--skiko-sha256")
+    parser.add_argument("--legacy-readiness-diagnostics", action="store_true")
     arguments = parser.parse_args()
+    if arguments.legacy_readiness_diagnostics and (sys.platform != "darwin" or not arguments.pylon_jar or not arguments.skiko_inputs or arguments.hosted_layer_experiment):
+        parser.error("Legacy readiness diagnostics require Darwin, both pinned inputs, and the original backed control")
     if bool(arguments.pylon_jar) != bool(arguments.pylon_sha256):
         parser.error("--pylon-jar and --pylon-sha256 must be supplied together")
     pylon = validate_pylon_input(arguments.pylon_jar, arguments.pylon_sha256, root) if arguments.pylon_jar else None
@@ -94,10 +145,14 @@ def main() -> None:
     output.mkdir(parents=True, exist_ok=True)
     commands: list[list[str]] = []
 
-    def run(command: list[str], name: str, allowed: tuple[int, ...] | None = (0,)) -> int:
+    def run(command: list[str], name: str, allowed: tuple[int, ...] | None = (0,), timeout: int | None = None) -> int:
         commands.append(command)
         with (output / name).open("w", encoding="utf-8") as log:
-            result = subprocess.run(command, cwd=root, stdout=log, stderr=subprocess.STDOUT)
+            try:
+                result = subprocess.run(command, cwd=root, stdout=log, stderr=subprocess.STDOUT, timeout=timeout)
+            except subprocess.TimeoutExpired:
+                log.write("Owned diagnostic child exceeded its process guard; subprocess.run killed and waited for that child.\n")
+                result = subprocess.CompletedProcess(command, 124)
         if allowed is not None and result.returncode not in allowed:
             raise RuntimeError(f"{name} failed with exit code {result.returncode}; inspect {output / name}")
         return result.returncode
@@ -255,7 +310,10 @@ def main() -> None:
             pylon_status = "passed" if suite["passed"] else "failed"
         else:
             pylon_status = "skipped-no-device" if sys.platform == "darwin" else "compiled-not-applicable"
-    report = {"passed": ctest_code == 0 and below_code in (None, 0, 77) and skiko_status != "failed" and pylon_status != "failed" and handoff_status != "failed", "platform": sys.platform, "architecture": arguments.arch,
+    readiness_status = "not-requested"
+    if arguments.legacy_readiness_diagnostics:
+        readiness_status = run_readiness_controls(run, output, source, java, pylon_output, pylon, library) if probe_code == 0 else "blocked-no-device"
+    report = {"passed": ctest_code == 0 and below_code in (None, 0, 77) and skiko_status != "failed" and pylon_status != "failed" and handoff_status != "failed" and readiness_status in ("not-requested", "passed"), "platform": sys.platform, "architecture": arguments.arch,
               "orderedPassNativeProof": json.loads(pass_result.read_text()) if pass_result.is_file() else None,
               "metalLifetimeNativeProof": json.loads(lease_result.read_text()) if lease_result.is_file() else None,
               "actualSkikoMetalLeaseSmoke": skiko_status, "skikoInputSha256": skiko["sha256"] if skiko else None,
@@ -269,6 +327,7 @@ def main() -> None:
               "unsupportedPresentationFfiProbe": presentation_probe,
               "pylonInput": pylon, "javaSdlMetalSurface": pylon_status,
               "actualSceneTextureHandoff": handoff_status,
+              "legacyReadinessDiagnostics": readiness_status,
               "presentationTestingLibraryRequested": presentation_testing,
               "minecraftOrSkikoOrCeraIntegrated": False,
               "nativeLibrary": str(library), "commands": commands}
@@ -280,6 +339,8 @@ def main() -> None:
         raise RuntimeError("The actual pinned Skiko Metal lease smoke failed; preserve the owned terminal receipt")
     if pylon_status == "failed" or handoff_status == "failed":
         raise RuntimeError("Actual current-ticket presentation failed; all independent cohorts and original controls were preserved")
+    if readiness_status not in ("not-requested", "passed"):
+        raise RuntimeError("Opt-in readiness diagnostics failed; original control failures remain failures")
 
 
 if __name__ == "__main__":

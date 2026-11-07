@@ -7,6 +7,7 @@
 static CGLContextObj testContext;
 static GLint savedSurfaceOrder;
 static BOOL changedSurfaceOrder;
+static const char *preflightMode="off";
 static int restoreSurfaceOrder(void) {
     if(!changedSurfaceOrder)return 0;
     GLint observed=INT32_MIN;
@@ -19,6 +20,22 @@ static void pump(void) {
     NSDate *limit=[NSDate dateWithTimeIntervalSinceNow:.01];NSEvent *event;
     while((event=[NSApp nextEventMatchingMask:NSEventMaskAny untilDate:limit inMode:NSDefaultRunLoopMode dequeue:YES]))[NSApp sendEvent:event];
     [NSApp updateWindows];[CATransaction flush];
+}
+static BOOL sourceWindowReady(ArcPresentation *p, NSWindow *window, NSOpenGLView *gl, int width, int height) {
+    NSSize size=gl.bounds.size;
+    return NSApp.isActive&&!NSApp.isHidden&&window.isKeyWindow&&window.isVisible
+        &&(window.occlusionState&NSWindowOcclusionStateVisible)!=0&&window.contentView==gl&&gl.window==window
+        &&!gl.isHiddenOrHasHiddenAncestor&&fabs(size.width-width)<.001&&fabs(size.height-height)<.001
+        &&p.attached&&p.view.window==window&&p.view.superview==gl&&CGLGetCurrentContext()==testContext;
+}
+static BOOL sourcePreflight(ArcPresentation *p, NSWindow *window, NSOpenGLView *gl, uint64_t frame, int width, int height) {
+    double started=NSProcessInfo.processInfo.systemUptime,deadline=started+5;unsigned polls=0;
+    BOOL before=sourceWindowReady(p,window,gl,width,height);
+    fprintf(stderr,"source-preflight mode=%s phase=before frame=%llu ready=%d visible=%d occlusion=%d active=%d key=%d logical=%.0fx%.0f originalContext=%d\n",preflightMode,(unsigned long long)frame,before,window.isVisible,(window.occlusionState&NSWindowOcclusionStateVisible)!=0,NSApp.isActive,window.isKeyWindow,gl.bounds.size.width,gl.bounds.size.height,CGLGetCurrentContext()==testContext);
+    while(!strcmp(preflightMode,"ready")&&!sourceWindowReady(p,window,gl,width,height)&&NSProcessInfo.processInfo.systemUptime<deadline){pump();polls++;}
+    BOOL ready=sourceWindowReady(p,window,gl,width,height);double decided=NSProcessInfo.processInfo.systemUptime;
+    fprintf(stderr,"source-preflight mode=%s phase=after frame=%llu ready=%d polls=%u elapsed=%.9f deadline=5 displayedProof=0\n",preflightMode,(unsigned long long)frame,ready,polls,decided-started);
+    return strcmp(preflightMode,"ready")||(ready&&decided<=deadline);
 }
 static void presentationState(ArcPresentation *p, uint64_t frame, const char *stage) {
     NSWindow *window=p.window;CAMetalLayer *layer=(CAMetalLayer *)p.view.layer;
@@ -55,8 +72,10 @@ static int checkImage(ArcPresentation *p, const uint8_t *source, int width, int 
 }
 
 int main(int argc,char **argv) {
-    CHECK(argc==1||(argc==2&&(!strcmp(argv[1],"0")||!strcmp(argv[1],"-1"))));
-    GLint selectedOrder=argc==2?atoi(argv[1]):0;
+    CHECK(argc==1||((argc==2||argc==3)&&(!strcmp(argv[1],"0")||!strcmp(argv[1],"-1"))));
+    CHECK(argc!=3||!strcmp(argv[2],"observe")||!strcmp(argv[2],"ready"));
+    if(argc==3)preflightMode=argv[2];
+    GLint selectedOrder=argc>=2?atoi(argv[1]):0;
     @autoreleasepool {
         [NSApplication sharedApplication];CHECK([NSApp setActivationPolicy:NSApplicationActivationPolicyRegular]);[NSApp finishLaunching];
         void *scene=arc_scene_create(2,80,20,64);
@@ -101,10 +120,13 @@ int main(int argc,char **argv) {
         glBindFramebufferEXT(GL_FRAMEBUFFER_EXT,0);
         for(uint64_t frame=1;frame<=3;frame++) {
             if(frame==3) {
-                [window setContentSize:NSMakeSize(96,80)];pump();[gl.openGLContext update];
+                [window setContentSize:NSMakeSize(96,80)];pump();
+                if(strcmp(preflightMode,"off"))CHECK(sourcePreflight(p,window,gl,frame,96,80));
+                [gl.openGLContext update];
                 pixels=[gl convertSizeToBacking:gl.bounds.size];width=(int)pixels.width;height=(int)pixels.height;
                 CHECK(width>0&&height>0&&(width&1)==0&&(height&1)==0);
             }
+            if(frame==1&&strcmp(preflightMode,"off"))CHECK(sourcePreflight(p,window,gl,frame,64,64));
             source=realloc(source,(size_t)width*height*4);CHECK(source);
             GLint observedOrder=INT32_MIN;
             CHECK(CGLGetCurrentContext()==testContext&&CGLGetParameter(testContext,kCGLCPSurfaceOrder,&observedOrder)==kCGLNoError&&observedOrder==selectedOrder);
@@ -114,6 +136,7 @@ int main(int argc,char **argv) {
             glReadBuffer(GL_FRONT);glBindFramebufferEXT(GL_FRAMEBUFFER_EXT,sentinelFbo);
             arc_present_frame descriptor={frame,(uint32_t)width,(uint32_t)height,0,0x0405,ARC_PRESENT_RGBA8_LINEAR,0};
             CHECK(arc_present_prepare(out,&descriptor)==ARC_PRESENT_OK);
+            if(strcmp(preflightMode,"off"))presentationState(p,frame,"after-prepare-before-publish");
             GLint active=0,rectangle=0;glGetIntegerv(GL_ACTIVE_TEXTURE,&active);CHECK(active==GL_TEXTURE1&&glIsEnabled(GL_SCISSOR_TEST));
             glActiveTexture(GL_TEXTURE0);glGetIntegerv(GL_TEXTURE_BINDING_RECTANGLE_ARB,&rectangle);CHECK((GLuint)rectangle==sentinel);glActiveTexture(active);
             GLint readFbo=0,drawFbo=0,readTarget=0,draw0=0,draw1=0;

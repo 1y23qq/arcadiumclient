@@ -24,6 +24,8 @@ public final class MetalPylonPresentationProbe {
     private static final DisplaySdl display=DisplaySdl.instance();
     private static final List<Map<String,Object>> frames=new ArrayList<>();
     private static String stage="start";
+    private static final String preflightMode=System.getProperty("arcadium.present073.testPreflight","off");
+    private static final List<Map<String,Object>> readinessObservations=new ArrayList<>();
     private static boolean serviceCocoaLoop,zeroCocoaLoop;
     private static final long[] runloopResults=new long[5];
     private static long runloopCalls;
@@ -141,6 +143,7 @@ public final class MetalPylonPresentationProbe {
         if((args.length!=4&&args.length!=5)||!List.of("transport","transport-sync0","transport-sync1","fallback","transport-runloop","transport-sync0-runloop","transport-runloop0","transport-sync0-runloop0").contains(args[3])
                 ||args.length==5&&!List.of("0","-1").contains(args[4]))
             throw new IllegalArgumentException("Pass library, reference Metal shader, owned report path and transport[-sync0|-sync1]|fallback");
+        require(List.of("off","observe","ready").contains(preflightMode),"Unknown test preflight mode");
         zeroCocoaLoop=args[3].endsWith("-runloop0");serviceCocoaLoop=zeroCocoaLoop||args[3].endsWith("-runloop");
         if(serviceCocoaLoop&&args.length==5&&!args[4].equals("0"))throw new IllegalArgumentException("The runloop comparison uses the unchanged original surface order");
         if(!System.getProperty("os.name").toLowerCase(Locale.ROOT).contains("mac")) {
@@ -148,7 +151,7 @@ public final class MetalPylonPresentationProbe {
         }
         require(!MainThread.DISPATCH,"Use -XstartOnFirstThread for this explicit main-thread SDL probe");
         Path output=Path.of(args[2]);Map<String,Object> report=new LinkedHashMap<>();
-        report.put("case",args[3]);
+        report.put("case",args[3]);report.put("testPreflightMode",preflightMode);
         report.put("pumpStyle",zeroCocoaLoop?"SDL-poll-plus-0ms-Cocoa-runloop-plus-2ms-sleep":serviceCocoaLoop?"SDL-poll-plus-2ms-Cocoa-runloop":"SDL-poll-plus-2ms-sleep");
         report.put("requestedCocoaRunloopNanoseconds",serviceCocoaLoop&&!zeroCocoaLoop?2_000_000L:0L);
         report.put("requestedSleepNanoseconds",!serviceCocoaLoop||zeroCocoaLoop?2_000_000L:0L);
@@ -170,7 +173,7 @@ public final class MetalPylonPresentationProbe {
             failure=caught;report.put("passed",false);report.put("failureClass",caught.getClass().getName());
             report.put("failure",String.valueOf(caught.getMessage()));
         } finally {
-            report.put("stage",stage);report.put("frames",frames);report.put("mainDispatch",MainThread.DISPATCH);
+            report.put("stage",stage);report.put("frames",frames);report.put("mainDispatch",MainThread.DISPATCH);report.put("readinessObservations",readinessObservations);
             report.put("cocoaRunloopServiceCalls",runloopCalls);report.put("cocoaRunloopResults",List.of(runloopResults[1],runloopResults[2],runloopResults[3],runloopResults[4]));
             report.put("actualCocoaRunloopElapsedNanoseconds",runloopNanos);report.put("actualCocoaRunloopMinNanoseconds",runloopCalls==0?0:runloopMin);report.put("actualCocoaRunloopMaxNanoseconds",runloopMax);
             report.put("actualPumpCalls",pumpCalls);report.put("actualPumpElapsedNanoseconds",pumpNanos);report.put("actualPumpMaxNanoseconds",pumpMax);
@@ -213,6 +216,7 @@ public final class MetalPylonPresentationProbe {
                     require(display.getWindowWidth()==width&&display.getWindowHeight()==height,"SDL resize events did not settle");
                     original.owner.makeCurrent();
                 }
+                if(!preflightMode.equals("off")&&(frame==1||frame>=3))sourcePreflight(original,frame,widths[frame-1],heights[frame-1]);
                 Map<String,Object> before=geometry(original);before.put("frame",frame);before.put("stage","before-publish");frames.add(before);
                 require(original.surfaceOrder()==surfaceOrder,"CGL surface order changed before current-frame submission");
                 boolean synced=pacingCase.equals("transport-sync1")||pacingCase.equals("transport")&&(frame&1)==0;
@@ -263,6 +267,19 @@ public final class MetalPylonPresentationProbe {
             try { original.restoreSurfaceOrder(); } finally { if(display.isCreated())display.destroy();backend.close(); }
             require(original.destroys==1&&!display.isCreated(),"Fallback SDL window was not destroyed exactly once");
         }
+    }
+    private static Map<String,Object> sourceWindowState(OriginalSurface original,int width,int height) {
+        original.sameWindow();Map<String,Object> state=new LinkedHashMap<>();
+        int logicalWidth=display.getWindowWidth(),logicalHeight=display.getWindowHeight();double parentWidth=Double.longBitsToDouble(original.owner.nativeCounter(11)),parentHeight=Double.longBitsToDouble(original.owner.nativeCounter(12));
+        boolean visible=display.isVisible(),active=display.isActive(),nativeVisible=original.owner.nativeCounter(22)==1,occlusion=original.owner.nativeCounter(23)==1,attached=original.owner.nativeCounter(21)==1,windowMatch=original.owner.nativeCounter(25)==1;
+        boolean ready=visible&&active&&nativeVisible&&occlusion&&attached&&windowMatch&&logicalWidth==width&&logicalHeight==height&&Math.abs(parentWidth-width)<.001&&Math.abs(parentHeight-height)<.001;
+        state.put("ready",ready);state.put("sdlVisible",visible);state.put("sdlActive",active);state.put("windowVisible",nativeVisible);state.put("windowOcclusionVisible",occlusion);state.put("parentAttached",attached);state.put("childWindowMatches",windowMatch);state.put("logicalWidth",logicalWidth);state.put("logicalHeight",logicalHeight);state.put("parentWidth",parentWidth);state.put("parentHeight",parentHeight);state.put("expectedLogicalWidth",width);state.put("expectedLogicalHeight",height);state.put("originalContextMatched",true);return state;
+    }
+    private static void sourcePreflight(OriginalSurface original,int frame,int width,int height)throws Exception {
+        long started=System.nanoTime(),deadline=started+5_000_000_000L;int polls=0;Map<String,Object> before=sourceWindowState(original,width,height),after=before;
+        while(preflightMode.equals("ready")&&!Boolean.TRUE.equals(after.get("ready"))&&System.nanoTime()<deadline){pump();polls++;after=sourceWindowState(original,width,height);}
+        long decided=System.nanoTime();Map<String,Object> row=new LinkedHashMap<>();row.put("mode",preflightMode);row.put("frame",frame);row.put("before",before);row.put("after",after);row.put("polls",polls);row.put("elapsedNanoseconds",decided-started);row.put("readinessDeadlineNanoseconds",5_000_000_000L);row.put("displayedProof",false);row.put("activationOrWindowMutation",false);readinessObservations.add(row);
+        require(!preflightMode.equals("ready")||Boolean.TRUE.equals(after.get("ready"))&&decided<=deadline,"Source window readiness was not established before publication");
     }
     private static void awaitDisplayed(OriginalSurface original,int frame) throws Exception {
         long started=System.nanoTime(),limit=started+5_000_000_000L,servicesBefore=runloopCalls,serviceNanosBefore=runloopNanos,pumpsBefore=pumpCalls;
