@@ -24,7 +24,8 @@ import org.lwjgl.opengl.*;
 public final class TerrainResidentScene {
     private static final ThreadLocal<Scope> current=new ThreadLocal<>();
     private static final TerrainResidentPublications publications=new TerrainResidentPublications(4096);
-    private static Scene scene;
+    private static TerrainResidentPassBook<Scene> book;
+    private static final List<TerrainResidentPassBook<Scene>> retiring=new ArrayList<>(2);
     private static TerrainResidentNativeAccess api;
     private static boolean failed;
     private static String status="Waiting for resident terrain";
@@ -34,7 +35,7 @@ public final class TerrainResidentScene {
     static {
         GpuTerrainCommands.attachResident(new GpuTerrainCommands.Backend(){
             public String status(){return "GPU resident terrain: "+status;}
-            public long residentBytes(){return scene==null||scene.buffers==null?0:scene.buffers.residentBytes();}
+            public long residentBytes(){return TerrainResidentScene.residentBytes();}
             public void reset(){TerrainResidentScene.reset();}
             public void shutdown(){TerrainResidentScene.shutdown();}
             public boolean residentSceneLoaded(){return true;}
@@ -53,10 +54,13 @@ public final class TerrainResidentScene {
         private final CameraTransform face,render;
         private final long serial;
         private boolean ready,entered;
+        private TerrainResidentPassBook<Scene> book;
+        private Scene scene;
+        private Object admittedProgram;
         private Scope(Scope previous,RenderSectionManager manager,Object renderer,ChunkRenderMatrices matrices,CommandList device,ChunkRenderListIterable original,TerrainRenderPass pass,CameraTransform face,CameraTransform render){this.previous=previous;this.manager=manager;this.renderer=renderer;this.matrices=matrices;this.device=device;this.original=original;this.pass=pass;this.face=face;this.render=render;serial=++passSerial;}
     }
     public static Scope enter(RenderSectionManager manager,Object renderer,ChunkRenderMatrices matrices,CommandList device,ChunkRenderListIterable original,TerrainRenderPass pass,CameraTransform face,CameraTransform render){
-        if(!requested()||!GpuTerrainCommands.enabled||!pass.name().equals("solid"))return null;
+        if(!requested()||!GpuTerrainCommands.enabled||pass==null||!pass.name().equals("solid")&&!pass.name().equals("cutout_mipped"))return null;
         Scope value=new Scope(current.get(),manager,renderer,matrices,device,original,pass,face,render);current.set(value);return value;
     }
     public static void exit(Scope value){
@@ -65,33 +69,77 @@ public final class TerrainResidentScene {
         if(!value.entered&&!value.original.hasPass(value.pass)){initiallyEmptyNativePasses++;status="Native pass has no listed geometry; using native rendering";}
         if(value.previous==null)current.remove();else current.set(value.previous);
     }
+    public static boolean admit(DefaultChunkRenderer renderer,boolean nativeHasPass){
+        if(nativeHasPass)return true;
+        Scope value=current.get();
+        if(value==null||failed||value.previous!=null||value.renderer!=renderer)return false;
+        try{
+            if(!TerrainResidentGpuBuffers.trustedContext())return false;
+            var caps=GL.getCapabilities();
+            if(!caps.OpenGL43||!(caps.OpenGL46||caps.GL_ARB_indirect_parameters))return false;
+            if(api==null)api=new TerrainResidentNativeAccess();
+            if(!api.residentPass(renderer,value.pass)||!api.normalPass(value.manager)
+                    ||!TerrainResidentNativeAccess.cameras(value.matrices,value.face,value.render))return false;
+            Collection<RenderRegion> regions=api.regions(value.manager).getLoadedRegions();
+            if(regions.size()>1024)return false;
+            var ticket=api.cachedAdmission(renderer,value.pass);if(ticket==null)return false;
+            long now=System.nanoTime();boolean geometry=false;
+            for(RenderRegion region:regions){
+                if(region==null)return false;
+                SectionRenderDataStorage storage=region.getStorage(value.pass);
+                if(storage==null||storage.isEmpty())continue;
+                if(!api.storage(storage)||!ticket.fact().settled(now,region.getNewestSectionLoadTime()))return false;
+                geometry=true;
+            }
+            if(geometry)value.admittedProgram=ticket.program();return geometry;
+        }catch(Throwable error){unsupported++;status="Resident pass admission unavailable";return false;}
+    }
     public static Iterator<ChunkRenderList> prepare(DefaultChunkRenderer renderer,Iterator<ChunkRenderList> original,boolean cull){
         Scope value=current.get();if(value==null||failed||value.previous!=null||value.renderer!=renderer)return original;value.entered=true;value.ready=false;
         try{
             var caps=GL.getCapabilities();if(!caps.OpenGL43||!(caps.OpenGL46||caps.GL_ARB_indirect_parameters)){unsupported++;status="Compute and indirect-count rendering are unavailable";return original;}
             if(api==null)api=new TerrainResidentNativeAccess();
             if(!api.normalPass(value.manager)||!TerrainResidentNativeAccess.cameras(value.matrices,value.face,value.render)){unsupported++;status="Unsupported terrain pass or camera";return original;}
-            var fact=api.program(renderer,value.pass);if(fact==null){unsupported++;status="Native terrain shader provenance is unavailable";return original;}
-            if(scene==null||scene.owner!=value.manager){reset();scene=new Scene(value.manager);}
+            var fact=api.program(renderer,value.pass);if(fact==null||!api.admittedProgram(renderer,value.admittedProgram)){unsupported++;status="Native terrain shader provenance is unavailable";return original;}
+            collectRetiring();if(!retiring.isEmpty()){status="Resident native cleanup is still owned; using native terrain";return original;}
+            if(book==null||!book.live(value.manager)){reset();book=new TerrainResidentPassBook<>(value.manager);}
+            Scene scene=book.get(value.pass);
+            if(scene==null){scene=new Scene(value.manager,value.pass);if(!book.put(value.pass,scene)){unsupported++;status="Resident pass inventory is full";return original;}}
+            if(scene.failed)return original;
+            value.book=book;value.scene=scene;
             Iterator<ChunkRenderList> replacement=scene.prepare(value,renderer,cull,fact);
             if(replacement==null)return original;
-            value.ready=true;passesPrepared++;status="Resident opaque terrain prepared";return replacement;
-        }catch(Throwable error){failed=true;errors++;status="Resident terrain preflight failed: "+error.getClass().getSimpleName();return original;}
+            value.ready=true;scene.preparations++;passesPrepared++;status="Resident "+value.pass.name()+" terrain prepared";return replacement;
+        }catch(Throwable error){if(value.scene!=null)value.scene.failed=true;errors++;status="Resident terrain preflight failed: "+error.getClass().getSimpleName();return original;}
     }
     public static CachedBatch select(SectionRenderDataStorage storage,TerrainRenderPass pass){
-        Scope value=current.get();if(value==null||!value.ready||scene==null||!scene.ready||pass!=value.pass)return null;
-        Entry entry=scene.byStorage.get(storage);return entry!=null&&entry.serial==value.serial&&publications.current(storage)==entry.data.version?entry.cached:null;
+        Scope value=current.get();if(!valid(value)||pass!=value.pass)return null;
+        Entry entry=value.scene.byStorage.get(storage);return entry!=null&&entry.serial==value.serial&&publications.current(storage)==entry.data.version?entry.cached:null;
     }
     public static void sourceChanged(Object storage,int slot){
-        if(scene==null)return;scene.ready=false;long version=publications.changed(storage,slot);sourceVersionUpdates++;publicationEpoch=publications.epoch();if(version<0){failed=true;unsupported++;status="Unknown native section publication";}
+        if(book==null)return;invalidateScenes();long version=publications.changed(storage,slot);sourceVersionUpdates++;publicationEpoch=publications.epoch();if(version<0){failed=true;unsupported++;status="Unknown native section publication";}
     }
     public static void sourceChanged(Object storage){
-        if(scene==null)return;scene.ready=false;long version=publications.changed(storage);sourceVersionUpdates++;publicationEpoch=publications.epoch();if(version<0){failed=true;unsupported++;status="Unknown native arena publication";}
+        if(book==null)return;invalidateScenes();long version=publications.changed(storage);sourceVersionUpdates++;publicationEpoch=publications.epoch();if(version<0){failed=true;unsupported++;status="Unknown native arena publication";}
     }
-    public static void released(Object storage){publications.released(storage);if(scene!=null){scene.ready=false;scene.byStorage.remove(storage);}}
+    public static void released(Object storage){publications.released(storage);if(book!=null)for(Scene scene:book.values()){scene.ready=false;scene.byStorage.remove(storage);scene.entries.values().removeIf(entry->entry.storage==storage);}}
+    private static void invalidateScenes(){for(Scene scene:book.values())scene.ready=false;}
+    private static boolean valid(Scope value){return value!=null&&value.ready&&book!=null&&value.book==book&&book.live(value.manager)&&value.scene!=null&&book.get(value.pass)==value.scene&&value.scene.ready;}
+    private static boolean ready(){if(book!=null)for(Scene scene:book.values())if(scene.ready)return true;return false;}
+    private static long residentBytes(){long bytes=0;if(book!=null)for(Scene scene:book.values())bytes+=scene.retainedBytes();for(var old:retiring)for(Scene scene:old.values())bytes+=scene.retainedBytes();return bytes;}
+    private static Map<String,Object> passEvidence(){
+        var result=new LinkedHashMap<String,Object>();
+        if(book!=null)for(Scene scene:book.values())result.put(scene.pass.name(),Map.of("ready",scene.ready,"failed",scene.failed,
+            "regions",scene.byStorage.size(),"preparations",scene.preparations,"submissions",scene.submissions,
+            "publicationEpoch",scene.epoch,"residentBytes",scene.buffers==null?0:scene.buffers.residentBytes()));
+        return result;
+    }
     public static long sectionVersion(int x,int y,int z){
-        if(scene==null)return -1;
-        for(Entry entry:scene.entries.values()){
+        return sectionVersion(x,y,z,"solid");
+    }
+    public static long sectionVersion(int x,int y,int z,String passName){
+        if(book==null)return -1;
+        for(Scene scene:book.values())if(scene.pass.name().equals(passName))for(Entry entry:scene.entries.values()){
             int dx=x-(entry.region.getOriginX()>>4),dy=y-(entry.region.getOriginY()>>4),dz=z-(entry.region.getOriginZ()>>4);
             if(dx<0||dx>=8||dy<0||dy>=4||dz<0||dz>=8)continue;
             for(int slot=0;slot<256;slot++)if(org.embeddedt.embeddium.impl.render.chunk.LocalSectionIndex.unpackX(slot)==dx&&org.embeddedt.embeddium.impl.render.chunk.LocalSectionIndex.unpackY(slot)==dy&&org.embeddedt.embeddium.impl.render.chunk.LocalSectionIndex.unpackZ(slot)==dz)return publications.slot(entry.storage,slot);
@@ -99,11 +147,19 @@ public final class TerrainResidentScene {
         return -1;
     }
     public static Map<String,Object> evidence(){
-        Map<String,Object> value=new LinkedHashMap<>();value.put("ready",scene!=null&&scene.ready);value.put("passSerial",passSerial);value.put("publicationEpoch",publications.epoch());value.put("preparedPublicationEpoch",preparedPublicationEpoch);value.put("submittedPublicationEpoch",submittedPublicationEpoch);value.put("regionDraws",regionDraws);value.put("passesPrepared",passesPrepared);value.put("sourceVersionUpdates",sourceVersionUpdates);value.put("metadataUploads",metadataUploads);value.put("orderCopiedBytes",orderCopiedBytes);value.put("orderComparedBytes",orderComparedBytes);value.put("cachedBatchesCreated",cachedBatchesCreated);value.put("cachedBatchesReused",cachedBatchesReused);value.put("residentBytes",scene==null||scene.buffers==null?0:scene.buffers.residentBytes());value.put("initiallyEmptyNativePasses",initiallyEmptyNativePasses);value.put("unsettledFades",unsettledFades);value.put("budgetFallbacks",budgetFallbacks);value.put("unsupported",unsupported);value.put("errors",errors);value.put("status",status);return value;
+        Map<String,Object> value=new LinkedHashMap<>();value.put("ready",ready());value.put("retainedPasses",book==null?0:book.size());value.put("retiredBooks",retiring.size());value.put("reservedGpuBytes",TerrainGpuBudget.bytes());value.put("reservedGpuOwners",TerrainGpuBudget.owners());value.put("passes",passEvidence());value.put("passSerial",passSerial);value.put("publicationEpoch",publications.epoch());value.put("preparedPublicationEpoch",preparedPublicationEpoch);value.put("submittedPublicationEpoch",submittedPublicationEpoch);value.put("regionDraws",regionDraws);value.put("passesPrepared",passesPrepared);value.put("sourceVersionUpdates",sourceVersionUpdates);value.put("metadataUploads",metadataUploads);value.put("orderCopiedBytes",orderCopiedBytes);value.put("orderComparedBytes",orderComparedBytes);value.put("cachedBatchesCreated",cachedBatchesCreated);value.put("cachedBatchesReused",cachedBatchesReused);value.put("residentBytes",residentBytes());value.put("initiallyEmptyNativePasses",initiallyEmptyNativePasses);value.put("unsettledFades",unsettledFades);value.put("budgetFallbacks",budgetFallbacks);value.put("unsupported",unsupported);value.put("errors",errors);value.put("status",status);return value;
     }
-    public static void reset(){Scene old=scene;scene=null;publications.clear();if(old!=null)old.close();failed=false;}
+    private static void collectRetiring(){
+        Throwable failure=null;for(var iterator=retiring.iterator();iterator.hasNext();){var old=iterator.next();try{old.close();if(old.size()==0)iterator.remove();}catch(Throwable error){if(failure==null)failure=error;else if(error!=failure)failure.addSuppressed(error);}}
+        if(failure instanceof Error error)throw error;if(failure instanceof RuntimeException error)throw error;if(failure!=null)throw new IllegalStateException("Resident retirement failed",failure);
+    }
+    public static void reset(){
+        TerrainResidentPassBook<Scene> old=book;book=null;publications.clear();
+        if(old!=null&&!retiring.contains(old)){if(retiring.size()==2){book=old;failed=true;throw new IllegalStateException("Resident retirement book bound exceeded");}retiring.add(old);}
+        try{collectRetiring();}finally{failed=false;}
+    }
     public static void shutdown(){try{reset();}finally{TerrainResidentShaderFacts.shutdown();current.remove();}}
-    public static void managerDeleted(Object manager){if(scene!=null&&scene.owner==manager)reset();}
+    public static void managerDeleted(Object manager){if(book!=null&&book.owner==manager)reset();}
     private static final class Entry {
         final RenderRegion region;
         final SectionRenderDataStorage storage;
@@ -119,24 +175,35 @@ public final class TerrainResidentScene {
             else{((Batch)cached.getBatch()).refresh();cachedBatchesReused++;}
         }
     }
-    private static final class Scene {
+    private static final class Scene implements AutoCloseable {
         final RenderSectionManager owner;
+        final TerrainRenderPass pass;
         final IdentityHashMap<RenderRegion,Entry> entries=new IdentityHashMap<>();
         final IdentityHashMap<SectionRenderDataStorage,Entry> byStorage=new IdentityHashMap<>();
+        final IdentityHashMap<RenderRegion,Boolean> present=new IdentityHashMap<>();
+        final IdentityHashMap<RenderRegion,ChunkRenderList> nativeLists=new IdentityHashMap<>();
+        final ArrayList<ChunkRenderList> prefix=new ArrayList<>();
+        final ArrayList<Entry> eligible=new ArrayList<>();
+        Object[] identities=new Object[0];TerrainResidentRegionData[] rows=new TerrainResidentRegionData[0];byte[][] orders=new byte[0][];int[] sizes=new int[0];
+        final Matrix4f clipMatrix=new Matrix4f();final float[] clip=new float[16];
+        int scratchCount;
+
         TerrainResidentGpuBuffers buffers;
+        TerrainResidentResources pendingAllocation;
         int capacity;
-        boolean ready;
-        long epoch;
-        Scene(RenderSectionManager owner){this.owner=owner;}
+        boolean ready,failed;
+        long epoch,preparations,submissions;
+        Scene(RenderSectionManager owner,TerrainRenderPass pass){this.owner=owner;this.pass=pass;}
         Iterator<ChunkRenderList> prepare(Scope value,DefaultChunkRenderer renderer,boolean cull,TerrainResidentShaderFacts.Fact fact)throws Throwable{
             ready=false;
+            if(value.pass!=pass||!value.book.live(owner))return null;
             Collection<RenderRegion> loaded=api.regions(owner).getLoadedRegions();if(loaded.size()>1024){budgetFallbacks++;status="Loaded region inventory exceeds the resident bound";return null;}
-            var present=new IdentityHashMap<RenderRegion,Boolean>();for(RenderRegion region:loaded){if(region==null||present.put(region,true)!=null)throw new IllegalStateException("Unknown native region identity");}
-            var prefix=new ArrayList<ChunkRenderList>();var nativeLists=new IdentityHashMap<RenderRegion,ChunkRenderList>();
+            present.clear();byStorage.clear();for(RenderRegion region:loaded){if(region==null||present.put(region,true)!=null)throw new IllegalStateException("Unknown native region identity");}
+            prefix.clear();nativeLists.clear();
             for(var iterator=value.original.iterator(false);iterator.hasNext();){ChunkRenderList list=iterator.next();RenderRegion region=list.getRegion();if(!present.containsKey(region)||nativeLists.put(region,list)!=null){unsupported++;status="Native region order is stale or duplicated";return null;}prefix.add(list);}
-            var eligible=new ArrayList<Entry>();long now=System.nanoTime();int maximum=0;
+            eligible.clear();long now=System.nanoTime();int maximum=0;
             for(RenderRegion region:loaded){
-                SectionRenderDataStorage storage=region.getStorage(value.pass);if(storage==null||storage.isEmpty())continue;
+                SectionRenderDataStorage storage=region.getStorage(value.pass);if(storage==null||storage.isEmpty()){entries.remove(region);continue;}
                 if(!api.storage(storage)){unsupported++;status="Unsupported resident section layout";return null;}
                 if(!fact.settled(now,region.getNewestSectionLoadTime())){unsettledFades++;status="Native section fade has not settled";return null;}
                 long version=publications.current(storage);if(version<0){unsupported++;status="Section publication metadata is unavailable";return null;}
@@ -145,7 +212,7 @@ public final class TerrainResidentScene {
                 if(entry.data.sectionsWithGeometry==0)continue;maximum=Math.max(maximum,entry.data.maximumElements);eligible.add(entry);
             }
             entries.keySet().removeIf(region->!present.containsKey(region));
-            if(eligible.isEmpty()){status="No resident opaque geometry";return null;}
+            if(eligible.isEmpty()){status="No resident "+pass.name()+" geometry";return null;}
             eligible.sort(Comparator.comparingInt((Entry entry)->entry.region.getOriginX()).thenComparingInt(entry->entry.region.getOriginY()).thenComparingInt(entry->entry.region.getOriginZ()));
             for(int i=1;i<eligible.size();i++){RenderRegion a=eligible.get(i-1).region,b=eligible.get(i).region;if(a.getOriginX()==b.getOriginX()&&a.getOriginY()==b.getOriginY()&&a.getOriginZ()==b.getOriginZ()){unsupported++;status="Duplicate native region coordinates";return null;}}
             int count=eligible.size();
@@ -154,17 +221,17 @@ public final class TerrainResidentScene {
                 if(!TerrainGpuBudget.reserve(this,(long)capacity*TerrainResidentGpuBuffers.REGION_BYTES)){budgetFallbacks++;status="Shared terrain command budget is full";return null;}
                 try(var input=TerrainResidentScene.class.getResourceAsStream("/assets/arcadium/shaders/terrain_resident_commands.comp")){
                     if(input==null)throw new IllegalStateException("Resident terrain compute resource is absent");buffers=new TerrainResidentGpuBuffers(value.device,capacity,new String(input.readAllBytes(),StandardCharsets.UTF_8));
-                }catch(Throwable error){TerrainGpuBudget.release(this);throw error;}
+                }catch(Throwable error){if(error instanceof TerrainResidentResources.AllocationFailure retained)pendingAllocation=retained.pending;if(pendingAllocation==null){TerrainGpuBudget.release(this);capacity=0;}throw error;}
             }
             api.ensureIndices(renderer,value.device,value.pass,maximum);
-            Object[] identities=new Object[count];TerrainResidentRegionData[] rows=new TerrainResidentRegionData[count];byte[][] orders=new byte[count][];int[] sizes=new int[count];
+            ensureScratch(count);Arrays.fill(orders,0,count,null);Arrays.fill(sizes,0,count,0);
             byStorage.clear();
             for(int i=0;i<count;i++){
                 Entry entry=eligible.get(i);entry.slot=i;identities[i]=entry.storage;rows[i]=entry.data;ChunkRenderList nativeList=nativeLists.get(entry.region);if(nativeList!=null){orders[i]=nativeList.getSectionsWithGeometry();sizes[i]=nativeList.getSectionsWithGeometryCount();}
                 GlTessellation tessellation=api.tessellation(renderer,value.device,entry.region,value.pass);if(tessellation==null)throw new IllegalStateException("Native terrain tessellation is unavailable");
                 entry.cache(this,tessellation);byStorage.put(entry.storage,entry);
             }
-            float[] clip=new Matrix4f(value.matrices.projection()).mul(value.matrices.modelView()).get(new float[16]);CameraTransform face=value.face,render=value.render;
+            clipMatrix.set(value.matrices.projection()).mul(value.matrices.modelView()).get(clip);CameraTransform face=value.face,render=value.render;
             long uploads=buffers.meshUploads,copied=buffers.orderCopiedBytes(),compared=buffers.orderComparedBytes();
             buffers.prepare(identities,rows,count,orders,sizes,clip,render.intX,render.intY,render.intZ,render.fracX,render.fracY,render.fracZ,face.intX,face.intY,face.intZ,face.fracX,face.fracY,face.fracZ,api.searchDistance(owner,value.matrices.projection()),true,cull);
             metadataUploads+=buffers.meshUploads-uploads;orderCopiedBytes+=buffers.orderCopiedBytes()-copied;orderComparedBytes+=buffers.orderComparedBytes()-compared;
@@ -173,17 +240,27 @@ public final class TerrainResidentScene {
             for(Entry entry:eligible)if(!nativeLists.containsKey(entry.region))prefix.add(entry.all);
             ready=true;return prefix.iterator();
         }
-        void closeBuffers(){TerrainResidentGpuBuffers old=buffers;buffers=null;capacity=0;try{if(old!=null)old.close();}finally{TerrainGpuBudget.release(this);}}
-        void close(){
-            ready=false;boolean own=api!=null&&!api.managed();if(own)RenderDevice.enterManagedCode();
-            try{closeBuffers();entries.clear();byStorage.clear();}finally{if(own)RenderDevice.exitManagedCode();}
+        void ensureScratch(int count){
+            if(count<1||count>1024)throw new IllegalArgumentException("Resident CPU workspace bound exceeded");
+            if(identities.length<count){int n=Math.min(1024,Integer.highestOneBit(Math.max(1,count-1))<<1);if(count==1)n=1;identities=new Object[n];rows=new TerrainResidentRegionData[n];orders=new byte[n][];sizes=new int[n];}
+            for(int i=count;i<scratchCount;i++){identities[i]=null;rows[i]=null;orders[i]=null;sizes[i]=0;}scratchCount=count;
+        }
+        long retainedBytes(){return buffers==null&&pendingAllocation==null?0:(long)capacity*TerrainResidentGpuBuffers.REGION_BYTES;}
+        void closeBuffers(){
+            ready=false;try{if(buffers!=null){buffers.close();if(buffers.resourcesReleased())buffers=null;}if(pendingAllocation!=null){pendingAllocation.close();if(pendingAllocation.empty())pendingAllocation=null;}}
+            finally{if(buffers==null&&pendingAllocation==null){capacity=0;TerrainGpuBudget.release(this);}}
+        }
+        @Override public void close(){
+            ready=false;boolean own=false;
+            try{if(buffers!=null)buffers.requireOwner();if(pendingAllocation!=null)pendingAllocation.requireCurrent();own=api!=null&&!api.managed();if(own)RenderDevice.enterManagedCode();closeBuffers();}
+            finally{entries.clear();byStorage.clear();present.clear();nativeLists.clear();prefix.clear();eligible.clear();Arrays.fill(identities,null);Arrays.fill(rows,null);Arrays.fill(orders,null);scratchCount=0;if(own)RenderDevice.exitManagedCode();}
         }
     }
     private static final class Cached extends CachedBatch {
         final Scene scene;
         final Entry entry;
         Cached(Scene scene,Entry entry,GlTessellation tessellation){super(new Batch(scene,entry),tessellation,new byte[0],0,Integer.MIN_VALUE,Integer.MAX_VALUE,Integer.MIN_VALUE,Integer.MAX_VALUE,Integer.MIN_VALUE,Integer.MAX_VALUE);this.scene=scene;this.entry=entry;}
-        @Override public boolean isValidFor(byte[] ignored,int length,int x,int y,int z){Scope value=current.get();return value!=null&&value.ready&&scene.ready&&entry.serial==value.serial&&publications.current(entry.storage)==entry.data.version;}
+        @Override public boolean isValidFor(byte[] ignored,int length,int x,int y,int z){Scope value=current.get();return valid(value)&&value.scene==scene&&entry.serial==value.serial&&publications.current(entry.storage)==entry.data.version;}
     }
     private static final class Batch extends MultiDrawBatch {
         private final Scene scene;
@@ -192,14 +269,14 @@ public final class TerrainResidentScene {
         void refresh(){maxElementCount=entry.data.maximumElements;}
         @Override public void upload(CommandList device){}
         @Override public void execute(CommandList device,GlTessellation tessellation,GlPrimitiveType primitive){
-            Scope value=current.get();if(value==null||!value.ready||!scene.ready||entry.serial!=value.serial)throw new IllegalStateException("Resident terrain frame expired before submission");
+            Scope value=current.get();if(!valid(value)||value.scene!=scene||entry.serial!=value.serial||publications.current(entry.storage)!=entry.data.version)throw new IllegalStateException("Resident terrain frame expired before submission");
             int oldIndirect=GL11.glGetInteger(GL40.GL_DRAW_INDIRECT_BUFFER_BINDING),oldParameter=GL11.glGetInteger(ARBIndirectParameters.GL_PARAMETER_BUFFER_BINDING_ARB);
             try{
                 GL15.glBindBuffer(GL40.GL_DRAW_INDIRECT_BUFFER,scene.buffers.commandHandle());GL15.glBindBuffer(ARBIndirectParameters.GL_PARAMETER_BUFFER_ARB,scene.buffers.countHandle());
                 try(var draw=device.beginTessellating(tessellation)){
                     if(GL.getCapabilities().OpenGL46)GL46.glMultiDrawElementsIndirectCount(primitive.getId(),GL11.GL_UNSIGNED_INT,scene.buffers.commandOffset(entry.slot),scene.buffers.countOffset(entry.slot),1792,20);
                     else ARBIndirectParameters.glMultiDrawElementsIndirectCountARB(primitive.getId(),GL11.GL_UNSIGNED_INT,scene.buffers.commandOffset(entry.slot),scene.buffers.countOffset(entry.slot),1792,20);
-                    regionDraws++;submittedPublicationEpoch=scene.epoch;
+                    regionDraws++;scene.submissions++;submittedPublicationEpoch=scene.epoch;
                 }
             }finally{GL15.glBindBuffer(GL40.GL_DRAW_INDIRECT_BUFFER,oldIndirect);GL15.glBindBuffer(ARBIndirectParameters.GL_PARAMETER_BUFFER_ARB,oldParameter);}
         }

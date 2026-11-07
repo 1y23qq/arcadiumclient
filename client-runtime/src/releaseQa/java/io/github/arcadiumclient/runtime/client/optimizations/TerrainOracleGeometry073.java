@@ -11,8 +11,18 @@ import org.lwjgl.opengl.*;
 public final class TerrainOracleGeometry073 {
     private TerrainOracleGeometry073(){ }
     private static Object field(Object object,String name)throws Exception{Field field=object.getClass().getDeclaredField(name);field.setAccessible(true);return field.get(object);}
-    public static Map<String,Object> capture()throws Exception{
-        Field sceneField=TerrainResidentScene.class.getDeclaredField("scene");sceneField.setAccessible(true);Object scene=sceneField.get(null);if(scene==null)throw new IllegalStateException("No current resident scene");
+    private static Object passScene(String passName)throws Exception{
+        Field field=TerrainResidentScene.class.getDeclaredField("book");field.setAccessible(true);
+        var book=(TerrainResidentPassBook<?>)field.get(null);if(book==null)throw new IllegalStateException("No resident terrain book");
+        Object found=null;
+        for(Object scene:book.values())if(((org.embeddedt.embeddium.impl.render.chunk.terrain.TerrainRenderPass)field(scene,"pass")).name().equals(passName)){
+            if(found!=null)throw new IllegalStateException("Duplicated resident pass name");found=scene;
+        }
+        if(found==null)throw new IllegalStateException("Resident pass unavailable: "+passName);return found;
+    }
+    public static Map<String,Object> capture()throws Exception{return capture("solid");}
+    public static Map<String,Object> capture(String passName)throws Exception{
+        Object scene=passScene(passName);
         var buffers=(TerrainResidentGpuBuffers)field(scene,"buffers");var entries=new ArrayList<>(((Map<?,?>)field(scene,"byStorage")).values());if(entries.isEmpty()||entries.size()>32)throw new IllegalStateException("Owned region readback bound exceeded");
         entries.sort(Comparator.comparingInt(e->{try{return (int)field(e,"slot");}catch(Exception error){throw new IllegalStateException(error);}}));
         IntBuffer counts=BufferUtils.createIntBuffer(entries.size());int previous=GL11.glGetInteger(GL31.GL_COPY_READ_BUFFER);var rows=new ArrayList<Map<String,Object>>();int total=0;
@@ -25,7 +35,7 @@ public final class TerrainOracleGeometry073 {
             }
         }finally{GL15.glBindBuffer(GL31.GL_COPY_READ_BUFFER,previous);}
         if(GL11.glGetError()!=GL11.GL_NO_ERROR)throw new IllegalStateException("Indirect recipe readback GL error");
-        return Map.of("readOnly",true,"regions",rows,"totalCommands",total,"commandWordCount",5,"maximumRegions",32,"maximumCommands",32768,"computeDispatches",buffers.dispatches,"meshUploads",buffers.meshUploads);
+        return Map.of("pass",passName,"readOnly",true,"regions",rows,"totalCommands",total,"commandWordCount",5,"maximumRegions",32,"maximumCommands",32768,"computeDispatches",buffers.dispatches,"meshUploads",buffers.meshUploads);
     }
     public static Map<String,Object> difference(Map<String,Object> source,Map<String,Object> target){
         Map<String,Long> oldVersions=versions(source),newVersions=versions(target);if(!oldVersions.equals(newVersions))throw new IllegalStateException("Native source/region publication changed during the same-anchor reversal");

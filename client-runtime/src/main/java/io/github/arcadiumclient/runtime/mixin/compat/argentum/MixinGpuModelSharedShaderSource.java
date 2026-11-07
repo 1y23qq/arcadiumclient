@@ -6,6 +6,8 @@ import io.github.arcadiumclient.runtime.client.optimizations.EntityInstancingSha
 import io.github.arcadiumclient.runtime.client.optimizations.GpuResidentBodyShaders;
 import io.github.arcadiumclient.runtime.client.optimizations.ModernArmorGlintPipeline;
 import io.github.arcadiumclient.runtime.client.optimizations.ModernGlintShaderPatch;
+import io.github.arcadiumclient.runtime.client.optimizations.GpuVoxelSkinPhysicalProjection;
+import io.github.arcadiumclient.runtime.client.optimizations.GpuVoxelSkinProjectionShaderPatch;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL43;
@@ -22,6 +24,14 @@ public abstract class MixinGpuModelSharedShaderSource {
 
     @Inject(method = "getShaderSource", at = @At("RETURN"), cancellable = true, remap = false)
     private static void arcadium$sharedShader(String name, CallbackInfoReturnable<String> callback) {
+        if(GpuVoxelSkinPhysicalProjection.compiling()){
+            if(arcadium$readingPeer.get())return;
+            String peer=ModernGlintShaderPatch.peer(name);if(peer==null)return;
+            arcadium$readingPeer.set(true);
+            try{callback.setReturnValue(GpuVoxelSkinProjectionShaderPatch.patch(name,callback.getReturnValue(),getShaderSource(peer)));}
+            finally{arcadium$readingPeer.remove();}
+            return;
+        }
         boolean body = GpuResidentBodyShaders.enabled(), modern = ModernArmorGlintPipeline.shaderAdapterEnabled();
         if ((!body && !modern) || arcadium$readingPeer.get()) return;
         String peer = ModernGlintShaderPatch.peer(name);

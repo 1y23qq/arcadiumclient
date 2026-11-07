@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 package io.github.arcadiumclient.runtime.mixin.compat.argentum;
 
+import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 import com.moulberry.mixinconstraints.annotations.IfModLoaded;
@@ -24,6 +25,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @IfModLoaded("argentum")
 @Mixin(targets="org.embeddedt.embeddium.impl.render.chunk.DefaultChunkRenderer",remap=false)
 public abstract class MixinTerrainResidentIterator {
+    @ModifyExpressionValue(method="render",at=@At(value="INVOKE",target="Lorg/embeddedt/embeddium/impl/render/chunk/lists/ChunkRenderListIterable;hasPass(Lorg/embeddedt/embeddium/impl/render/chunk/terrain/TerrainRenderPass;)Z"),remap=false)
+    private boolean terrain073$residentPassInventory(boolean nativeHasPass){return !GpuTerrainCommands.residentRequested()?nativeHasPass:TerrainResidentScene.admit((DefaultChunkRenderer)(Object)this,nativeHasPass);}
     @Inject(method="render",at=@At(value="INVOKE",target="Lorg/embeddedt/embeddium/impl/render/chunk/DefaultChunkRenderer;configureShaderInterface(Lorg/embeddedt/embeddium/impl/render/chunk/shader/ChunkShaderInterface;)V",shift=At.Shift.AFTER),remap=false)
     private void terrain072$preparedIterator(ChunkRenderMatrices matrices,CommandList device,ChunkRenderListIterable lists,TerrainRenderPass pass,CameraTransform face,CameraTransform render,CallbackInfo callback,@Local LocalRef<Iterator<ChunkRenderList>> iterator,@Local(ordinal=0) boolean cull){
         if(GpuTerrainCommands.residentRequested())iterator.set(TerrainResidentScene.prepare((DefaultChunkRenderer)(Object)this,iterator.get(),cull));

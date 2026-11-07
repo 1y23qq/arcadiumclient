@@ -199,11 +199,11 @@ public final class TerrainScene073Qa {
         });
     }
     public static void configured(Object renderer,String pass,ChunkRenderMatrices matrices,CameraTransform face,CameraTransform render){
-        if(!enabled()||done||!pass.equals("solid"))return;
-        try{shader=TerrainScene073GpuEvidence.configured(renderer,matrices,face,render);if(phase>=4)report.put("latestNativeTerrainState",shader);}catch(Throwable error){finish(error);}
+        if(!enabled()||done)return;
+        try{var state=TerrainScene073GpuEvidence.configuredPass(renderer,pass,matrices,face,render);if(pass.equals("solid")){shader=state;if(phase>=4)report.put("latestNativeTerrainState",shader);}}catch(Throwable error){finish(error);}
     }
     public static void terrainReturned(String pass){
-        if(!enabled()||done||!pass.equals("solid"))return;nativeFrames++;if(phase!=5)return;
+        if(!enabled()||done)return;try{TerrainScene073GpuEvidence.returnedPass(pass);}catch(Throwable error){finish(error);return;}if(!pass.equals("solid"))return;nativeFrames++;if(phase!=5)return;
         if(TerrainFullFrameOracle073.enabled()){if(TerrainFullFrameOracle073.controlling())TerrainFullFrameOracle073.terrainReturn();if(!TerrainFullFrameOracle073.gpuStage())return;}
         try{
             Map<String,Object> evidence=TerrainResidentScene.evidence();report.put("resident",evidence);report.put("shader",shader);

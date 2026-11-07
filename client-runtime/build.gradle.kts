@@ -55,6 +55,9 @@ dependencies {
     implementation(include("com.github.bawnorton.mixinsquared:mixinsquared-fabric:0.3.7-beta.3")!!)
     annotationProcessor("io.github.llamalad7:mixinextras-common:0.5.4")
     compileOnly("org.embeddedt.celeritas:celeritas-common:2.5.0-pre.1") { isTransitive = false }
+    if (minecraftVersion == "1.8.9") {
+        testImplementation("org.embeddedt.celeritas:celeritas-common:2.5.0-pre.1") { isTransitive = false }
+    }
     testImplementation(platform("org.junit:junit-bom:6.1.3"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")

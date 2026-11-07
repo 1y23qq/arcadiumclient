@@ -4,6 +4,9 @@ package io.github.arcadiumclient.runtime.client.optimizations;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
+import java.util.List;
+import java.util.Map;
+import org.embeddedt.embeddium.impl.render.chunk.shader.ChunkShaderOptions;
 import org.embeddedt.embeddium.impl.gl.attribute.GlVertexFormat;
 import org.embeddedt.embeddium.impl.gl.device.CommandList;
 import org.embeddedt.embeddium.impl.gl.device.GLRenderDevice;
@@ -30,11 +33,12 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
 
 final class TerrainResidentNativeAccess {
-    private final VarHandle regions,normalLists,activeProgram,currentPass,currentFormat,storageStrategy,managedActive;
-    private final MethodHandle currentLists,searchDistance,prepareTessellation,sharedIndices;
+    private final VarHandle regions,normalLists,activeProgram,currentPass,currentFormat,storageStrategy,managedActive,programs;
+    private final MethodHandle currentLists,searchDistance,prepareTessellation,sharedIndices,shaderComponents;
     TerrainResidentNativeAccess()throws ReflectiveOperationException{
         regions=field(RenderSectionManager.class,"regions");normalLists=field(RenderSectionManager.class,"renderListManager");
         currentLists=method(RenderSectionManager.class,"getCurrentRenderListManager");searchDistance=method(RenderSectionManager.class,"getSearchDistance",Matrix4fc.class);
+        programs=field(ShaderChunkRenderer.class,"programs");shaderComponents=method(ShaderChunkRenderer.class,"getShaderComponents");
         activeProgram=field(ShaderChunkRenderer.class,"activeProgram");currentPass=field(DefaultChunkRenderer.class,"currentRenderPass");currentFormat=field(DefaultChunkRenderer.class,"currentVertexFormat");
         storageStrategy=field(SectionRenderDataStorage.class,"storageStrategy");managedActive=field(GLRenderDevice.class,"isActive");
         prepareTessellation=method(DefaultChunkRenderer.class,"prepareTessellation",CommandList.class,RenderRegion.class,TerrainRenderPass.class);
@@ -47,9 +51,24 @@ final class TerrainResidentNativeAccess {
         float value=(float)searchDistance.invoke(manager,projection);if(!Float.isFinite(value)||value<=0)throw new IllegalArgumentException("Unknown native terrain search distance");return value;
     }
     boolean storage(SectionRenderDataStorage storage){return storage!=null&&storage.getPrimitiveType()==QuadPrimitiveType.TRIANGULATED&&storageStrategy.get(storage)==SectionRenderDataUnsafe.Strategy.COMPACT;}
+    boolean residentPass(DefaultChunkRenderer renderer,TerrainRenderPass pass){
+        return TerrainResidentPassIdentity.accepts(pass,renderer.getRenderPassConfiguration());
+    }
+    record Admission(Object program,TerrainResidentShaderFacts.Fact fact){}
+    Admission cachedAdmission(DefaultChunkRenderer renderer,TerrainRenderPass pass)throws Throwable{
+        if(!renderer.getClass().getName().equals("dev.rdh.argentum.impl.render.terrain.ArgentumRenderSectionManager$ChunkRenderer")||!managed()||!residentPass(renderer,pass))return null;
+        for(Class<?> type=renderer.getClass();type!=ShaderChunkRenderer.class;type=type.getSuperclass())for(var method:type.getDeclaredMethods())if(method.getName().equals("getShaderComponents"))return null;
+        List components=(List)shaderComponents.invoke(renderer);if(components==null||components.size()!=1)return null;
+        Object value=((Map<?,?>)programs.get(renderer)).get(new ChunkShaderOptions(components,pass));
+        if(value==null||value.getClass()!=GlProgram.class)return null;GlProgram<?> nativeProgram=(GlProgram<?>)value;
+        if(nativeProgram.handle()==0||!GL20.glIsProgram(nativeProgram.handle())||nativeProgram.getInterface()==null||nativeProgram.getInterface().getClass()!=DefaultChunkShaderInterface.class)return null;
+        var fact=TerrainResidentShaderFacts.current(value);if(fact==null||fact.fragmentDiscard()!=pass.supportsFragmentDiscard())return null;
+        return new Admission(value,fact);
+    }
+    boolean admittedProgram(DefaultChunkRenderer renderer,Object program){return program==null||activeProgram.get(renderer)==program;}
     TerrainResidentShaderFacts.Fact program(DefaultChunkRenderer renderer,TerrainRenderPass pass){
-        if(!managed()||currentPass.get(renderer)!=pass||pass.isSorted()||pass.isReverseOrder()||!pass.name().equals("solid")
-                ||pass.primitiveType()!=QuadPrimitiveType.TRIANGULATED||pass.vertexType().getClass()!=CompactChunkVertex.class)return null;
+        if(!managed()||currentPass.get(renderer)!=pass||!residentPass(renderer,pass)
+                ||GL11.glIsEnabled(GL11.GL_BLEND)||!GL11.glIsEnabled(GL11.GL_DEPTH_TEST)||!GL11.glGetBoolean(GL11.GL_DEPTH_WRITEMASK))return null;
         GlVertexFormat expected=pass.vertexType().getVertexFormat();if(currentFormat.get(renderer)!=expected)return null;
         Object active=activeProgram.get(renderer);
         if(active==null||active.getClass()!=GlProgram.class)return null;
@@ -57,7 +76,7 @@ final class TerrainResidentNativeAccess {
         Object api=program.getInterface();
         if(program.handle()==0||program.handle()!=GL11.glGetInteger(GL20.GL_CURRENT_PROGRAM)||api==null||api.getClass()!=DefaultChunkShaderInterface.class)return null;
         var shader=(DefaultChunkShaderInterface)api;if(shader.getPrimitiveType().getId()!=GL11.GL_TRIANGLES)return null;
-        return TerrainResidentShaderFacts.current(program);
+        var fact=TerrainResidentShaderFacts.current(program);return fact!=null&&fact.fragmentDiscard()==pass.supportsFragmentDiscard()?fact:null;
     }
     void ensureIndices(DefaultChunkRenderer renderer,CommandList device,TerrainRenderPass pass,int maximumElements)throws Throwable{
         if(maximumElements<0)throw new IllegalArgumentException("Invalid native shared index requirement");

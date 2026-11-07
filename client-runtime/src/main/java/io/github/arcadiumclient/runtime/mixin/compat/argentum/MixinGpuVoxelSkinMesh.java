@@ -6,6 +6,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.moulberry.mixinconstraints.annotations.IfModLoaded;
 import io.github.arcadiumclient.runtime.client.optimizations.GpuVoxelSkinPipeline;
+import io.github.arcadiumclient.runtime.client.optimizations.GpuVoxelSkinPhysicalProjection;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Pseudo;
 import org.spongepowered.asm.mixin.injection.At;
@@ -18,6 +19,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class MixinGpuVoxelSkinMesh {
     @WrapOperation(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/platform/GlStateManager;callList(I)V", remap = true), remap = false)
     private void arcadium$voxelBatch(int displayList, Operation<Void> original, @Local(argsOnly = true) float scale) {
+        if(GpuVoxelSkinPhysicalProjection.ENABLED){
+            int token=GpuVoxelSkinPhysicalProjection.enterMesh(this,scale,displayList);
+            try{original.call(displayList);}finally{GpuVoxelSkinPhysicalProjection.leaveMesh(token);}
+            return;
+        }
         if (!GpuVoxelSkinPipeline.captureMesh(this, scale)) original.call(displayList);
     }
     @Inject(method = "dispose", at = @At("HEAD"), remap = false)

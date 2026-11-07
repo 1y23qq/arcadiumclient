@@ -19,15 +19,23 @@ final class TerrainResidentNativeOrder implements AutoCloseable {
     private final byte[] previous;
     private final int[] lengths;
     private final boolean[] seen=new boolean[256];
+    private final boolean[] changedRegions;
     private final ByteBuffer upload=BufferUtils.createByteBuffer(BYTES);
     private final IntBuffer packed=upload.asIntBuffer();
     private boolean closed;
+    private TerrainResidentResources resources;
+    private int ticket=-1;
     long uploads,copiedBytes,comparedBytes;
     TerrainResidentNativeOrder(CommandList device,int capacity){
         if(capacity<1||capacity>1024)throw new IllegalArgumentException("Invalid native terrain order capacity");
-        this.capacity=capacity;previous=new byte[capacity*256];lengths=new int[capacity];Arrays.fill(lengths,-1);
+        this.capacity=capacity;changedRegions=new boolean[capacity];previous=new byte[capacity*256];lengths=new int[capacity];Arrays.fill(lengths,-1);
         buffer=device.createMutableBuffer();
         try{device.allocateStorage(buffer,(long)capacity*BYTES,GlBufferUsage.DYNAMIC_DRAW);}catch(Throwable failure){buffer.delete();throw failure;}
+    }
+    TerrainResidentNativeOrder(CommandList device,int capacity,TerrainResidentResources resources){
+        if(capacity<1||capacity>1024)throw new IllegalArgumentException("Invalid native terrain order capacity");
+        this.capacity=capacity;changedRegions=new boolean[capacity];previous=new byte[capacity*256];lengths=new int[capacity];Arrays.fill(lengths,-1);this.resources=resources;resources.requireCurrent();
+        buffer=device.createMutableBuffer();ticket=resources.add(buffer::delete);device.allocateStorage(buffer,(long)capacity*BYTES,GlBufferUsage.DYNAMIC_DRAW);TerrainResidentGpuBuffers.verifySize(buffer,(long)capacity*BYTES);
     }
     boolean update(byte[][] source,int[] counts,int regions){
         if(closed||regions<1||regions>capacity||(source==null)!=(counts==null)
@@ -35,7 +43,8 @@ final class TerrainResidentNativeOrder implements AutoCloseable {
         for(int region=0;region<regions;region++){
             int count=counts==null?0:counts[region];byte[] order=source==null?null:source[region];
             if(count<0||count>256||count!=0&&(order==null||count>order.length))throw new IllegalArgumentException("Invalid native terrain order range");
-            if(count==lengths[region]&&(count==0||Arrays.mismatch(previous,region*256,region*256+count,order,0,count)==-1))continue;
+            comparedBytes+=count;changedRegions[region]=count!=lengths[region]||count!=0&&Arrays.mismatch(previous,region*256,region*256+count,order,0,count)!=-1;
+            if(!changedRegions[region])continue;
             Arrays.fill(seen,false);
             for(int index=0;index<count;index++){int section=order[index]&255;if(seen[section])throw new IllegalArgumentException("Duplicate native terrain ordering rank");seen[section]=true;}
         }
@@ -43,8 +52,8 @@ final class TerrainResidentNativeOrder implements AutoCloseable {
         try{
             GL15.glBindBuffer(GL31.GL_COPY_WRITE_BUFFER,buffer.handle());
             for(int region=0;region<regions;region++){
-                int count=counts==null?0:counts[region];byte[] order=source==null?null:source[region];comparedBytes+=count;
-                if(count==lengths[region]&&(count==0||Arrays.mismatch(previous,region*256,region*256+count,order,0,count)==-1))continue;
+                int count=counts==null?0:counts[region];byte[] order=source==null?null:source[region];
+                if(!changedRegions[region])continue;
                 for(int word=0;word<65;word++)packed.put(word,0);packed.put(0,count);
                 for(int index=0;index<count;index++){int word=1+(index>>>2),shift=(index&3)*8;packed.put(word,packed.get(word)|(order[index]&255)<<shift);}
                 upload.clear();GL15.glBufferSubData(GL31.GL_COPY_WRITE_BUFFER,(long)region*BYTES,upload);
@@ -55,5 +64,5 @@ final class TerrainResidentNativeOrder implements AutoCloseable {
         return changed;
     }
     int handle(){return buffer.handle();}
-    @Override public void close(){if(!closed){closed=true;buffer.delete();}}
+    @Override public void close(){if(!closed){if(resources!=null)resources.delete(ticket);else buffer.delete();closed=true;}}
 }

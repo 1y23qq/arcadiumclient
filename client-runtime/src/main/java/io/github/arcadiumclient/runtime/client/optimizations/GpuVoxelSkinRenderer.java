@@ -77,21 +77,31 @@ public final class GpuVoxelSkinRenderer implements GpuVoxelSkinPipeline.Backend 
                 if(owners.size()==MAX_BACKENDS){GpuVoxelSkinPipeline.budgetFallbacks++;return;}
                 Object auxiliary=api.modelConstructor.invoke();
                 if(!GpuVoxelSkinPipeline.registerAuxiliary(main,auxiliary)){GpuVoxelSkinPipeline.budgetFallbacks++;return;}
-                try{storage=new State(api.geometry.invoke(),auxiliary);owners.put(main,storage);geometries.put(storage.geometry,storage);}
+                try{storage=new State(main,api.geometry.invoke(),auxiliary);owners.put(main,storage);geometries.put(storage.geometry,storage);}
                 catch(Throwable failure){GpuVoxelSkinPipeline.unregisterAuxiliary(auxiliary);throw failure;}
             }
             if(storage.closed||storage.failed)return;
             if((boolean)api.modelActive.invoke(storage.auxiliary))api.modelDiscard.invoke(storage.auxiliary);
             storage.batch.discard();
-            if(!(boolean)api.modelBegin.invoke(storage.auxiliary)){storage.failed=true;state="Native auxiliary renderer unavailable; using original voxels";return;}
+            boolean began;
+            if(GpuVoxelSkinPhysicalProjection.ENABLED){GpuVoxelSkinPhysicalProjection.beginCompile();try{began=(boolean)api.modelBegin.invoke(storage.auxiliary);}finally{GpuVoxelSkinPhysicalProjection.endCompile();}}
+            else began=(boolean)api.modelBegin.invoke(storage.auxiliary);
+            if(!began){storage.failed=true;state="Native auxiliary renderer unavailable; using original voxels";return;}
             if(((Map<?,?>)api.modelPrograms.get(storage.auxiliary)).size()>MAX_PROGRAMS){
                 closeStateManaged(storage);storage.failed=true;state="Voxel shader budget; using original voxels";GpuVoxelSkinPipeline.budgetFallbacks++;return;
             }
             storage.batch.prepare(epoch);GpuVoxelSkinPipeline.auxiliaryPreparations++;
+            if(storage.projection!=null){
+                boolean owned=api.acquireManagedScope(RenderDevice.INSTANCE,RenderDevice::enterManagedCode);
+                try(var commands=RenderDevice.INSTANCE.createCommandList()){
+                    if(storage.projection.prepare(commands,(Map<?,?>)api.modelPrograms.get(storage.auxiliary),epoch,Integer.toUnsignedLong((int)api.modelFrame.get(main))))storage.draw.preparePhysical(commands);
+                }finally{GpuVoxelSkinNativeAccess.releaseManagedScope(owned,RenderDevice::exitManagedCode);}
+            }
         }catch(Throwable failure){fail(failure);}
     }
 
     @Override public int queue(ModelPart[] parts, int mask, Identifier texture, int sourceJob, int sourceTemplate, int light, float age) {
+        if(GpuVoxelSkinPhysicalProjection.ENABLED)return 0;
         if (parts.length != 12 || mask == 0) return 0;
         int queued = 0, variant = -1;
         try {
@@ -117,7 +127,7 @@ public final class GpuVoxelSkinRenderer implements GpuVoxelSkinPipeline.Backend 
                 if (variant < 0) variant = GpuPlayerPackets.addVariant(sourceJob, templateId);
                 if (variant < 0) { GpuVoxelSkinPipeline.budgetFallbacks++; break; }
                 marker.identity().m00(-(variant * 16 + part + 1)).m01(Float.intBitsToFloat(MAGIC_1)).m02(Float.intBitsToFloat(MAGIC_2));
-                if (submit(storage, geometry, backend, texture, api.normalPass, marker, light, WHITE, age, CLEAR, null)) {
+                if (submit(storage, geometry, backend, texture, api.normalPass, marker, light, WHITE, age, CLEAR, null,0)) {
                     queued |= 1 << part; GpuVoxelSkinPipeline.analyticParts++; GpuVoxelSkinPipeline.analyticPartMask |= 1 << part;
                 }
             }
@@ -134,6 +144,7 @@ public final class GpuVoxelSkinRenderer implements GpuVoxelSkinPipeline.Backend 
         }
     }
     @Override public boolean preflight(Object main,ModelPart[] parts,int mask,Identifier texture,int sourceTemplate){
+        if(GpuVoxelSkinPhysicalProjection.ENABLED)return false;
         preflight.clear();admission.beginActor();
         try{
             State storage=prepared(main);if(storage==null||!GL.getCapabilities().OpenGL43||!GpuVoxelSkinDraw.ready())return false;
@@ -195,6 +206,7 @@ public final class GpuVoxelSkinRenderer implements GpuVoxelSkinPipeline.Backend 
     @Override public boolean capture(Object mesh, float scale) {
         if (scale != .0625f) return false;
         int job = -1;
+        State projectionState=null;long projectionTicket=0;
         try {
             Object actor = api.capture.current.invoke();
             if (actor == null || !(boolean)api.capture.active.invoke(actor)) return false;
@@ -202,8 +214,13 @@ public final class GpuVoxelSkinRenderer implements GpuVoxelSkinPipeline.Backend 
             if (capture == null || !(boolean)api.capturedPlayer.invoke(capture) || !(boolean)api.capture.captureActive.get(capture)
                     || (boolean)api.capture.captureFinished.get(capture) || (boolean)api.capture.captureArmor.get(capture)
                     || (int)api.capture.captureMode.get(capture) != GL11.GL_MODELVIEW || GpuVoxelSkinBridge.excludedMesh(mesh)) return false;
-            preflight.clear();
             Object backend = api.capture.backend.get(actor); State storage = prepared(backend);
+            if(GpuVoxelSkinPhysicalProjection.ENABLED){
+                if(storage==null||storage.projection==null||!storage.projection.ready())return false;
+                projectionState=storage;projectionTicket=storage.projection.capture(mesh,GpuVoxelSkinBridge.part(mesh),scale);
+                if(projectionTicket==0){GpuVoxelSkinPhysicalProjection.declines++;return false;}
+            }
+            preflight.clear();
             if(storage==null||!supported()||!materialSupported())return false;
             GpuVoxelSkinMath.Offset offset = GpuVoxelSkinBridge.offsetForMesh(mesh);
             if (offset == null) return reject("Voxel offset was not observed in the player binder", true);
@@ -222,8 +239,15 @@ public final class GpuVoxelSkinRenderer implements GpuVoxelSkinPipeline.Backend 
             var geometry = storage.mesh(mesh, scale, offset);
             if (geometry == null) { GpuVoxelSkinPipeline.budgetFallbacks++; return false; }
             if (geometry.vertexCount() == 0) return true;
+            if(storage.projection!=null){
+                boolean owned=api.acquireManagedScope(RenderDevice.INSTANCE,RenderDevice::enterManagedCode);
+                boolean warm;
+                try(var commands=RenderDevice.INSTANCE.createCommandList()){warm=storage.draw.warmPhysicalGeometry(commands);}
+                finally{GpuVoxelSkinNativeAccess.releaseManagedScope(owned,RenderDevice::exitManagedCode);}
+                if(!warm)return false;
+            }
             Matrix4f submitted = matrix;
-            if (GpuModelTransforms.ready()) {
+            if (storage.projection==null&&GpuModelTransforms.ready()) {
                 if (neutralTemplate < 0) {
                     float[] data = new float[192];
                     for (int part = 0; part < 12; part++) data[part*16+12] = data[part*16+13] = data[part*16+14] = 1;
@@ -236,7 +260,7 @@ public final class GpuVoxelSkinRenderer implements GpuVoxelSkinPipeline.Backend 
             }
             boolean result = submit(storage, geometry, backend, texture, api.normalPass, submitted, (int)api.capture.captureLight.get(capture),
                     (Vector4fc)api.capture.captureColor.get(capture), (float)api.capture.captureTime.get(capture),
-                    (Vector4fc)api.capture.captureOverlay.get(capture), capture);
+                    (Vector4fc)api.capture.captureOverlay.get(capture), capture,projectionTicket);
             if (!result && job >= 0) GpuPlayerPackets.rollback(job);
             if (result) {
                 GpuVoxelSkinPipeline.nativeParts++;
@@ -251,11 +275,11 @@ public final class GpuVoxelSkinRenderer implements GpuVoxelSkinPipeline.Backend 
         } catch (Throwable error) {
             if (job >= 0) GpuPlayerPackets.rollback(job);
             fail(error); return false;
-        }
+        } finally {if(projectionState!=null)projectionState.projection.cancel(projectionTicket);}
     }
 
     private boolean submit(State storage, GpuVoxelSkinGeometryCache.Entry geometry, Object backend, Identifier texture, Object pass,
-                           Matrix4f matrix, int light, Vector4fc color, float time, Vector4fc overlay, Object capture) throws Throwable {
+                           Matrix4f matrix, int light, Vector4fc color, float time, Vector4fc overlay, Object capture,long projectionTicket) throws Throwable {
         backend=storage.auxiliary;
         Object batch = api.capture.select.invoke(backend, texture, pass);
         Object instances = api.capture.instances.invoke(storage.geometry, batch);
@@ -263,6 +287,8 @@ public final class GpuVoxelSkinRenderer implements GpuVoxelSkinPipeline.Backend 
         if ((int)api.capture.count.get(instances) >= MAX_INSTANCES) { GpuVoxelSkinPipeline.budgetFallbacks++; return false; }
         int oldSize = (int)api.capture.size.get(instances), oldCount = (int)api.capture.count.get(instances);
         int oldBatch = (int)api.capture.batchCount.get(batch), oldBackend = (int)api.capture.backendCount.get(backend);
+        boolean oldRecorded=storage.projection!=null&&capture!=null&&(boolean)api.capture.captureRecorded.get(capture);
+        if(storage.projection!=null&&!storage.projection.reserve(projectionTicket,instances,oldCount)){GpuVoxelSkinPhysicalProjection.declines++;return false;}
         try {
             if (!(boolean)api.submit.invoke(backend, storage.geometry, texture, pass, matrix, light, color, time, overlay, null)) return false;
             int[] values = (int[])api.capture.data.get(instances);
@@ -272,10 +298,12 @@ public final class GpuVoxelSkinRenderer implements GpuVoxelSkinPipeline.Backend 
             if (capture != null) api.capture.captureRecorded.set(capture, true);
             GpuVoxelSkinPipeline.queuedVertices += geometry.vertexCount();
             storage.batch.queued(epoch);
+            if(storage.projection!=null&&!storage.projection.commit(projectionTicket,(int)api.capture.count.get(instances)))throw new IllegalStateException("Physical voxel row append mismatch");
             return true;
         } catch (Throwable failure) {
             api.capture.size.set(instances, oldSize); api.capture.count.set(instances, oldCount);
             api.capture.batchCount.set(batch, oldBatch); api.capture.backendCount.set(backend, oldBackend);
+            if(storage.projection!=null&&capture!=null)api.capture.captureRecorded.set(capture,oldRecorded);
             throw failure;
         }
     }
@@ -311,9 +339,11 @@ public final class GpuVoxelSkinRenderer implements GpuVoxelSkinPipeline.Backend 
     @Override public void beginBatch() {
         try {
             epoch++;
+            if(GpuVoxelSkinPhysicalProjection.ENABLED)GpuVoxelSkinPhysicalProjection.beginFrame();
             preflight.clear();
             GpuVoxelSkinBridge.refreshOptions();
             for (State storage : owners.values()) {
+                if(storage.projection!=null)storage.projection.beginFrame();
                 storage.batch.discard();storage.cache.beginBatch();
                 if(!storage.closed&&(boolean)api.modelActive.invoke(storage.auxiliary))api.modelDiscard.invoke(storage.auxiliary);
             }
@@ -341,7 +371,7 @@ public final class GpuVoxelSkinRenderer implements GpuVoxelSkinPipeline.Backend 
     @Override public void draw(Object geometry, Object commandList, Object instances) {
         State storage = geometries.get(geometry);
         if (storage == null) return;
-        try { storage.draw.draw((CommandList)commandList, (IntBuffer)api.instanceUpload.invoke(instances), (int)api.capture.count.get(instances)); }
+        try { storage.draw.physicalInstances(instances);storage.draw.draw((CommandList)commandList, (IntBuffer)api.instanceUpload.invoke(instances), (int)api.capture.count.get(instances)); }
         catch (Throwable failure) { fail(failure); }
     }
     @Override public void delete(Object geometry, Object commandList) {
@@ -349,6 +379,7 @@ public final class GpuVoxelSkinRenderer implements GpuVoxelSkinPipeline.Backend 
         if (storage != null) storage.draw.delete((CommandList)commandList);
     }
     @Override public void reset() {
+        if(GpuVoxelSkinPhysicalProjection.ENABLED)GpuVoxelSkinPhysicalProjection.resetScopes();
         if (!owners.isEmpty()) {
             boolean owned = api.acquireManagedScope(RenderDevice.INSTANCE, RenderDevice::enterManagedCode);
             try (var commands = RenderDevice.INSTANCE.createCommandList()) {
@@ -383,13 +414,14 @@ public final class GpuVoxelSkinRenderer implements GpuVoxelSkinPipeline.Backend 
     private final class State {
         final Object geometry;
         final Object auxiliary;
-        final GpuVoxelSkinGeometryCache cache = new GpuVoxelSkinGeometryCache();
+        final GpuVoxelSkinGeometryCache cache = GpuVoxelSkinPhysicalProjection.ENABLED?new GpuVoxelSkinGeometryCache(GpuVoxelSkinDraw.PHYSICAL_VERTEX_WORDS,GpuVoxelSkinGeometryCache.DEFAULT_MESH_BUDGET):new GpuVoxelSkinGeometryCache();
         final GpuVoxelSkinTextureBudget textureBudget=new GpuVoxelSkinTextureBudget();
         final Map<Object,GpuVoxelSkinTextureBudget.Descriptor> descriptors=new HashMap<>();
         final GpuVoxelSkinBatchState batch=new GpuVoxelSkinBatchState();
         final GpuVoxelSkinDraw draw;
+        final GpuVoxelSkinProjectionStore projection;
         boolean failed,closed;
-        State(Object geometry,Object auxiliary) { this.geometry = geometry;this.auxiliary=auxiliary;draw = new GpuVoxelSkinDraw(api, cache); }
+        State(Object main,Object geometry,Object auxiliary) { this.geometry = geometry;this.auxiliary=auxiliary;projection=GpuVoxelSkinPhysicalProjection.ENABLED?new GpuVoxelSkinProjectionStore(main):null;draw = new GpuVoxelSkinDraw(api, cache,projection); }
         void close(CommandList commands){
             if(closed)return;closed=true;batch.discard();
             try{try{draw.delete(commands);}finally{api.modelClose.invoke(auxiliary,commands);}}

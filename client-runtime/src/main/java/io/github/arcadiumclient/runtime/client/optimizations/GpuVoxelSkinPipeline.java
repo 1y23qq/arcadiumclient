@@ -69,6 +69,10 @@ public final class GpuVoxelSkinPipeline {
     public static void beforeMainFlush(Object main,Object commands){if(backend!=null&&!GpuModelAuxiliaries.isAuxiliaryBackend(main))backend.flush(main,commands,false);}
     public static void observeModel(Object model) { if (ready()) backend.observe(model); }
     public static boolean captureMesh(Object mesh, float scale) { return ready() && backend.capture(mesh, scale); }
+    public static boolean capturePhysicalLeaf(int list) {
+        Object mesh=GpuVoxelSkinPhysicalProjection.mesh(list);
+        return mesh!=null&&ready()&&backend.capture(mesh,GpuVoxelSkinPhysicalProjection.scale());
+    }
     public static boolean canUseAnalytic(Object main,ModelPart[] parts,int mask,Identifier texture,int sourceTemplate){
         if(mask==0)return true;analyticPreflights++;
         boolean accepted=ready()&&backend.preflight(main,parts,mask,texture,sourceTemplate);
@@ -88,6 +92,7 @@ public final class GpuVoxelSkinPipeline {
     public static String status() {
         if (!enabled) return "GPU voxel skins: Off";
         return "GPU voxel skins: " + (failed || backend == null ? state : backend.status()) + " | Native/analytic parts: "
-                + nativeParts + "/" + analyticParts + " | Draws: " + drawCalls + " | Fallback: " + fallbacks;
+                + nativeParts + "/" + analyticParts + " | Draws: " + drawCalls + " | Fallback: " + fallbacks
+                +(GpuVoxelSkinPhysicalProjection.ENABLED?" | Private physical MVP: "+GpuVoxelSkinPhysicalProjection.MODE+" | MV/P queries: "+GpuVoxelSkinPhysicalProjection.modelViewQueries+"/"+GpuVoxelSkinPhysicalProjection.projectionQueries+" | "+GpuVoxelSkinPhysicalProjection.fallbackReason:"");
     }
 }

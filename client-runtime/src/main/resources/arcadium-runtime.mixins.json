@@ -47,6 +47,7 @@
     "compat.argentum.MixinGpuModelResidentBodyLifecycle",
     "compat.argentum.MixinGpuResolvedDriverUpload",
     "compat.argentum.MixinGpuVoxelSkinMesh",
+    "compat.argentum.MixinGpuVoxelSkinCallList",
     "compat.argentum.MixinGpuVoxelSkinBinder",
     "compat.argentum.MixinGpuVoxelSkinShadowFlush",
     "compat.argentum.MixinGpuVoxelSkinUpload",

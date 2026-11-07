@@ -25,8 +25,8 @@ public final class TerrainResidentShaderFacts {
         });
     }
     private TerrainResidentShaderFacts(){}
-    private record Parsed(boolean fog,float fadeMilliseconds,int explicitRegion,String digest){}
-    public record Fact(boolean fog,float fadeMilliseconds,long requiredAgeNanos,int regionSize,String definesSha256,String sourcesSha256){
+    private record Parsed(boolean fog,boolean fragmentDiscard,float fadeMilliseconds,int explicitRegion,String digest){}
+    public record Fact(boolean fog,boolean fragmentDiscard,float fadeMilliseconds,long requiredAgeNanos,int regionSize,String definesSha256,String sourcesSha256){
         public boolean settled(long now,long newestLoad){return requiredAgeNanos==0||newestLoad==0||newestLoad<=now&&now-newestLoad>=requiredAgeNanos;}
     }
     public static final class Compile {
@@ -64,7 +64,7 @@ public final class TerrainResidentShaderFacts {
                     ||parsed.explicitRegion!=-1&&parsed.explicitRegion!=value.regionSize
                     ||!value.sources.containsKey("sodium:blocks/block_layer_opaque.vsh")||!value.sources.containsKey("sodium:blocks/block_layer_opaque.fsh")){rejected++;return;}
             long duration=parsed.fog?(long)Math.ceil(parsed.fadeMilliseconds)*1_000_000L:0;
-            Fact fact=new Fact(parsed.fog,parsed.fadeMilliseconds,duration,value.regionSize,parsed.digest,digest(value.sources.toString()));
+            Fact fact=new Fact(parsed.fog,parsed.fragmentDiscard,parsed.fadeMilliseconds,duration,value.regionSize,parsed.digest,digest(value.sources.toString()));
             if(programs.put(actualProgram,fact))captures++;else capacityFallbacks++;
         }finally{if(value.previous==null)compiling.remove();else compiling.set(value.previous);}
     }
@@ -86,7 +86,8 @@ public final class TerrainResidentShaderFacts {
             if(raw!=null){if(!raw.matches("[0-9]+(?:\\.[0-9]+)?"))return null;duration=Float.parseFloat(raw);if(!Float.isFinite(duration)||duration<0||duration>30000)return null;}
             raw=values.get("REGION_SIZE");if(raw!=null){if(!raw.matches("[0-9]+"))return null;region=Integer.parseInt(raw);if(region!=256)return null;}
         }catch(NumberFormatException invalid){return null;}
-        return new Parsed(values.containsKey("USE_FOG"),duration,region,digest(new TreeMap<>(values).toString()));
+        if(values.containsKey("USE_FRAGMENT_DISCARD")&&!values.get("USE_FRAGMENT_DISCARD").isEmpty())return null;
+        return new Parsed(values.containsKey("USE_FOG"),values.containsKey("USE_FRAGMENT_DISCARD"),duration,region,digest(new TreeMap<>(values).toString()));
     }
     private static String digest(String source){
         try{return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(source.getBytes(StandardCharsets.UTF_8)));}
