@@ -20,13 +20,13 @@
       "url": "https://github.com/1y23qq/arcadium-public/releases/download/v0.7.4/ArcadiumClient-0.7.4-macos-arm64.dmg"
     },
     "macos-x64": {
-      "version": "0.7.3",
+      "file": "ArcadiumClient-0.7.4-macos-x64.dmg",
+      "bytes": 499865631,
+      "sha256": "e9b9a798d091e26e9a1ed95cf474020477999292b925fdd9da20d08f3d81542f",
+      "version": "0.7.4",
       "prerelease": false,
-      "file": "ArcadiumClient-0.7.3-macos-x64.dmg",
-      "bytes": 492860686,
-      "sha256": "9937ccb2068100e55531203db4af64680a9f59de2948feb1cf67942a596f76b8",
       "minimumSystemVersion": "12.0",
-      "url": "https://github.com/1y23qq/arcadium-public/releases/download/v0.7.3/ArcadiumClient-0.7.3-macos-x64.dmg"
+      "url": "https://github.com/1y23qq/arcadium-public/releases/download/v0.7.4/ArcadiumClient-0.7.4-macos-x64.dmg"
     }
   },
   "bytes": 264232010,
