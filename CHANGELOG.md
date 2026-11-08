@@ -1,7 +1,9 @@
-## 0.7.3 (in development)
+## 0.7.3
 
-- Improved renderer resource invalidation and retained HUD preparation.
-- Continued persistent player and terrain rendering development.
+- Fixed clickable chat and book text, and Nick Hider replacement layout.
+- Fixed held-item rendering with Forge mods.
+- Improved menu cursor responsiveness and player rendering.
+- Enabled beta optimizations by default, except World Render Scale.
 
 ## 0.7.2
 

@@ -178,6 +178,11 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Could not download the component archive.' }
           python scripts/import_build_components.py "$env:RUNNER_TEMP/components/ArcadiumBuildInputs.zip" --sha256 $env:COMPONENT_SHA256
           if ($LASTEXITCODE -ne 0) { throw 'Component archive verification failed.' }
+      - name: Fetch locked packaging metadata
+        shell: pwsh
+        run: |
+          cargo fetch --locked
+          if ($LASTEXITCODE -ne 0) { throw 'Could not fetch the locked license metadata dependencies.' }
       - name: Build Windows launcher
         shell: pwsh
         env:
