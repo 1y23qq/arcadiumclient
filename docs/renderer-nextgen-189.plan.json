@@ -3,7 +3,7 @@
   "date": "2026-11-05",
   "minecraft": "1.8.9",
   "status": "implementation-in-progress",
-  "releaseContext": "0.7.2 published Star Hider, Nick Hider replacements and local capes on the 0.7.1 renderer. Renderer research is retained for 0.7.3 and is not a completed or published backend.",
+  "releaseContext": "0.7.3 is published for Windows, Apple Silicon and Intel Mac with the requested compatibility, text/input and native-cursor fixes. Its Main37 binaries are immutable. The full persistent renderer and Metal backend remain private research and are not qualified or adopted by that release.",
   "decision": "Build a persistent GPU scene with compact actor state, GPU visibility and indirect submission. Separate scene preparation from its OpenGL/Metal backend.",
   "reason": "Existing beta code already computes player poses and model transforms on the GPU. The larger opportunity is removing repeated Java traversal, instance preparation and driver submission around that computation, while increasing supported-model coverage.",
   "existingWork": [
@@ -97,7 +97,7 @@
     "latency": "Use current camera/input and do not grow the render-ahead queue to inflate FPS. Compare input-to-present behavior with the existing renderer.",
     "visuals": "No reduced resolution, lower render distance, removed effects or frame generation in the default comparison. Check text, HUD, name tags, F5 held items, transparency and animation poses against the reference.",
     "resources": "Bound resident memory, upload queues and caches. Test long sessions, resource reload, resizing, world/server changes and device/backend failure.",
-    "evidence": "Actual gains remain unmeasured. Use repeatable local fixtures plus live Hypixel validation; never transfer another project's reported multiplier to Arcadium."
+    "evidence": "Gains from the complete staged renderer remain unmeasured. Scoped synthetic results and diagnostic live captures do not establish its adoption targets. Use repeatable baseline/optimized fixtures plus live Hypixel validation; never transfer another project's reported multiplier to Arcadium."
   },
   "invariants": [
     "No changes to game tick frequency, packets, movement, combat logic or server-visible position.",
@@ -143,6 +143,27 @@
     }
   ],
   "targetVersion": "0.7.3",
+  "researchEvidence": {
+    "updated": "2026-11-08",
+    "fullP0ToP6Complete": false,
+    "liveHypixel": {
+      "cohort": "Published Main37, normal launcher bootstrap, one manual diagnostic-command entrypoint and no Minecraft test mixins or agents.",
+      "evidence": "build/release073/p0-hypixel-public-main37-r7-1/analysis-receipt.json",
+      "settings": "build/release073/p0-hypixel-public-main37-r7-1/actual-settings.json",
+      "scope": "One 30.0773157-second foreground Bedwars-lobby capture: 21414 frames, no world or settings changes, 58-67 loaded players and 304-320 loaded entities. An earlier capture changed worlds and is excluded from single-lobby comparisons.",
+      "interpretation": "The largest measured non-parent wall-time phase is entities. Sampled call sites must be classified by full caller context, not names alone. GPU timestamp intervals include submission gaps and are not utilization. This is diagnostic evidence, not a 0.7.1 paired baseline or an optimization multiplier."
+    },
+    "nativePose": {
+      "evidence": "build/release073/p3-native-pose-compute-r1/probe-a/root-run.json",
+      "scope": "The unchanged Main37 compute source reproduces all 114 observed R4 head-output words on the same reported RTX 5070 Ti renderer. Instrumented output also preserves all 114 words; 18 sine/cosine words differ from the pinned native JOML reference.",
+      "remaining": "The original raster comparison still has two above-threshold edge pixels. No corrected pose math or prepared-emission admission is adopted. Broader poses, callbacks, raster correctness and performance remain required."
+    },
+    "metal": {
+      "evidence": "build/release073/p5-displayed-contract-r2/ci-root-1/independent-diagnostic.json",
+      "scope": "CI 42440414844 compiles the Objective-C prototype and passes the shared 30 atomic contract cases on both Mac architectures. Both native suites pass 8 of 9 tests; current-frame presentation fails with completed work but DISPLAYED=0.",
+      "remaining": "Observed presentedTime values are zero and remain rejected. Their cause, actual Minecraft indexed/mip/shader transport, complete UI composition, physical display and supported-device performance are not qualified."
+    }
+  },
   "releaseFixes": [
     {
       "id": "interactive-chat-and-book-text",
