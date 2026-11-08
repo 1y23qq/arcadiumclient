@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 #define GL_SILENCE_DEPRECATION
 #include "arc_present.h"
+#include "arc_presented_ticket.h"
 #include "arc_present_scene.h"
 #include "arc_scene_metal_objects.h"
 #import <Cocoa/Cocoa.h>
@@ -28,7 +29,7 @@
 static const uint64_t image_limit = UINT64_C(128) * 1024 * 1024;
 
 @interface ArcPresentationState : NSObject {
-@public atomic_uint_fast64_t completed, displayed, liveBytes;
+@public atomic_uint_fast64_t completed, displayed, liveBytes, displayTicket;
 @public atomic_bool inFlight, failed;
 #if defined(ARC_PRESENT_TESTING)
 @public arc_ticket_trace ticketTrace;
@@ -38,7 +39,7 @@ static const uint64_t image_limit = UINT64_C(128) * 1024 * 1024;
 @implementation ArcPresentationState
 - (instancetype)init {
     if ((self = [super init])) {
-        atomic_init(&completed, 0); atomic_init(&displayed, 0); atomic_init(&liveBytes, 0);
+        atomic_init(&completed, 0); atomic_init(&displayed, 0); atomic_init(&liveBytes, 0); atomic_init(&displayTicket, 0);
         atomic_init(&inFlight, false); atomic_init(&failed, false);
 #if defined(ARC_PRESENT_TESTING)
         mach_timebase_info_data_t timebase={0,0};
@@ -147,6 +148,7 @@ static BOOL renderContext(ArcPresentation *p) {
     return p && p->context && pthread_equal(p->renderThread, pthread_self()) && CGLGetCurrentContext() == p->context;
 }
 static void hideView(ArcPresentation *p) {
+    atomic_store(&p.state->displayTicket, 0);
     p.view.hidden = YES; if (p.ownedLayer) p.ownedLayer.hidden = YES;
     p.hidden = YES; p.ticket = NO; p.fallbacks++;
 }
@@ -177,6 +179,7 @@ int arc_present_create(void *scene, void *windowPointer, void **out) {
         ArcPresentation *p = [ArcPresentation new]; p.device = device; p.queue = queue;
         p.sceneOwner = (__bridge id)scene;
         p.state = [ArcPresentationState new]; p.errorLock = [NSLock new]; p.hidden = YES;
+        if (!p || !p.state) return ARC_PRESENT_FAILED;
         p.configuredSwapInterval = -1; p.observedCglSwapInterval = -2;
         @try {
             NSError *error = nil;
@@ -307,6 +310,7 @@ int arc_present_prepare(void *value, const arc_present_frame *frame) {
             glBlitFramebufferEXT(0, 0, frame->width, frame->height, 0, 0, frame->width, frame->height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
             // Current-frame correctness prototype; synchronization is not a performance result.
             glFinish();
+            atomic_store(&p.state->displayTicket, 0);
             p.prepared = frame->frame_id; p.preparedSwapInterval = swapInterval; p.ticket = YES;
         }
     } @catch (NSException *exception) { status = failure(p, exception.reason, ARC_PRESENT_FAILED); }
@@ -363,6 +367,7 @@ int arc_present_prepare_scene(void *value, void *target_lease, const arc_present
             return failure(p, @"The target lease was no longer claimable", ARC_PRESENT_INVALID);
         image.sourceClaim = claim; p.sceneClaim = claim;
         if (p.image) deleteImageGl(p.image);
+        atomic_store(&p.state->displayTicket, 0);
         p.image = image; p.prepared = frame->frame_id; p.preparedSwapInterval = p.configuredSwapInterval; p.ticket = YES;
         return ARC_PRESENT_OK;
     }
@@ -433,6 +438,9 @@ int arc_present_publish(void *value, uint64_t frame) {
                 [readback endEncoding]; p.testingPixels = pixels; p.testingStride = stride;
 #endif
                 ArcPresentationState *state = p.state; ArcPresentationImage *ownedImage = p.image;
+                const arc_presented_ticket presentedTicket = {frame, (uint64_t)(uintptr_t)(__bridge void *)state,
+                    p->publishedDrawable, (uint64_t)(uintptr_t)(__bridge void *)drawable};
+                atomic_store(&state->displayTicket, frame);
                 atomic_store(&state->inFlight, true); p.submitted = frame; p.ticket = NO;
 #if defined(ARC_PRESENT_TESTING)
                 int traceSlot=arc_ticket_trace_begin(&state->ticketTrace,frame,p->publishedLayer,p->publishedSuperlayer,p->publishedView,
@@ -443,11 +451,14 @@ int arc_present_publish(void *value, uint64_t frame) {
 #if defined(ARC_PRESENT_TESTING)
                     uint64_t traceEntry=mach_absolute_time(),traceBefore=atomic_load(&state->displayed);
 #endif
-                    (void)shown; latest(&state->displayed, frame);
+                    double reported = shown.presentedTime;
+                    uint64_t shownDrawable = shown.drawableID, shownObject = (uint64_t)(uintptr_t)(__bridge void *)shown;
+                    (void)arc_presented_ticket_accept(&presentedTicket, &state->displayTicket, &state->displayed,
+                        (uint64_t)(uintptr_t)(__bridge void *)state, frame, shownDrawable, shownObject, reported);
 #if defined(ARC_PRESENT_TESTING)
-                    double reported=shown.presentedTime;uint64_t bits;memcpy(&bits,&reported,sizeof(bits));
+                    uint64_t bits;memcpy(&bits,&reported,sizeof(bits));
                     arc_ticket_trace_presented(&state->ticketTrace,traceSlot,frame,(uint64_t)(uintptr_t)(__bridge void *)state,traceEntry,
-                        shown.drawableID,(uint64_t)(uintptr_t)(__bridge void *)shown,bits,traceBefore,atomic_load(&state->displayed));
+                        shownDrawable,shownObject,bits,traceBefore,atomic_load(&state->displayed));
 #endif
                 }];
                 [command addCompletedHandler:^(id<MTLCommandBuffer> finished) {
@@ -488,6 +499,7 @@ int arc_present_release_gl(void *value) {
     ArcPresentation *p = bridge(value);
     if (p.glReleased) return ARC_PRESENT_OK;
     if (p->context && !renderContext(p)) return failure(p, @"GL release requires the original current context/thread", ARC_PRESENT_INVALID);
+    atomic_store(&p.state->displayTicket, 0);
     if (p.image) { deleteImageGl(p.image); p.image = nil; CVMetalTextureCacheFlush(p->cache, 0); }
     p.ticket = NO; p.glReleased = YES;
     return ARC_PRESENT_OK;
