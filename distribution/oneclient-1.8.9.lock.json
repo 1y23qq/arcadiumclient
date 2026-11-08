@@ -573,8 +573,8 @@
   ],
   "arcadiumBranding": {
     "file": "ArcadiumBrand-1.8.9.jar",
-    "sha1": "e689b04fc1fad7fc27e022228e1894ae01476284",
-    "sha256": "4fd7072c785739e79066b47ef9011232692beaad8d6b4c146d9adf3e48dfaf8f",
+    "sha1": "8ce0badbe55b146e890817d3b1397702a71f9b7b",
+    "sha256": "afb62c2f0dcafa84262d614d0eec219b049b6fb825fb44ef18ec3d8c534d1191",
     "bytes": 35992,
     "modId": "arcadiumclient",
     "license": "GPL-3.0-only",
@@ -608,9 +608,9 @@
     },
     {
       "file": "ArcadiumFeatures-1.8.9.jar",
-      "sha1": "691a73a89deea0549ebb5a3306bfee12af2c6cc9",
-      "sha256": "abd55e41f2aeb017b3b2c1e6080129ffdf91c36727a0219d8f5f80ef24175de4",
-      "bytes": 28114378,
+      "sha1": "b3ec2b2458ff32c1da058491f1d8ac5cbb44a106",
+      "sha256": "f18b060321cc8af6245c27b00c7cca26a924e9b01666f20601a4d66b9a87d599",
+      "bytes": 27303628,
       "modId": "arcadium_runtime",
       "license": "GPL-3.0-only",
       "authors": [

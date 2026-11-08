@@ -129,7 +129,7 @@ public final class GpuParticles {
         for(int i=0;i<group.count;i++){
             int end=group.offsets[i]*7,length=end-from;System.arraycopy(source,from,output,to,length);from=end;to+=length;
             for(int j=0;j<WORDS;j++)packet[j]=group.packets.get(i*WORDS+j);
-            ParticlePacketMath.quads(packet,0,output,to);to+=28;
+            int[] quad=ParticlePacketMath.quads(packet,0);System.arraycopy(quad,0,output,to,quad.length);to+=quad.length;
         }
         System.arraycopy(source,from,output,to,source.length-from);builder.begin(GL11.GL_QUADS,DefaultVertexFormat.PARTICLE);builder.vertices(output);builder.end();cpuRecoveries+=group.count;group.count=0;
     }

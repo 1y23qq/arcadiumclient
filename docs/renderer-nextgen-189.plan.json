@@ -3,7 +3,7 @@
   "date": "2026-11-05",
   "minecraft": "1.8.9",
   "status": "implementation-in-progress",
-  "releaseContext": "0.7.2 published Star Hider, Nick Hider replacements and local capes on the 0.7.1 renderer. Renderer research is retained for 0.7.3 and is not a completed or published backend.",
+  "releaseContext": "0.7.4 removes the optimization additions from 0.7.3 while preserving its text/input, Forge held-item and native-cursor fixes. Full renderer research is retained separately on c/renderer-073 and is not adopted by this hotfix.",
   "decision": "Build a persistent GPU scene with compact actor state, GPU visibility and indirect submission. Separate scene preparation from its OpenGL/Metal backend.",
   "reason": "Existing beta code already computes player poses and model transforms on the GPU. The larger opportunity is removing repeated Java traversal, instance preparation and driver submission around that computation, while increasing supported-model coverage.",
   "existingWork": [

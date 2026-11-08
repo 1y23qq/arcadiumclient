@@ -37,16 +37,7 @@
     "ScoreboardPreparation065SortProbe",
     "ScoreboardPreparation065VisibilityProbe",
     "ScoreboardPreparation065MutationProbe",
-    "HypixelLabKeyProbe",
-    "ResidentBody072LifecycleProbe",
-    "P3PhysicalOrdinaryRows073Probe",
-    "P3PhysicalOrdinaryWorld073Probe",
-    "P3PhysicalOrdinaryBlur073Probe",
-    "P3PhysicalOrdinaryBlend073Probe",
-    "P3PhysicalOrdinaryDecision073Probe",
-    "TerrainEvent073BridgeProbe",
-    "TerrainEvent073DrawProbe",
-    "TerrainEvent073ResourceProbe"
+    "HypixelLabKeyProbe"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -1,3 +1,8 @@
+## 0.7.4
+
+- Rolled back the rendering optimizations added in 0.7.3.
+- Restored safer optimization defaults while keeping the 0.7.3 fixes.
+
 ## 0.7.3
 
 - Fixed clickable chat and book text, and Nick Hider replacement layout.

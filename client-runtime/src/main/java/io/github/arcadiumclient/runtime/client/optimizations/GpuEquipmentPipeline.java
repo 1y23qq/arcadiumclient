@@ -17,7 +17,7 @@ public final class GpuEquipmentPipeline {
     private static PlayerBatchAccess api;
     private static Object backend;
     private static final IdentityHashMap<HumanoidModel,Profile> profiles=new IdentityHashMap<>();
-    private static final Set<HumanoidModel> unsupported=Collections.newSetFromMap(new WeakHashMap<>());
+    private static final Set<HumanoidModel> unsupported=Collections.newSetFromMap(new IdentityHashMap<>());
     private static boolean failed;
     private static volatile String state="Waiting for standard armor";
     public static long statesQueued,partsQueued,glintStates,leatherStates,fallbacks;
@@ -48,7 +48,6 @@ public final class GpuEquipmentPipeline {
     @SuppressWarnings("unchecked")
     public static boolean capture(Model input,Entity entity,float walk,float speed,float age,float yaw,float pitch,float scale){
         if(!BetaOptimizationsConfig.getGpuEquipmentPipeline()||failed)return false;
-        if(ModernArmorGlintPipeline.active()||ModernArmorGlintPipeline.nativeModelLayer(input,entity))return false;
         if(input.getClass()!=HumanoidModel.class){state="Custom armor model; using original";fallbacks++;return false;}
         if(!(entity instanceof ClientPlayerEntity)||scale!=.0625f||input.isBaby){state="Nonstandard armor state; using original";fallbacks++;return false;}
         if(GpuPlayerPipeline.hasForgeHooks()){state="Forge hooks active; using original";fallbacks++;return false;}
@@ -63,14 +62,12 @@ public final class GpuEquipmentPipeline {
             if(!(boolean)api.capturePlayer.get(capture)||!(boolean)api.captureArmor.get(capture)||!(boolean)api.captureActive.get(capture)||(boolean)api.captureFinished.get(capture)||(int)api.captureMode.get(capture)!=5888){
                 state="Native animation pass; using original armor";fallbacks++;return false;
             }
-            Object pass=api.capturePass.get(capture);String kind=((Enum<?>)pass).name();
-            if(!kind.equals("NORMAL")&&!kind.equals("GLINT")){fallbacks++;return false;}
-            Identifier texture=(Identifier)api.captureTexture.get(capture);
-            if(CeraEmissiveAdmission.nativeSubmitRequired(capture,input,texture,kind)){state="Armor material retains native submission callbacks";fallbacks++;return false;}
             Object device=api.backend.get(actor);if(backend!=device){profiles.clear();unsupported.clear();backend=device;}
             if(unsupported.contains(model)){fallbacks++;return false;}
             profile=profiles.get(model);
-            if(profile==null){if(profiles.size()>=128){state="Armor profile budget; using native capture";fallbacks++;return false;}try{profile=new Profile(model,device);profiles.put(model,profile);}catch(IllegalArgumentException rejected){unsupported.add(model);fallbacks++;return false;}}
+            if(profile==null){try{profile=new Profile(model,device);profiles.put(model,profile);}catch(IllegalArgumentException rejected){unsupported.add(model);fallbacks++;return false;}}
+            Object pass=api.capturePass.get(capture);String kind=((Enum<?>)pass).name();
+            if(!kind.equals("NORMAL")&&!kind.equals("GLINT")){fallbacks++;return false;}
             boolean isGlint=kind.equals("GLINT");if(isGlint)glint=(Set<ModelPart>)api.captureGlint.get(capture);
             int mask=0;
             for(int i=0;i<7;i++)if(profile.parts[i].visible&&!profile.parts[i].invisible){
@@ -80,9 +77,9 @@ public final class GpuEquipmentPipeline {
             Matrix4fc root=(Matrix4fc)api.captureMatrices.get(capture);
             job=GpuPlayerPackets.add(root,walk,speed,age,yaw,pitch,model.attackAnimationProgress,model.itemInLeftHand,model.itemInRightHand,model.sneaking,model.riding,model.aimingBow,profile.template);
             if(job<0){if(glint!=null)for(int i=0;i<7;i++)if((addedGlint&(1<<i))!=0)glint.remove(profile.parts[i]);fallbacks++;return false;}
-            Object batch=api.select.invoke(device,texture,pass);
+            Identifier texture=(Identifier)api.captureTexture.get(capture);Object batch=api.select.invoke(device,texture,pass);
             int light=(int)api.captureLight.get(capture),layer=(int)api.selectedLayer.get(device),color=pack((Vector4fc)api.captureColor.get(capture)),overlay=pack((Vector4fc)api.captureOverlay.get(capture));
-            int lightWord=(light&255)|(((light>>>16)&255)<<8)|((layer&255)<<16),time=Float.floatToRawIntBits(ModernArmorGlintPipeline.effectTime(capture,(float)api.captureTime.get(capture)));int added=0;
+            int lightWord=(light&255)|(((light>>>16)&255)<<8)|((layer&255)<<16),time=Float.floatToRawIntBits((float)api.captureTime.get(capture));int added=0;
             for(int mirror=0;mirror<2;mirror++){
                 int n=0;for(int i=0;i<7;i++)if((mask&(1<<i))!=0&&profile.mirrored[i]==(mirror==1))n++;
                 if(n==0)continue;Object instances=api.instances.invoke(profile.geometry[mirror],batch);int[] data=(int[])api.data.get(instances);int size=(int)api.size.get(instances),count=(int)api.count.get(instances);
@@ -106,6 +103,5 @@ public final class GpuEquipmentPipeline {
     private static int pack(Vector4fc color){return channel(color.x())|channel(color.y())<<8|channel(color.z())<<16|channel(color.w())<<24;}
     private static int channel(float color){return Math.clamp((int)(color*255+.5f),0,255);}
     public static void reset(){profiles.clear();unsupported.clear();backend=null;}
-    static boolean usesBackend(Object value){return backend==value;}
     public static String status(){return BetaOptimizationsConfig.getGpuEquipmentPipeline()?"GPU equipment: "+state+" | Parts: "+partsQueued+" | Fallback: "+fallbacks:"GPU equipment: Off";}
 }

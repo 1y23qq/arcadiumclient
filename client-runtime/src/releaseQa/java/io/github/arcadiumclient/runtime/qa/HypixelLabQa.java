@@ -20,42 +20,22 @@ public final class HypixelLabQa {
     private static int ticks,cursor;
     private static String stage="idle";
     private static KeyBinding held;
-    private static KeyBinding heldModifier;
     private static long releaseAt;
     private static boolean inBedwars;
     private static final Gson JSON=new GsonBuilder().setPrettyPrinting().create();
     private HypixelLabQa(){}
     public static boolean enabled(){return System.getProperty("arcadium.hypixelLab.output")!=null;}
     public static boolean keyState(KeyBinding key,boolean original){
-        if(!enabled()||key!=held&&key!=heldModifier)return original;
+        if(!enabled()||key!=held)return original;
         Minecraft mc=Minecraft.getInstance();
         return System.nanoTime()<releaseAt&&mc.screen==null&&mc.world!=null&&mc.getCurrentServerEntry()!=null&&mc.getCurrentServerEntry().ip.equals("mc.hypixel.net");
     }
     private static Path output(){return Path.of(System.getProperty("arcadium.hypixelLab.output"));}
     public static void tick(){
-        if(!enabled())return;
-        if(LiveRenderer072RejectionQa.enabled()){LiveRenderer072RejectionQa.tick();return;}
-        Minecraft mc=Minecraft.getInstance();
-        inBedwars=bedwarsWithoutAllocation(mc);
-        if(LiveRenderer072Qa.running()){
-            LiveRenderer072Qa.tick(inBedwars);
-            if(!LiveRenderer072Qa.running()&&LiveRenderer072Qa.changedController()){
-                try{
-                    Path changed=output().resolveSibling("control.json");
-                    if(Files.exists(changed)){
-                        stamp=Files.getLastModifiedTime(changed).toMillis();
-                        JsonObject interrupted=JsonParser.parseString(Files.readString(changed)).getAsJsonObject();
-                        if(interrupted.has("quit")&&interrupted.get("quit").getAsBoolean())mc.stop();
-                    }
-                }catch(Exception ignored){}
-            }
-            return;
-        }
+        if(!enabled())return;Minecraft mc=Minecraft.getInstance();
+        inBedwars=sidebar().replace(" ","").toUpperCase(Locale.ROOT).contains("BEDWARS");
         LivePaired066Qa.sceneTick(inBedwars);
-        if(held!=null&&(System.nanoTime()>=releaseAt||mc.screen!=null||mc.world==null)){
-            KeyBinding.set(held.getKeyCode(),false);held=null;
-            if(heldModifier!=null){KeyBinding.set(heldModifier.getKeyCode(),false);heldModifier=null;}
-        }
+        if(held!=null&&(System.nanoTime()>=releaseAt||mc.screen!=null||mc.world==null)){KeyBinding.set(held.getKeyCode(),false);held=null;}
         if(++ticks%20!=0)return;
         try{
             if(mc.world!=null&&mc.getCurrentServerEntry()==null&&"mc.hypixel.net".equals(System.getProperty("arcadium.hypixelLab.server")))mc.setCurrentServerEntry(new ServerListEntry("Hypixel","mc.hypixel.net",false));
@@ -65,11 +45,6 @@ public final class HypixelLabQa {
                 stamp=Files.getLastModifiedTime(control).toMillis();JsonObject value=JsonParser.parseString(Files.readString(control)).getAsJsonObject();
                 if(LivePaired066Qa.running())LivePaired066Qa.cancel("Controller changed during the paired run");
                 if(value.has("quit")&&value.get("quit").getAsBoolean()){mc.stop();return;}
-                String nextStage=value.get("stage").getAsString();
-                if(LiveRenderer072Qa.handles(nextStage)){
-                    stage=nextStage;frames.clear();submit.clear();gpu.clear();last=0;
-                    LiveRenderer072Qa.arm(output(),inBedwars,held!=null,value);return;
-                }
                 boolean all=value.has("beta")&&value.get("beta").getAsBoolean();
                 BetaOptimizationsConfig.setGpuModelTransforms(all);BetaOptimizationsConfig.setGpuPlayerPipeline(all);
                 BetaOptimizationsConfig.setGpuEquipmentPipeline(all);BetaOptimizationsConfig.setGpuNameTags(all);
@@ -82,23 +57,17 @@ public final class HypixelLabQa {
                 stage=value.get("stage").getAsString();frames.clear();submit.clear();gpu.clear();start=System.nanoTime();last=0;
                 if(value.has("command")&&mc.player!=null&&mc.screen==null&&mc.getCurrentServerEntry()!=null&&mc.getCurrentServerEntry().ip.equals("mc.hypixel.net")){
                     String command=value.get("command").getAsString();
-                    if(command.equals("/lobby bedwars")||command.equals("/lobby main")||command.equals("/swaplobby 1")||command.equals("/swaplobby 2"))mc.player.sendChat(command);
+                    if(command.equals("/lobby bedwars")||command.equals("/swaplobby 1"))mc.player.sendChat(command);
                 }
                 if(value.has("move")&&held==null&&mc.screen==null&&mc.world!=null&&mc.getCurrentServerEntry()!=null&&mc.getCurrentServerEntry().ip.equals("mc.hypixel.net")){
                     KeyBinding key=switch(value.get("move").getAsString()){case "forward"->mc.options.forwardKey;case "back"->mc.options.backKey;case "left"->mc.options.leftKey;case "right"->mc.options.rightKey;default->null;};
-                    if(key!=null&&!key.isPressed()){
-                        held=key;releaseAt=System.nanoTime()+Math.clamp(value.has("moveMs")?value.get("moveMs").getAsInt():300,50,600)*1_000_000L;KeyBinding.set(key.getKeyCode(),true);
-                        if(value.has("sneak")&&value.get("sneak").getAsBoolean()&&!mc.options.sneakKey.isPressed()){
-                            heldModifier=mc.options.sneakKey;KeyBinding.set(heldModifier.getKeyCode(),true);
-                        }
-                    }
+                    if(key!=null&&!key.isPressed()){held=key;releaseAt=System.nanoTime()+Math.clamp(value.has("moveMs")?value.get("moveMs").getAsInt():300,50,600)*1_000_000L;KeyBinding.set(key.getKeyCode(),true);}
                 }
                 if(LivePaired066Qa.handles(stage))LivePaired066Qa.arm(output(),inBedwars,held!=null,value);
             }
-            if(LivePaired066Qa.handles(stage)||LiveRenderer072Qa.handles(stage))return;
+            if(LivePaired066Qa.handles(stage))return;
             Map<String,Object> status=new LinkedHashMap<>();status.put("stage",stage);status.put("seconds",(System.nanoTime()-start)/1e9);
             status.put("screen",mc.screen==null?"none":mc.screen.getClass().getSimpleName());status.put("connected",mc.world!=null);
-            status.put("focused",Display.isActive());
             status.put("resolution",mc.width+"x"+mc.height);status.put("server",mc.getCurrentServerEntry()==null?"":mc.getCurrentServerEntry().ip);
             status.put("players",mc.world==null?0:mc.world.players.size());status.put("renderDistance",mc.options.viewDistance);
             Map<String,Object> settingsSnapshot=new LinkedHashMap<>();
@@ -112,29 +81,6 @@ public final class HypixelLabQa {
             status.put("sidebar",sidebar());status.put("isBedwarsScene",bedwarsScene());
             if(mc.player!=null)status.put("view",List.of(mc.player.x,mc.player.y,mc.player.z,mc.player.yaw,mc.player.pitch));
             status.put("diagnostics",List.of(GpuModelTransforms.status(),GpuPlayerPipeline.status(),GpuEquipmentPipeline.status(),GpuNameTags.status(),RetainedNameTags.status(),RetainedHudBuffers.status()));
-            Map<String,Object> renderCounters=new LinkedHashMap<>();
-            for(String name:List.of("GpuPlayerPipeline","NativePlayerPosePipeline","GpuEquipmentPipeline","GpuVoxelSkinPipeline","GpuModelTransforms","GpuTerrainCommands","GpuResidentPlayerState","GpuResolvedInstanceCache","CeraEmissiveAdmission","RetainedHudBuffers","EntityNameFormatting","GpuParticles","NametagLayout")){
-                Map<String,Object> values=new LinkedHashMap<>();
-                try{
-                    Class<?> type=Class.forName("io.github.arcadiumclient.runtime.client."+(name.equals("NametagLayout")?"branding.":"optimizations.")+name);
-                    for(var field:type.getFields())if(java.lang.reflect.Modifier.isStatic(field.getModifiers())&&!java.lang.reflect.Modifier.isFinal(field.getModifiers())){
-                        Class<?> kind=field.getType();if(kind==long.class||kind==int.class||kind==boolean.class)values.put(field.getName(),field.get(null));
-                    }
-                    values.put("present",true);
-                }catch(ReflectiveOperationException ignored){values.put("present",false);}
-                renderCounters.put(name,values);
-            }
-            status.put("renderCounters",renderCounters);
-            Map<String,Object> materialAdmission=new LinkedHashMap<>();
-            try{
-                Class<?> type=Class.forName("io.github.arcadiumclient.runtime.client.optimizations.CeraEmissiveAdmission");
-                materialAdmission.put("status",type.getMethod("status").invoke(null));
-                for(String key:List.of("checked","trusted","present","lookupFailed")){
-                    var field=type.getDeclaredField(key);field.setAccessible(true);materialAdmission.put(key,field.getBoolean(null));
-                }
-                materialAdmission.put("presentInRuntime",true);
-            }catch(ReflectiveOperationException unavailable){materialAdmission.put("presentInRuntime",false);}
-            status.put("nativeMaterialAdmission",materialAdmission);
             try{status.put("particleDiagnostics",Class.forName("io.github.arcadiumclient.runtime.client.optimizations.GpuParticles").getMethod("status").invoke(null));}catch(ReflectiveOperationException ignored){}
             try{status.put("hologramDiagnostics",Class.forName("io.github.arcadiumclient.runtime.client.optimizations.FastInvisibleHolograms").getMethod("status").invoke(null));}catch(ReflectiveOperationException ignored){}
             for(String[] metric:new String[][]{{"ScoreboardPreparation","scoreboardDiagnostics"},{"FastFramePresentation","presentationDiagnostics"},{"RenderHookAllocationControl","renderHooksDiagnostics"},{"EfficientMotionBlur","motionBlurDiagnostics"}}){
@@ -154,20 +100,10 @@ public final class HypixelLabQa {
         }catch(Exception failure){org.apache.logging.log4j.LogManager.getLogger("Arcadium/Hypixel Lab").warn("Could not write benchmark status",failure);}
     }
     private static String sidebar(){var world=Minecraft.getInstance().world;if(world==null)return "";var score=world.getScoreboard().getDisplayObjective(1);return score==null?"":Formatting.strip(score.getDisplayName());}
-    private static boolean bedwarsWithoutAllocation(Minecraft mc){
-        if(mc.world==null)return false;var objective=mc.world.getScoreboard().getDisplayObjective(1);if(objective==null)return false;
-        String text=objective.getDisplayName(),match="BEDWARS";int found=0;
-        for(int i=0;i<text.length();i++){
-            char character=text.charAt(i);if(character=='\u00a7'&&i+1<text.length()){i++;continue;}if(character==' ')continue;
-            if(character>='a'&&character<='z')character-=32;
-            if(character==match.charAt(found)){if(++found==match.length())return true;}else found=character=='B'?1:0;
-        }
-        return false;
-    }
     private static boolean bedwarsScene(){return inBedwars;}
-    private static boolean sampling(){return !LivePaired066Qa.handles(stage)&&!LiveRenderer072Qa.handles(stage)&&!stage.equals("idle")&&System.nanoTime()-start>3_000_000_000L&&System.nanoTime()-start<32_000_000_000L&&Minecraft.getInstance().world!=null&&Minecraft.getInstance().screen==null&&bedwarsScene();}
-    public static void frameHead(){if(!enabled())return;if(LiveRenderer072RejectionQa.enabled()){LiveRenderer072RejectionQa.head();return;}if(LiveRenderer072Qa.handles(stage)){LiveRenderer072Qa.head(inBedwars);return;}if(LivePaired066Qa.handles(stage))LivePaired066Qa.head(inBedwars);}
-    public static void frame(){if(!enabled())return;if(LiveRenderer072RejectionQa.enabled()){LiveRenderer072RejectionQa.frame();return;}if(LiveRenderer072Qa.handles(stage)){LiveRenderer072Qa.tail(inBedwars);return;}if(LivePaired066Qa.handles(stage)){LivePaired066Qa.tail(inBedwars);return;}long now=System.nanoTime();if(sampling()&&last!=0&&frames.size()<300000)frames.add((now-last)/1e6);last=now;}
+    private static boolean sampling(){return !LivePaired066Qa.handles(stage)&&!stage.equals("idle")&&System.nanoTime()-start>3_000_000_000L&&System.nanoTime()-start<32_000_000_000L&&Minecraft.getInstance().world!=null&&Minecraft.getInstance().screen==null&&bedwarsScene();}
+    public static void frameHead(){if(enabled()&&LivePaired066Qa.handles(stage))LivePaired066Qa.head(inBedwars);}
+    public static void frame(){if(!enabled())return;if(LivePaired066Qa.handles(stage)){LivePaired066Qa.tail(inBedwars);return;}long now=System.nanoTime();if(sampling()&&last!=0&&frames.size()<300000)frames.add((now-last)/1e6);last=now;}
     public static int beginGpu(){
         if(!sampling())return 0;int slot=cursor++%queries.length;
         if(queries[slot]==0)queries[slot]=GL15.glGenQueries();

@@ -3,18 +3,13 @@ package io.github.arcadiumclient.runtime.mixin.compat.argentum;
 
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.moulberry.mixinconstraints.annotations.IfModLoaded;
 import io.github.arcadiumclient.runtime.client.optimizations.GpuModelTransforms;
-import io.github.arcadiumclient.runtime.client.optimizations.NativePlayerPosePipeline;
-import io.github.arcadiumclient.runtime.client.optimizations.CeraEmissiveAdmission;
-import io.github.arcadiumclient.runtime.client.optimizations.NativeMaterialState;
 import io.github.arcadiumclient.runtime.client.features.BetaOptimizationsConfig;
 import java.lang.invoke.*;
 import io.github.arcadiumclient.runtime.mixin.client.access.BetaModelPartAccess;
 import net.minecraft.client.render.model.ModelPart;
 import net.minecraft.client.render.model.entity.PlayerModel;
-import net.minecraft.resource.Identifier;
 import org.joml.Matrix4f;
 import org.joml.Matrix4fStack;
 import org.spongepowered.asm.mixin.*;
@@ -24,43 +19,26 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Pseudo
 @IfModLoaded("argentum")
 @Mixin(targets = "dev.rdh.argentum.impl.render.entity.instancing.EntityCapture", remap = false)
-public abstract class MixinGpuModelCapture implements CeraEmissiveAdmission.Capture, NativePlayerPosePipeline.CaptureAccess {
+public abstract class MixinGpuModelCapture {
     @Shadow private Matrix4fStack matrices;
     @Shadow private boolean player;
     @Shadow private boolean item;
     @Shadow private boolean armorLayer;
-    @Shadow private Identifier boundTexture;
     @Unique private boolean arcadium$recording;
     @Unique private final Matrix4f arcadium$root = new Matrix4f();
     @Unique private ModelPart arcadium$part;
     @Unique private float arcadium$scale;
     @Unique private static MethodHandle arcadium$submitBoxes;
     @Unique private static MethodHandle arcadium$pass;
-    @Unique private final NativePlayerPosePipeline.CaptureState arcadium$nativePose = new NativePlayerPosePipeline.CaptureState();
-    @Unique private final NativeMaterialState arcadium$material = new NativeMaterialState();
-
-    @Override public NativePlayerPosePipeline.CaptureState arcadium$nativePoseState() { return arcadium$nativePose; }
 
     @Inject(method = "beginEntity", at = @At("HEAD"), remap = false)
     private void arcadium$countPlayer(@Coerce Object model, @Coerce Object texture, boolean isPlayer, boolean preserveFixedFunction,
             int light, float time, float red, float green, float blue, float alpha, CallbackInfo callback) {
-        arcadium$nativePose.begin(); arcadium$material.clear();
-    }
-
-    @ModifyReturnValue(method = "beginLayer", at = @At("RETURN"), remap = false)
-    private boolean arcadium$beginMaterialLayer(boolean original) { arcadium$material.clear(); return original; }
-
-    @ModifyConstant(method = "endLayer", constant = @Constant(intValue = 0, ordinal = 0), remap = false, require = 0)
-    private int arcadium$endMaterialLayer(int original) { arcadium$material.clear(); return original; }
-
-    @Override
-    public boolean arcadium$nativeMaterial(Object model, Identifier texture, String pass) {
-        return CeraEmissiveAdmission.nativeSubmitRequired(arcadium$material, model, texture, pass);
+        if (isPlayer) GpuModelTransforms.notePlayer();
     }
 
     @WrapMethod(method = "recordPart")
     private void arcadium$compactPart(ModelPart part, float scale, Operation<Void> original) {
-        if (player && !item && NativePlayerPosePipeline.capture(arcadium$nativePose, (Object)this, part, scale)) return;
         if (!BetaOptimizationsConfig.getGpuModelTransforms()||!GpuModelTransforms.ready()) { original.call(part, scale); return; }
         if (!player || item || armorLayer || ((BetaModelPartAccess)part).arcadium$baseModel().getClass() != PlayerModel.class
                 || part.getClass() != ModelPart.class || part.invisible || !part.visible
@@ -78,8 +56,7 @@ public abstract class MixinGpuModelCapture implements CeraEmissiveAdmission.Capt
                 arcadium$pass = lookup.unreflectGetter(field);
             }
             String pass = ((Enum<?>) arcadium$pass.invoke((Object)this)).name();
-            if (!pass.equals("NORMAL") && !pass.equals("TRANSLUCENT") || CeraEmissiveAdmission.nativeSubmitRequired(this,
-                    ((BetaModelPartAccess)part).arcadium$baseModel(), boundTexture, pass)) {
+            if (!pass.equals("NORMAL") && !pass.equals("TRANSLUCENT")) {
                 GpuModelTransforms.fallbackParts++;
             } else {
                 arcadium$root.set(matrices); arcadium$part = part; arcadium$scale = scale;

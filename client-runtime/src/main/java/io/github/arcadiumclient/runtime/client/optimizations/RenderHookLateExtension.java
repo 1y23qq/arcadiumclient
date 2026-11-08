@@ -21,7 +21,6 @@ public final class RenderHookLateExtension implements IExtension {
         boolean known=switch(kind){
             case "particle" -> target.name.equals("net/minecraft/client/ParticleManager")||target.name.equals("net/minecraft/unmapped/C_16190149");
             case "layer" -> target.name.equals("net/minecraft/client/render/entity/LivingEntityRenderer")||target.name.equals("net/minecraft/unmapped/C_71252617");
-            case "entity-name" -> target.name.equals("net/minecraft/client/render/entity/EntityRenderer")||target.name.equals("net/minecraft/unmapped/C_53593123");
             default -> false;
         };
         if(!known)return;
@@ -46,19 +45,7 @@ public final class RenderHookLateExtension implements IExtension {
         ClassNode target=context.getClassNode();Task task=pending.remove(target);if(task==null)return;
         ClassNode original=new ClassNode(Opcodes.ASM9);target.accept(original);
         try{
-            int sites=task.processor.applyAsInt(target);
-            int names=0,holograms=0,cera=0;
-            if(task.kind.equals("layer")){
-                names=SarcioNameResetFusion.apply(target);
-                holograms=HologramNamePreparationFusion.apply(target).size();
-                cera=CeraLivingOperationFusion.apply(target).size();
-            }
-            if(task.kind.equals("layer")){
-                RenderHookAllocationControl.nameSites+=names+holograms;
-                HologramNamePreparation.preparedSites=holograms;
-                sites+=cera;
-            }
-            task.counter.accept(sites);
+            int sites=task.processor.applyAsInt(target);task.counter.accept(sites);
             LogManager.getLogger("Arcadium/Render Hooks").info("Prepared {} typed {} gates after MixinExtras",sites,task.kind);
         }catch(RuntimeException unsupported){target.methods=original.methods;LogManager.getLogger("Arcadium/Render Hooks").warn("Keeping original {} operations",task.kind,unsupported);}
     }

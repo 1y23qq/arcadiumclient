@@ -48,11 +48,7 @@ public final class FastInvisibleHolograms {
         GlStateManager.enableTexture();
         GlStateManager.activeTexture(GLX.GL_TEXTURE0);
         GlStateManager.enableCull();
-        if(RenderHookAllocationControl.enabled&&HologramNamePreparation.preparedSites==2){
-            Object previous=HologramNamePreparation.enter(stand);
-            try{((HologramNameTagAccess) nativeRenderer).arcadium$renderOriginalNameTag(stand,x,y,z);}
-            finally{HologramNamePreparation.exit(previous);}
-        }else ((HologramNameTagAccess) nativeRenderer).arcadium$renderOriginalNameTag(stand,x,y,z);
+        ((HologramNameTagAccess) nativeRenderer).arcadium$renderOriginalNameTag(stand, x, y, z);
         accelerated++;
         return true;
     }
@@ -102,6 +98,6 @@ public final class FastInvisibleHolograms {
 
     public static String status() {
         return !BetaOptimizationsConfig.getFastInvisibleHolograms() ? "Invisible holograms: Off"
-                : "Invisible holograms: " + accelerated + " name-only | " + (equipmentFallbacks + rendererFallbacks + stateFallbacks) + " original | Typed names: " + HologramNamePreparation.batchTypedCalls + "/" + HologramNamePreparation.layoutTypedCalls + "/" + LowerNamePreparation.typedCalls;
+                : "Invisible holograms: " + accelerated + " name-only | " + (equipmentFallbacks + rendererFallbacks + stateFallbacks) + " original";
     }
 }

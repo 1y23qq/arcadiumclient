@@ -7,11 +7,10 @@ public final class RenderHookAllocationControl {
     public static volatile int particleSites;
     public static volatile int layerSites;
     public static volatile int cosmeticSites;
-    public static volatile int nameSites;
 
     private RenderHookAllocationControl() { }
 
     public static String status() {
-        return enabled ? "Render hooks: " + fusedSites + " matrix / " + particleSites + " particle / " + layerSites + " layer / " + cosmeticSites + " cosmetic / " + nameSites + " name gates" : "Render hook allocations: Original";
+        return enabled ? "Render hooks: " + fusedSites + " matrix / " + particleSites + " particle / " + layerSites + " layer / " + cosmeticSites + " cosmetic gates" : "Render hook allocations: Original";
     }
 }

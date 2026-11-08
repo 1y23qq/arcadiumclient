@@ -16,8 +16,6 @@ public final class NametagLayout {
         @Override protected boolean removeEldestEntry(Map.Entry<String,Prepared> entry){return size()>2048;}
     };
     public static boolean optimized;
-    private static final boolean REUSE_SCOPES=Boolean.parseBoolean(System.getProperty("arcadium.nameScope072.reuse","true"));
-    public static long scopesReused,scopesCreated;
     private static long preparedRevision=Long.MIN_VALUE;
     private static final class Holder { Scope current; long revision=Long.MIN_VALUE; }
     private static final ThreadLocal<Holder> CURRENT = ThreadLocal.withInitial(Holder::new);
@@ -32,24 +30,12 @@ public final class NametagLayout {
             if(preparedRevision!=revision){PREPARED.clear();preparedRevision=revision;}
             String masked=NickHider.display(label);Prepared prepared=PREPARED.get(masked);
             if(prepared==null){String display=NametagText.withoutTrailingPadding(masked);prepared=new Prepared(display,NametagText.stripFormatting(display));PREPARED.put(masked,prepared);}
-            Scope selected=retain(entity,label,prepared.display,prepared.visible,PlayerBadgeRenderer.onNametag(entity,label));
-            NickHider.rememberRendered(selected.displayLabel,revision);
-            holder.current=selected;holder.revision=revision;return previous;
+            holder.current=new Scope(label,NickHider.rememberRendered(prepared.display,revision),prepared.visible,PlayerBadgeRenderer.onNametag(entity,label),entity);holder.revision=revision;return previous;
         }
         String display = NickHider.rememberRendered(NametagText.withoutTrailingPadding(NickHider.display(label)),revision);
         holder.current=new Scope(label, display, Formatting.strip(display), PlayerBadgeRenderer.onNametag(entity, label),entity);
         holder.revision=revision;
         return previous;
-    }
-
-    static Scope retain(Entity entity,String label,String display,String visible,boolean badge) {
-        if(REUSE_SCOPES&&entity instanceof NametagScopeAccess access){
-            Scope cached=access.arcadium$nameScope();
-            if(cached!=null&&cached.owner==entity&&cached.badge==badge&&java.util.Objects.equals(cached.label,label)
-                    &&java.util.Objects.equals(cached.displayLabel,display)&&java.util.Objects.equals(cached.visibleLabel,visible)){scopesReused++;return cached;}
-            Scope created=new Scope(label,display,visible,badge,entity);access.arcadium$nameScope(created);scopesCreated++;return created;
-        }
-        scopesCreated++;return new Scope(label,display,visible,badge,entity);
     }
 
     public static void end(Scope previous) {
@@ -68,9 +54,7 @@ public final class NametagLayout {
         Holder holder=CURRENT.get();long revision=NickHider.renderRevision();
         if(holder.revision!=revision){
             String display=NickHider.rememberRendered(NametagText.withoutTrailingPadding(NickHider.display(scope.label)),revision);
-            String visible=Formatting.strip(display);
-            scope=optimized?retain(scope.owner,scope.label,display,visible,scope.badge):new Scope(scope.label,display,visible,scope.badge,scope.owner);
-            holder.current=scope;holder.revision=revision;
+            scope=new Scope(scope.label,display,Formatting.strip(display),scope.badge,scope.owner);holder.current=scope;holder.revision=revision;
         }
         return NickHider.rememberRendered(scope.displayLabel,revision);
     }

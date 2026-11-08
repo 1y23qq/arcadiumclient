@@ -18,9 +18,9 @@ final class CaptureContext {
     private static final Pattern CONFIG_ID = Pattern.compile("(?:arcadium-[a-z0-9-]+|oneconfig|themes|hybedwars|vanillahud|polyblur|polysprint|polyhitbox|overflowanimations|overflowparticles|colorsaturation|evergreenhud|no-render|fullbright|nametags)\\.json");
     private static final Pattern SETTING_KEY = Pattern.compile("[A-Za-z_][A-Za-z0-9_:-]*");
     private static final Pattern PRIVATE_KEY = Pattern.compile(".*(token|password|secret|apikey|account|username|uuid|serveraddress).*", Pattern.CASE_INSENSITIVE);
-    private static final String[] COUNTER_CLASSES = {"GpuModelTransforms", "GpuPlayerPipeline", "GpuEquipmentPipeline", "ModernArmorGlintPipeline", "GpuVoxelSkinPipeline", "GpuSkinLayers", "NativePlayerPosePipeline", "GpuResidentPlayerState", "GpuTerrainCommands", "GpuNameTags",
-        "GpuResolvedInstanceCache", "GpuVoxelSkinUploadFacts", "CeraEmissiveAdmission", "RetainedNameTags", "FastInvisibleHolograms", "RenderHookAllocationControl", "EfficientMotionBlur", "GpuParticles",
-        "ScoreboardPreparation", "FastFramePresentation", "RetainedHudBuffers", "EntityNameFormatting", "WorldRenderScale"};
+    private static final String[] COUNTER_CLASSES = {"GpuModelTransforms", "GpuPlayerPipeline", "GpuEquipmentPipeline", "GpuNameTags",
+        "RetainedNameTags", "FastInvisibleHolograms", "RenderHookAllocationControl", "EfficientMotionBlur", "GpuParticles",
+        "ScoreboardPreparation", "FastFramePresentation", "RetainedHudBuffers", "WorldRenderScale"};
     private CaptureContext() { }
 
     static Map<String, Object> environment(Minecraft mc) {
@@ -142,7 +142,7 @@ final class CaptureContext {
 
     static Map<String, Object> optimizationState() {
         Map<String, Object> state = new TreeMap<>();
-        for (String name : List.of("GpuModelTransforms", "GpuPlayerPipeline", "GpuEquipmentPipeline", "GpuResidentPlayerState", "GpuTerrainCommands", "GpuParticles", "RetainedNameTags")) {
+        for (String name : List.of("GpuModelTransforms", "GpuPlayerPipeline", "GpuEquipmentPipeline", "GpuParticles", "RetainedNameTags")) {
             Map<String, Object> flags = new TreeMap<>();
             try {
                 Class<?> type = Class.forName(PREFIX + name, false, CaptureContext.class.getClassLoader());
