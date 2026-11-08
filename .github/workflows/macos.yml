@@ -135,6 +135,8 @@ jobs:
 
   windows:
     if: inputs.mode == 'windows' || inputs.mode == 'package-all' || inputs.mode == 'warm-windows'
+    permissions:
+      contents: write
     runs-on: windows-2022
     timeout-minutes: 180
     env:
