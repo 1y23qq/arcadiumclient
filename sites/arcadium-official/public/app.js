@@ -138,14 +138,22 @@
     });
   }
 
+  // Reveal once and animate the gradient only while visible.
   const benchmark = document.querySelector('.benchmark-chart');
-  if (benchmark && 'IntersectionObserver' in window) {
+  if (benchmark && 'IntersectionObserver' in window && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
     let visible = false;
+    let revealed = false;
     const updateAnimation = () => benchmark.classList.toggle('is-visible', visible && !document.hidden);
-    new IntersectionObserver(entries => {
+    benchmark.classList.add('is-pending');
+    const observer = new IntersectionObserver(entries => {
       visible = entries[0].isIntersecting;
+      if (visible && !revealed) {
+        revealed = true;
+        requestAnimationFrame(() => benchmark.classList.remove('is-pending'));
+      }
       updateAnimation();
-    }, {threshold: 0.15}).observe(benchmark);
+    }, {threshold: 0.15});
+    observer.observe(benchmark);
     document.addEventListener('visibilitychange', updateAnimation);
   }
 
