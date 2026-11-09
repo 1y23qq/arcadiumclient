@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="Arcadium Client for Minecraft 1.7.10, 1.8.9, 1.21.11 and 26.2. Customise your HUD, choose a theme and play through a native Windows or macOS launcher. Download the official installer.">
-  <meta name="theme-color" content="#0c0d12">
+  <meta name="description" content="Arcadium is a customisable Minecraft Java client and native launcher for Windows and macOS. Play 1.7.10, 1.8.9, 1.21.11 and 26.2 with your own HUD, themes and controls.">
+  <meta name="theme-color" content="#101310">
   <meta property="og:title" content="Arcadium Client">
-  <meta property="og:description" content="A Minecraft 1.7.10, 1.8.9, 1.21.11 and 26.2 client and native launcher for Windows and macOS.">
+  <meta property="og:description" content="Your HUD, themes and controls, with a native launcher for Windows and macOS.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://arcadiumclient.com/">
   <meta property="og:image" content="https://arcadiumclient.com/assets/client-main-menu-d39da5ba1e1d.png">
@@ -16,157 +16,95 @@
   <link rel="canonical" href="https://arcadiumclient.com/">
   <link rel="icon" href="/assets/arcadium.svg" type="image/svg+xml">
   <link rel="preload" href="/assets/Manrope-Latin-Variable.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="/assets/Sora-Latin-Variable.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/styles.css?v=20261104-fps">
-  <script src="/app.js" defer></script>
-  <title>Arcadium Client | Minecraft 1.7.10, 1.8.9, 1.21.11 &amp; 26.2</title>
+  <link rel="stylesheet" href="/styles.css?v=20261109">
+  <script src="/app.js?v=20261109" defer></script>
+  <title>Arcadium Client | Minecraft for Windows &amp; macOS</title>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
   <header class="site-header">
     <div class="container header-inner">
-      <a class="brand" href="/" aria-label="Arcadium Client home"><img src="/assets/arcadium.svg" width="32" height="32" alt=""><span>Arcadium<span class="brand-suffix"> Client</span></span></a>
-      <nav class="site-nav" aria-label="Main navigation"><a href="#client">Client</a><a href="#launcher">Launcher</a><a href="#help">Help</a></nav>
-      <div class="header-actions"><span class="online-count header-online" data-online-status="unavailable" title="Active Arcadium installations in the last 90 seconds. A launcher and game on the same installation count once."><svg class="online-icon" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7.5"/><ellipse cx="10" cy="10" rx="3.5" ry="7.5"/><path d="M2.5 10h15M4 5.5h12M4 14.5h12"/></svg><span data-online-count aria-live="polite" aria-atomic="true">Online count unavailable</span></span><a class="button button-small button-discord" href="https://discord.gg/QbNfaCHjUz" target="_blank" rel="noopener noreferrer"><img class="discord-logo" src="/assets/discord.svg" width="18" height="14" alt="">Discord</a><a class="button button-small button-header" href="/download/">Download <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v12m-5-5 5 5 5-5"/></svg></a></div>
+      <a class="brand" href="/" aria-label="Arcadium home"><img src="/assets/arcadium.svg" width="28" height="28" alt=""><span>Arcadium</span></a>
+      <nav class="desktop-nav" aria-label="Main navigation"><a href="#client">The client</a><a href="#performance">Performance</a><a href="#help">Help</a></nav>
+      <div class="header-actions">
+        <span class="online-count" data-online-status="loading" title="Active installations in the last 90 seconds. The launcher and game on the same installation count once."><svg class="icon" aria-hidden="true"><use href="/assets/interface.svg#globe"/></svg><span data-online-count aria-live="polite" aria-atomic="true">Online count</span></span>
+        <a class="header-discord" href="https://discord.gg/QbNfaCHjUz" target="_blank" rel="noopener noreferrer"><img src="/assets/discord.svg" width="18" height="14" alt=""><span>Discord</span></a>
+        <a class="button button-small" href="/download/">Download<svg class="icon" aria-hidden="true"><use href="/assets/interface.svg#arrow-down"/></svg></a>
+        <button class="menu-button" type="button" aria-controls="mobile-navigation" aria-expanded="false" aria-label="Open navigation" data-menu-toggle hidden><svg class="icon" aria-hidden="true"><use href="/assets/interface.svg#menu"/></svg></button>
+      </div>
     </div>
+    <nav class="mobile-nav container" id="mobile-navigation" aria-label="Mobile navigation" hidden><a href="#client">The client</a><a href="#performance">Performance</a><a href="#help">Help</a><a href="https://discord.gg/QbNfaCHjUz" target="_blank" rel="noopener noreferrer">Discord<svg class="icon" aria-hidden="true"><use href="/assets/interface.svg#arrow-up-right"/></svg></a><span class="online-count mobile-online" data-online-status="loading"><svg class="icon" aria-hidden="true"><use href="/assets/interface.svg#globe"/></svg><span data-online-count aria-live="polite" aria-atomic="true">Online count</span></span></nav>
   </header>
 
   <main id="main">
     <section class="hero container" aria-labelledby="hero-title">
-      <div class="hero-copy">
-        <p class="hero-platform">Minecraft Java Edition <span class="version-pill">1.7.10 / 1.8.9 / 1.21.11 / 26.2</span></p>
-        <h1 id="hero-title">Arcadium Client</h1>
-        <p class="hero-description">A customisable Minecraft client with a native launcher for Windows and macOS.<br class="desktop-break"> Set up your HUD, choose a theme and get into the game.</p>
-        <div class="hero-actions">
-          <a class="button button-primary" href="/download/">Download <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2v11m-4-4 4 4 4-4M3 13v4h14v-4"/></svg></a>
-          <a class="button button-secondary" href="#client">Explore the client <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 8l5 5 5-5"/></svg></a>
-        </div>
+      <div class="hero-heading">
+        <div><p class="overline">Minecraft Java Edition</p><h1 id="hero-title">Arcadium Client<span class="accent">.</span></h1></div>
+        <div class="hero-intro"><p>A customisable Minecraft client. <br>Your HUD, themes and controls, with a native launcher for Windows and macOS.</p><a class="text-link" href="/download/">Get Arcadium<svg class="icon" aria-hidden="true"><use href="/assets/interface.svg#arrow-right"/></svg></a></div>
       </div>
-      <figure class="hero-showcase">
-        <div class="screenshot hero-image"><img src="/assets/client-main-menu-d39da5ba1e1d.png" width="1612" height="940" alt="Arcadium's main menu with account controls, Singleplayer, Multiplayer and Background settings over a blurred lakeside panorama." fetchpriority="high"></div>
-        <figcaption><span>Main menu</span><span>Minecraft 1.8.9</span></figcaption>
+      <figure class="product-showcase" data-showcase>
+        <div class="showcase-toolbar">
+          <div class="showcase-tabs" role="tablist" aria-label="Client screenshots" data-showcase-controls hidden>
+            <button id="shot-menu" type="button" role="tab" aria-selected="true" aria-controls="showcase-panel" tabindex="0" data-showcase-src="/assets/client-main-menu-d39da5ba1e1d.png" data-showcase-alt="Arcadium's main menu over a lakeside panorama, with account, skin and background controls." data-showcase-width="1612" data-showcase-height="940">Main menu</button>
+            <button id="shot-mods" type="button" role="tab" aria-selected="false" aria-controls="showcase-panel" tabindex="-1" data-showcase-src="/assets/client-mod-menu-1b4da1abc2e1.png" data-showcase-alt="Arcadium Options showing individual module settings, switches, profiles and HUD controls." data-showcase-width="1920" data-showcase-height="1080">In-game menu</button>
+            <button id="shot-launcher" type="button" role="tab" aria-selected="false" aria-controls="showcase-panel" tabindex="-1" data-showcase-src="/assets/launcher-home-f640f51643fe.png" data-showcase-alt="Arcadium's native launcher with a version selector and Launch button." data-showcase-width="1263" data-showcase-height="865">Launcher</button>
+          </div>
+          <span class="showcase-caption" data-showcase-caption>Main menu</span>
+          <a class="image-expand" href="/assets/client-main-menu-d39da5ba1e1d.png" data-expand-image aria-label="Enlarge screenshot"><svg class="icon" aria-hidden="true"><use href="/assets/interface.svg#expand"/></svg></a>
+        </div>
+        <div class="showcase-panel" id="showcase-panel" role="tabpanel" aria-labelledby="shot-menu"><img data-showcase-image src="/assets/client-main-menu-d39da5ba1e1d.png" width="1612" height="940" alt="Arcadium's main menu over a lakeside panorama, with account, skin and background controls." fetchpriority="high" decoding="async"></div>
+        <figcaption class="showcase-bottom"><span data-showcase-context>Minecraft 1.8.9</span><span>Windows &amp; macOS</span></figcaption>
       </figure>
+      <div class="version-strip" aria-label="Supported Minecraft versions"><span>Choose your version.</span><ul><li>1.7.10</li><li>1.8.9</li><li>1.21.11</li><li>26.2</li></ul></div>
     </section>
 
-    <section class="section benchmark-section" id="performance" aria-labelledby="performance-title">
+    <section class="section container client-section" id="client" aria-labelledby="client-title">
+      <div class="section-intro"><p class="overline">The client</p><h2 id="client-title">Set up your game.</h2><p>Keep the information you use.<br>Put it where it works for you.</p></div>
+      <div class="feature-list">
+        <article><svg class="feature-icon" aria-hidden="true"><use href="/assets/interface.svg#layout"/></svg><div><h3>HUD editor</h3><p>Move and resize your HUD modules, then adjust their text, colours and layout individually.</p></div></article>
+        <article><svg class="feature-icon" aria-hidden="true"><use href="/assets/interface.svg#sliders"/></svg><div><h3>Modules &amp; keybinds</h3><p>Configure modules, set keybinds and save profiles from Arcadium Options.</p></div></article>
+        <article><svg class="feature-icon" aria-hidden="true"><use href="/assets/interface.svg#folder"/></svg><div><h3>Themes &amp; resource packs</h3><p>Choose a theme, customise the main menu and organise your resource packs.</p></div></article>
+      </div>
+    </section>
+
+    <section class="performance-section" id="performance" aria-labelledby="performance-title">
       <div class="container">
-        <div class="benchmark-layout">
-          <div class="benchmark-copy">
-            <h2 id="performance-title">FPS comparison</h2>
-            <p class="benchmark-scene">Hypixel · Bedwars Lobby 1</p>
-            <details class="benchmark-config">
-              <summary>View our testing configuration <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 8l5 5 5-5"/></svg></summary>
-              <dl class="benchmark-setup">
-              <div><dt>CPU</dt><dd>Intel Core i7-13620H</dd></div>
-              <div><dt>GPU</dt><dd>RTX 4060 Laptop</dd></div>
-              <div><dt>Resolution</dt><dd>1920 × 1080</dd></div>
-              <div><dt>Render distance</dt><dd>8 chunks</dd></div>
-              <div><dt>Lobby</dt><dd>Bedwars Lobby 1</dd></div>
-              <div><dt>Readout</dt><dd>Screenshot FPS</dd></div>
-              </dl>
-            </details>
+        <div class="performance-layout">
+          <div class="section-intro"><p class="overline">In the lobby</p><h2 id="performance-title">FPS comparison.</h2><p>Hypixel Bedwars Lobby 1<br>Minecraft 1.8.9</p>
+            <details class="testing-config"><summary>View our testing configuration<svg class="icon" aria-hidden="true"><use href="/assets/interface.svg#chevron"/></svg></summary><dl><div><dt>CPU</dt><dd>Intel Core i7-13620H</dd></div><div><dt>GPU</dt><dd>RTX 4060 Laptop</dd></div><div><dt>Resolution</dt><dd>1920 × 1080</dd></div><div><dt>Render distance</dt><dd>8 chunks</dd></div><div><dt>Lobby</dt><dd>Bedwars Lobby 1</dd></div><div><dt>Readout</dt><dd>Screenshot FPS</dd></div></dl></details>
           </div>
-          <figure class="benchmark-chart" aria-labelledby="benchmark-chart-title">
-            <figcaption id="benchmark-chart-title" class="sr-only">FPS shown in screenshots from Hypixel Bedwars Lobby 1.</figcaption>
+          <figure class="benchmark-chart" aria-label="Screenshot FPS comparison: Lunar Client 337, Badlion Client 401, Arcadium Client 821.">
             <ol class="benchmark-bars">
-              <li class="benchmark-row benchmark-lunar" data-captured-fps="337">
-                <div class="benchmark-row-heading"><span class="benchmark-client"><img src="/assets/lunar-client-8420e1fd402f.webp" width="28" height="28" alt="">Lunar Client</span><strong>337 <span>FPS</span></strong></div>
-                <div class="benchmark-track" aria-hidden="true"><span class="benchmark-bar"></span></div>
-              </li>
-              <li class="benchmark-row benchmark-badlion" data-captured-fps="401">
-                <div class="benchmark-row-heading"><span class="benchmark-client"><img src="/assets/badlion-client-e1bcecebbb5b.png" width="28" height="28" alt="">Badlion Client</span><strong>401 <span>FPS</span></strong></div>
-                <div class="benchmark-track" aria-hidden="true"><span class="benchmark-bar"></span></div>
-              </li>
-              <li class="benchmark-row benchmark-arcadium" data-captured-fps="821">
-                <div class="benchmark-row-heading"><span class="benchmark-client"><img src="/assets/arcadium.svg" width="28" height="28" alt="">Arcadium Client</span><strong>821 <span>FPS</span></strong></div>
-                <div class="benchmark-track" aria-hidden="true"><span class="benchmark-bar"></span></div>
-              </li>
-            </ol>
-            <div class="benchmark-axis" aria-hidden="true"><span>0</span><span>250</span><span>500</span><span>750</span><span>1000</span></div>
+              <li class="benchmark-row benchmark-lunar" data-captured-fps="337"><div class="benchmark-row-heading"><span class="benchmark-client"><img src="/assets/lunar-client-8420e1fd402f.webp" width="24" height="24" alt="">Lunar Client</span><strong>337 <small>FPS</small></strong></div><div class="benchmark-track" aria-hidden="true"><span class="benchmark-bar"></span></div></li>
+              <li class="benchmark-row benchmark-badlion" data-captured-fps="401"><div class="benchmark-row-heading"><span class="benchmark-client"><img src="/assets/badlion-client-e1bcecebbb5b.png" width="24" height="24" alt="">Badlion Client</span><strong>401 <small>FPS</small></strong></div><div class="benchmark-track" aria-hidden="true"><span class="benchmark-bar"></span></div></li>
+              <li class="benchmark-row benchmark-arcadium" data-captured-fps="821"><div class="benchmark-row-heading"><span class="benchmark-client"><img src="/assets/arcadium.svg" width="24" height="24" alt="">Arcadium Client</span><strong>821 <small>FPS</small></strong></div><div class="benchmark-track" aria-hidden="true"><span class="benchmark-bar"></span></div></li>
+            </ol><div class="benchmark-axis" aria-hidden="true"><span>0</span><span>250</span><span>500</span><span>750</span><span>1000</span></div>
           </figure>
         </div>
-        <figure class="benchmark-capture">
-          <a class="benchmark-image-link" href="/assets/fps-comparison-bef007b09c6c.webp" target="_blank" rel="noopener" aria-label="Open the full FPS comparison image">
-            <picture>
-              <source media="(max-width: 680px)" srcset="/assets/fps-comparison-mobile-b1130e99659c.webp" width="800" height="1728">
-              <img src="/assets/fps-comparison-bef007b09c6c.webp" width="2400" height="576" alt="Lunar Client: 337 FPS. Badlion Client: 401 FPS. Arcadium Client: 821 FPS. All three full screenshots show Hypixel Bedwars Lobby 1, with client logos and enlarged FPS counters." loading="lazy" decoding="async">
-            </picture>
-          </a>
-        </figure>
+        <a class="comparison-image" href="/assets/fps-comparison-bef007b09c6c.webp" data-expand-image aria-label="Enlarge the three comparison screenshots"><picture><source media="(max-width: 600px)" srcset="/assets/fps-comparison-mobile-b1130e99659c.webp" width="800" height="1728"><img src="/assets/fps-comparison-bef007b09c6c.webp" width="2400" height="576" alt="Full screenshots from Hypixel Bedwars Lobby 1: Lunar Client at 337 FPS, Badlion Client at 401 FPS and Arcadium Client at 821 FPS." loading="lazy" decoding="async"></picture></a>
       </div>
     </section>
 
-    <section class="section client-section" id="client" aria-labelledby="client-title">
-      <div class="container">
-        <div class="section-heading">
-          <div><p class="eyebrow">The client</p><h2 id="client-title">Your settings, in one place.</h2></div>
-          <p>Enable modules, adjust their settings and arrange your HUD. Themes, profiles and keybinds are available from the same menu.</p>
-        </div>
-        <div class="theme-showcase">
-          <div class="showcase-toolbar">
-            <span class="showcase-label"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="2.5" y="2.5" width="5.5" height="5.5" rx="1"/><rect x="12" y="2.5" width="5.5" height="5.5" rx="1"/><rect x="2.5" y="12" width="5.5" height="5.5" rx="1"/><rect x="12" y="12" width="5.5" height="5.5" rx="1"/></svg>Mod menu</span>
-          </div>
-          <div class="screenshot theme-image"><img src="/assets/client-mod-menu-1b4da1abc2e1.png" width="1920" height="1080" alt="Arcadium's in-game Mod menu with HUD modules, individual switches and shortcuts for profiles, keybinds and themes." loading="lazy" decoding="async"></div>
-          <p class="showcase-caption">Arcadium Options <span aria-hidden="true">/</span> Mods<a class="full-image-link" href="/assets/client-mod-menu-1b4da1abc2e1.png" target="_blank" rel="noopener">View full image <span aria-hidden="true">↗</span></a></p>
-        </div>
-        <div class="client-details">
-          <article><svg class="feature-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M9 9v12"/></svg><div><h3>Arrange your HUD</h3><p>Position your HUD modules in the editor and configure them individually. Keep the information you use in the places you want it.</p></div></article>
-          <article><svg class="feature-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h2m6 0h8M4 17h8m6 0h2"/><circle cx="9" cy="7" r="3"/><circle cx="15" cy="17" r="3"/></svg><div><h3>Adjust your controls</h3><p>Set up Toggle Sprint, change your block outline with Block Overlay, and manage modules, profiles and keybindings from Options.</p></div></article>
-        </div>
-      </div>
+    <section class="section container launcher-section" id="launcher" aria-labelledby="launcher-title">
+      <figure class="launcher-picture"><a href="/assets/launcher-home-f640f51643fe.png" data-expand-image aria-label="Enlarge the launcher screenshot"><img src="/assets/launcher-home-f640f51643fe.png" width="1263" height="865" alt="Arcadium Launcher showing installed Minecraft versions and the Launch button." loading="lazy" decoding="async"></a></figure>
+      <div class="launcher-copy"><p class="overline">The launcher</p><h2 id="launcher-title">Choose a version.<br>Launch Minecraft.</h2><p>Arcadium prepares Java, game files and client components for you.</p><ul class="launcher-points"><li><svg class="icon" aria-hidden="true"><use href="/assets/interface.svg#check"/></svg>Native apps for Windows and macOS</li><li><svg class="icon" aria-hidden="true"><use href="/assets/interface.svg#check"/></svg>Microsoft account sign-in</li><li><svg class="icon" aria-hidden="true"><use href="/assets/interface.svg#check"/></svg>Your settings and game files, kept locally</li></ul><a class="text-link" href="/download/">Choose your platform<svg class="icon" aria-hidden="true"><use href="/assets/interface.svg#arrow-right"/></svg></a></div>
     </section>
 
-    <section class="section launcher-section container" id="launcher" aria-labelledby="launcher-title">
-      <div class="launcher-layout">
-        <div class="launcher-copy">
-          <p class="eyebrow">The launcher</p>
-          <h2 id="launcher-title">From install to in-game.</h2>
-          <p class="section-description">Arcadium installs the game, Java and client components for you. Sign in once, finish setup and launch Minecraft from the native app.</p>
-          <ol class="setup-steps">
-            <li><span class="step-number" aria-hidden="true">1</span><div><strong>Install Arcadium</strong><p>Run the Windows installer, or open the macOS disk image and move Arcadium to Applications. Choose where to keep your game files during setup.</p></div></li>
-            <li><span class="step-number" aria-hidden="true">2</span><div><strong>Sign in with Microsoft</strong><p>Your browser opens automatically. Use the account that owns Minecraft Java Edition.</p></div></li>
-            <li><span class="step-number" aria-hidden="true">3</span><div><strong>Launch Minecraft</strong><p>The launcher downloads the required files and prepares the Minecraft version you choose.</p></div></li>
-          </ol>
-        </div>
-        <figure class="launcher-showcase"><div class="screenshot launcher-image"><img src="/assets/launcher-home-f640f51643fe.png" width="1263" height="865" alt="Arcadium Launcher showing Minecraft 1.8.9 Fabric and 1.7.10 Forge installations." loading="lazy" decoding="async"></div><figcaption>Arcadium Launcher <span>Windows x64</span></figcaption></figure>
-      </div>
-      <div class="launcher-details">
-        <article><h3>Microsoft account sign-in</h3><p>Authentication happens in your browser. Saved credentials use Windows DPAPI or macOS Keychain.</p></article>
-        <article><h3>Discord Rich Presence</h3><p>Show Arcadium, your Minecraft version and elapsed play time in Discord. You can turn this on or off in launcher settings.</p></article>
-        <article><h3>Your game files</h3><p>Choose the installation folder during setup. Your accounts, settings and game data stay on your computer.</p></article>
-      </div>
-    </section>
-
-    <section class="download-section" id="download" aria-labelledby="download-title">
-      <div class="container download-layout">
-        <div class="download-copy"><p class="eyebrow">Windows &amp; macOS</p><h2 id="download-title">Download Arcadium.</h2><p>The native launcher with Minecraft 1.7.10, 1.8.9, 1.21.11 and 26.2.</p><ul class="requirements-list"><li>Windows x64, Apple Silicon or Intel Mac</li><li>A purchased Minecraft Java Edition account</li><li>Internet access for setup and sign-in</li></ul><p class="beta-note">Arcadium is currently in beta.</p></div>
-        <div class="download-file">
-          <div class="download-file-header"><div class="file-icon"><img src="/assets/arcadium.svg" width="23" height="23" alt=""></div><div><h3>Arcadium Client</h3><p><span data-release-version>0.7.4</span><span class="file-badge" data-release-channel>Stable</span></p></div></div>
-          <p class="file-name">Windows x64 · macOS Apple Silicon · macOS Intel</p>
-          <div class="file-meta"><span>Official installers</span><span>Minecraft 1.7.10, 1.8.9, 1.21.11 &amp; 26.2</span></div>
-          <a class="button button-primary download-button" href="/download/">Choose your platform <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2v11m-4-4 4 4 4-4M3 13v4h14v-4"/></svg></a>
-          <div class="download-links"><a href="https://github.com/1y23qq/arcadium-public/releases/tag/v0.7.4" data-release-notes rel="noopener">Release notes <span aria-hidden="true">↗</span></a></div>
-          <a class="download-platform-link" href="/download/">Platforms and requirements <span aria-hidden="true">→</span></a>
-        </div>
-      </div>
-    </section>
-
-    <section class="section faq-section container" id="help" aria-labelledby="help-title">
-      <div class="faq-heading"><p class="eyebrow">Before you install</p><h2 id="help-title">A few common questions.</h2><p>Need help with something else?<br><a href="https://discord.gg/QbNfaCHjUz" rel="noopener">Join our Discord <span aria-hidden="true">↗</span></a></p></div>
+    <section class="section container help-section" id="help" aria-labelledby="help-title">
+      <div class="section-intro"><p class="overline">Good to know</p><h2 id="help-title">Before you play.</h2><a class="text-link discord-text" href="https://discord.gg/QbNfaCHjUz" target="_blank" rel="noopener noreferrer">Get help on Discord<svg class="icon" aria-hidden="true"><use href="/assets/interface.svg#arrow-up-right"/></svg></a></div>
       <div class="faq-list">
-        <details><summary>Do I need to own Minecraft?</summary><p>Yes. You need an account that owns Minecraft Java Edition. Sign in through the Microsoft page opened by the launcher. Arcadium never asks for your Microsoft password.</p></details>
-        <details><summary>Do I need to install Java myself?</summary><p>No. The launcher downloads the Java runtime and game components required for the client. An Internet connection is needed during setup.</p></details>
-        <details><summary>Can I add other mods?</summary><p>Forge 1.8.9 mods are supported when playing Minecraft 1.8.9. Put mod JARs in your Arcadium game directory's mods folder and install any libraries required by the mod's author. No separate Forge installation is needed. Compatible Ornithe Gen2 mods also work. Minecraft 1.7.10 uses Forge. Minecraft 1.21.11 and 26.2 use Fabric mods made for those versions. OptiFine and duplicate performance mods are blocked on 1.8.9.</p></details>
-        <details><summary>Is there a macOS or Linux version?</summary><p>Intel Macs require macOS 12 or later. Apple Silicon Macs require macOS 13 or later. Choose the matching download on the <a href="/download/">download page</a>. Linux support is planned.</p></details>
-        <details id="mac-opening"><summary>Why does macOS block the first launch?</summary><p>The current Mac build is not notarized by Apple. After trying to open Arcadium, choose Open Anyway for Arcadium Client. On macOS 12, open System Preferences &gt; Security &amp; Privacy &gt; General. On macOS 13 or later, open System Settings &gt; Privacy &amp; Security. Follow <a href="https://support.apple.com/guide/mac-help/open-a-mac-app-from-an-unknown-developer-mh40616/mac" rel="noopener">Apple's instructions</a> if prompted.</p></details>
-        <details><summary>Where should I report a bug?</summary><p>Report it in <a href="https://discord.gg/QbNfaCHjUz" rel="noopener">Discord</a>. Include the Arcadium version, what happened and the steps needed to reproduce it. Remove account tokens and personal information from logs before sharing them.</p></details>
+        <details><summary>Do I need to install Java?<svg class="icon" aria-hidden="true"><use href="/assets/interface.svg#chevron"/></svg></summary><p>No. The launcher downloads the Java runtime and components needed for your selected version. An internet connection is needed during setup.</p></details>
+        <details><summary>Which Minecraft versions can I play?<svg class="icon" aria-hidden="true"><use href="/assets/interface.svg#chevron"/></svg></summary><p>Arcadium supports Minecraft Java Edition 1.7.10, 1.8.9, 1.21.11 and 26.2. Choose a version in the launcher.</p></details>
+        <details><summary>Can I add other mods?<svg class="icon" aria-hidden="true"><use href="/assets/interface.svg#chevron"/></svg></summary><p>Yes. Use Forge mods on 1.7.10. On 1.8.9, Arcadium supports Forge 1.8.9 mods and compatible Ornithe Gen2 mods. On 1.21.11 and 26.2, use Fabric mods made for that version. Add required libraries too. OptiFine and duplicate performance mods are blocked on 1.8.9.</p></details>
+        <details id="mac-opening"><summary>How do I open Arcadium on a Mac?<svg class="icon" aria-hidden="true"><use href="/assets/interface.svg#chevron"/></svg></summary><p>Download the version for your Mac's processor, open the DMG and drag Arcadium Client into Applications. The current Mac builds are not notarized. If macOS blocks the first launch, follow <a href="https://support.apple.com/guide/mac-help/open-a-mac-app-from-an-unknown-developer-mh40616/mac" target="_blank" rel="noopener noreferrer">Apple's instructions for opening the app</a>.</p></details>
+        <details><summary>Where can I report a problem?<svg class="icon" aria-hidden="true"><use href="/assets/interface.svg#chevron"/></svg></summary><p>Join <a href="https://discord.gg/QbNfaCHjUz" target="_blank" rel="noopener noreferrer">our Discord</a> and include your Arcadium version and steps to reproduce the issue. Remove account tokens and personal information before sharing a log.</p></details>
       </div>
     </section>
+
+    <section class="download-callout container" id="download" aria-labelledby="download-title"><div><p class="overline">Windows &amp; macOS</p><h2 id="download-title">Get Arcadium.</h2></div><div class="callout-actions"><a class="button button-primary" href="/download/">Download client<svg class="icon" aria-hidden="true"><use href="/assets/interface.svg#arrow-down"/></svg></a><a class="text-link" href="https://github.com/1y23qq/arcadium-public/releases/tag/v0.7.4" data-release-notes>Release notes<svg class="icon" aria-hidden="true"><use href="/assets/interface.svg#arrow-up-right"/></svg></a></div></section>
   </main>
 
-  <footer class="site-footer container">
-    <div class="footer-top"><a class="brand" href="/"><img src="/assets/arcadium.svg" width="28" height="28" alt=""><span>Arcadium Client</span></a><nav aria-label="Footer navigation"><a class="discord-link" href="https://discord.gg/QbNfaCHjUz" target="_blank" rel="noopener noreferrer"><img class="discord-logo" src="/assets/discord.svg" width="16" height="12" alt="">Discord</a><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a><a href="https://github.com/1y23qq/arcadiumclient" rel="noopener">GitHub <span aria-hidden="true">↗</span></a></nav></div>
-    <div class="footer-bottom"><span>© 2026 Arcadium Client</span><p>Not an official Minecraft product. Not approved by or associated with Mojang or Microsoft.</p></div>
-  </footer>
+  <footer class="site-footer container"><div class="footer-top"><a class="brand" href="/" aria-label="Arcadium home"><img src="/assets/arcadium.svg" width="26" height="26" alt=""><span>Arcadium</span></a><nav aria-label="Footer navigation"><a href="https://discord.gg/QbNfaCHjUz" target="_blank" rel="noopener noreferrer"><img src="/assets/discord.svg" width="17" height="13" alt="">Discord</a><a href="https://github.com/1y23qq/arcadiumclient" target="_blank" rel="noopener noreferrer">Source code<svg class="icon" aria-hidden="true"><use href="/assets/interface.svg#arrow-up-right"/></svg></a><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a></nav></div><div class="footer-bottom"><span>© 2026 Arcadium Client</span><p>Not an official Minecraft product. Not approved by or associated with Mojang or Microsoft.</p></div></footer>
+  <dialog class="image-dialog" data-image-dialog aria-label="Screenshot preview"><div class="image-dialog-toolbar"><span data-dialog-caption>Screenshot</span><div class="image-dialog-actions"><a class="icon-button" data-dialog-original href="/assets/client-main-menu-d39da5ba1e1d.png" target="_blank" rel="noopener noreferrer" aria-label="Open full image in a new tab"><svg class="icon" aria-hidden="true"><use href="/assets/interface.svg#arrow-up-right"/></svg></a><button class="icon-button" type="button" data-dialog-close aria-label="Close screenshot"><svg class="icon" aria-hidden="true"><use href="/assets/interface.svg#close"/></svg></button></div></div><img data-dialog-image alt=""></dialog>
 </body>
 </html>

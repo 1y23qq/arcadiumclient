@@ -1,6 +1,6 @@
 # Website assets
 
-`public/` contains the handwritten website source restored from stable Arcadium 0.3.6. No private account data is part of this directory.
+`public/` contains the handwritten HTML, CSS and JavaScript for the official website. No private account data is part of this directory.
 
 The Arcadium A and launcher/client screenshots were supplied or already owned by this project.
 
@@ -22,6 +22,10 @@ Their filenames include the first 12 characters of each source file's SHA-256 ha
 
 The performance chart uses a shared zero-based 1000 FPS scale. The testing configuration is collapsed by default. Arcadium bar animation follows the reduced-motion preference and pauses outside the viewport or when the page is hidden.
 
-Manrope, Sora and Inter are distributed under their original SIL Open Font License 1.1 notices in `public/assets/`. Windows, Apple and Linux glyph paths exactly match Font Awesome Free 6.7.2; the Discord glyph is an unmodified copy from the same release. The full CC BY 4.0 legal text, original package license, pinned source URLs and attribution are in `public/assets/platform-icons/`. These symbols identify the corresponding operating systems and Discord service. Trademark rights remain with their owners.
+The current website uses Manrope for all typography. Manrope, and the retained historical Sora and Inter assets, are distributed under their original SIL Open Font License 1.1 notices in `public/assets/`. Windows, Apple and Linux glyph paths exactly match Font Awesome Free 6.7.2; the Discord glyph is an unmodified copy from the same release. The full CC BY 4.0 legal text, original package license, pinned source URLs and attribution are in `public/assets/platform-icons/`. These symbols identify the corresponding operating systems and Discord service. Trademark rights remain with their owners.
+
+`public/assets/interface.svg` contains original Arcadium website interface drawings. They share a 24-pixel coordinate system, 1.65-pixel strokes and rounded line endings, and use the repository's GPL license. No emoji glyphs or external icon runtime are used for interface controls.
+
+Screenshots are displayed in full, with their original proportions. Gallery images use `object-fit: contain`; none are enlarged and cropped to fill their frame. The preview dialog also preserves the full image and provides a direct link to its source asset. Existing screenshot files and comparison readouts have not been altered by the redesign.
 
 Machine-readable hashes and provenance are in `../../licenses/assets/`. The repository's GPL applies to Arcadium code, while third-party fonts and icons retain their specific licenses.

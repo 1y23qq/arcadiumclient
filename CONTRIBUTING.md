@@ -3,8 +3,9 @@
 Read [docs/BUILD.md](docs/BUILD.md) for build requirements and
 [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) before contributing.
 
-Clone `https://github.com/1y23qq/arcadiumclient` and create a branch for your
-change. The launcher is a Rust workspace. `client-ui`, `client-runtime`,
+The maintained source is `main` at `https://github.com/1y23qq/arcadiumclient`.
+This repository keeps a single remote branch. Use a fork for contributions and
+target pull requests at `main`. The launcher is a Rust workspace. `client-ui`, `client-runtime`,
 `forge-compat` and `game-branding` contain the Minecraft components.
 
 Build client components from source before compiling the launcher. Run the tests
