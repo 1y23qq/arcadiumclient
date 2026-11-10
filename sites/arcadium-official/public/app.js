@@ -17,7 +17,7 @@
       mobileMenu.hidden = true;
       menuButton.setAttribute('aria-expanded', 'false');
       menuButton.setAttribute('aria-label', 'Open navigation');
-      menuButton.querySelector('use').setAttribute('href', '/assets/interface-ee9c0a10688a.svg#menu');
+      menuButton.querySelector('use').setAttribute('href', '/assets/interface-4c33e1210fdf.svg#menu');
       if (restoreFocus) menuButton.focus();
     };
     menuButton.hidden = false;
@@ -26,7 +26,7 @@
       mobileMenu.hidden = !open;
       menuButton.setAttribute('aria-expanded', String(open));
       menuButton.setAttribute('aria-label', open ? 'Close navigation' : 'Open navigation');
-      menuButton.querySelector('use').setAttribute('href', `/assets/interface-ee9c0a10688a.svg#${open ? 'close' : 'menu'}`);
+      menuButton.querySelector('use').setAttribute('href', `/assets/interface-4c33e1210fdf.svg#${open ? 'close' : 'menu'}`);
     });
     mobileMenu.addEventListener('click', event => {
       if (event.target.closest('a')) closeMenu();

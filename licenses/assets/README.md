@@ -1,5 +1,7 @@
 # Asset notices
 
+Website generic interface icons use Lucide, pinned to commit `3fef7aca71a50acc54bd2f24f0cc4747c22aa6d2`. Original SVGs and the complete upstream ISC and Feather-derived MIT notices are in `sites/arcadium-official/public/assets/lucide/`. The sprite embeds those notices and preserves the original icon geometry. `site-lucide-20261110.json` records the sources, hashes and stable UI symbol mapping.
+
 Arcadium code is conveyed under GNU GPL version 3. Third-party font and icon files retain the licenses listed below; the GPL does not replace them. Trademark rights are separate from copyright permissions.
 
 The OneConfig fork base is commit `97df4a7651881bbf7ab899aeba7af4f428154a38`. Original generic UI assets and audio have additionally been compared with official commit `82b113fb2f5a5a604238d03675fbbf441047357b`. Both commits carry the same original license, SHA-256 `2afc780cec59015c7c6b0c022924798376414fb9ae64955cfd1b00d82c9c3b99`. `client-ui/LICENSE` matches it byte-for-byte, including the OneConfig Additional Terms version 1.1. `oneconfig-license-provenance.json`, `oneconfig-resource-provenance.json` and `audio-provenance.json` record those checks. Existing changed theme preview SVGs remain derivatives under that license; their Arcadium filenames do not establish independent ownership.
