@@ -74,14 +74,14 @@ class ArcadiumMainMenu(private val showAccounts: Boolean = false) : ArcadiumScre
                             Icon(UI_ASSETS + "logo.svg", UiTextPrimary, Modifier.size(72.dp))
                             UiText("ARCADIUM", 40.sp, fontWeight = FontWeight.Medium)
                             Spacer(Modifier.height(18.dp))
-                            UiButton("Singleplayer", Modifier.fillMaxWidth().height(42.dp), icon = UI_ASSETS + "icons/user.svg") { mc.setScreen(ArcadiumWorldsScreen(this@ArcadiumMainMenu)) }
-                            UiButton("Multiplayer", Modifier.fillMaxWidth().height(42.dp), icon = MENU_ICONS + "profiles.svg") { mc.setScreen(ArcadiumServersScreen(this@ArcadiumMainMenu)) }
+                            UiButton("Singleplayer", Modifier.fillMaxWidth().height(42.dp), icon = MENU_ICONS + "singleplayer.svg") { mc.setScreen(ArcadiumWorldsScreen(this@ArcadiumMainMenu)) }
+                            UiButton("Multiplayer", Modifier.fillMaxWidth().height(42.dp), icon = MENU_ICONS + "multiplayer.svg") { mc.setScreen(ArcadiumServersScreen(this@ArcadiumMainMenu)) }
                             LastServerJoined.address()?.let { address ->
                                 UiButton("Last server: $address", Modifier.fillMaxWidth().height(34.dp)) { LastServerJoined.join(this@ArcadiumMainMenu) }
                             }
                             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                 UiButton("Options", Modifier.weight(1f).height(42.dp), icon = MENU_ICONS + "cog.svg") { mc.setScreen(OptionsScreen(this@ArcadiumMainMenu, mc.options)) }
-                                UiButton("Arcadium Options", Modifier.weight(1f).height(42.dp)) { OneConfigUI.open() }
+                                UiButton("Arcadium Options", Modifier.weight(1f).height(42.dp), icon = MENU_ICONS + "settings.svg") { OneConfigUI.open() }
                             }
                         }
                     }

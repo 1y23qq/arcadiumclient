@@ -1,3 +1,8 @@
+## 0.7.5
+
+- Updated launcher, menu, settings and HUD editor icons with Lucide across all supported Minecraft versions.
+- Added matching icons for built-in modules and improved icon loading across platforms.
+
 ## 0.7.4
 
 - Rolled back the rendering optimizations added in 0.7.3.

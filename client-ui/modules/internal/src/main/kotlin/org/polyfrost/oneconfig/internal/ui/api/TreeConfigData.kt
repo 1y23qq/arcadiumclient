@@ -13,6 +13,7 @@ class TreeConfigData(
     override val source: ConfigSource,
     internal val explicitOnOpen: (() -> Unit)? = null,
 ) : ConfigData {
+    private val moduleIcon = ModuleIconCatalog.forConfig(tree.id.orEmpty())
     val uiTree: Tree
         get() = tree.getMetadata<Supplier<Tree>>("ui_tree_provider")?.get() ?: tree
 
@@ -40,7 +41,7 @@ class TreeConfigData(
      * "icon_name" metadata or null when the mod has no icon
      */
     override val icon: String?
-        get() = tree.getMetadata<String>("mod_card_icon_path")
+        get() = moduleIcon ?: tree.getMetadata<String>("mod_card_icon_path")
             ?: tree.getMetadata<String>("icon_path")
             ?: tree.getMetadata<String>("icon_name")
 

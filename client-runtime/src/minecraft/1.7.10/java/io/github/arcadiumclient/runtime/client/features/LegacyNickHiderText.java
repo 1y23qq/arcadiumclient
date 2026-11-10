@@ -19,7 +19,8 @@ public final class LegacyNickHiderText {
     public static Text display(Text text, String username, String nickname) {
         List<Text> components = new ArrayList<>();
         List<String> runs = new ArrayList<>();
-        for (Text component : text) {
+        for (Object part : text) {
+            Text component = (Text) part;
             components.add(component);
             runs.add(component.getContent());
         }

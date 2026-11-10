@@ -3,6 +3,11 @@
 The source supports Minecraft 1.8.9, 1.7.10, 1.21.11 and 26.2. Build the Java client components before
 compiling the native launcher. No prebuilt Arcadium client JAR is required.
 
+Generic client and launcher icons use pinned Lucide SVGs. Run `python scripts/sync_lucide_icons.py --check`
+to verify the shared resources, aliases and license copies. Intentional icon updates use the same script
+without `--check`; brand assets are excluded. Core UI tests run through `:modules:internal:j21Tests`
+and `:modules:ui:j21Tests`, rather than the disabled default test tasks.
+
 Install JDK 25, Python 3.12 or newer, Rust with Cargo, and the native build tools
 for your operating system. Dependencies are downloaded from their upstream
 repositories during the first build.

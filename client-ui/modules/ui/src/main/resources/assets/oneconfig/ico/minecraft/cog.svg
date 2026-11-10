@@ -1,10 +1,14 @@
-<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0_2_487)">
-<path d="M4 20H7V18H11V22H13V18H17V20H15V24H9V20H7V22H2V17H4V20ZM22 22H17V20H20V17H22V22ZM6 11H2V13H6V17H4V15H0V9H4V7H6V11ZM20 9H24V15H20V17H18V13H22V11H18V7H20V9ZM14 16H10V14H14V16ZM10 14H8V10H10V14ZM16 14H14V10H16V14ZM14 10H10V8H14V10ZM7 4H4V7H2V2H7V4ZM15 4H17V2H22V7H20V4H17V6H13V2H11V6H7V4H9V0H15V4Z" fill="#DFEAFF"/>
-</g>
-<defs>
-<clipPath id="clip0_2_487">
-<rect width="24" height="24" fill="white"/>
-</clipPath>
-</defs>
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915" />
+  <circle cx="12" cy="12" r="3" />
 </svg>

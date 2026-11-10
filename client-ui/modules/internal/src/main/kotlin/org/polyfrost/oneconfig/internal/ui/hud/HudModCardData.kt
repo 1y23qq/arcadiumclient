@@ -10,6 +10,7 @@ import org.polyfrost.oneconfig.api.hud.v1.LegacyHudMarker
 import org.polyfrost.oneconfig.internal.ui.api.ConfigData
 import org.polyfrost.oneconfig.internal.ui.api.ConfigRegistry
 import org.polyfrost.oneconfig.internal.ui.api.ConfigSource
+import org.polyfrost.oneconfig.internal.ui.api.ModuleIconCatalog
 import org.polyfrost.oneconfig.internal.ui.components.asRenderText
 import org.polyfrost.oneconfig.internal.ui.components.localizedValue
 import org.polyfrost.oneconfig.internal.ui.hud.components.HudPreview
@@ -88,8 +89,13 @@ internal class HudModCardData(
 
     override val description: String? = hud.description
 
-    override val icon: String? = if (hud is LegacyHudMarker && !isCompatHud(hud)) null else {
-        HudManager.iconFor(ownerId)
+    private val moduleIcon = if (hud.javaClass.name.startsWith("org.polyfrost.") ||
+        hud.javaClass.name.startsWith("io.github.arcadiumclient.")) {
+        ModuleIconCatalog.forHud(hud.id, title.asRenderText())
+    } else null
+
+    override val icon: String? = if (hud is LegacyHudMarker && !isCompatHud(hud)) moduleIcon else {
+        moduleIcon ?: HudManager.iconFor(ownerId)
             ?: owner?.icon
             ?: if (ownerId == BUILTIN_HUD_CONFIG_ID) BUILTIN_HUD_ICON else "hud"
     }

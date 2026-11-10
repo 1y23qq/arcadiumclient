@@ -107,6 +107,7 @@ jobs:
         run: |
           gh release download "$BUILD_TAG" --repo "$GITHUB_REPOSITORY" --pattern ArcadiumBuildInputs.zip --dir "$RUNNER_TEMP/components"
           python3 scripts/import_build_components.py "$RUNNER_TEMP/components/ArcadiumBuildInputs.zip" --sha256 "$COMPONENT_SHA256"
+          python3 scripts/audit_client_icons.py
       - name: Build launcher and verify accent rendering
         if: inputs.mode == 'package' || inputs.mode == 'package-all'
         run: |
@@ -130,6 +131,7 @@ jobs:
             build/macos-compatibility-tests.json
             build/macos-native-helper-tests.json
             build/theme-accent-evidence/
+            build/client-icon-audit.json
           if-no-files-found: warn
           retention-days: 3
 
@@ -178,6 +180,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Could not download the component archive.' }
           python scripts/import_build_components.py "$env:RUNNER_TEMP/components/ArcadiumBuildInputs.zip" --sha256 $env:COMPONENT_SHA256
           if ($LASTEXITCODE -ne 0) { throw 'Component archive verification failed.' }
+          python scripts/audit_client_icons.py
+          if ($LASTEXITCODE -ne 0) { throw 'Client icon audit failed.' }
       - name: Fetch locked packaging metadata
         shell: pwsh
         run: |
@@ -206,6 +210,10 @@ jobs:
             cargo build --release --locked --target x86_64-pc-windows-msvc -p arcadium_app --bin Arcadium
           }
           if ($LASTEXITCODE -ne 0) { throw 'Windows launcher build failed.' }
+          if ($env:BUILD_MODE -ne 'warm-windows') {
+            cargo build --release --locked --target x86_64-pc-windows-msvc -p arcadium_core --example verify_arcadium
+            if ($LASTEXITCODE -ne 0) { throw 'Runtime verification helper build failed.' }
+          }
       - name: Package and verify Windows installer
         if: inputs.mode != 'warm-windows'
         shell: pwsh
@@ -228,7 +236,18 @@ jobs:
             build/installers/package-manifest.json
             build/windows-*-installer-checks.json
             build/windows-*-native-helper-tests.json
+            build/client-icon-audit.json
           if-no-files-found: warn
+          retention-days: 3
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: inputs.mode != 'warm-windows'
+        with:
+          name: windows-runtime-verifier
+          path: |
+            target/x86_64-pc-windows-msvc/release/examples/verify_arcadium.exe
+            target/x86_64-pc-windows-msvc/release/Arcadium.exe
+          if-no-files-found: error
           retention-days: 3
 
   resident-renderer:

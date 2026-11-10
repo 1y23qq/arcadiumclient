@@ -306,11 +306,12 @@ private fun rememberIconRasterPainter(path: String): Painter? {
 fun warmIconCache(names: Collection<String>) = IconResource.warm(names)
 
 fun canRenderIcon(iconName: String): Boolean {
+    if (IconResource.exists(iconName.toIconResourcePath())) return true
     if (iconName.contains('/') || iconName.contains('.')) {
         val file = File(iconName)
         if (file.isAbsolute) return file.isFile
     }
-    return IconResource.exists(iconName.toIconResourcePath())
+    return false
 }
 
 private fun String.toIconResourcePath(): String =

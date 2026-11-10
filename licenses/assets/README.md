@@ -1,5 +1,7 @@
 # Asset notices
 
+Client and launcher generic icons use Lucide at commit `3fef7aca71a50acc54bd2f24f0cc4747c22aa6d2`. `client-lucide.json` records every upstream SVG hash and resource alias. Complete ISC and Feather-derived MIT notices are in `lucide/LICENSE.txt` and included in the client UI JARs and native packages. The same shared UI assets serve Minecraft 1.7.10, 1.8.9, 1.21.11 and 26.2. Brand logos retain their existing notices.
+
 Website generic interface icons use Lucide, pinned to commit `3fef7aca71a50acc54bd2f24f0cc4747c22aa6d2`. Original SVGs and the complete upstream ISC and Feather-derived MIT notices are in `sites/arcadium-official/public/assets/lucide/`. The sprite embeds those notices and preserves the original icon geometry. `site-lucide-20261110.json` records the sources, hashes and stable UI symbol mapping.
 
 Arcadium code is conveyed under GNU GPL version 3. Third-party font and icon files retain the licenses listed below; the GPL does not replace them. Trademark rights are separate from copyright permissions.

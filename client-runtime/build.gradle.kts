@@ -9,7 +9,7 @@ plugins {
 group = "io.github.arcadiumclient"
 base.archivesName = "ArcadiumRuntime"
 val minecraftVersion = providers.gradleProperty("minecraftVersion").getOrElse("1.8.9")
-version = if (minecraftVersion == "1.7.10") "0.7.1" else "0.7.4"
+version = "0.7.5"
 require(minecraftVersion in setOf("1.7.10", "1.8.9")) { "Unsupported Minecraft version: $minecraftVersion" }
 if (minecraftVersion == "1.7.10") layout.buildDirectory.set(layout.projectDirectory.dir("build/1.7.10"))
 
