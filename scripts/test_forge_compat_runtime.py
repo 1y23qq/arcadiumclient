@@ -265,8 +265,10 @@ def prepare_case(base: Path, name: str, args, references: CacheReferences, java:
         raise ValueError("The development QA archive has the wrong identity")
     files.append(copy_verified(args.qa_jar, mods / "ArcadiumFeatureTest-dev.jar"))
     runtime_metadata = mod_metadata(args.compat_jar)
-    if runtime_metadata.get("id") != "arcadium_forge_compat" or runtime_metadata.get("version") != VERSION:
-        raise ValueError(f"The Forge compatibility component is not the current {VERSION} build")
+    from package_client import source_artifact_version
+    compat_version = source_artifact_version(ROOT, "forge-compat", VERSION)
+    if runtime_metadata.get("id") != "arcadium_forge_compat" or runtime_metadata.get("version") != compat_version:
+        raise ValueError(f"The Forge compatibility component does not match its source version {compat_version}")
     runtime = mods / "ArcadiumForgeCompat-1.8.9.jar"
     files.append(copy_verified(args.compat_jar, runtime))
     native_ids.append(runtime_metadata["id"])

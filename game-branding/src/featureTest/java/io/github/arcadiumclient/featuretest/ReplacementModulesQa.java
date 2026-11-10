@@ -184,10 +184,18 @@ public final class ReplacementModulesQa {
             require(marked.indexOf('\u2063') >= 0 && marked.indexOf('\u2064') >= 0, "Animated Arcadium prefix markers were removed by chat wrapping");
             result.put("timestampAndAnimatedPrefixMetadata", true);
 
-            set(sprintConfig, "toggleSprintState", true); set(sprintConfig, "toggleSneakState", false);
-            require(String.valueOf(invoke(sprintHud, "getText")).contains("Toggled"), "Sprint HUD lost its toggled state label");
-            set(sprintConfig, "toggleSneak", true); set(sprintConfig, "toggleSneakState", true);
-            require(String.valueOf(invoke(sprintHud, "getText")).startsWith("Sneaking"), "Sprint HUD did not prioritize the sneak state");
+            boolean wasFlying = client.player.abilities.flying;
+            try {
+                client.player.abilities.flying = false;
+                set(sprintConfig, "toggleSprintState", true); set(sprintConfig, "toggleSneakState", false);
+                require(String.valueOf(invoke(sprintHud, "getText")).contains("Toggled"), "Sprint HUD lost its toggled state label");
+                set(sprintConfig, "toggleSneak", true); set(sprintConfig, "toggleSneakState", true);
+                require(String.valueOf(invoke(sprintHud, "getText")).startsWith("Sneaking"), "Sprint HUD did not prioritize the sneak state");
+                client.player.abilities.flying = true;
+                require(String.valueOf(invoke(sprintHud, "getText")).equals("Flying"), "Sprint HUD did not prioritize active flight");
+            } finally {
+                client.player.abilities.flying = wasFlying;
+            }
             result.put("sprintAndSneakHudLabels", true);
         } finally {
             restore(chatConfig, savedChat); restore(sprintConfig, savedSprint); restore(filterConfig, savedFilters);

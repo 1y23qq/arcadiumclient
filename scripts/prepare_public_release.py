@@ -212,7 +212,7 @@ def update_site(version, stable, platforms, preserve_missing=False):
     for page in [website / "index.html", website / "download/index.html"]:
         content = page.read_text(encoding="utf-8")
         for key, value in common.items():
-            pattern = rf"(\bdata-release-{key}(?:\s[^>]*)?>)[^<]*(</[a-zA-Z][^>]*>)"
+            pattern = rf'(\bdata-release-{key}(?:="")?(?:\s[^>]*)?>)[^<]*(</[a-zA-Z][^>]*>)'
             content = re.sub(pattern, lambda match: match[1] + escape(value) + match[2], content)
         for platform, download in metadata["platforms"].items():
             values = {"file": download["file"], "size": f"{download['bytes'] / 1000000:.1f} MB",

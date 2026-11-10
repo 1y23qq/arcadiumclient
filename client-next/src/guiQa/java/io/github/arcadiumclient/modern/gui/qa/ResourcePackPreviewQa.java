@@ -68,13 +68,20 @@ public final class ResourcePackPreviewQa {
             previews.add(Map.of("id", id, "width", bitmap.getWidth(), "height", bitmap.getHeight()));
         }
         Object old = find(views, OLD);
-        if (!Boolean.FALSE.equals(property(old, "getCompatible"))) throw new IllegalStateException("Old pack passed the compatibility filter");
+        var current = SharedConstants.getCurrentVersion().packVersion(PackType.CLIENT_RESOURCES);
+        boolean converted = io.github.arcadiumclient.shared.packs.PackConversion.prepared(
+            Minecraft.getInstance().getResourcePackDirectory().resolve(OLD),
+            new io.github.arcadiumclient.shared.packs.PackConversion.Target(current.major(), current.minor()));
+        if (!Boolean.valueOf(converted).equals(property(old, "getCompatible")))
+            throw new IllegalStateException("Legacy pack compatibility disagrees with its conversion state");
+        result.put("legacyPackConverted", converted);
         var available = new ArrayList<Object>();
         for (Object view : views) if (Boolean.TRUE.equals(property(view, "getCompatible"))) available.add(view);
         List<String> visible = rowKeys(available, "large");
         for (String key : List.of("folder:QA Previews", "folder:QA Previews/Favorites", "pack:" + FOLDER, "pack:" + ZIP))
             if (!visible.contains(key)) throw new IllegalStateException("Compatible nested pack search lost its parent hierarchy: " + key);
-        if (rowKeys(available, "Legacy Format").contains("pack:" + OLD)) throw new IllegalStateException("Incompatible pack remains in the filtered tree");
+        if (rowKeys(available, "Legacy Format").contains("pack:" + OLD) != converted)
+            throw new IllegalStateException("Compatibility filter did not honor legacy pack conversion");
         if (!rowKeys(views, "Legacy Format").contains("pack:" + OLD)) throw new IllegalStateException("Disabling the filter does not reveal incompatible packs");
         result.put("compatibleNestedSearch", visible);
         result.put("incompatibleVisibleWithFilterOff", true);
@@ -208,8 +215,16 @@ public final class ResourcePackPreviewQa {
                 }
                 case 7 -> { if (visibleCard(OLD, false) == null) return; click("Enable pack"); next(); }
                 case 8 -> {
-                    require(state(screen, "pending").getValue() != null, "Incompatible pack did not request confirmation");
-                    click("Use pack"); next();
+                    @SuppressWarnings("unchecked") List<Object> packs = (List<Object>) state(screen, "packs").getValue();
+                    boolean compatible = Boolean.TRUE.equals(property(ResourcePackPreviewQa.find(packs, OLD), "getCompatible"));
+                    if (compatible) {
+                        require(state(screen, "pending").getValue() == null && active().contains(OLD),
+                            "Converted compatible pack did not activate directly");
+                    } else {
+                        require(state(screen, "pending").getValue() != null, "Incompatible pack did not request confirmation");
+                        click("Use pack");
+                    }
+                    next();
                 }
                 case 9 -> {
                     require(active().contains(OLD), "Native pack confirmation did not activate the pack");

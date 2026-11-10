@@ -869,8 +869,7 @@ public final class ForgeQa {
                 Path source = mc.gameDir.toPath().resolve("screenshots/forge-qa-" + name);
                 if (!Files.isRegularFile(source)) continue;
                 byte[] bytes = Files.readAllBytes(source);
-                int n = bytes.length;
-                if (n < 24 || bytes[n - 8] != 'I' || bytes[n - 7] != 'E' || bytes[n - 6] != 'N' || bytes[n - 5] != 'D') continue;
+                if (!completePng(bytes)) continue;
                 Files.createDirectories(output(mc));
                 Files.write(output(mc).resolve(name), bytes);
                 if (name.equals("02-world.png")) verifyFpsPixels(source);
@@ -920,6 +919,22 @@ public final class ForgeQa {
         }
         require(white > 8, "The FPS text is missing from its actual screenshot bounds");
         CHECKS.put("arcadiumFpsPixels", Map.of("whiteTextPixels", white, "bounds", List.of(x, y, right, bottom)));
+    }
+
+    private static boolean completePng(byte[] bytes) {
+        int offset = 8;
+        while (offset <= bytes.length - 12) {
+            int length = java.nio.ByteBuffer.wrap(bytes, offset, 4).getInt();
+            if (length < 0 || length > bytes.length - offset - 12) return false;
+            var crc = new java.util.zip.CRC32();
+            crc.update(bytes, offset + 4, length + 4);
+            long expected = Integer.toUnsignedLong(java.nio.ByteBuffer.wrap(bytes, offset + 8 + length, 4).getInt());
+            if (crc.getValue() != expected) return false;
+            if (bytes[offset + 4] == 'I' && bytes[offset + 5] == 'E' && bytes[offset + 6] == 'N' && bytes[offset + 7] == 'D')
+                return length == 0 && offset + 12 == bytes.length;
+            offset += 12 + length;
+        }
+        return false;
     }
 
     private static void take(String name) { require(capture == null, "A Forge QA screenshot is already queued"); capture = name; }

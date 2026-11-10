@@ -120,7 +120,7 @@ final class PlayMenusQa {
                     screen = mc.screen;
                     require(screen.getClass().getSimpleName().equals("ArcadiumCreateWorldScreen"), "Create world did not use the Arcadium screen");
                     Object delegate = field(screen, "delegate");
-                    var buttons = (List<?>) invoke(delegate, "polyplus$buttons");
+                    var buttons = (List<?>) invoke(delegate, "arcadium$buttons");
                     String options = buttons.stream().map(ButtonWidget.class::cast).filter(button -> button.id == 3).findFirst().orElseThrow().message;
                     capture(mc, "play-menus-07-create-world.png");
                     click(options);
